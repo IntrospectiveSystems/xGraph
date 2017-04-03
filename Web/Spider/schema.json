@@ -1,0 +1,11 @@
+{
+  "Spider": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"$Global": "Spider",
+	"Entity": "Http.js",
+	"Port": "$Port",
+	"Url": "$Url",
+	"Login": "$Login"
+  }
+}
