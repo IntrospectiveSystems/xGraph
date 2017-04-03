@@ -1,0 +1,26 @@
+{
+  "xGraph": "c:/xGraph",
+  "Cache": "Cache",
+  "Root":"C:/xGraph/work/Root",
+  "Modules":{
+	"Spider":{
+	  "Module": "xGraph:Web/Spider",
+	  "Par": {
+		"Port": 8080,
+		"Url": "Paint",
+		"Login":"$Login.Html"
+	  }
+	},
+	"Nexus":{
+	  "Module": "xGraph:Nexus/Nexus",
+	  "Par": {
+	  }
+	},
+	"Login":{
+	  "Module":"xGraph:Web/Html",
+	  "Par": {
+		"Html": "{Root}/Html/Login.html"
+	  }
+	}
+  }
+}

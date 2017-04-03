@@ -1,0 +1,7 @@
+{
+  "Html": {
+	"$Global": "Html",
+	"Entity": "Html.js",
+	"Html": "$Html"
+  }
+}
