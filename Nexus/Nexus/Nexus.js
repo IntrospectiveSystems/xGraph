@@ -33,7 +33,7 @@
 
 	var config = 'Config.json';
 	if('Config' in Params)
-		onfig = Params.Config;
+		config = Params.Config;
 	let str = fs.readFileSync(config);
 	let val;
 	if (str) {
@@ -478,7 +478,7 @@
 	};
 
 	//-----------------------------------------------------Genesis
-	// Create cache if it does nto exist and populate
+	// Create cache if it does not exist and populate
 	// This is called only once when a new systems is
 	// first instantiated
 	function Genesis(fun) {
@@ -577,6 +577,7 @@
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
+
 		fs.exists(path, compile);
 
 		function compile(yes) {
