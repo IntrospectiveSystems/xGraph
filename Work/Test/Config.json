@@ -1,8 +1,7 @@
 {
-  "xGraph": "c:/xGraph",
-  "Cache": "Cache",
-  "Root":"C:/xGraph/work/Root",
-  "Modules":{
+  "xGraph": "{xGraph}",
+  "Cache": "cache",
+   "Modules":{
 	"Spider":{
 	  "Module": "xGraph:Web/Spider",
 	  "Par": {
@@ -19,7 +18,12 @@
 	"Login":{
 	  "Module":"xGraph:Web/Html",
 	  "Par": {
-		"Html": "{Root}/Html/Login.html"
+		"Html": "{Root}/Html/Login.html",
+		"Styles":[
+		],
+		"Scripts":[
+		  "jUuery.js"
+		]
 	  }
 	}
   }

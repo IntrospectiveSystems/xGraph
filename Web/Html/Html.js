@@ -10,6 +10,7 @@
 	};
 
 	function genPage(com, fun) {
+		console.log('--Html/genPage');
 		var par = this.Par;
 		var page = '';
 		page += '<!DOCTYPE html>\n';
@@ -17,15 +18,8 @@
 		page += '<meta charset="utf-8" />\n';
 		page += '<head>\n';
 		page += '<title>GIS Screen</title>\n';
-		var cfg = __Config;
 		if ('Styles' in par) {
 			var style = par.Styles;
-			for (var isty = 0; isty < style.length; isty++) {
-				page += '<link rel="stylesheet" type="text/css" href="' + style[isty] + '">\n';
-			}
-		}
-		if ('Styles' in cfg) {
-			var style = cfg.Styles;
 			for (var isty = 0; isty < style.length; isty++) {
 				page += '<link rel="stylesheet" type="text/css" href="' + style[isty] + '">\n';
 			}
@@ -35,12 +29,6 @@
 		page += '<script src="Nxs.js"></script>\n';
 		if ('Scripts' in par) {
 			var script = par.Scripts;
-			for (var iscr = 0; iscr < script.length; iscr++) {
-				page += '<script src="' + script[iscr] + '"></script>\n';
-			}
-		}
-		if ('Scripts' in cfg) {
-			var script = cfg.Scripts;
 			for (var iscr = 0; iscr < script.length; iscr++) {
 				page += '<script src="' + script[iscr] + '"></script>\n';
 			}
@@ -60,7 +48,9 @@
 		page += '</div>\n';
 		page += '</body>\n';
 		com.Html = page;
-		fun(null, com);
+		console.log(page);
+		if(fun)
+			fun(null, com);
 	}
 
 })();
