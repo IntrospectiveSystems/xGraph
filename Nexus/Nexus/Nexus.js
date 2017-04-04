@@ -33,7 +33,7 @@
 
 	var config = 'Config.json';
 	if('Config' in Params)
-		onfig = Params.Config;
+		config = Params.Config;
 	let str = fs.readFileSync(config);
 	let val;
 	if (str) {
@@ -152,8 +152,8 @@
 		var to = com.Passport.To;
 		if (to.charAt(0) == '$') {
 			var sym = to.substr(1);
-			if (sym in Globals) {
-				com.Passport.To = Globals[sym];
+			if (sym in Root.Global) {
+				com.Passport.To = Root.Global[sym];
 			} else
 			if (sym in Root.SymTab) {
 				com.Passport.To = Pid24 + Root.SymTab[sym];
@@ -162,7 +162,7 @@
 		var pid = com.Passport.To;
 		var pid24 = pid.substr(0, 24);
 		if(pid24 != Pid24) {
-			console.log(' ** ERR:Misdirected message, pid');
+			console.log(' ** ERR:Misdirected message, pid:' + pid);
 			console.log('    ', JSON.stringify(com));
 			console.trace();
 			if(fun)
@@ -187,10 +187,10 @@
 			return;
 		}
 
-		function reply() {
+		function reply(err, q) {
 			//	console.log('..Nexus/send/reply', com.Cmd, com.Passport);
 			if(fun)
-				fun(null, com);
+				fun(null, q);
 		}
 	}
 
@@ -322,7 +322,6 @@
 			}
 			//	console.log('Entity/send/this', this);
 			//	console.log('Entity/send/Nxs', that.Nxs);
-			console.log('Nxs', Nxs);
 			Nxs.sendMessage(com, fun);
 		}
 
@@ -621,13 +620,13 @@
 					for (let key in obj) {
 						val = obj[key];
 						if (key == '$Local') {
-							Root.SymTab[val] = obj.Pid.substr(24);
+							Root.SymTab[val] = obj.Pid;
 							continue;
 						}
 						if (key == '$Global') {
 							if(CurrentModule) {
 								sym = CurrentModule + '.' + val;
-								Root.Global[sym] = obj.Pid.substr(24);
+								Root.Global[sym] = obj.Pid;
 							}
 							continue;
 						}

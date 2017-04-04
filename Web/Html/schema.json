@@ -2,6 +2,8 @@
   "Html": {
 	"$Global": "Html",
 	"Entity": "Html.js",
-	"Html": "$Html"
+	"Html": "$Html",
+	"Styles":"$Styles",
+	"Scripts": "$Scripts"
   }
 }

@@ -129,6 +129,9 @@
 	// ignore the request to confuse the hackers.
 	function Get(that, req, res) {
 		console.log('--Get');
+		var pass = [
+				'images/IntrospectiveLogo.png'
+		]
 		var Par = that.Par;
 		var Vlt = that.Vlt;
 		let url = req.url;
@@ -139,8 +142,17 @@
 			var arr = cookie.split(';');
 			console.log('Cookie\n', JSON.stringify(arr, null, 2));
 		} else {
+			if('Url' in Par && url == Par.Url) {
+				url = 'html/Login.html';
+				get();
+				return;
+			}
+			if(pass.indexOf(url) >= 0) {
+				get();
+				return;
+			}
 			console.log(' ** No cookie for you');
-			authenticate(pau);
+		//	authenticate(pau);
 		}
 
 		//.................................................authenticate
@@ -151,7 +163,7 @@
 				return;
 			}
 			var q = {};
-			q.Cmd = 'Login';
+			q.Cmd = 'GenPage';
 			console.log(JSON.stringify(q, null, 2));
 			that.send(q, Par.Login, html);
 
@@ -164,6 +176,9 @@
 					next('No HTML');
 					return;
 				}
+				var page = q.Html;
+				res.setHeader('Content-Type', 'text/html');
+				res.end(page);
 			}
 		}
 
@@ -173,18 +188,7 @@
 
 		//.................................................get
 		function get() {
-			url = req.url;
-			if (url.charAt(0) == '/')
-				url = url.substr(1);
-			var path;
-			var root = __Config.Root;
-			var redirect = __Config.Redirect;
-			if (url in redirect) {
-				path = __Path(redirect[url]);
-			} else {
-				path = root + '/' + url;
-			}
-
+			var path = url;
 			fs.readFile(path, done);
 
 			function done(err, data) {
@@ -238,6 +242,7 @@
 					res.end(err);
 					return;
 				}
+				console.log('..Sending', url, mime);
 				res.setHeader('Content-Type', mime);
 				res.end(data);
 			}
