@@ -13,6 +13,7 @@
 	var Mod = {};
 	var Nxs = {
 		genPid: genPid,
+		genPath: genPath,
 		sendMessage: sendMessage
 	}
 	console.log('=================================================');
@@ -405,10 +406,16 @@
 	}
 
 	//---------------------------------------------------------genPath
-	function genPath(file) {
+	function genPath(filein) {
 		var cfg = Config;
 		var path;
 		var parts;
+		var file = filein;
+		if(Config.Redirect) {
+			if(file in Config.Redirect)
+				file = Config.Redirect[file];
+			console.log('Nexus/genPath', filein, file);
+		}
 		if (file.charAt(0) == '/')
 			return file;
 		if (file.charAt(0) == '{') { // Macro
@@ -435,7 +442,7 @@
 				return;
 			}
 		} else {
-			console.log(' ** ERR:Too many components in redirect');
+			path = file;
 		}
 		return path;
 	}
@@ -685,6 +692,7 @@
 				}
 				if(str.charAt(0) == '$') {
 					if('Par' in mod) {
+						console.log('mod.Par', mod.Par);
 						var par = str.substr(1);
 						if(par in mod.Par) {
 							return mod.Par[par];

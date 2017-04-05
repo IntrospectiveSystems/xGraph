@@ -60,6 +60,7 @@
 			var Sockets = vlt.Sockets;
 
 			listener.sockets.on('connection', function (socket) {
+				console.log('sock/connection');
 				var pid = that.Nxs.genPid();
 				var pidsock = pid.substr(0, 24);
 				var obj = {};
@@ -94,6 +95,8 @@
 
 				socket.on('message', function (msg) {
 					var com = JSON.parse(msg);
+					console.log('>>Msg:' + com.Cmd);
+					console.log(com);
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
 						return;
@@ -108,7 +111,7 @@
 						that.Nxs.send(com);
 						return;
 					}
-					that.Nxs.send(com, reply);
+					that.send(com, reply);
 
 					function reply(err, cmd) {
 						if (cmd) {
@@ -129,30 +132,37 @@
 	// ignore the request to confuse the hackers.
 	function Get(that, req, res) {
 		console.log('--Get');
-		var pass = [
-				'images/IntrospectiveLogo.png'
-		]
 		var Par = that.Par;
-		var Vlt = that.Vlt;
-		let url = req.url;
+		var url = req.url;
 		if (url.charAt(0) == '/')
 			url = url.substr(1);
-		if(req.headers.cookie) {
-			var cookie = req.headers.cookie;
-			var arr = cookie.split(';');
-			console.log('Cookie\n', JSON.stringify(arr, null, 2));
-		} else {
-			if('Url' in Par && url == Par.Url) {
-				url = 'html/Login.html';
-				get();
+		if(!Par.Url || url != Par.Url) {
+			get();
+			return;
+		}
+		console.log(Par);
+		if(!Par.Page) {
+			console.log(' **ERR:No page generator provided');
+			return;
+		}
+		let q = {};
+		q.Cmd = 'GenPage';
+		let gen = Par.Page;
+		console.log('Par.Page', gen);
+		that.send(q, gen, html);
+
+		function html(err, com) {
+			if (err || !('Html' in com)) {
+				var err = 'Page <' + url + '> not available';
+				console.log('ERR:' + err);
+				res.writeHead(404);
+				res.end(err);
 				return;
 			}
-			if(pass.indexOf(url) >= 0) {
-				get();
-				return;
-			}
-			console.log(' ** No cookie for you');
-		//	authenticate(pau);
+			var page = com.Html;
+			console.log('Page...\n', JSON.stringify(page, null, 2));
+			res.setHeader('Content-Type', 'text/html');
+			res.end(page);
 		}
 
 		//.................................................authenticate
@@ -185,10 +195,10 @@
 		function pau() {
 		}
 
-
 		//.................................................get
 		function get() {
-			var path = url;
+			var path = that.Nxs.genPath(url);
+			console.log('genPath', url, '->', path);
 			fs.readFile(path, done);
 
 			function done(err, data) {

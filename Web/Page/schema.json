@@ -1,0 +1,8 @@
+{
+  "Page": {
+	"$Global":"Generate",
+	"Entity": "Page.js",
+	"Styles":"$Styles",
+	"Scripts":"$Scripts"
+  }
+}
