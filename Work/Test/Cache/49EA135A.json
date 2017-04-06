@@ -1,0 +1,11 @@
+{
+  "$Setup": "Setup",
+  "$Start": "Start",
+  "$Global": "Spider",
+  "Entity": "Http.js",
+  "Port": 8080,
+  "Url": "Paint",
+  "Login": "$Login.Html",
+  "Module": "xGraph:Web/Spider",
+  "Pid": "8FEB7420B26B4850900F86D249EA135A"
+}

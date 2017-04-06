@@ -1,0 +1,7 @@
+{
+  "$Global": "Html",
+  "Entity": "Html.js",
+  "Html": "{Root}/Html/Login.html",
+  "Module": "xGraph:Web/Html",
+  "Pid": "8FEB7420B26B4850900F86D2791A368A"
+}
