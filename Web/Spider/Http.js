@@ -61,8 +61,9 @@
 
 			listener.sockets.on('connection', function (socket) {
 				console.log('sock/connection');
-				var pid = that.Nxs.genPid();
-				var pidsock = pid.substr(0, 24);
+				var pidsock = ''
+				for(var i=0; i<3; i++)
+					pidsock += that.Nxs.genPid().substr(24);
 				var obj = {};
 				obj.Socket = socket;
 				if (that.Par.Authenticate && !com.Passport.User) {
@@ -108,10 +109,10 @@
 
 					com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
-						that.Nxs.send(com);
+						that.Nxs.send(com, com.Passport.To);
 						return;
 					}
-					that.send(com, reply);
+					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
 						if (cmd) {

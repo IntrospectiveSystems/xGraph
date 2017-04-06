@@ -5,6 +5,7 @@ __Nexus = (function() {
 	var PidNxs;
 	var PidTop;
 	var PidStart;
+	var Config;
 	var EntCache = {};
 	var ModCache = {};
 	var SymTab = {};
@@ -27,6 +28,9 @@ __Nexus = (function() {
 
 	function start(config) {
 		console.log(' ** Nxs config', config);
+		Config = JSON.parse(config);
+		console.log('Config...\n');
+		console.log(JSON.stringify(Config, null, 2));
 		SockIO = io();
 		var that = this;
 		if(typeof __Start !== 'undefined') {
@@ -39,14 +43,13 @@ __Nexus = (function() {
 		});
 
 		SockIO.on('connect', function () {
-		//	console.log('SockIO connection established');
+			console.log('SockIO connection established');
 			SendIO = SockIO.send;
 		});
 
 		SockIO.on('message', function (data) {
 			var cmd = JSON.parse(data);
-			if(__Config.TrackIO)
-				console.log(' << Msg:' + cmd.Cmd);
+			console.log(' << Msg:' + cmd.Cmd);
 			switch (cmd.Cmd) {
 			case 'SetPid':
 				Pid24 = cmd.Pid24;
@@ -54,7 +57,7 @@ __Nexus = (function() {
 					__Config = cmd.Config;
 				PidNxs = Pid24 + '00000000';
 			//	console.log('Pid24 <=', Pid24);
-				engage();
+				Genesis(pau);
 				break;
 			default:
 				//	console.log('cmd', cmd);
@@ -95,6 +98,10 @@ __Nexus = (function() {
 					var str = JSON.stringify(cmd);
 					SockIO.send(str);
 				}
+			}
+
+			function pau(err) {
+				console.log('..pau');
 			}
 
 		});
@@ -182,32 +189,6 @@ __Nexus = (function() {
             console.log(' >> Msg:' + com.Cmd);
         SockIO.send(str);
 
-/*
-		if (pid) {
-			com.Passport.To = pid;
-			console.log(pid);
-			debugger;
-            if (pid.charAt(0) == '$' && pid.substr(1) in SymTab) {
-            	pid = SymTab[pid.substr(1)];
-            	sendLocal();
-			} else if (pid.substr(0, 24) == Pid24) {
-                sendLocal();
-			} else {
-                if (fun) {
-                    MsgPool[pidmsg] = fun;
-                    MsgFifo.push(pidmsg);
-                    if (MsgFifo.length > 100) {
-                        var kill = MsgFifo.shift();
-                        delete MsgPool[kill];
-                    }
-                }
-                var str = JSON.stringify(com);
-                if(__Config.TrackIO)
-                    console.log(' >> Msg:' + com.Cmd);
-                SockIO.send(str);
-			}
-		}
-*/
 		function sendLocal() {
             if (pid in EntCache) {
                 var ent = EntCache[pid];
@@ -345,6 +326,43 @@ __Nexus = (function() {
 		for (var i = 0; i < 8; i++)
 			pid += hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
 		return pid;
+	}
+
+	//-----------------------------------------------------Genesis
+	// Create cache if it does nto exist and populate
+	// This is called only once when a new systems is
+	// first instantiated
+	function Genesis(fun) {
+		console.log('--Nxs/Genesis');
+		var path;
+		var obj;
+		var package;
+		// Merge npm package dependencies
+		var keys = Object.keys(Config.Modules);
+		var nkeys = keys.length;
+		var ikey = 0;
+		nextmodule();
+
+		function nextmodule() {
+			console.log('..nextmodule')
+			if(ikey >= nkeys) {
+				fun();
+				return;
+			}
+			var key = keys[ikey];
+			var mod = Config.Modules[key];
+			var com = {};
+			com.Cmd = 'GetModule';
+			com.Module = mod.Module;
+			console.log(com);
+			send(com, Config.pidServer, addmodule);
+			ikey++;
+		}
+
+		function addmodule(err, com) {
+			console.log('..addmodule');
+			nextmodule();
+		}
 	}
 
 })();
