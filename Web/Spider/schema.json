@@ -6,6 +6,6 @@
 	"Entity": "Http.js",
 	"Port": "$Port",
 	"Url": "$Url",
-	"Login": "$Login"
+	"Page":"$Page"
   }
 }
