@@ -619,7 +619,6 @@
 						obj.Pid = genPid();
 					}
 					lbls[lbl] = obj.Pid;
-					headEntPid= obj.Pid;
 					ents[lbl] = obj;
 				}
 				for (let lbl in ents) {

@@ -1,5 +1,6 @@
 (function Page() {
 	var fs = require('fs');
+	var async = require('async');
 	var jszip = require("jszip");
 
 	//-----------------------------------------------------dispatch
@@ -70,11 +71,62 @@
 		}
 	}
 
+	//-----------------------------------------------------getModule
+	// Retrieve module from module server
+	// For now is retrieved from local file system
 	function getModule(com, fun) {
 		console.log('--Page/getModule');
 		console.log(JSON.stringify(com));
-		if(fun)
-			fun();
+		var that = this;
+		/*
+		var zip1 = new jszip();
+		console.log('Support', jszip.support.uint8array);
+		zip1.file("hello.txt", "Hello World\n");
+		zip1.generateAsync({type:'base64'}).then(function(data) {
+			console.log('content', data);
+			console.log('A');
+			var zip2 = new jszip();
+			console.log('B', zip2);
+			zip2.loadAsync(data, {base64: true}).then(function(zip){
+				zip.file('hello.txt').async('string').then(function(str){
+					console.log('Finally', str);
+				});
+			});
+			console.log('C');
+		});*/
+		var zip = new jszip();
+		var dir = that.Nxs.genPath(com.Module);
+		var man = [];
+		console.log('dir', dir);
+		fs.readdir(dir, function(err, files) {
+			if(err) {
+				console.log(' ** ERR:Cannot read module directory');
+				if(fun)
+					fun('Cannot read module directlry');
+				return;
+			}
+			async.eachSeries(files, build, ship);
+		})
+
+		function build(file, func) {
+			var path = dir + '/' + file;
+			fs.readFile(path, add);
+
+			function add(err, data) {
+				var str = data.toString();
+				zip.file(file, str);
+				man.push(file);
+				func();
+			}
+		}
+
+		function ship() {
+			zip.file('manifest.json', JSON.stringify(man));
+			zip.generateAsync({type:'base64'}).then(function(data) {
+				com.Zip = data;
+				fun(null, com);
+			});
+		}
 	}
 
 })();

@@ -5,7 +5,8 @@
 	"Nxs.js":"{xGraph}/Nexus/Nexus/Nxs.js",
 	"jQuery.js":"../Root/Scripts/jquery-2.1.1.min.js",
 	"three.js":"../Root/Scripts/three.min-r82.js",
-	"jszip.js":"../Root/Scripts/jszip.min_3.1.3.js"
+	"jszip.js":"../Root/Scripts/jszip.min_3.1.3.js",
+	"async.js":"../Root/Scripts/async.js"
   },
   "Modules":{
 	"Spider":{
@@ -29,7 +30,8 @@
 		"Scripts":[
 		  "jQuery.js",
 		  "three.js",
-		  "jszip.js"
+		  "jszip.js",
+		  "async.js"
 		]
 	  }
 	}
