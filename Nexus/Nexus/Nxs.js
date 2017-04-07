@@ -10,6 +10,7 @@ __Nexus = (function() {
 	var CurrentModule;
 	var EntCache = {};
 	var ModCache = {};
+	var ZipCache = {};
 	var SymTab = {};
 	var Nxs = {
 		genPid: genPid,
@@ -374,7 +375,7 @@ __Nexus = (function() {
 			console.log(com);
 			var ents = {};
 			var lbls = {};
-			var mod = com.Module;
+			var module = com.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
 				zip.file('schema.json').async('string').then(function(str){
@@ -386,43 +387,56 @@ __Nexus = (function() {
 			function compile(str) {
 				var schema = JSON.parse(str);
 				console.log('schema...\n' + JSON.stringify(schema, null, 2));
+				ZipCache[module] = zipmod;
 				for (let lbl in schema) {
-					var obj = schema[lbl];
-					CurrentModule = mod;
-					obj.Module = mod;
-					obj.Pid = genPid();
-					lbls[lbl] = obj.Pid;
-					ents[lbl] = obj;
+					var ent = schema[lbl];
+					CurrentModule = module;
+					ent.Module = module;
+					ent.Pid = genPid();
+					lbls[lbl] = ent.Pid;
+					ents[lbl] = ent;
 				}
-				for (let lbl in ents) {
-					var obj = ents[lbl];
-					for (let key in obj) {
-						val = obj[key];
+				var keys = Object.keys(ents);
+				var nkey = keys.length;
+				var ikey = 0;
+				nextent();
+
+				function nextent() {
+					if(ikey >= nkey) {
+						nextmodule();
+						return;
+					}
+					var key = keys[ikey];
+					var ent = ents[key];
+					console.log('ent', ent);
+					ikey++;
+					for (let key in ent) {
+						val = ent[key];
 						if (key == '$Local') {
-							Root.SymTab[val] = obj.Pid;
+							Root.SymTab[val] = ent.Pid;
 							continue;
 						}
 						if (key == '$Global') {
 							if(CurrentModule) {
 								sym = CurrentModule + '.' + val;
-								Root.Global[sym] = obj.Pid;
+								Root.Global[sym] = ent.Pid;
 							}
 							continue;
 						}
 						if (key == '$System') {
-							Root.System[obj.Pid.substr(24)] = obj[key];
+							Root.System[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
 						if (key == '$Setup') {
-							Root.Setup[obj.Pid.substr(24)] = obj[key];
+							Root.Setup[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
 						if (key == '$Start') {
-							Root.Start[obj.Pid.substr(24)] = obj[key];
+							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
 						if (typeof val == 'string') {
-							obj[key] = symbol(val);
+							ent[key] = symbol(val);
 							continue;
 						}
 						if(Array.isArray(val)) {
@@ -433,10 +447,18 @@ __Nexus = (function() {
 							continue;
 						}
 					}
-					console.log('obj', obj);
-					//	console.log('After:' + JSON.stringify(obj, null, 2));
+					console.log('ent', ent);
+					var modkey = ent.Module + '/' + ent.Entity;
+					ZipCache[mod] = zipmod;
+					console.log('modkey', modkey);
+					zipmod.file(ent.Entity).async('string').then(function(str){
+						console.log('Entity', str);
+						var mod = eval(str);
+						ModCache[modkey] = mod;
+						EntCache[ent.Pid] = new Entity(__Nexus, mod, ent);
+						nextent();
+					});
 				}
-				nextmodule();
 
 				function symbol(str) {
 					if(str.charAt(0) == '#') {
@@ -469,25 +491,24 @@ __Nexus = (function() {
 		function Setup() {
 			console.log('--Nexus/Setup');
 			var pids = Object.keys(Root.Setup);
-			async.eachSeries(pids, setup, Start);
+			var npid = pids.length;
+			var ipid = 0;
+			setup();
 
-			function setup(pid8, func) {
+			function setup() {
+				if(ipid >= npid) {
+					Start();
+					return;
+				}
+				var pid8 = pids[ipid];
+				ipid++;
 				var q = {};
 				q.Cmd = Root.Setup[pid8];
 				var pid = Pid24 + pid8;
-				getEntity(pid, done);
+				send(q, pid, done);
 
-				function done(err, ent) {
-					if(err) {
-						console.log(' ** ERR:' + err);
-						func(err);
-						return;
-					}
-					ent.dispatch(q, reply);
-				}
-
-				function reply(err) {
-					func(err);
+				function done(err, r) {
+					setup();
 				}
 			}
 		}
@@ -495,26 +516,24 @@ __Nexus = (function() {
 		//---------------------------------------------------------Start
 		function Start() {
 			console.log('--Nexus/Start');
-			var pids = Object.keys(Root.Start);
-			async.eachSeries(pids, start, Run);
+			var pids = Object.keys(Root.Setup);
+			var npid = pids.length;
+			var ipid = 0;
+			start();
 
-			function start(pid8, func) {
+			function start() {
+				if(ipid >= npid) {
+					return;
+				}
+				var pid8 = pids[ipid];
+				ipid++;
 				var q = {};
 				q.Cmd = Root.Start[pid8];
 				var pid = Pid24 + pid8;
-				getEntity(pid, done);
+				send(q, pid, done);
 
-				function done(err, ent) {
-					if(err) {
-						console.log(' ** ERR:' + err);
-						func(err);
-						return;
-					}
-					ent.dispatch(q, reply);
-				}
-
-				function reply(err) {
-					func(err);
+				function done(err, r) {
+					start();
 				}
 			}
 		}
