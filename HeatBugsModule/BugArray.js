@@ -18,35 +18,41 @@
 		let Vlt = this.Vlt;
 
 		//Build the BugArray
-
-		let geometry = Threejs.Geometry();
-		let material = Threejs.ParticleBasicMaterial({size:0.2,vertexColors: true});
+		Vlt.geometry = new THREE.Geometry();
+		Vlt.geometry.name = "BugGeometry";
+		console.log("Geom is ",Vlt.geometry);
+		Vlt.material = new THREE.PointsMaterial({size:0.2,vertexColors: true});
+		Vlt.material.name = "BugMaterial";
 
 		let range = Par.CubeDimension;
 
 		for (let i=0; i<Par.BugCount; i++) {
 			//Set a random location for each bug
-			let particle = new Threejs.Vector3(
-				Math.round(Math.random() * range - (range / 2)),
-				Math.round(Math.random() * range - (range / 2)),
-				Math.round(Math.random() * range - (range / 2)),
+			let particle = new THREE.Vector3(
+				Math.round(Math.random() * range),
+				Math.round(Math.random() * range),
+				Math.round(Math.random() * range)
 			);
-			geometry.vertices.push(particle);
+			Vlt.geometry.vertices.push(particle);
 
 			//Set the base color to be different lightness' of red based on eac
 			//bugs personal temperature
-			let color = new Threejs.Color(0xff0000);
+			let color = new THREE.Color(0xff0000);
 			let relativeTemp = Math.random();
 			color.setHSL(color.getHSL().h,
 				color.getHSL().s,
 				relativeTemp * 75 + 25);
-			geometry.colors.push(color);
-			geometry.desiredTemps.push(Math.random());
+				Vlt.geometry.colors.push(color);
+			if ('desiredTemps' in Vlt.geometry) {
+				Vlt.geometry.desiredTemps.push(Math.random());
+			}
+			else{
+				Vlt.geometry.desiredTemps = [];
+				Vlt.geometry.desiredTemps.push(Math.random());
+			}
 		}
 
-		Vlt.bugSystem = new Threejs.ParticleSystem(geometry,material);
-		Vlt.bugSystem.name="bugSystem";
-		Vlt.bugSystem.sortParticles = true;
+
 
 		if(fun)
 			fun();
@@ -55,10 +61,11 @@
 
 	function MoveBugs(com, fun){
 		console.log("--BugArray/MoveBugs");
+		let Vlt=this.Vlt;
 
 		if (!com.heatField){
 			console.log("No heat field we return the unedited bug system");
-			com.System = Vlt.bugSystem;
+			com.System = {"geometry" :Vlt.geometry,"material":Vlt.material};
 			fun(null,com);
 			return;
 		}

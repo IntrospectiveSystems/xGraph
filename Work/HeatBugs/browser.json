@@ -1,0 +1,9 @@
+{
+  "Modules":{
+	"Heatbugs":{
+	  "Module":"xGraph:HeatBugsModule",
+	  "Par": {
+	  }
+	}
+  }
+}

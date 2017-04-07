@@ -20,7 +20,7 @@
 	}
 
 	//-----------------------------------------------------Start
-	function Setup() {
+	function Setup(com, fun) {
 		console.log('--SceneManager/Setup');
 
 		var Vlt = this.Vlt;
@@ -35,7 +35,7 @@
 					evt.preventDefault();
 					openCLI();
 					break;
-				case 'F1':
+				case 'F2':
 					if (Vlt.Active)
 						Vlt.Active = false;
 					else
@@ -44,21 +44,21 @@
 			}
 		});
 
-		var div = document.getElementById(this.Par.Pid);
-		Vlt.Render = new THREE.WebGLRenderer();
+		var div = document.getElementById("Grok");
+		Vlt.Render = new THREE.WebGLRenderer({antialias: false});
 //		Vlt.Render.setClearColor(0xF2EEE1, 1);
 
 		Vlt.Render.setSize(div.scrollWidth, div.scrollHeight);
 		div.appendChild(Vlt.Render.domElement);
 
 		Vlt.Scene = new THREE.Scene();
-		Vlt.Focus = new THREE.Vector3(0.0, 0.0, 0.0);
+		Vlt.Focus = new THREE.Vector3(50,50,50);
 
 		Vlt.Camera = new THREE.PerspectiveCamera(45,
 			div.scrollWidth / div.scrollHeight, 0.1, 20000);
-		Vlt.Camera.position.x = -7;
-		Vlt.Camera.position.y = -20.0;
-		Vlt.Camera.position.z = 20.0;
+		Vlt.Camera.position.x = 50;
+		Vlt.Camera.position.y = -200;
+		Vlt.Camera.position.z = 50.0;
 		Vlt.Camera.up.set(0.0, 0.0, 1.0);
 		Vlt.Camera.lookAt(Vlt.Focus);
 		Vlt.Camera.updateProjectionMatrix();
@@ -67,8 +67,8 @@
 		// Vlt.Scene.add(Vlt.Root);
 		Vlt.Ray = new THREE.Raycaster();
 		Vlt.Mouse.Mode = 'Idle';
-		// Vlt.txtPivot = new THREE.Object3D();
-		// Vlt.txtPosition = new THREE.Object3D();
+		Vlt.txtPivot = new THREE.Object3D();
+		Vlt.txtPosition = new THREE.Object3D();
 
 		// Vlt.Light = new THREE.DirectionalLight(0xFFFFFF);
 		// Vlt.Light.position.set(-40, 60, 100);
@@ -79,12 +79,15 @@
 		axes.position.z = 0.01;
 		Vlt.Scene.add(axes);
 
-		Resize();
+		Resize(Vlt);
 		renderLoop(Vlt);
 
+		if (fun){
+			fun(null,com);
+		}
 		//-----------------------------------------------------Render
 		function renderLoop(vault) {
-			Vlt = this.Vlt;
+			Vlt = vault;
 			loop();
 
 			function loop() {
@@ -116,50 +119,64 @@
 
 	function Start (com, fun){
 		console.log("--SceneManager/Start");
-		let Vlt = that.Vlt;
-		let Par = that.Par;
+		let Vlt = this.Vlt;
+		let Par = this.Par;
+		let that=this;
 
-		Vlt.Pulse = setInterval(step, Par.Delay);
+		let delay = Par.Delay ||20;
+		console.log("Delay is ",delay);
+		Vlt.Pulse = setInterval(step, delay);
 
 		function step () {
 			if (Vlt.Active){
 
-				let q= {"Cmd":"MoveBugs"}
+				let q= {"Cmd":"MoveBugs"};
 
-				if (Vlt.Scene.getChildByName("heatField")){
-					q.heatField = Vlt.Scene.getChildByName("heatField") .geometry;
+				if (Vlt.Scene.getObjectByName("heatField")){
+					q.heatField = Vlt.Scene.getObjectByName("heatField") .geometry;
 				}
 
 				that.send(q, Par.BugArray, updateBugs);
 
 				function updateBugs(err, com) {
+					console.log("returned from bug update");
+
 					if (err)
 						console.log("--Error: ",err);
-					if (Vlt.Scene.getChildByName("bugSystem")){
-						Vlt.Scene.getChildByName("bugSystem") . geometry = com.System.geometry;
-						Vlt.Scene.getChildByName("bugSystem").geometry.verticesNeedUpdate =true;
-						Vlt.Scene.getChildByName("bugSystem").geometry.colorsNeedUpdate =true;
+					if (Vlt.Scene.getObjectByName("bugSystem")){
+						Vlt.Scene.getObjectByName("bugSystem").geometry = com.System.geometry;
+						Vlt.Scene.getObjectByName("bugSystem").geometry.verticesNeedUpdate =true;
+						Vlt.Scene.getObjectByName("bugSystem").geometry.colorsNeedUpdate =true;
 
 					} else{
-						Vlt.Scene.Add(com.System);
+						let system = new THREE.Points(com.System.geometry, com.System.material);
+						system.name = "bugSystem";
+						system.sortParticles= true;
+						Vlt.Scene.add(system);
+						console.log(Vlt.Scene.children);
 					}
 
 					let q={"Cmd": "UpdateField"};
-					if (Vlt.Scene.getChildByName("bugSystem")){
-						q.bugSystem = Vlt.Scene.getChildByName("bugSystem") .geometry;
+					if (Vlt.Scene.getObjectByName("bugSystem")){
+						q.bugSystem = Vlt.Scene.getObjectByName("bugSystem").geometry;
 					}
 
-					that.send(q, Par.heatField, updateField);
+					that.send(q, Par.HeatField, updateField);
 
 					function updateField(err, com) {
+						console.log("returned from field update");
 						if (err)
 							console.log("--Error: ", err);
-						if (Vlt.Scene.getChildByName("heatField")) {
-							Vlt.Scene.getChildByName("heatField").geometry = com.System.geometry;
-							Vlt.Scene.getChildByName("heatField").geometry.colorsNeedUpdate = true;
+						if (Vlt.Scene.getObjectByName("heatField")) {
+							Vlt.Scene.getObjectByName("heatField").geometry = com.System.geometry;
+							Vlt.Scene.getObjectByName("heatField").geometry.colorsNeedUpdate = true;
 
 						} else {
-							Vlt.Scene.Add(com.System);
+							let system= new THREE.Points(com.System.geometry,com.System.material);
+							system.name="heatField";
+							system.sortParticles=true;
+							Vlt.Scene.add(system);
+							console.log(Vlt.Scene.children);
 						}
 					}
 				}
@@ -175,11 +192,11 @@
 
 
 	//-----------------------------------------------------Resize
-	function Resize() {
-		var div = document.getElementById("this.Par.Pid");
+	function Resize(vault) {
+		var div = document.getElementById("Grok");
 		var w = div.scrollWidth;
 		var h = div.scrollHeight;
-		var Vlt = Vault;
+		var Vlt= vault;
 		var parent = div;
 		var styles = getComputedStyle(parent);
 		div.style.overflow = 'hidden';
@@ -189,28 +206,6 @@
 		Vlt.Render.setSize(w, h);
 		Vlt.Camera.aspect = w / h;
 		Vlt.Camera.updateProjectionMatrix();
-	}
-
-	//-----------------------------------------------------doDropIn
-	function doDropIn(e) {
-		console.log('--doDropIn');
-		e.stopPropagation();
-		e.preventDefault();
-		var fileinfo = e.dataTransfer.files[0];
-		var size = fileinfo.size;
-		var file = fileinfo.name;
-		console.log('size', size);
-		console.log('file', file);
-		var reader = new FileReader();
-		reader.onload = function (data) {
-			console.log('file read');
-			console.log(data);
-			dataUrl = reader.result;
-			// Distribute locally to see if there are
-			// any modules that wish to add details
-			console.log('data size is', dataUrl.length);
-		};
-		reader.readAsDataURL(fileinfo);
 	}
 
 	//-----------------------------------------------------getCamera

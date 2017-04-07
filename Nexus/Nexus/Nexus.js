@@ -32,7 +32,7 @@
 		}
 	}
 
-	var config = 'Config.json';
+	var config = 'config.json';
 	if('Config' in Params)
 		config = Params.Config;
 	let str = fs.readFileSync(config);

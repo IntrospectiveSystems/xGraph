@@ -16,40 +16,40 @@
 
 		let Par = this.Par;
 		let Vlt = this.Vlt;
-
+		__HeatField = new Array();
 		//Build the BugArray
 
-		let geometry = Threejs.Geometry();
+		Vlt.geometry = new THREE.Geometry();
+		Vlt.geometry.name = "FieldGeometry";
 
-		let material = Threejs.ParticleBasicMaterial({vertexColors: true});
+		Vlt.material = new THREE.PointsMaterial({size:2,vertexColors: true});
+		Vlt.material.name = "FieldMaterial";
+		Vlt.material.transparent = true;
+		Vlt.material.opacity = 0.05;
 
 		let range = Par.FieldDimension;
+		console.log("from", 0, "to", range);
 
-
-		for (let i=Math.ceil(0-range/2); i<((range/2)+1); i++) {
-			for (let j = Math.ceil(0 - range / 2); j < ((range / 2) + 1); j++) {
-				for (let k = Math.ceil(0 - range / 2); k < ((range / 2) + 1); k++) {
+		for (let i=0; i<range; i++) {
+			for (let j = 0; j < range; j++) {
+				for (let k = 0; k < range; k++) {
 
 					//Set a random location for each bug
-					let particle = new Threejs.Vector3(i, j, k);
-					geometry.vertices.push(particle);
+					let particle = new THREE.Vector3(i, j, k);
+					Vlt.geometry.vertices.push(particle);
 
 					//Set the base color to be different lightness' of red based on eac
 					//bugs personal temperature
-					let color = new Threejs.Color(0xffff00);
+					let color = new THREE.Color("hsl(60,100%,50%)");
 
-					color.setHSL(color.getHSL().h,
-						color.getHSL().s,
-						0);
-					geometry.colors.push(color);
+					color = color.getHSL(color);
+					color.l = 0;
+					//console.log("color is ",color);
+					Vlt.geometry.colors.push(color);
 
 				}
 			}
 		}
-
-		Vlt.heatField = new Threejs.ParticleSystem(geometry,material);
-		Vlt.heatField.name="heatField";
-		Vlt.heatField.sortParticles=true;
 
 
 		if(fun)
@@ -60,19 +60,14 @@
 
 	function UpdateField(com,fun){
 		console.log("--HeatField/UpdateField",com);
-
-		if (!com.bugSystem){
-			com.System = Vlt.heatField;
-			fun(null,com);
-			return;
-		}
-
-		//here we update the field based on the location of bugs
+		let Vlt=this.Vlt;
+		//we need to update the field
 
 
 
 
 
+		com.System = {"geometry":Vlt.geometry,"material":Vlt.material};
 
 		if (fun)
 			fun(null,com);

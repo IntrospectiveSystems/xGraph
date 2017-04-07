@@ -489,7 +489,7 @@ __Nexus = (function() {
 		}
 		//---------------------------------------------------------start
 		function Setup() {
-			console.log('--Nexus/Setup');
+			console.log('--Nxs/Setup');
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
 			var ipid = 0;
@@ -515,8 +515,8 @@ __Nexus = (function() {
 
 		//---------------------------------------------------------Start
 		function Start() {
-			console.log('--Nexus/Start');
-			var pids = Object.keys(Root.Setup);
+			console.log('--Nxs/Start');
+			var pids = Object.keys(Root.Start);
 			var npid = pids.length;
 			var ipid = 0;
 			start();
@@ -540,7 +540,7 @@ __Nexus = (function() {
 
 		//-----------------------------------------------------Run
 		function Run() {
-			console.log('--Nexus/Run');
+			console.log('--Nxs/Run');
 		}
 	}
 

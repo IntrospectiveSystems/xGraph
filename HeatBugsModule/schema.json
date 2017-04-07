@@ -14,7 +14,7 @@
 		}
 	},
 	"HeatField": {
-		"$Setup": "Setup",
+		"$Setup":"Setup",
 		"Entity": "HeatField.js",
 		"SceneManager": "#SceneManager",
 		"FieldDimension": 100
@@ -24,6 +24,7 @@
 		"$Start": "Start",
 		"Entity": "SceneManagerThreeJS.js",
 		"BugArray":"#BugArray",
-		"HeatField":"#HeatField"
+		"HeatField":"#HeatField",
+		"Delay": 1000
 	}
 }
