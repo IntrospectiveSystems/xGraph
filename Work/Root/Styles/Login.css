@@ -1,0 +1,94 @@
+html{
+	background-color: #ffffff; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+body {
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	flex-direction: column;
+}
+
+#frame {
+	margin: auto;
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+
+#logo {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 100px;
+	width: 550px;
+	height: 121px;
+}
+
+fieldset{
+	border: #d4d4d4 solid 1px;
+	border-radius: 5px;
+}
+
+label{
+	clear: left;
+	float: left;
+	width: 5em;
+	text-align: right;
+	margin-right: .5em;
+	padding: 5px;
+}
+
+#form {
+	display: flex;
+	margin: auto;
+	flex-direction: column;
+	padding:10px;
+}
+
+p {
+	margin-bottom: 20px;
+	display: flex;
+	flex-direction: row;
+	border-radius: 20px;
+	padding: 2px;
+	background-color: #404040;
+	color: white;
+}
+
+input[type="text"], input[type="password"]{
+	border-radius: 0 20px 20px 0;
+	flex: 1;
+	margin-right: 1px;
+}
+
+input#submit{
+	margin-right: auto;
+	margin-left: auto;
+	width: 50%;
+	background-color:#66A8D1;
+	border-radius:5px;
+	border:none;
+	padding:10px 25px;
+	color:#FFF;
+	text-shadow:1px 1px 1px #949494;
+	float: right;
+}
+input#submit:hover{
+	background-color:#2372A8
+}
+
+#body{
+	height: 100%;
+	width: 100%;
+}
+#login{
+	width: 550px;
+	height: 300px;
+	font-family: 'Verdana', 'Arial', sans-serif;
+}
