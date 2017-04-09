@@ -3,6 +3,9 @@ logs
 *.log
 npm-debug.log*
 
+# xGraph
+[C]ache
+
 # Runtime data
 pids
 *.pid

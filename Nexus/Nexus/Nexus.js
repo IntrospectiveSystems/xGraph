@@ -14,6 +14,7 @@
 	var Nxs = {
 		genPid: genPid,
 		genPath: genPath,
+		getGlobal: getGlobal,
 		sendMessage: sendMessage
 	}
 	console.log('=================================================');
@@ -193,6 +194,15 @@
 			if(fun)
 				fun(null, q);
 		}
+	}
+
+	//-----------------------------------------------------getGlobal
+	// Get Pid associated with a global symbol
+	function getGlobal(sym) {
+		console.log('--Nexus/getGlobal');
+		console.log(JSON.stringify(Root, null, 2));
+		if(sym in Root.Global)
+			return Root.Global[sym];
 	}
 
 	//-----------------------------------------------------getEntity
@@ -529,6 +539,7 @@
 
 		ps.on('exit', (code) => {
 			console.log(`npm process exited with code:` + code);
+			console.log('Current working directory:' + process.cwd());
 			if(!Async)
 				Async = require('async');
 			genPid();	// Generate Pid24 for this Nexus
@@ -622,6 +633,7 @@
 					ents[lbl] = obj;
 				}
 				for (let lbl in ents) {
+					CurrentModule = lbl;
 					var obj = ents[lbl];
 					for (let key in obj) {
 						val = obj[key];
@@ -633,6 +645,10 @@
 							if(CurrentModule) {
 								sym = CurrentModule + '.' + val;
 								Root.Global[sym] = obj.Pid;
+								console.log('****************', JSON.stringify(Root.Global, null, 2));
+								console.log('++++++++++++++++', CurrentModule, val);
+							} else {
+								console.log('///////////////// CurrentModeule not defined');
 							}
 							continue;
 						}

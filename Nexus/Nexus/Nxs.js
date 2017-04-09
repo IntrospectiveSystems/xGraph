@@ -156,6 +156,11 @@ __Nexus = (function() {
 		com.Passport.Pid = pidmsg;
 
         if (pid) {
+        	if(pid.charAt(0) == '$') {
+        		var sym = pid.substr(1);
+        		if(sym in Root.Global)
+        			pid = Root.Global[sym];
+			}
             com.Passport.To = pid;
 
             if (pid.charAt(0) != '$') {
@@ -171,14 +176,14 @@ __Nexus = (function() {
                 }
             } else if (pid.substr(1) in SymTab) {
             	pid = SymTab[pid.substr(1)];
-                    if (pid in EntCache) {
-                        var ent = EntCache[pid];
-                        ent.dispatch(com, fun);
-                    } else {
-                        console.log(' ** ERR:Local', pid, 'not in Cache');
-                    }
-                    return;
-                }
+				if (pid in EntCache) {
+					var ent = EntCache[pid];
+					ent.dispatch(com, fun);
+				} else {
+					console.log(' ** ERR:Local', pid, 'not in Cache');
+				}
+				return;
+			}
         }
         if (fun) {
             MsgPool[pidmsg] = fun;
@@ -229,6 +234,10 @@ __Nexus = (function() {
 			var disp = Mod.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
+				return;
+			}
+			if ('*' in disp) {
+				disp['*'].call(this, com, fun);
 				return;
 			}
 			console.log(com.Cmd + ' unknown');
@@ -351,7 +360,9 @@ __Nexus = (function() {
 		Root.System = {};
 		Root.Setup = {};
 		Root.Start = {};
+		Root.Global["Host"] = Config.pidServer;
 		var mod;
+		var modkey;
 		nextmodule();
 
 		function nextmodule() {
@@ -360,8 +371,8 @@ __Nexus = (function() {
 				Setup();
 				return;
 			}
-			var key = keys[ikey];
-			mod = Config.Modules[key];
+			modkey = keys[ikey];
+			mod = Config.Modules[modkey];
 			var com = {};
 			com.Cmd = 'GetModule';
 			com.Module = mod.Module;
@@ -390,7 +401,7 @@ __Nexus = (function() {
 				ZipCache[module] = zipmod;
 				for (let lbl in schema) {
 					var ent = schema[lbl];
-					CurrentModule = module;
+					CurrentModule = modkey;
 					ent.Module = module;
 					ent.Pid = genPid();
 					lbls[lbl] = ent.Pid;
@@ -455,7 +466,8 @@ __Nexus = (function() {
 						console.log('Entity', str);
 						var mod = eval(str);
 						ModCache[modkey] = mod;
-						EntCache[ent.Pid] = new Entity(__Nexus, mod, ent);
+						EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
+						console.log('Root', Root);
 						nextent();
 					});
 				}
@@ -515,8 +527,8 @@ __Nexus = (function() {
 
 		//---------------------------------------------------------Start
 		function Start() {
-			console.log('--Nexus/Start');
-			var pids = Object.keys(Root.Setup);
+			console.log('--Nxs/Start');
+			var pids = Object.keys(Root.Start);
 			var npid = pids.length;
 			var ipid = 0;
 			start();
@@ -540,7 +552,7 @@ __Nexus = (function() {
 
 		//-----------------------------------------------------Run
 		function Run() {
-			console.log('--Nexus/Run');
+			console.log('--Nxs/Run');
 		}
 	}
 
