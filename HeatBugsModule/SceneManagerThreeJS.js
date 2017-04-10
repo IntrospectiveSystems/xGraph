@@ -52,13 +52,13 @@
 		div.appendChild(Vlt.Render.domElement);
 
 		Vlt.Scene = new THREE.Scene();
-		Vlt.Focus = new THREE.Vector3(50,50,50);
+		Vlt.Focus = new THREE.Vector3(0,0,0);
 
 		Vlt.Camera = new THREE.PerspectiveCamera(45,
 			div.scrollWidth / div.scrollHeight, 0.1, 20000);
-		Vlt.Camera.position.x = 50;
-		Vlt.Camera.position.y = -200;
-		Vlt.Camera.position.z = 50.0;
+		Vlt.Camera.position.x = 175;
+		Vlt.Camera.position.y = 175;
+		Vlt.Camera.position.z = 175.0;
 		Vlt.Camera.up.set(0.0, 0.0, 1.0);
 		Vlt.Camera.lookAt(Vlt.Focus);
 		Vlt.Camera.updateProjectionMatrix();
@@ -133,7 +133,7 @@
 				let q= {"Cmd":"MoveBugs"};
 
 				if (Vlt.Scene.getObjectByName("heatField")){
-					q.heatField = Vlt.Scene.getObjectByName("heatField") .geometry;
+					q.heatField = true;
 				}
 
 				that.send(q, Par.BugArray, updateBugs);
@@ -144,9 +144,9 @@
 					if (err)
 						console.log("--Error: ",err);
 					if (Vlt.Scene.getObjectByName("bugSystem")){
-						Vlt.Scene.getObjectByName("bugSystem").geometry = com.System.geometry;
-						Vlt.Scene.getObjectByName("bugSystem").geometry.verticesNeedUpdate =true;
-						Vlt.Scene.getObjectByName("bugSystem").geometry.colorsNeedUpdate =true;
+						Vlt.Scene.getObjectByName("bugSystem") .geometry = com.System.geometry;
+						Vlt.Scene.getObjectByName("bugSystem") .geometry.verticesNeedUpdate =true;
+						Vlt.Scene.getObjectByName("bugSystem") .geometry.colorsNeedUpdate =true;
 
 					} else{
 						let system = new THREE.Points(com.System.geometry, com.System.material);
@@ -158,7 +158,8 @@
 
 					let q={"Cmd": "UpdateField"};
 					if (Vlt.Scene.getObjectByName("bugSystem")){
-						q.bugSystem = Vlt.Scene.getObjectByName("bugSystem").geometry;
+						q.vertices= Vlt.Scene.getObjectByName("bugSystem").geometry.vertices;
+						q.outputTemps = Vlt.Scene.getObjectByName("bugSystem").geometry.outputTemps;
 					}
 
 					that.send(q, Par.HeatField, updateField);
@@ -171,10 +172,12 @@
 							Vlt.Scene.getObjectByName("heatField").geometry = com.System.geometry;
 							Vlt.Scene.getObjectByName("heatField").geometry.colorsNeedUpdate = true;
 
+
 						} else {
 							let system= new THREE.Points(com.System.geometry,com.System.material);
 							system.name="heatField";
 							system.sortParticles=true;
+							system.blending= THREE.AdditiveBlending;
 							Vlt.Scene.add(system);
 							console.log(Vlt.Scene.children);
 						}

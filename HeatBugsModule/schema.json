@@ -5,19 +5,31 @@
 		"CubeDimension": 100,
 		"BugCount":1000,
 		"BugTemp":{
-			"Maximum": 250,
+			"Maximum": 500,
 			"Minimum": 150
 		},
 		"DesiredTemp":{
-			"Maximum":200,
-			"Minimum":175
+			"Maximum":400,
+			"Minimum":275
+		},
+		"Nbhd":{
+			"x": [0,-1,0,0,0,0,1],
+			"y": [0,0,-1,0,0,1,0],
+			"z": [0,0,0,-1,1,0,0]
 		}
 	},
 	"HeatField": {
 		"$Setup":"Setup",
 		"Entity": "HeatField.js",
 		"SceneManager": "#SceneManager",
-		"FieldDimension": 100
+		"FieldDimension": 100,
+		"Nbhd":{
+			"x": [0,-1,0,0,0,0,1],
+			"y": [0,0,-1,0,0,1,0],
+			"z": [0,0,0,-1,1,0,0]
+		},
+		"Cooling": 0.01,
+		"Diffusion":0.1
 	},
 	"SceneManager":{
 		"$Setup": "Setup",

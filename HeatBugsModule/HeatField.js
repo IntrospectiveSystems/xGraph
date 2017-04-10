@@ -16,7 +16,21 @@
 
 		let Par = this.Par;
 		let Vlt = this.Vlt;
-		__HeatField = new Array();
+
+		let range = Par.FieldDimension;
+		console.log("from", 0, "to", range);
+
+		__HeatField = new Array(range).fill(0);
+
+		for (let i=0;i<range;i++){
+			__HeatField[i] = new Array(range).fill(0);
+
+			for (let j=0;j<range;j++){
+				__HeatField[i][j] = new Array(range).fill(0);
+
+			}
+		}
+
 		//Build the BugArray
 
 		Vlt.geometry = new THREE.Geometry();
@@ -25,10 +39,10 @@
 		Vlt.material = new THREE.PointsMaterial({size:2,vertexColors: true});
 		Vlt.material.name = "FieldMaterial";
 		Vlt.material.transparent = true;
-		Vlt.material.opacity = 0.05;
+		Vlt.material.opacity = 0.03;
 
-		let range = Par.FieldDimension;
-		console.log("from", 0, "to", range);
+		Vlt.MaxFieldTemp=1;
+		Vlt.MinFieldTemp=0;
 
 		for (let i=0; i<range; i++) {
 			for (let j = 0; j < range; j++) {
@@ -40,17 +54,15 @@
 
 					//Set the base color to be different lightness' of red based on eac
 					//bugs personal temperature
-					let color = new THREE.Color("hsl(60,100%,50%)");
-
-					color = color.getHSL(color);
-					color.l = 0;
+					let color = new THREE.Color();
+					color.setHSL((1/6), 1,0);
 					//console.log("color is ",color);
 					Vlt.geometry.colors.push(color);
 
 				}
 			}
 		}
-
+		console.log("There are colors",Vlt.geometry.colors.length);
 
 		if(fun)
 			fun();
@@ -61,11 +73,110 @@
 	function UpdateField(com,fun){
 		console.log("--HeatField/UpdateField",com);
 		let Vlt=this.Vlt;
+		let Par=this.Par;
 		//we need to update the field
 
+		let bugvertices = com.vertices;
+		let bugoutput = com.outputTemps;
+		let vertex;
+		for (let i =0;i<bugvertices.length;i++){
+			vertex =  bugvertices[i];
+			updatedTemp =__HeatField[vertex.x][vertex.y][vertex.z]+bugoutput[i];
+			__HeatField[vertex.x][vertex.y][vertex.z] = updatedTemp;
+			if (updatedTemp > Vlt.MaxFieldTemp)
+				Vlt.MaxFieldTemp = updatedTemp;
+
+		}
 
 
 
+		let range = Par.FieldDimension;
+
+		let TempField = new Array(range).fill(0);
+
+		for (let i=0;i<range;i++){
+			TempField[i] = new Array(range).fill(0);
+
+			for (let j=0;j<range;j++){
+				TempField[i][j] = new Array(range).fill(0);
+
+			}
+		}
+
+
+		let nbhd = Par.Nbhd;
+
+
+		for (let i=0;i<range;i++){
+
+			for (let j=0;j<range;j++){
+
+				for (let k = 0 ;k<range;k++){
+
+					for(let n=0;n<nbhd.x.length;n++){
+
+						if (i+nbhd.x[n]<0 ||i+nbhd.x[n]>=range)
+							continue;
+
+						if (j+nbhd.y[n]<0 ||j+nbhd.y[n]>=range)
+							continue;
+
+						if (k+nbhd.z[n]<0 ||k+nbhd.z[n]>=range)
+							continue;
+
+						TempField[i+nbhd.x[n]][j+nbhd.y[n]][k+nbhd.z[n]]
+								+=__HeatField[i+nbhd.x[n]][j+nbhd.y[n]][k+nbhd.z[n]]*Par.Diffusion;
+
+
+					}
+
+				}
+			}
+		}
+
+		let newtemp;
+		Vlt.MinFieldTemp = Vlt.MaxFieldTemp;
+
+		for (let i=0;i<range;i++){
+
+			for (let j=0;j<range;j++){
+
+				for (let k = 0 ;k<range;k++){
+
+					newtemp = TempField[i][j][k]*Par.Cooling;
+					__HeatField[i][j][k] = newtemp;
+					if (newtemp<Vlt.MinFieldTemp)
+						Vlt.MinFieldTemp = newtemp;
+
+				}
+			}
+		}
+
+		let color, l;
+		for (let i=0;i<range;i++){
+
+			for (let j=0;j<range;j++){
+
+				for (let k = 0 ;k<range;k++){
+
+					l=(__HeatField[i][j][k]-Vlt.MinFieldTemp)
+						/(Vlt.MaxFieldTemp-Vlt.MinFieldTemp);
+
+					if (l<0.01 )
+						continue;
+					else {
+						//console.log("we shouldb e adding colog", l);
+
+						color = new THREE.Color();
+						color.setHSL((1 / 6), 1, l);
+
+						Vlt.geometry.colors[10000 * i + 100 * j + k] = color;
+					}
+				}
+			}
+		}
+
+		console.log(Vlt.MaxFieldTemp, Vlt.MinFieldTemp);
 
 		com.System = {"geometry":Vlt.geometry,"material":Vlt.material};
 
