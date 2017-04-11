@@ -21,8 +21,11 @@
 		Vlt.geometry = new THREE.Geometry();
 		Vlt.geometry.name = "BugGeometry";
 
-		Vlt.material = new THREE.PointsMaterial({size:0.2,vertexColors: true});
+		Vlt.material = new THREE.PointsMaterial({size:2,vertexColors: true});
 		Vlt.material.name = "BugMaterial";
+		Vlt.material.depthWrite = false;
+
+
 
 		let range = Par.CubeDimension;
 		let color,relativeTemp;
@@ -39,24 +42,24 @@
 			//bugs personal temperature
 			color = new THREE.Color();
 			relativeTemp = Math.random();
-			color.setHSL(0, 1, (relativeTemp * .75 + .25));
+			color.setHSL(.66, 1, (relativeTemp * .5 + .25));
 			Vlt.geometry.colors.push(color);
 			if ('desiredTemps' in Vlt.geometry) {
 				Vlt.geometry.desiredTemps.push(Par.DesiredTemp.Minimum+
-					Math.random()*(Par.DesiredTemp.Maximum-Par.DesiredTemp.Minimum));
+					relativeTemp*(Par.DesiredTemp.Maximum-Par.DesiredTemp.Minimum));
 			}
 			else{
 				Vlt.geometry.desiredTemps = [];
 				Vlt.geometry.desiredTemps.push(Par.DesiredTemp.Minimum+
-					Math.random()*(Par.DesiredTemp.Maximum-Par.DesiredTemp.Minimum));
+					relativeTemp*(Par.DesiredTemp.Maximum-Par.DesiredTemp.Minimum));
 			}if ('outputTemps' in Vlt.geometry) {
 				Vlt.geometry.outputTemps.push(Par.BugTemp.Minimum+
-					relativeTemp*(Par.BugTemp.Maximum-Par.BugTemp.Minimum));
+					Math.random()*(Par.BugTemp.Maximum-Par.BugTemp.Minimum));
 			}
 			else{
 				Vlt.geometry.outputTemps = [];
 				Vlt.geometry.outputTemps.push(Par.BugTemp.Minimum+
-					relativeTemp*(Par.BugTemp.Maximum-Par.BugTemp.Minimum));
+					Math.random()*(Par.BugTemp.Maximum-Par.BugTemp.Minimum));
 			}
 		}
 

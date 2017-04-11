@@ -3,7 +3,7 @@
 		"$Setup": "Setup",
 		"Entity": "BugArray.js",
 		"CubeDimension": 100,
-		"BugCount":1000,
+		"BugCount":100,
 		"BugTemp":{
 			"Maximum": 500,
 			"Minimum": 150
