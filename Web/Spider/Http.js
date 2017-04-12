@@ -198,6 +198,7 @@
 
 		//.................................................get
 		function get() {
+			that.Nxs.getGlobal('Nada.Nada');
 			var path = that.Nxs.genPath(url);
 			console.log('genPath', url, '->', path);
 			fs.readFile(path, done);

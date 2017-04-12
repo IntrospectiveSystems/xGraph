@@ -1,0 +1,10 @@
+{
+	"Scene": {
+	  "$Setup": "Setup",
+	  "$Start": "Start",
+	  "Entity": "View.js",
+	  "Scene":"$Scene"
+	}
+}
+
+

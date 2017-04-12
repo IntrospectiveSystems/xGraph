@@ -1,0 +1,10 @@
+{
+  "Modules":{
+	"View":{
+	  "Module":"xGraph:Web/View",
+	  "Par": {
+		"Scene":"$Scene.Scene"
+	  }
+	}
+  }
+}

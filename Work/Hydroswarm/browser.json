@@ -1,15 +1,9 @@
 {
   "Modules":{
-	"Hhost":{
+	"View":{
 	  "Module":"xGraph:Holodeck/Ghost",
 	  "Par": {
-		"Holodeck":"$Holodeck.Proxy"
-	  }
-	},
-	"Holodeck":{
-	  "Module":"xGraph:Web/Proxy",
-	  "Par":{
-		"Proxy":"Holodeck/Holodeck"
+		"Holodeck":"#Holodeck"
 	  }
 	}
   }

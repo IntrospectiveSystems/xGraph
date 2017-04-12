@@ -633,7 +633,6 @@
 					ents[lbl] = obj;
 				}
 				for (let lbl in ents) {
-					CurrentModule = lbl;
 					var obj = ents[lbl];
 					for (let key in obj) {
 						val = obj[key];

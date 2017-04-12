@@ -22,7 +22,7 @@
 		"Page":"$Hydroswarm.Generate"
 	  }
 	},
-	"Hydroswarm":{
+	"Page":{
 	  "Module":"xGraph:Web/Page",
 	  "Par": {
 		"Styles":[
@@ -35,8 +35,8 @@
 		]
 	  }
 	},
-	"Holodeck":{
-	  "Module":"xGraph:Holodeck/Holodeck",
+	"Scene":{
+	  "Module":"xGraph:Holodeck/Scene",
 	  "Par":{
 	  }
 	}
