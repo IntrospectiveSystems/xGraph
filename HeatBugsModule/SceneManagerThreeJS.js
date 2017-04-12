@@ -158,7 +158,7 @@
 				that.send(q, Par.BugArray, updateBugs);
 
 				function updateBugs(err, com) {
-					console.log("returned from bug update");
+					//console.log("returned from bug update");
 
 					if (err)
 						console.log("--Error: ",err);
@@ -184,14 +184,12 @@
 					that.send(q, Par.HeatField, updateField);
 
 					function updateField(err, com) {
-						console.log("returned from field update");
+						//console.log("returned from field update");
 						if (err)
 							console.log("--Error: ", err);
 						if (Vlt.Scene.getObjectByName("heatField")) {
 							Vlt.Scene.getObjectByName("heatField").geometry = com.System.geometry;
 							Vlt.Scene.getObjectByName("heatField").geometry.colorsNeedUpdate = true;
-							//Vlt.Scene.getObjectByName("heatField").geometry.normalsNeedUpdate = true;
-
 
 
 						} else {

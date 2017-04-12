@@ -21,7 +21,7 @@
 		Vlt.geometry = new THREE.Geometry();
 		Vlt.geometry.name = "BugGeometry";
 
-		Vlt.material = new THREE.PointsMaterial({size:2,vertexColors: true});
+		Vlt.material = new THREE.PointsMaterial({size:4,vertexColors: true});
 		Vlt.material.name = "BugMaterial";
 		Vlt.material.depthWrite = false;
 
@@ -42,7 +42,7 @@
 			//bugs personal temperature
 			color = new THREE.Color();
 			relativeTemp = Math.random();
-			color.setHSL(.66, 1, (relativeTemp * .5 + .25));
+			color.setHSL(0, 1, (relativeTemp * .5 + .25));
 			Vlt.geometry.colors.push(color);
 			if ('desiredTemps' in Vlt.geometry) {
 				Vlt.geometry.desiredTemps.push(Par.DesiredTemp.Minimum+
@@ -69,8 +69,22 @@
 
 	}
 
+	function xyzToIdx (x,y,z,range){
+		let output = range*range*x+range*y+z;
+		//console.log(x,y,z, output);
+		if (x==0 && y==0 &&z==0)
+			debugger;
+		return output;
+	}
+
+	function idxToXyz (idx, range){
+		return ({	"x": Math.floor(idx / (range*range)),
+			"y": Math.floor((idx % (range*range))/range),
+			"z": idx%range})
+	}
+
 	function MoveBugs(com, fun){
-		console.log("--BugArray/MoveBugs");
+		//console.log("--BugArray/MoveBugs");
 		let Vlt=this.Vlt;
 		let Par=this.Par;
 
@@ -82,9 +96,9 @@
 		}
 
 		//we here will move the bugs according to the most desired location
-		let vertex, diffArr,wantTemp, vector, idx=-1;
+		let vertex, diffArr,wantTemp, vector,diff, heatIdx, idx=-1;
 		let nbhd= Par.Nbhd;
-		let range = __HeatField.length;
+		let range = Par.CubeDimension;
 
 		for (let i=0; i<Par.BugCount; i++) {
 			//get its location
@@ -106,16 +120,31 @@
 					diffArr.push(10000);
 					continue;
 				}
-
-				diffArr.push(.01*Math.random()
-						+Math.abs(__HeatField[vertex.x+nbhd.x[j]][vertex.y+nbhd.y[j]][vertex.z+nbhd.z[j]])-wantTemp);
+				heatIdx = xyzToIdx(vertex.x+nbhd.x[j],vertex.y+nbhd.y[j],vertex.z+nbhd.z[j], range);
+				diff = .01*Math.random()
+					+ Math.abs(__HeatField[heatIdx]-wantTemp);
+				if (isNaN(diff))
+					diff=10000;
+				diffArr.push(diff);
 
 			}
-			idx = diffArr.indexOf(Math.min(...diffArr));
-			vector = new THREE.Vector3(Number(vertex.x+nbhd.x[idx]),
-						Number(vertex.y+nbhd.y[idx]),
-						Number(vertex.z+nbhd.z[idx]));
 
+			idx = diffArr.indexOf(Math.min(...diffArr));
+
+			if (Math.random()<Par.PRandMove) {
+
+				idx = Math.floor(Math.random() * nbhd.x.length);
+				while (diffArr[idx] == 10000){
+					idx = Math.floor(Math.random() * nbhd.x.length);
+				}
+				//console.log("*******************idx is ", idx);
+			}
+			vector = new THREE.Vector3((vertex.x+nbhd.x[idx]),
+						(vertex.y+nbhd.y[idx]),
+						(vertex.z+nbhd.z[idx]));
+			if (vector.x ==0&&vector.y==0&&vector.z==0){
+				debugger;
+			}
 			Vlt.geometry.vertices[i] = vector;
 		}
 
