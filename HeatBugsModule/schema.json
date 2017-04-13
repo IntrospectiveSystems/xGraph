@@ -3,16 +3,17 @@
 		"$Setup": "Setup",
 		"Entity": "BugArray.js",
 		"CubeDimension": 100,
-		"BugCount":50,
+		"BugCount":200,
+		"SeedSite" : false,
 		"BugTemp":{
-			"Maximum":  200,
-			"Minimum": 100
+			"Maximum":  60,
+			"Minimum": 40
 		},
 		"DesiredTemp":{
 			"Maximum":290,
 			"Minimum":200
 		},
-		"PRandMove":0.1,
+		"PRandMove":0.2,
 		"Nbhd":{
 			"x": [-1,0,0,0,0,1],
 			"y": [0,-1,0,0,1,0],
@@ -29,8 +30,8 @@
 			"y": [0,-1,0,0,1,0],
 			"z": [0,0,-1,1,0,0]
 		},
-		"Cooling": 0,
-		"Diffusion":0.17
+		"Cooling": 0.01,
+		"Diffusion":0.2
 	},
 	"SceneManager":{
 		"$Setup": "Setup",

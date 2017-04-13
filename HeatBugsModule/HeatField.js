@@ -96,6 +96,10 @@
 		let bugoutput = com.outputTemps;
 		let vertex, updatedTemp, idx;
 
+
+
+
+
 //console.log("***Update Bug location temps");
 		for (let i =0;i<bugvertices.length;i++){
 			vertex =  bugvertices[i];
@@ -107,11 +111,14 @@
 			//console.log("Updated temp is ", __HeatField[idx]);
 
 		}
-
-
-
-
 		let TempField = []; //new Array(range).fill(0);
+
+		for (let idx in __HeatField){
+			TempField[idx] = __HeatField[idx]*(1-Par.Diffusion);
+		}
+
+
+
 
 		// for (let i=0;i<range;i++){
 		// 	TempField[i] = new Array(range).fill(0);
@@ -154,11 +161,11 @@
 		// // }
 //console.log("***begin diffusion");
 		for (let key in __HeatField){
-			if(TempField[key]) {
-				TempField[key] += __HeatField[key];
-			}else{
-				TempField[key] = __HeatField[key];
-			}
+			// if(TempField[key]) {
+			// 	TempField[key] += __HeatField[key];
+			// }else{
+			// 	TempField[key] = __HeatField[key];
+			// }
 
 			//console.log("diffuse from", key);
 
@@ -180,17 +187,17 @@
 				if (isNaN(idx))
 					debugger;
 				//console.log("diffuse to ", idx);
-				let startingtemp = TempField[idx];
+				//let startingtemp = TempField[idx];
 				//console.log("starting temp",startingtemp );
 				//console.log("adding ",__HeatField[key] * Par.Diffusion );
 
 				if (TempField[idx]){
 					//console.log("adding to existing idx");
-					TempField[idx] += __HeatField[key] * Par.Diffusion;
+					TempField[idx] += __HeatField[key] * (Par.Diffusion/nbhd.x.length);
 				}
 				else{
 					//console.log("new idx");
-					TempField[idx] = __HeatField[key] * Par.Diffusion;
+					TempField[idx] = __HeatField[key] * (Par.Diffusion/nbhd.x.length);
 				}
 				//console.log("ending temp", TempField[idx]);
 
@@ -198,7 +205,8 @@
 		}
 
 		let newtemp;
-		Vlt.MinFieldTemp = Vlt.MaxFieldTemp;
+		Vlt.MinFieldTemp = 100000;
+		Vlt.MaxFieldTemp =0;
 
 //console.log("***begin cooling");
 		for (let key in TempField){
@@ -278,7 +286,7 @@
 
 		}
 
-		//console.log(Vlt.MaxFieldTemp, Vlt.MinFieldTemp);
+		console.log(Vlt.MaxFieldTemp, Vlt.MinFieldTemp);
 
 		com.System = {"geometry":Vlt.geometry,"material":Vlt.material};
 		//console.log("MAX at ", TempField.indexOf(Vlt.MaxFieldTemp));

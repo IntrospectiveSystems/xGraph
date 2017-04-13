@@ -36,6 +36,13 @@
 				Math.floor(Math.random() * range),
 				Math.floor(Math.random() * range)
 			);
+			if (Par.SeedSite){
+				particle = new THREE.Vector3(
+					Math.floor(range/2),
+					Math.floor(range/2),
+					Math.floor(range/2)
+				);
+			}
 			Vlt.geometry.vertices.push(particle);
 
 			//Set the base color to be different lightness' of red based on eac
@@ -111,20 +118,18 @@
 			for (let j=0;j<nbhd.x.length;j++){
 
 				if (vertex.x+nbhd.x[j]<0 ||vertex.x+nbhd.x[j]>=range) {
-					console.log("out of range");
+					//console.log("out of range");
 					diffArr.push(10000000);
 					continue;
 				}
 				if (vertex.y+nbhd.y[j]<0 ||vertex.y+nbhd.y[j]>=range) {
 					diffArr.push(10000000);
-					console.log("out of range");
-
+					//console.log("out of range");
 					continue;
 				}
 				if (vertex.z+nbhd.z[j]<0 ||vertex.z+nbhd.z[j]>=range) {
 					diffArr.push(10000000);
-					console.log("out of range");
-
+					//console.log("out of range");
 					continue;
 				}
 
@@ -144,12 +149,12 @@
 
 				idx = Math.floor(Math.random() * nbhd.x.length);
 				while (diffArr[idx] == 10000000){
-					console.log("while", diffArr);
+					//console.log("while", diffArr);
 					idx = Math.floor(Math.random() * nbhd.x.length);
 				}
 				//console.log("*******************idx is ", idx);
 			}else {
-				//console.log("chose", idx, diffArr);
+				console.log("choose", diffArr[idx]);
 			}
 			vector = new THREE.Vector3((vertex.x+nbhd.x[idx]),
 						(vertex.y+nbhd.y[idx]),
