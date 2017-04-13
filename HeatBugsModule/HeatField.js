@@ -154,30 +154,46 @@
 		// // }
 //console.log("***begin diffusion");
 		for (let key in __HeatField){
-			TempField[key]=__HeatField[key];
+			if(TempField[key]) {
+				TempField[key] += __HeatField[key];
+			}else{
+				TempField[key] = __HeatField[key];
+			}
 
 			//console.log("diffuse from", key);
 
 			vertex = idxToXyz(key,range);
 
-			for(let n=0;n<nbhd.x.length;n++) {
+			for(let n=0; n<nbhd.x.length; n++) {
 
-				if (vertex.x + nbhd.x[n] < 0 || vertex.x + nbhd.x[n] >= range)
+				if (vertex.x + nbhd.x[n] < 0 || vertex.x + nbhd.x[n] >= range) {
 					continue;
-
-				if (vertex.y + nbhd.y[n] < 0 || vertex.y + nbhd.y[n] >= range)
+				}
+				if (vertex.y + nbhd.y[n] < 0 || vertex.y + nbhd.y[n] >= range) {
 					continue;
-
-				if (vertex.z + nbhd.z[n] < 0 || vertex.z + nbhd.z[n] >= range)
+				}
+				if (vertex.z + nbhd.z[n] < 0 || vertex.z + nbhd.z[n] >= range) {
 					continue;
+				}
 				idx = xyzToIdx(vertex.x + nbhd.x[n], vertex.y + nbhd.y[n], vertex.z + nbhd.z[n],range);
 
+				if (isNaN(idx))
+					debugger;
 				//console.log("diffuse to ", idx);
-				let startingtemp = TempField[idx]||__HeatField[idx];
+				let startingtemp = TempField[idx];
 				//console.log("starting temp",startingtemp );
+				//console.log("adding ",__HeatField[key] * Par.Diffusion );
 
-				TempField[idx] = TempField[idx]+ __HeatField[key] * Par.Diffusion||__HeatField[key] * Par.Diffusion;
+				if (TempField[idx]){
+					//console.log("adding to existing idx");
+					TempField[idx] += __HeatField[key] * Par.Diffusion;
+				}
+				else{
+					//console.log("new idx");
+					TempField[idx] = __HeatField[key] * Par.Diffusion;
+				}
 				//console.log("ending temp", TempField[idx]);
+
 			}
 		}
 
@@ -216,7 +232,7 @@
 		// }
 
 		let color, l;
-
+		__HeatField = [];
 //console.log("***edit colors");
 		Vlt.geometry = new THREE.Geometry();
 		Vlt.geometry.name = "FieldGeometry";
@@ -265,7 +281,8 @@
 		//console.log(Vlt.MaxFieldTemp, Vlt.MinFieldTemp);
 
 		com.System = {"geometry":Vlt.geometry,"material":Vlt.material};
-
+		//console.log("MAX at ", TempField.indexOf(Vlt.MaxFieldTemp));
+		//debugger;
 		if (fun)
 			fun(null,com);
 	}

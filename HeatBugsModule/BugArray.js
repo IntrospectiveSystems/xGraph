@@ -42,7 +42,7 @@
 			//bugs personal temperature
 			color = new THREE.Color();
 			relativeTemp = Math.random();
-			color.setHSL(0, 1, (relativeTemp * .5 + .25));
+			color.setHSL(0, 1, (relativeTemp));
 			Vlt.geometry.colors.push(color);
 			if ('desiredTemps' in Vlt.geometry) {
 				Vlt.geometry.desiredTemps.push(Par.DesiredTemp.Minimum+
@@ -95,6 +95,8 @@
 			return;
 		}
 
+
+
 		//we here will move the bugs according to the most desired location
 		let vertex, diffArr,wantTemp, vector,diff, heatIdx, idx=-1;
 		let nbhd= Par.Nbhd;
@@ -109,22 +111,29 @@
 			for (let j=0;j<nbhd.x.length;j++){
 
 				if (vertex.x+nbhd.x[j]<0 ||vertex.x+nbhd.x[j]>=range) {
-					diffArr.push(10000);
+					console.log("out of range");
+					diffArr.push(10000000);
 					continue;
 				}
 				if (vertex.y+nbhd.y[j]<0 ||vertex.y+nbhd.y[j]>=range) {
-					diffArr.push(10000);
+					diffArr.push(10000000);
+					console.log("out of range");
+
 					continue;
 				}
 				if (vertex.z+nbhd.z[j]<0 ||vertex.z+nbhd.z[j]>=range) {
-					diffArr.push(10000);
+					diffArr.push(10000000);
+					console.log("out of range");
+
 					continue;
 				}
+
 				heatIdx = xyzToIdx(vertex.x+nbhd.x[j],vertex.y+nbhd.y[j],vertex.z+nbhd.z[j], range);
-				diff = .01*Math.random()
-					+ Math.abs(__HeatField[heatIdx]-wantTemp);
-				if (isNaN(diff))
-					diff=10000;
+				diff = .01*Math.random() + Math.abs(__HeatField[heatIdx]-wantTemp);
+				if (isNaN(diff)) {
+					//debugger;
+					diff = (.01*Math.random() + wantTemp);
+				}
 				diffArr.push(diff);
 
 			}
@@ -134,17 +143,18 @@
 			if (Math.random()<Par.PRandMove) {
 
 				idx = Math.floor(Math.random() * nbhd.x.length);
-				while (diffArr[idx] == 10000){
+				while (diffArr[idx] == 10000000){
+					console.log("while", diffArr);
 					idx = Math.floor(Math.random() * nbhd.x.length);
 				}
 				//console.log("*******************idx is ", idx);
+			}else {
+				//console.log("chose", idx, diffArr);
 			}
 			vector = new THREE.Vector3((vertex.x+nbhd.x[idx]),
 						(vertex.y+nbhd.y[idx]),
 						(vertex.z+nbhd.z[idx]));
-			if (vector.x ==0&&vector.y==0&&vector.z==0){
-				debugger;
-			}
+
 			Vlt.geometry.vertices[i] = vector;
 		}
 

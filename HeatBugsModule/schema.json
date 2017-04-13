@@ -3,10 +3,10 @@
 		"$Setup": "Setup",
 		"Entity": "BugArray.js",
 		"CubeDimension": 100,
-		"BugCount":10,
+		"BugCount":50,
 		"BugTemp":{
-			"Maximum":  50,
-			"Minimum": 10
+			"Maximum":  200,
+			"Minimum": 100
 		},
 		"DesiredTemp":{
 			"Maximum":290,
@@ -14,9 +14,9 @@
 		},
 		"PRandMove":0.1,
 		"Nbhd":{
-			"x": [0,-1,0,0,0,0,1],
-			"y": [0,0,-1,0,0,1,0],
-			"z": [0,0,0,-1,1,0,0]
+			"x": [-1,0,0,0,0,1],
+			"y": [0,-1,0,0,1,0],
+			"z": [0,0,-1,1,0,0]
 		}
 	},
 	"HeatField": {
@@ -29,7 +29,7 @@
 			"y": [0,-1,0,0,1,0],
 			"z": [0,0,-1,1,0,0]
 		},
-		"Cooling": 0.25,
+		"Cooling": 0,
 		"Diffusion":0.17
 	},
 	"SceneManager":{
@@ -38,6 +38,7 @@
 		"Entity": "SceneManagerThreeJS.js",
 		"BugArray":"#BugArray",
 		"HeatField":"#HeatField",
-		"Delay": 100
+		"Delay": 100,
+		"Focus": [50,50,50]
 	}
 }

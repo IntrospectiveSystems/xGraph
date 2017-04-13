@@ -19,6 +19,7 @@
 		console.log('--SceneManager/Setup');
 
 		var Vlt = this.Vlt;
+		let Par= this.Par;
 		let that = this;
 		Vlt.Active = false;
 		Vlt.Mouse = {};
@@ -56,6 +57,7 @@
 						Vlt.Active = false;
 					else
 						Vlt.Active = true;
+						Vlt.knt = 0;
 				default:
 			}
 		});
@@ -68,7 +70,7 @@
 		div.appendChild(Vlt.Render.domElement);
 
 		Vlt.Scene = new THREE.Scene();
-		Vlt.Focus = new THREE.Vector3(0,0,0);
+		Vlt.Focus = new THREE.Vector3(Par.Focus[0],Par.Focus[1],Par.Focus[2]);
 
 		Vlt.Camera = new THREE.PerspectiveCamera(45,
 			div.scrollWidth / div.scrollHeight, 0.1, 2000000);
@@ -185,6 +187,7 @@
 
 					function updateField(err, com) {
 						//console.log("returned from field update");
+
 						if (err)
 							console.log("--Error: ", err);
 						if (Vlt.Scene.getObjectByName("heatField")) {
@@ -199,6 +202,9 @@
 							Vlt.Scene.add(system);
 							console.log(Vlt.Scene.children);
 						}
+						if (Vlt.knt % 100 ==0)
+							console.log("Count is ", Vlt.knt);
+						Vlt.knt++;
 					}
 				}
 			}else{
