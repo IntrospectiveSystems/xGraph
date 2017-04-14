@@ -10,7 +10,6 @@
 	var Config = {};
 	var EntCache = {};
 	var CurrentModule;
-	var Apx = {}; // Used only by Genesis
 	var Mod = {};
 	var Nxs = {
 		genPid: genPid,
@@ -420,6 +419,10 @@
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
 		console.log('!!genPath', filein);
+		if(!filein) {
+			console.log(' ** Invalid file name');
+			return '';
+		}
 		var cfg = Config;
 		var path;
 		var parts;
@@ -505,12 +508,19 @@
 		var path;
 		var obj;
 		var package;
+		Root = {};
+		Root.SymTab = {};
+		Root.Apex = {};
+		Root.Global = {};
+		Root.System = {};
+		Root.Setup = {};
+		Root.Start = {};
 		// Merge npm package dependencies
 		var keys = Object.keys(Config.Modules);
 		console.log('keys', keys);
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
-			Apx[key] = genPid();
+			Root.Apex[key] = genPid();
 			var mod = Config.Modules[key];
 			path = genPath(mod.Module) + '/package.json';
 			console.log('Package:' + path);
@@ -549,13 +559,6 @@
 				Async = require('async');
 			genPid();	// Generate Pid24 for this Nexus
 			fs.mkdirSync(CacheDir);
-			Root = {};
-			Root.SymTab = {};
-			Root.Global = {};
-			Root.System = {};
-			Root.Setup = {};
-			Root.Start = {};
-			Root.Route = {};
 			let keys = Object.keys(Config.Modules);
 			console.log('Keys', keys);
 			Async.eachSeries(keys, addmod, done);
@@ -623,7 +626,7 @@
 					var obj = schema[lbl];
 					obj.Module = mod.Module;
 					if(lbl == 'Apex')
-						obj.Pid = Apx[CurrentModule];
+						obj.Pid = Root.Apex[CurrentModule];
 					else
 						obj.Pid = genPid();
 					lbls[lbl] = obj.Pid;
@@ -640,14 +643,14 @@
 								console.log('key, val', key, val);
 								if(typeof val == 'string') {
 									if(val.charAt(0) == '#')
-										par[key] = Apx[val.substr(1)];
+										par[key] = Root.Apex[val.substr(1)];
 								}
 								if(Array.isArray(val)) {
 									for(var i=0; i<val.length; i++) {
 										var tmp = val[i];
 										if(typeof tmp == 'string') {
 											if(tmp.charAt(0) == '#')
-												val[i] = Apx[tmp.substr(1)];
+												val[i] = Root.Apex[tmp.substr(1)];
 										}
 									}
 								} else
@@ -655,7 +658,7 @@
 									for(let sym in val) {
 										var tmp = val[sym];
 										if(typeof tmp == 'string' && tmp.charAt(0) == '#')
-											val[sym] = Apx[tmp.substr(1)];
+											val[sym] = Root.Apex[tmp.substr(1)];
 									}
 									console.log('After', val);
 								}
@@ -667,6 +670,10 @@
 						val = obj[key];
 						if (key == '$Local') {
 							Root.SymTab[val] = obj.Pid;
+							continue;
+						}
+						if (key == '$Global') {
+							Root.Global[val] = obj.Pid;
 							continue;
 						}
 						if (key == '$System') {

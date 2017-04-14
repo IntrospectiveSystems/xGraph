@@ -12,7 +12,6 @@ __Nexus = (function() {
 	var ModCache = {};
 	var ZipCache = {};
 	var SymTab = {};
-	var Apx = [];
 	var Nxs = {
 		genPid: genPid,
 		genEntity: genEntity,
@@ -35,8 +34,6 @@ __Nexus = (function() {
 		Config = JSON.parse(config);
 		console.log('Config...\n');
 		console.log(JSON.stringify(Config, null, 2));
-		if('Apx' in Config)
-			Apx = Config.Apx;
 		SockIO = io();
 		var that = this;
 		if(typeof __Start !== 'undefined') {
@@ -350,6 +347,17 @@ __Nexus = (function() {
 	// first instantiated
 	function Genesis(fun) {
 		console.log('--Nxs/Genesis');
+		Root = {};
+		Root.SymTab = {};
+		Root.Global = {};
+		Root.System = {};
+		Root.Setup = {};
+		Root.Start = {};
+		if('Apex' in Config)
+			Root.Apex = Config.Apex;
+		else
+			Root.Apex = {};
+		Root.Global["Host"] = Config.pidServer;
 		var path;
 		var obj;
 		var package;
@@ -357,17 +365,10 @@ __Nexus = (function() {
 		var keys = Object.keys(Config.Modules);
 		for(var i=0; i<keys.length; i++) {
 			var key = keys[i];
-			Apx[key] = genPid();
+			Root.Apex[key] = genPid();
 		}
 		var nkeys = keys.length;
 		var ikey = 0;
-		Root = {};
-		Root.SymTab = {};
-		Root.Global = {};
-		Root.System = {};
-		Root.Setup = {};
-		Root.Start = {};
-		Root.Global["Host"] = Config.pidServer;
 		var mod;
 		var modkey;
 		nextmodule();
@@ -411,7 +412,7 @@ __Nexus = (function() {
 					CurrentModule = modkey;
 					ent.Module = module;
 					if(lbl == 'Apex')
-						ent.Pid = Apx[modkey];
+						ent.Pid = Root.Apex[modkey];
 					else
 						ent.Pid = genPid();
 					lbls[lbl] = ent.Pid;
@@ -429,6 +430,38 @@ __Nexus = (function() {
 					}
 					var key = keys[ikey];
 					var ent = ents[key];
+					if(key == 'Apex') {
+						console.log('mod', mod);
+						if('Par' in mod) {
+							var par = mod.Par;
+							for(let key in par) {
+								val = par[key];
+								console.log('key, val', key, val);
+								if(typeof val == 'string') {
+									if(val.charAt(0) == '#')
+										par[key] = Root.Apex[val.substr(1)];
+								}
+								if(Array.isArray(val)) {
+									for(var i=0; i<val.length; i++) {
+										var tmp = val[i];
+										if(typeof tmp == 'string') {
+											if(tmp.charAt(0) == '#')
+												val[i] = Root.Apex[tmp.substr(1)];
+										}
+									}
+								} else
+								if(typeof val == 'object') {
+									for(let sym in val) {
+										var tmp = val[sym];
+										if(typeof tmp == 'string' && tmp.charAt(0) == '#')
+											val[sym] = Root.Apex[tmp.substr(1)];
+									}
+									console.log('After', val);
+								}
+								ent[key] = par[key];
+							}
+						}
+					}
 					console.log('ent', ent);
 					ikey++;
 					for (let key in ent) {
@@ -458,7 +491,7 @@ __Nexus = (function() {
 						}
 						if(typeof val == 'string') {
 							if(val.charAt(0) == '#')
-								par[key] = Apx[val.substr(1)];
+								par[key] = Root.Apex[val.substr(1)];
 						}
 						if(Array.isArray(val)) {
 							for (var i = 0; i < val.length; i++) {
@@ -472,7 +505,7 @@ __Nexus = (function() {
 								var tmp = val[i];
 								if(typeof tmp == 'string') {
 									if(tmp.charAt(0) == '#')
-										val[i] = Apx[tmp.substr(1)];
+										val[i] = Root.Apex[tmp.substr(1)];
 								}
 							}
 						} else
@@ -480,18 +513,16 @@ __Nexus = (function() {
 							for(let sym in val) {
 								var tmp = val[sym];
 								if(typeof tmp == 'string' && tmp.charAt(0) == '#')
-									val[sym] = Apx[tmp.substr(1)];
+									val[sym] = Root.Apex[tmp.substr(1)];
 							}
 							console.log('After', val);
 						}
-						ent[key] = par[key];
 					}
 					console.log('ent', ent);
 					var modkey = ent.Module + '/' + ent.Entity;
 					ZipCache[mod] = zipmod;
 					console.log('modkey', modkey);
 					zipmod.file(ent.Entity).async('string').then(function(str){
-						console.log('Entity', str);
 						var mod = eval(str);
 						ModCache[modkey] = mod;
 						EntCache[ent.Pid] = new Entity(Nxs, mod, ent);

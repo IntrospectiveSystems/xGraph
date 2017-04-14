@@ -34,7 +34,7 @@
 		  "jszip.js",
 		  "async.js"
 		],
-		"Apx":{
+		"Apex":{
 		  "Scene":"#Scene"
 		}
 	  }
@@ -42,11 +42,30 @@
 	"Scene":{
 	  "Module":"xGraph:Scene/Scene",
 	  "Par":{
+		"Inst":[
+		  #Terrain
+		]
+	  }
+	},
+	"Terrain": {
+	  "Module":"xGraph/Scene/Instance",
+	  "Par":{
+		"Model":"#Flatland",
+		"Inst":[
+		]
 	  }
 	},
 	"Flatland": {
 	  "Module":"xGraph:Scene/Flatland",
 	  "Par":{
+		"Texture":"#Sandy"
+	  }
+	},
+	"Sandy":{
+	  "Module":"xGraph:Scene/Texture",
+	  "Par":{
+		"Texture":"../Root/Images/sand-12.png",
+		"Size":100
 	  }
 	}
   }

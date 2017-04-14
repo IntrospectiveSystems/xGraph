@@ -29,8 +29,9 @@
 			}
 			var obj = JSON.parse(data.toString());
 			obj.pidServer = Par.Pid;
-			if('Apx' in Par)
-				obj.Apx = Par.Apx;
+			console.log('@@@@@ Par', Par);
+			if('Apex' in Par)
+				obj.Apex = Par.Apex;
 			var config = JSON.stringify(obj);
 			var page = '';
 			page += '<!DOCTYPE html>\n';
