@@ -29,6 +29,8 @@
 			}
 			var obj = JSON.parse(data.toString());
 			obj.pidServer = Par.Pid;
+			if('Apx' in Par)
+				obj.Apx = Par.Apx;
 			var config = JSON.stringify(obj);
 			var page = '';
 			page += '<!DOCTYPE html>\n';

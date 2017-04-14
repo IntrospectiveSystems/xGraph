@@ -10,6 +10,7 @@
 	var Config = {};
 	var EntCache = {};
 	var CurrentModule;
+	var Apx = {}; // Used only by Genesis
 	var Mod = {};
 	var Nxs = {
 		genPid: genPid,
@@ -305,6 +306,7 @@
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
 			//	console.log(Mod);
+			console.log('||dispatch', com.Cmd);
 			var disp = Mod.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -417,6 +419,7 @@
 
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
+		console.log('!!genPath', filein);
 		var cfg = Config;
 		var path;
 		var parts;
@@ -504,8 +507,10 @@
 		var package;
 		// Merge npm package dependencies
 		var keys = Object.keys(Config.Modules);
+		console.log('keys', keys);
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
+			Apx[key] = genPid();
 			var mod = Config.Modules[key];
 			path = genPath(mod.Module) + '/package.json';
 			console.log('Package:' + path);
@@ -617,38 +622,51 @@
 				for (let lbl in schema) {
 					var obj = schema[lbl];
 					obj.Module = mod.Module;
-					if ('$Pid8' in obj) {
-						var pid8 = obj.$Pid8;
-						if (pid8.length != 8) {
-							console.log(' ** ERR:$Pid8 must be 8 characters');
-							if(fun)
-								fun('$Pid8 not 8 characters');
-							return;
-						}
-						obj.Pid = Pid24 + pid8;
-					} else {
+					if(lbl == 'Apex')
+						obj.Pid = Apx[CurrentModule];
+					else
 						obj.Pid = genPid();
-					}
 					lbls[lbl] = obj.Pid;
 					ents[lbl] = obj;
 				}
 				for (let lbl in ents) {
 					var obj = ents[lbl];
+					if(lbl == 'Apex') {
+						console.log('mod', mod);
+						if('Par' in mod) {
+							var par = mod.Par;
+							for(let key in par) {
+								val = par[key];
+								console.log('key, val', key, val);
+								if(typeof val == 'string') {
+									if(val.charAt(0) == '#')
+										par[key] = Apx[val.substr(1)];
+								}
+								if(Array.isArray(val)) {
+									for(var i=0; i<val.length; i++) {
+										var tmp = val[i];
+										if(typeof tmp == 'string') {
+											if(tmp.charAt(0) == '#')
+												val[i] = Apx[tmp.substr(1)];
+										}
+									}
+								} else
+								if(typeof val == 'object') {
+									for(let sym in val) {
+										var tmp = val[sym];
+										if(typeof tmp == 'string' && tmp.charAt(0) == '#')
+											val[sym] = Apx[tmp.substr(1)];
+									}
+									console.log('After', val);
+								}
+								obj[key] = par[key];
+							}
+						}
+					}
 					for (let key in obj) {
 						val = obj[key];
 						if (key == '$Local') {
 							Root.SymTab[val] = obj.Pid;
-							continue;
-						}
-						if (key == '$Global') {
-							if(CurrentModule) {
-								sym = CurrentModule + '.' + val;
-								Root.Global[sym] = obj.Pid;
-								console.log('****************', JSON.stringify(Root.Global, null, 2));
-								console.log('++++++++++++++++', CurrentModule, val);
-							} else {
-								console.log('///////////////// CurrentModeule not defined');
-							}
 							continue;
 						}
 						if (key == '$System') {
@@ -675,7 +693,7 @@
 							continue;
 						}
 					}
-					//	console.log('After:' + JSON.stringify(obj, null, 2));
+					console.log('After:' + JSON.stringify(obj, null, 2));
 				}
 				var keys = Object.keys(ents);
 				Async.eachSeries(keys, cache, fun);

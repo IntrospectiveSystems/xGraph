@@ -1,5 +1,5 @@
 {
-  "Scene": {
+  "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
 	"$Global":"Scene",

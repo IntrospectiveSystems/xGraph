@@ -12,6 +12,7 @@ __Nexus = (function() {
 	var ModCache = {};
 	var ZipCache = {};
 	var SymTab = {};
+	var Apx = [];
 	var Nxs = {
 		genPid: genPid,
 		genEntity: genEntity,
@@ -34,6 +35,8 @@ __Nexus = (function() {
 		Config = JSON.parse(config);
 		console.log('Config...\n');
 		console.log(JSON.stringify(Config, null, 2));
+		if('Apx' in Config)
+			Apx = Config.Apx;
 		SockIO = io();
 		var that = this;
 		if(typeof __Start !== 'undefined') {
@@ -352,6 +355,10 @@ __Nexus = (function() {
 		var package;
 		// Merge npm package dependencies
 		var keys = Object.keys(Config.Modules);
+		for(var i=0; i<keys.length; i++) {
+			var key = keys[i];
+			Apx[key] = genPid();
+		}
 		var nkeys = keys.length;
 		var ikey = 0;
 		Root = {};
@@ -403,7 +410,10 @@ __Nexus = (function() {
 					var ent = schema[lbl];
 					CurrentModule = modkey;
 					ent.Module = module;
-					ent.Pid = genPid();
+					if(lbl == 'Apex')
+						ent.Pid = Apx[modkey];
+					else
+						ent.Pid = genPid();
 					lbls[lbl] = ent.Pid;
 					ents[lbl] = ent;
 				}
@@ -446,9 +456,9 @@ __Nexus = (function() {
 							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
-						if (typeof val == 'string') {
-							ent[key] = symbol(val);
-							continue;
+						if(typeof val == 'string') {
+							if(val.charAt(0) == '#')
+								par[key] = Apx[val.substr(1)];
 						}
 						if(Array.isArray(val)) {
 							for (var i = 0; i < val.length; i++) {
@@ -457,6 +467,24 @@ __Nexus = (function() {
 							}
 							continue;
 						}
+						if(Array.isArray(val)) {
+							for(var i=0; i<val.length; i++) {
+								var tmp = val[i];
+								if(typeof tmp == 'string') {
+									if(tmp.charAt(0) == '#')
+										val[i] = Apx[tmp.substr(1)];
+								}
+							}
+						} else
+						if(typeof val == 'object') {
+							for(let sym in val) {
+								var tmp = val[sym];
+								if(typeof tmp == 'string' && tmp.charAt(0) == '#')
+									val[sym] = Apx[tmp.substr(1)];
+							}
+							console.log('After', val);
+						}
+						ent[key] = par[key];
 					}
 					console.log('ent', ent);
 					var modkey = ent.Module + '/' + ent.Entity;

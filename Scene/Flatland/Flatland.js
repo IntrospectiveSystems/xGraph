@@ -28,7 +28,7 @@
 
 	//-----------------------------------------------------GetGraph
 	// Append model to scene graph
-	function GetGraph(com. fun) {
+	function GetGraph(com, fun) {
 
 	}
 

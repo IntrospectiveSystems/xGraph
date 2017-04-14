@@ -1,4 +1,4 @@
-(function Ghost() {
+(function View() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -32,6 +32,7 @@
 		console.log('Par', this.Par);
 		var Vlt = this.Vlt;
 		var Par = this.Par;
+		console.log('View/Par', Par);
 		Vlt.Camera.position.x = -7;
 		Vlt.Camera.position.y = -20.0;
 		Vlt.Camera.position.z = 20.0;
@@ -40,7 +41,7 @@
 		Vlt.Camera.updateProjectionMatrix();
 		Vlt.Render.render(Vlt.Scene, Vlt.Camera);
 		var q = {};
-		q.Cmd = 'ScebeGraog';
+		q.Cmd = 'GetGraph';
 		this.send(q, Par.Scene, scene);
 
 		function scene(err, q) {

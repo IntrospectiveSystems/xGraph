@@ -5,7 +5,7 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		GetGraogL GetGraog
+		GetGraph: GetGraph
 	};
 
 	return {
@@ -14,13 +14,17 @@
 
 	function Setup(com, fun) {
 		console.log('--Scene/Setup');
-		Vlt.Graph = [];
+		this.Vlt.Graph = [];
 		if(fun)
 			fun();
 	}
 
 	function Start(com, fun) {
 		console.log('--Scene/Start');
+		if(true) {
+			fun();
+			return;
+		}
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;

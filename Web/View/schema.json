@@ -1,9 +1,8 @@
 {
-	"Scene": {
+	"Apex": {
 	  "$Setup": "Setup",
 	  "$Start": "Start",
-	  "Entity": "View.js",
-	  "Scene":"$Scene"
+	  "Entity": "View.js"
 	}
 }
 

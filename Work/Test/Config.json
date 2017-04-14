@@ -19,12 +19,13 @@
 	  "Par": {
 		"Port": 8080,
 		"Url": "Paint",
-		"Page":"$Paint.Generate"
+		"Page":"#Paint"
 	  }
 	},
 	"Paint":{
 	  "Module":"xGraph:Web/Page",
 	  "Par": {
+		"Top":"#Scene",
 		"Styles":[
 		],
 		"Scripts":[
@@ -32,17 +33,21 @@
 		  "three.js",
 		  "jszip.js",
 		  "async.js"
-		]
+		],
+		"Apx":{
+		  "Scene":"#Scene"
+		}
 	  }
 	},
 	"Scene":{
 	  "Module":"xGraph:Scene/Scene",
 	  "Par":{
-		"Link":"Flatland.Model"
 	  }
 	},
 	"Flatland": {
-
+	  "Module":"xGraph:Scene/Flatland",
+	  "Par":{
+	  }
 	}
   }
 }
