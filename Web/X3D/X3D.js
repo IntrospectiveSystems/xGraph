@@ -37,7 +37,7 @@
 		if (!('Root' in x3d)) {
 			console.log(' ** ERR: No root in x3d object');
 			if(fun)
-				fun('No Root in X3D model');
+				fun('No Root in X3D model.');
 			return;
 		}
 		var obj3d = trv(x3d.Root, null, 0);
