@@ -3,7 +3,22 @@
 	"View":{
 	  "Module":"xGraph:Web/View",
 	  "Par": {
-		"Scene":"#Scene"
+		"Scene":"#Scene",
+		"Div":"Grok",
+		"Gen": {
+		  "X3D": "#X3D"
+		}
+	  }
+	},
+	"Mouse":{
+	  "Module":"xGraph:Web/Mouse",
+	  "Par":{
+		"Div":"Grok"
+	  }
+	},
+	"X3D":{
+	  "Module":"xGraph:Web/X3D",
+	  "Par":{
 	  }
 	}
   }

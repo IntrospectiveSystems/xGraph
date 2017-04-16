@@ -12,14 +12,14 @@
 	};
 
 	//-----------------------------------------------------Setup
-	function Setup(com, fun) {
+	function Start(com, fun) {
 		console.log('--Texture/Setup');
 		if(fun)
 			fun();
 	}
 
 	//-----------------------------------------------------GetModel
-	function Start(com, fun) {
+	function Setup(com, fun) {
 		console.log('--Texture/Start');
 		var that = this;
 		var Par = this.Par;

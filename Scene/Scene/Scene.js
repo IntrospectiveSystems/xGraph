@@ -21,31 +21,21 @@
 
 	function Start(com, fun) {
 		console.log('--Scene/Start');
-		if(true) {
-			fun();
-			return;
-		}
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		var links = Par.Link;
-		var graph = [];
-		async.eachSeries(links, graph, pau);
+		var links = Par.Inst;
+		var omst = {};
+		var q = {};
+		var inst = [];
+		console.log('links', links);
+		q.Cmd = 'AddInstance';
+		q.Inst = inst;
+		async.eachSeries(links, instance, pau);
 
-		function graph(link, func) {
-			var q = {};
-			q.Cmd = 'GetGraph';
-			that.send(q, link, reply);
-
-			function reply(err, q) {
-				if(err) {
-					func(err);
-					return;
-				}
-				if('Graph' in q)
-					graph.push(q.Graph);
-				func();
-			}
+		function instance(pid, func) {
+			console.log('..instance', pid);
+			that.send(q, pid, func);
 		}
 
 		function pau(err) {
@@ -54,27 +44,11 @@
 					fun(err);
 				return;
 			}
-			var inst = {};
-			if('Loc' in Par)
-				inst.Loc = Par.Loc;
-			else
-				inst.Loc = [0,0,0];
-			if('Axis' in Par)
-				inst.Axis = Par.Axis;
-			else
-				inst.Axis = [0, 0, 1];
-			if('Ang' in Par)
-				inst.Ang = Par.Ang;
-			else
-				inst.Ang = 0.0;
-			if(graph.length > 0)
-				inst.Link = graph;
+			console.log('Graph', JSON.stringify(inst, null, 2));
+			Vlt.Graph = inst;
 			if(fun)
 				fun(null, com);
-			Vlt.Graph = graph;
 		}
-		if(fun)
-			fun();
 	}
 
 	//-----------------------------------------------------GetGraph

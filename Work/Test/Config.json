@@ -43,12 +43,12 @@
 	  "Module":"xGraph:Scene/Scene",
 	  "Par":{
 		"Inst":[
-		  #Terrain
+		  "#Terrain"
 		]
 	  }
 	},
 	"Terrain": {
-	  "Module":"xGraph/Scene/Instance",
+	  "Module":"xGraph:Scene/Instance",
 	  "Par":{
 		"Model":"#Flatland",
 		"Inst":[
