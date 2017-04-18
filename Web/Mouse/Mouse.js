@@ -202,6 +202,7 @@
 					info.Keys.push(key);
 				return;
 			}
+			console.log('..Mouse/Translate', info.key);
 			if(info.Key in dispatch)
 				dispatch[info.Key]();
 

@@ -26,6 +26,11 @@
 		Vew.Camera = new THREE.PerspectiveCamera(45,
 			div.scrollWidth / div.scrollHeight, 0.1, 40000);
 		div.appendChild(Vew.Render.domElement);
+		Vew.Light = new THREE.DirectionalLight(0xFFFFFF);
+		Vew.Light.position.set(-40, 60, 100);
+		Vew.Scene.add(Vew.Light);
+		Vew.Ambient = new THREE.AmbientLight(0x808080);
+		Vew.Scene.add(Vew.Ambient);
 		var axes = new THREE.AxisHelper(100);
 		axes.position.z = 0.01;
 		Vew.Scene.add(axes);

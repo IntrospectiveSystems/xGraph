@@ -1,0 +1,1 @@
+browserify ./PNGReader.js -s PNGReader >./Scripts/PNGReader.js

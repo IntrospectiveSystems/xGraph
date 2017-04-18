@@ -120,6 +120,7 @@
 						}
 						com.Passport.Reply = true;
 						var str = JSON.stringify(com);
+						console.log('####Send:' + str.length);
 						socket.send(str);
 					}
 				});
