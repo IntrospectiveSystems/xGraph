@@ -103,7 +103,25 @@
 							func(err);
 							return;
 						}
-						Vew.Scene.add(x.Obj3D);
+						var objinst = new THREE.Object3D();
+						if('Position' in inst) {
+							var pos = inst.Position;
+							objinst.x = pos[0];
+							objinst.y = pos[1];
+							objinst.z = pos[2];
+						}
+						if('Axis' in inst && 'Angle' in inst) {
+							var axis = inst.Axis;
+							var ang = inst.Angle*Math.PI/180.0;
+							var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
+							objinst.setRotationFromAxisAngle(vec, ang);
+						}
+						var data = {};
+						data.Type = 'Terrain';
+						data.Pid = inst.Instance;
+						objinst.userData = data;
+						objinst.add(x.Obj3D);
+						Vew.Scene.add(objinst);
 						func();
 					}
 				}
