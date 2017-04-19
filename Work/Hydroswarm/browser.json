@@ -1,0 +1,10 @@
+{
+  "Modules":{
+	"View":{
+	  "Module":"xGraph:Holodeck/Ghost",
+	  "Par": {
+		"Holodeck":"#Holodeck"
+	  }
+	}
+  }
+}

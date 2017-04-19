@@ -1,0 +1,10 @@
+{
+	"Holodeck": {
+	  "$Setup": "Setup",
+	  "$Start": "Start",
+	  "Entity": "Ghost.js",
+	  "Holodeck":"$Holodeck"
+	}
+}
+
+

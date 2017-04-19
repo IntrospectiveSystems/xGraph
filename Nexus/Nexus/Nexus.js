@@ -14,6 +14,7 @@
 	var Nxs = {
 		genPid: genPid,
 		genPath: genPath,
+		getGlobal: getGlobal,
 		sendMessage: sendMessage
 	}
 	console.log('=================================================');
@@ -195,6 +196,15 @@
 		}
 	}
 
+	//-----------------------------------------------------getGlobal
+	// Get Pid associated with a global symbol
+	function getGlobal(sym) {
+		console.log('--Nexus/getGlobal');
+		console.log(JSON.stringify(Root, null, 2));
+		if(sym in Root.Global)
+			return Root.Global[sym];
+	}
+
 	//-----------------------------------------------------getEntity
 	function getEntity(pid, fun) {
 		let pid24 = pid.substr(0, 24);
@@ -295,6 +305,7 @@
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
 			//	console.log(Mod);
+			console.log('||dispatch', com.Cmd);
 			var disp = Mod.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -407,6 +418,11 @@
 
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
+		console.log('!!genPath', filein);
+		if(!filein) {
+			console.log(' ** Invalid file name');
+			return '';
+		}
 		var cfg = Config;
 		var path;
 		var parts;
@@ -492,10 +508,19 @@
 		var path;
 		var obj;
 		var package;
+		Root = {};
+		Root.SymTab = {};
+		Root.Apex = {};
+		Root.Global = {};
+		Root.System = {};
+		Root.Setup = {};
+		Root.Start = {};
 		// Merge npm package dependencies
 		var keys = Object.keys(Config.Modules);
+		console.log('keys', keys);
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
+			Root.Apex[key] = genPid();
 			var mod = Config.Modules[key];
 			path = genPath(mod.Module) + '/package.json';
 			console.log('Package:' + path);
@@ -529,17 +554,11 @@
 
 		ps.on('exit', (code) => {
 			console.log(`npm process exited with code:` + code);
+			console.log('Current working directory:' + process.cwd());
 			if(!Async)
 				Async = require('async');
 			genPid();	// Generate Pid24 for this Nexus
 			fs.mkdirSync(CacheDir);
-			Root = {};
-			Root.SymTab = {};
-			Root.Global = {};
-			Root.System = {};
-			Root.Setup = {};
-			Root.Start = {};
-			Root.Route = {};
 			let keys = Object.keys(Config.Modules);
 			console.log('Keys', keys);
 			Async.eachSeries(keys, addmod, done);
@@ -607,23 +626,47 @@
 				for (let lbl in schema) {
 					var obj = schema[lbl];
 					obj.Module = mod.Module;
-					if ('$Pid8' in obj) {
-						var pid8 = obj.$Pid8;
-						if (pid8.length != 8) {
-							console.log(' ** ERR:$Pid8 must be 8 characters');
-							if(fun)
-								fun('$Pid8 not 8 characters');
-							return;
-						}
-						obj.Pid = Pid24 + pid8;
-					} else {
+					if(lbl == 'Apex')
+						obj.Pid = Root.Apex[CurrentModule];
+					else
 						obj.Pid = genPid();
-					}
 					lbls[lbl] = obj.Pid;
 					ents[lbl] = obj;
 				}
 				for (let lbl in ents) {
 					var obj = ents[lbl];
+					if(lbl == 'Apex') {
+						console.log('mod', mod);
+						if('Par' in mod) {
+							var par = mod.Par;
+							for(let key in par) {
+								val = par[key];
+								console.log('key, val', key, val);
+								if(typeof val == 'string') {
+									if(val.charAt(0) == '#')
+										par[key] = Root.Apex[val.substr(1)];
+								}
+								if(Array.isArray(val)) {
+									for(var i=0; i<val.length; i++) {
+										var tmp = val[i];
+										if(typeof tmp == 'string') {
+											if(tmp.charAt(0) == '#')
+												val[i] = Root.Apex[tmp.substr(1)];
+										}
+									}
+								} else
+								if(typeof val == 'object') {
+									for(let sym in val) {
+										var tmp = val[sym];
+										if(typeof tmp == 'string' && tmp.charAt(0) == '#')
+											val[sym] = Root.Apex[tmp.substr(1)];
+									}
+									console.log('After', val);
+								}
+								obj[key] = par[key];
+							}
+						}
+					}
 					for (let key in obj) {
 						val = obj[key];
 						if (key == '$Local') {
@@ -631,10 +674,7 @@
 							continue;
 						}
 						if (key == '$Global') {
-							if(CurrentModule) {
-								sym = CurrentModule + '.' + val;
-								Root.Global[sym] = obj.Pid;
-							}
+							Root.Global[val] = obj.Pid;
 							continue;
 						}
 						if (key == '$System') {
@@ -661,7 +701,7 @@
 							continue;
 						}
 					}
-					//	console.log('After:' + JSON.stringify(obj, null, 2));
+					console.log('After:' + JSON.stringify(obj, null, 2));
 				}
 				var keys = Object.keys(ents);
 				Async.eachSeries(keys, cache, fun);

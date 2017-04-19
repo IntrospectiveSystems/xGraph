@@ -1,11 +1,11 @@
 {
-  "Spider": {
+  "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
 	"$Global": "Spider",
 	"Entity": "Http.js",
-	"Port": "$Port",
-	"Url": "$Url",
-	"Page":"$Page"
+	"Port": 8080,
+	"Url": "Login.html",
+	"Page":"Nada"
   }
 }

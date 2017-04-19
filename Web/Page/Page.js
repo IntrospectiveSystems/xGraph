@@ -6,7 +6,8 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		GenPage: genPage,
-		GetModule: getModule
+		GetModule: getModule,
+		GetGlobal: getGlobal
 	};
 
 	return {
@@ -28,6 +29,9 @@
 			}
 			var obj = JSON.parse(data.toString());
 			obj.pidServer = Par.Pid;
+			console.log('@@@@@ Par', Par);
+			if('Apex' in Par)
+				obj.Apex = Par.Apex;
 			var config = JSON.stringify(obj);
 			var page = '';
 			page += '<!DOCTYPE html>\n';
@@ -127,6 +131,19 @@
 				fun(null, com);
 			});
 		}
+	}
+
+	//-----------------------------------------------------getGlobal
+	function getGlobal(com, fun) {
+		console.log('--Page/getGlobal');
+		if('Symbol' in com) {
+			com.Pid = this.Nxs.getGlobal(com.Symbol);
+			if (fun)
+				fun(null, com);
+			return;
+		}
+		if(fun)
+			fun('Symbol not defined');
 	}
 
 })();

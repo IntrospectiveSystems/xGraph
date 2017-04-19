@@ -1,8 +1,7 @@
 {
-  "Page": {
-	"$Global":"Generate",
+  "Apex": {
 	"Entity": "Page.js",
-	"Styles":"$Styles",
-	"Scripts":"$Scripts"
+	"Styles":[],
+	"Scripts":[]
   }
 }

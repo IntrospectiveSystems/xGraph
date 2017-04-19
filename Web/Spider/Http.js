@@ -120,6 +120,7 @@
 						}
 						com.Passport.Reply = true;
 						var str = JSON.stringify(com);
+						console.log('####Send:' + str.length);
 						socket.send(str);
 					}
 				});
@@ -198,6 +199,7 @@
 
 		//.................................................get
 		function get() {
+			that.Nxs.getGlobal('Nada.Nada');
 			var path = that.Nxs.genPath(url);
 			console.log('genPath', url, '->', path);
 			fs.readFile(path, done);

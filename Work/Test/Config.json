@@ -1,29 +1,70 @@
 {
   "xGraph": "{xGraph}",
   "Cache": "cache",
-   "Modules":{
-	"Spider":{
-	  "Module": "xGraph:Web/Spider",
-	  "Par": {
-		"Port": 8080,
-		"Url": "Paint",
-		"Login":"$Login.Html"
-	  }
-	},
+  "Redirect":{
+	"Nxs.js":"{xGraph}/Nexus/Nexus/Nxs.js",
+	"jQuery.js":"../Root/Scripts/jquery-2.1.1.min.js",
+	"three.js":"../Root/Scripts/three.min-r82.js",
+	"jszip.js":"../Root/Scripts/jszip.min_3.1.3.js",
+	"async.js":"../Root/Scripts/async.js",
+	"pngjs2.js":"../Root/Scripts/pngjs2.js",
+	"PNGReader.js":"../Root/Scripts/PNGReader.js"
+  },
+  "Modules":{
 	"Nexus":{
 	  "Module": "xGraph:Nexus/Nexus",
 	  "Par": {
 	  }
 	},
-	"Login":{
-	  "Module":"xGraph:Web/Html",
+	"Spider":{
+	  "Module": "xGraph:Web/Spider",
 	  "Par": {
-		"Html": "{Root}/Html/Login.html",
+		"Port": 8080,
+		"Url": "Paint",
+		"Page":"#Paint"
+	  }
+	},
+	"Paint":{
+	  "Module":"xGraph:Web/Page",
+	  "Par": {
+		"Top":"#Scene",
 		"Styles":[
 		],
 		"Scripts":[
-		  "jUuery.js"
+		  "jQuery.js",
+		  "three.js",
+		  "jszip.js",
+		  "async.js",
+		  "pngjs2.js",
+		  "PNGReader.js"
+		],
+		"Apex":{
+		  "Scene":"#Scene"
+		}
+	  }
+	},
+	"Scene":{
+	  "Module":"xGraph:Scene/Scene",
+	  "Par":{
+		"Inst":[
+		  "#Terrain"
 		]
+	  }
+	},
+	"Terrain": {
+	  "Module":"xGraph:Scene/Instance",
+	  "Par":{
+		"Model":"#Flatland",
+		"Inst":[
+		]
+	  }
+	},
+	"Flatland": {
+	  "Module":"xGraph:Scene/Flatland",
+	  "Par":{
+		"Size":[100, 100],
+		"TextureSize":[25,25],
+		"Texture":"../Root/Images/sand-12.png"
 	  }
 	}
   }

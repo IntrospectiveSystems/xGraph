@@ -1,0 +1,9 @@
+{
+	"Apex": {
+	  "$Setup": "Setup",
+	  "$Start": "Start",
+	  "Entity": "View.js"
+	}
+}
+
+
