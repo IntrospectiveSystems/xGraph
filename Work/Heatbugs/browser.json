@@ -1,9 +1,0 @@
-{
-  "Modules":{
-	"Heatbugs":{
-	  "Module":"xGraph:Heatbugs/Heatbugs",
-	  "Par": {
-	  }
-	}
-  }
-}

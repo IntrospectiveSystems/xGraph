@@ -154,7 +154,7 @@
 				}
 				//console.log("*******************idx is ", idx);
 			}else {
-				console.log("choose", diffArr[idx]);
+				//console.log("choose", diffArr[idx]);
 			}
 			vector = new THREE.Vector3((vertex.x+nbhd.x[idx]),
 						(vertex.y+nbhd.y[idx]),

@@ -6,12 +6,12 @@
 		"BugCount":200,
 		"SeedSite" : false,
 		"BugTemp":{
-			"Maximum":  60,
-			"Minimum": 40
+			"Maximum":  120,
+			"Minimum": 100
 		},
 		"DesiredTemp":{
-			"Maximum":290,
-			"Minimum":200
+			"Maximum":60,
+			"Minimum":40
 		},
 		"PRandMove":0.2,
 		"Nbhd":{
@@ -30,7 +30,7 @@
 			"y": [0,-1,0,0,1,0],
 			"z": [0,0,-1,1,0,0]
 		},
-		"Cooling": 0.01,
+		"Cooling": 0.1,
 		"Diffusion":0.2
 	},
 	"SceneManager":{

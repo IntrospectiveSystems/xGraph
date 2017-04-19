@@ -286,7 +286,7 @@
 
 		}
 
-		console.log(Vlt.MaxFieldTemp, Vlt.MinFieldTemp);
+		//console.log(Vlt.MaxFieldTemp, Vlt.MinFieldTemp);
 
 		com.System = {"geometry":Vlt.geometry,"material":Vlt.material};
 		//console.log("MAX at ", TempField.indexOf(Vlt.MaxFieldTemp));
