@@ -520,7 +520,7 @@
 		console.log('keys', keys);
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
-			Root.Apex[key] = genPid();
+		//	Root.Apex[key] = genPid();
 			var mod = Config.Modules[key];
 			path = genPath(mod.Module) + '/package.json';
 			console.log('Package:' + path);
@@ -561,6 +561,10 @@
 			fs.mkdirSync(CacheDir);
 			let keys = Object.keys(Config.Modules);
 			console.log('Keys', keys);
+			for(var i=0; i<keys.length; i++) {
+				var key = keys[i];
+				Root.Apex[key] = genPid();
+			}
 			Async.eachSeries(keys, addmod, done);
 
 			function addmod(key, func) {
