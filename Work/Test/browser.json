@@ -6,7 +6,7 @@
 		"Scene":"$Scene",
 		"Div":"Grok",
 		"Gen": {
-		  "X3D": "#X3D"
+		  "X3D": "$X3D"
 		}
 	  }
 	},
