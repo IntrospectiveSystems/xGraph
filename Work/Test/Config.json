@@ -21,13 +21,13 @@
 	  "Par": {
 		"Port": 8080,
 		"Url": "Paint",
-		"Page":"#Paint"
+		"Page":"$Paint"
 	  }
 	},
 	"Paint":{
 	  "Module":"xGraph:Web/Page",
 	  "Par": {
-		"Top":"#Scene",
+		"Top":"$Scene",
 		"Styles":[
 		],
 		"Scripts":[
@@ -39,7 +39,7 @@
 		  "PNGReader.js"
 		],
 		"Apex":{
-		  "Scene":"#Scene"
+		  "Scene":"$Scene"
 		}
 	  }
 	},
@@ -47,16 +47,16 @@
 	  "Module":"xGraph:Scene/Scene",
 	  "Par":{
 		"Inst":[
-		  "#Terrain"
+		  "$Terrain"
 		]
 	  }
 	},
 	"Terrain": {
 	  "Module":"xGraph:Scene/Instance",
 	  "Par":{
-		"Model":"#Flatland",
+		"Model":"$Flatland",
 		"Inst":[
-		  "#ModelInst"
+		  "$ModelInst"
 		]
 	  }
 	},
@@ -71,13 +71,13 @@
 	"ModelInst": {
 	  "Module":"xGraph:Scene/Instance",
 	  "Par":{
-		"Model":"#Model",
+		"Model":"$Model",
 		"Inst":[
 		]
 	  }
 	},
 	"Model": {
-	  "Module":"xGraph:Scene/Cvt3DS",
+	  "Module":"xGraph:Scene/Model",
 	  "Par":{
 		"Model":"../Root/Models/Cactus5/cactus5.3ds"
 	  }

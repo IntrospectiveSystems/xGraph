@@ -2,7 +2,6 @@
   "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
-	"$Global": "Spider",
 	"Entity": "Http.js",
 	"Port": 8080,
 	"Url": "Login.html",
