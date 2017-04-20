@@ -641,7 +641,7 @@
 					var obj = ents[lbl];
 					for(let key in obj) {
 						val = obj[key];
-						console.log('key, val', key, val);
+					//	console.log('key, val', key, val, typeof val);
 						if (key == '$Setup') {
 							Root.Setup[obj.Pid.substr(24)] = obj[key];
 							continue;
@@ -661,16 +661,16 @@
 							}
 							continue;
 						}
-						if(typeof val == 'object') {
+						if(typeof val === 'object') {
 							for(let sym in val) {
 								var tmp = val[sym];
-								if(typeof tmp == 'string')
-									val[sym] = symbol[tmp];
+								if(typeof tmp === 'string')
+									val[sym] = symbol(tmp);
 							}
 							continue;
 						}
 					}
-					console.log('After:' + JSON.stringify(obj, null, 2));
+				//	console.log('After:' + JSON.stringify(obj, null, 2));
 				}
 				var keys = Object.keys(ents);
 				Async.eachSeries(keys, cache, fun);
@@ -691,7 +691,7 @@
 			}
 
 			function symbol(str) {
-				console.log('..symbol', str);
+			//	console.log('..symbol', str);
 				var esc = str.charAt(0);
 				if(esc == '#') {
 					var sym = str.substr(1);
