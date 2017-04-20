@@ -451,10 +451,8 @@ __Nexus = (function() {
 							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
-						if(typeof val == 'string') {
-							if(val.charAt(0) == '$')
-								ent[key] = Root.Apex[val.substr(1)];
-						}
+						if(typeof val == 'string')
+							ent[key] = symbol(val);
 						if(Array.isArray(val)) {
 							for (var i = 0; i < val.length; i++) {
 								if (typeof val[i] == 'string')
@@ -462,20 +460,11 @@ __Nexus = (function() {
 							}
 							continue;
 						}
-						if(Array.isArray(val)) {
-							for(var i=0; i<val.length; i++) {
-								var tmp = val[i];
-								if(typeof tmp == 'string') {
-									if(tmp.charAt(0) == '#')
-										val[i] = Root.Apex[tmp.substr(1)];
-								}
-							}
-						} else
 						if(typeof val == 'object') {
 							for(let sym in val) {
 								var tmp = val[sym];
-								if(typeof tmp == 'string' && tmp.charAt(0) == '#')
-									val[sym] = Root.Apex[tmp.substr(1)];
+								if(typeof tmp == 'string')
+									val[sym] = symbol(tmp);
 							}
 							console.log('After', val);
 						}
