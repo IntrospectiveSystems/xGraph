@@ -49,7 +49,7 @@
 			//bugs personal temperature
 			color = new THREE.Color();
 			relativeTemp = Math.random();
-			color.setHSL(0, 1, (relativeTemp));
+			color.setHSL(0.66, 1, (relativeTemp));
 			Vlt.geometry.colors.push(color);
 			if ('desiredTemps' in Vlt.geometry) {
 				Vlt.geometry.desiredTemps.push(Par.DesiredTemp.Minimum+

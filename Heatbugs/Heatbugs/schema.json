@@ -1,7 +1,0 @@
-{
-  "Heatbugs": {
-	"$Setup": "Setup",
-	"$Start": "Start",
-	"Entity": "Heatbugs.js"
-  }
-}

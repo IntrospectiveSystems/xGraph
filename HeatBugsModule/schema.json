@@ -1,10 +1,23 @@
 {
+	"Apex": {
+		"$Setup": "Setup",
+		"$Start": "Start",
+		"Entity": "SceneManagerThreeJS.js",
+		"BugArray": "#BugArray",
+		"HeatField": "#HeatField",
+		"Delay": 100,
+		"Focus": [
+			50,
+			50,
+			50
+		]
+	},
 	"BugArray": {
 		"$Setup": "Setup",
 		"Entity": "BugArray.js",
 		"CubeDimension": 100,
 		"BugCount":200,
-		"SeedSite" : false,
+		"SeedSite" : true,
 		"BugTemp":{
 			"Maximum":  120,
 			"Minimum": 100
@@ -23,23 +36,13 @@
 	"HeatField": {
 		"$Setup":"Setup",
 		"Entity": "HeatField.js",
-		"SceneManager": "#SceneManager",
 		"FieldDimension": 100,
 		"Nbhd":{
 			"x": [-1,0,0,0,0,1],
 			"y": [0,-1,0,0,1,0],
 			"z": [0,0,-1,1,0,0]
 		},
-		"Cooling": 0.1,
-		"Diffusion":0.2
-	},
-	"SceneManager":{
-		"$Setup": "Setup",
-		"$Start": "Start",
-		"Entity": "SceneManagerThreeJS.js",
-		"BugArray":"#BugArray",
-		"HeatField":"#HeatField",
-		"Delay": 100,
-		"Focus": [50,50,50]
+		"Cooling": 0.02,
+		"Diffusion":0.5
 	}
 }
