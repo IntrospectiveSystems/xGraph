@@ -33,7 +33,7 @@
 		}
 	}
 
-	var config = 'Config.json';
+	var config = 'config.json';
 	if('Config' in Params)
 		config = Params.Config;
 	let str = fs.readFileSync(config);
@@ -201,8 +201,8 @@
 	function getGlobal(sym) {
 		console.log('--Nexus/getGlobal');
 		console.log(JSON.stringify(Root, null, 2));
-		if(sym in Root.Global)
-			return Root.Global[sym];
+		if(sym in Root.Apex)
+			return Root.Apex[sym];
 	}
 
 	//-----------------------------------------------------getEntity
@@ -500,7 +500,7 @@
 	};
 
 	//-----------------------------------------------------Genesis
-	// Create cache if it does nto exist and populate
+	// Create cache if it does not exist and populate
 	// This is called only once when a new systems is
 	// first instantiated
 	function Genesis(fun) {
@@ -509,10 +509,7 @@
 		var obj;
 		var package;
 		Root = {};
-		Root.SymTab = {};
 		Root.Apex = {};
-		Root.Global = {};
-		Root.System = {};
 		Root.Setup = {};
 		Root.Start = {};
 		// Merge npm package dependencies
@@ -520,7 +517,6 @@
 		console.log('keys', keys);
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
-			Root.Apex[key] = genPid();
 			var mod = Config.Modules[key];
 			path = genPath(mod.Module) + '/package.json';
 			console.log('Package:' + path);
@@ -561,6 +557,10 @@
 			fs.mkdirSync(CacheDir);
 			let keys = Object.keys(Config.Modules);
 			console.log('Keys', keys);
+			for(var i=0; i<keys.length; i++) {
+				var key = keys[i];
+				Root.Apex[key] = genPid();
+			}
 			Async.eachSeries(keys, addmod, done);
 
 			function addmod(key, func) {
@@ -602,6 +602,7 @@
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
+
 		fs.exists(path, compile);
 
 		function compile(yes) {
@@ -624,6 +625,11 @@
 				console.log('schema...\n' + JSON.stringify(schema, null, 2));
 				for (let lbl in schema) {
 					var obj = schema[lbl];
+					if('Par' in mod) {
+						for(key in mod.Par) {
+							obj[key] = mod.Par[key];
+						}
+					}
 					obj.Module = mod.Module;
 					if(lbl == 'Apex')
 						obj.Pid = Root.Apex[CurrentModule];
@@ -634,52 +640,9 @@
 				}
 				for (let lbl in ents) {
 					var obj = ents[lbl];
-					if(lbl == 'Apex') {
-						console.log('mod', mod);
-						if('Par' in mod) {
-							var par = mod.Par;
-							for(let key in par) {
-								val = par[key];
-								console.log('key, val', key, val);
-								if(typeof val == 'string') {
-									if(val.charAt(0) == '#')
-										par[key] = Root.Apex[val.substr(1)];
-								}
-								if(Array.isArray(val)) {
-									for(var i=0; i<val.length; i++) {
-										var tmp = val[i];
-										if(typeof tmp == 'string') {
-											if(tmp.charAt(0) == '#')
-												val[i] = Root.Apex[tmp.substr(1)];
-										}
-									}
-								} else
-								if(typeof val == 'object') {
-									for(let sym in val) {
-										var tmp = val[sym];
-										if(typeof tmp == 'string' && tmp.charAt(0) == '#')
-											val[sym] = Root.Apex[tmp.substr(1)];
-									}
-									console.log('After', val);
-								}
-								obj[key] = par[key];
-							}
-						}
-					}
-					for (let key in obj) {
+					for(let key in obj) {
 						val = obj[key];
-						if (key == '$Local') {
-							Root.SymTab[val] = obj.Pid;
-							continue;
-						}
-						if (key == '$Global') {
-							Root.Global[val] = obj.Pid;
-							continue;
-						}
-						if (key == '$System') {
-							Root.System[obj.Pid.substr(24)] = obj[key];
-							continue;
-						}
+					//	console.log('key, val', key, val, typeof val);
 						if (key == '$Setup') {
 							Root.Setup[obj.Pid.substr(24)] = obj[key];
 							continue;
@@ -688,19 +651,27 @@
 							Root.Start[obj.Pid.substr(24)] = obj[key];
 							continue;
 						}
-						if (typeof val == 'string') {
+						if(typeof val == 'string') {
 							obj[key] = symbol(val);
 							continue;
 						}
 						if(Array.isArray(val)) {
-							for (var i = 0; i < val.length; i++) {
-								if (typeof val[i] == 'string')
+							for(var i=0; i<val.length; i++) {
+								if(typeof val[i] == 'string')
 									val[i] = symbol(val[i]);
 							}
 							continue;
 						}
+						if(typeof val === 'object') {
+							for(let sym in val) {
+								var tmp = val[sym];
+								if(typeof tmp === 'string')
+									val[sym] = symbol(tmp);
+							}
+							continue;
+						}
 					}
-					console.log('After:' + JSON.stringify(obj, null, 2));
+				//	console.log('After:' + JSON.stringify(obj, null, 2));
 				}
 				var keys = Object.keys(ents);
 				Async.eachSeries(keys, cache, fun);
@@ -721,27 +692,21 @@
 			}
 
 			function symbol(str) {
-				if(str.charAt(0) == '#') {
-					var lbl = str.substr(1);
-					if(!(lbl in lbls)) {
-						var err = ' ** Symbol ' + lbl + ' not defined';
-						throw err;
-					}
-					return lbls[lbl];
+			//	console.log('..symbol', str);
+				var esc = str.charAt(0);
+				if(esc == '#') {
+					var sym = str.substr(1);
+					if(sym in lbls)
+						return lbls[sym];
+					else
+						throw 'Invalid local sysmbol' + sym;
 				}
-				if(str.charAt(0) == '$') {
-					if('Par' in mod) {
-						console.log('mod.Par', mod.Par);
-						var par = str.substr(1);
-						if(par in mod.Par) {
-							return mod.Par[par];
-						} else {
-							var err = ' ** Parameter <' + par + '> not available';
-							throw err;
-						}
-					}
-					var err = ' ** No parameters provided';
-					throw err;
+				if(esc == '$') {
+					var sym = str.substr(1);
+					if(sym in Root.Apex)
+						return Root.Apex[sym];
+					else
+						throw 'Invalid global sysmbol' + sym;
 				}
 				return str;
 			}

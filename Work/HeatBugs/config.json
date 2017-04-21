@@ -14,7 +14,7 @@
 	  "Par": {
 		"Port": 8080,
 		"Url": "Heatbugs",
-		"Page":"$Heatbugs.Generate"
+		"Page":"$Heatbugs"
 	  }
 	},
 	"Nexus":{

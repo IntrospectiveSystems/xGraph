@@ -2,7 +2,7 @@
 "use strict";
 
 var zlib = require('zlib');
-var PNG = require('./PNG');
+var PNG = require('./../../../Web/PNG');
 
 var inflate = function(data, callback){
 	return zlib.inflate(new Buffer(data), callback);

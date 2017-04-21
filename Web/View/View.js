@@ -51,6 +51,7 @@
 		var Vew = $('#'+Par.Div).data('View');
 		var q = {};
 		q.Cmd = 'GetGraph';
+		console.log('Par', JSON.stringify(Par, null, 2));
 		this.send(q, Par.Scene, scene);
 
 		function scene(err, q) {

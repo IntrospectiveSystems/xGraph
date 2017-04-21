@@ -307,9 +307,9 @@ __Nexus = (function() {
 			if (ent) {
 				ModCache[name] = mod;
 				EntCache[pid] = ent;
-                if (par.$Browser) {
-                    SymTab[par.$Browser] = pid;
-                }
+//                if (par.$Browser) {
+//                	SymTab[par.$Browser] = pid;
+//                }
 				fun(null, ent);
 				return;
 			}
@@ -348,16 +348,15 @@ __Nexus = (function() {
 	function Genesis(fun) {
 		console.log('--Nxs/Genesis');
 		Root = {};
-		Root.SymTab = {};
+//		Root.SymTab = {};
 		Root.Global = {};
-		Root.System = {};
+//		Root.System = {};
 		Root.Setup = {};
 		Root.Start = {};
 		if('Apex' in Config)
 			Root.Apex = Config.Apex;
 		else
 			Root.Apex = {};
-		Root.Global["Host"] = Config.pidServer;
 		var path;
 		var obj;
 		var package;
@@ -409,6 +408,11 @@ __Nexus = (function() {
 				ZipCache[module] = zipmod;
 				for (let lbl in schema) {
 					var ent = schema[lbl];
+					if('Par' in mod) {
+						for(key in mod.Par) {
+							ent[key] = mod.Par[key];
+						}
+					}
 					CurrentModule = modkey;
 					ent.Module = module;
 					if(lbl == 'Apex')
@@ -430,57 +434,15 @@ __Nexus = (function() {
 					}
 					var key = keys[ikey];
 					var ent = ents[key];
-					if(key == 'Apex') {
-						console.log('mod', mod);
-						if('Par' in mod) {
-							var par = mod.Par;
-							for(let key in par) {
-								val = par[key];
-								console.log('key, val', key, val);
-								if(typeof val == 'string') {
-									if(val.charAt(0) == '#')
-										par[key] = Root.Apex[val.substr(1)];
-								}
-								if(Array.isArray(val)) {
-									for(var i=0; i<val.length; i++) {
-										var tmp = val[i];
-										if(typeof tmp == 'string') {
-											if(tmp.charAt(0) == '#')
-												val[i] = Root.Apex[tmp.substr(1)];
-										}
-									}
-								} else
-								if(typeof val == 'object') {
-									for(let sym in val) {
-										var tmp = val[sym];
-										if(typeof tmp == 'string' && tmp.charAt(0) == '#')
-											val[sym] = Root.Apex[tmp.substr(1)];
-									}
-									console.log('After', val);
-								}
-								ent[key] = par[key];
-							}
+					if('Par' in mod) {
+						for(key in mod.Par) {
+							ent[key] = mod.Par[key];
 						}
 					}
 					console.log('ent', ent);
 					ikey++;
 					for (let key in ent) {
 						val = ent[key];
-						if (key == '$Local') {
-							Root.SymTab[val] = ent.Pid;
-							continue;
-						}
-						if (key == '$Global') {
-							if(CurrentModule) {
-								sym = CurrentModule + '.' + val;
-								Root.Global[sym] = ent.Pid;
-							}
-							continue;
-						}
-						if (key == '$System') {
-							Root.System[ent.Pid.substr(24)] = ent[key];
-							continue;
-						}
 						if (key == '$Setup') {
 							Root.Setup[ent.Pid.substr(24)] = ent[key];
 							continue;
@@ -489,10 +451,8 @@ __Nexus = (function() {
 							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
-						if(typeof val == 'string') {
-							if(val.charAt(0) == '#')
-								par[key] = Root.Apex[val.substr(1)];
-						}
+						if(typeof val == 'string')
+							ent[key] = symbol(val);
 						if(Array.isArray(val)) {
 							for (var i = 0; i < val.length; i++) {
 								if (typeof val[i] == 'string')
@@ -500,20 +460,11 @@ __Nexus = (function() {
 							}
 							continue;
 						}
-						if(Array.isArray(val)) {
-							for(var i=0; i<val.length; i++) {
-								var tmp = val[i];
-								if(typeof tmp == 'string') {
-									if(tmp.charAt(0) == '#')
-										val[i] = Root.Apex[tmp.substr(1)];
-								}
-							}
-						} else
 						if(typeof val == 'object') {
 							for(let sym in val) {
 								var tmp = val[sym];
-								if(typeof tmp == 'string' && tmp.charAt(0) == '#')
-									val[sym] = Root.Apex[tmp.substr(1)];
+								if(typeof tmp == 'string')
+									val[sym] = symbol(tmp);
 							}
 							console.log('After', val);
 						}
@@ -541,18 +492,12 @@ __Nexus = (function() {
 						return lbls[lbl];
 					}
 					if(str.charAt(0) == '$') {
-						if('Par' in mod) {
-							console.log('mod.Par', mod.Par);
-							var par = str.substr(1);
-							if(par in mod.Par) {
-								return mod.Par[par];
-							} else {
-								var err = ' ** Parameter <' + par + '> not available';
-								throw err;
-							}
+						var sym = str.substr(1);
+						if(!(sym in Root.Apex)) {
+							var err = ' ** Symbol ' + sym + ' not defined';
+							throw err;
 						}
-						var err = ' ** No parameters provided';
-						throw err;
+						return Root.Apex[sym];
 					}
 					return str;
 				}
@@ -560,7 +505,7 @@ __Nexus = (function() {
 		}
 		//---------------------------------------------------------start
 		function Setup() {
-			console.log('--Nexus/Setup');
+			console.log('--Nxs/Setup');
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
 			var ipid = 0;

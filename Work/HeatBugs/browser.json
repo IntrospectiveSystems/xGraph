@@ -1,7 +1,7 @@
 {
   "Modules":{
 	"Heatbugs":{
-	  "Module":"xGraph:Heatbugs/Heatbugs",
+	  "Module":"xGraph:HeatBugsModule",
 	  "Par": {
 	  }
 	}
