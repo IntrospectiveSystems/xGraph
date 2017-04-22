@@ -43,14 +43,6 @@
 			console.log('B==========================================================');
 			Zip = zip;
 			textures();
-/*			var dir = zip.file(/.*./);
-			console.log('dir', dir);
-			zip.file('X3D').async('string').then(function(x3d){
-				console.log('x3d', x3d);
-				if(fun)
-					fun('Good cucumber');
-				return;
-			}); */
 		});
 		console.log('C');
 

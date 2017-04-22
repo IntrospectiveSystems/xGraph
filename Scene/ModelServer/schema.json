@@ -1,0 +1,21 @@
+{
+  "Apex": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "ModelServer.js",
+	"Cvt":{
+	  "obj":"#CvtObj",
+	  "3ds":"#Cvt3DS"
+	}
+  },
+  "Cvt3DS": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "Cvt3DS.js"
+  },
+  "CvtObj": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "CvtObj.js"
+  }
+}
