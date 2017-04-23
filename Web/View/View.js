@@ -75,10 +75,10 @@
 				}
 				var q = {};
 				q.Cmd = 'GetModel';
-				that.send(q, inst.Model, reply);
+				that.send(q, inst.Instance, reply);
 
 				function reply(err, r) {
-					console.log('..reply', r);
+				//	console.log('..reply', r);
 					console.log('..reply, model received');
 					var type = r.Model.Type;
 					if(!(type in Par.Gen)) {
@@ -118,12 +118,19 @@
 							objinst.setRotationFromAxisAngle(vec, ang);
 						}
 						var data = {};
-						data.Type = 'Terrain';
+						if('Role' in inst)
+							data.Role = inst.Role;
+						else
+							data.Role = 'Fixed';
 						data.Pid = inst.Instance;
 						objinst.userData = data;
 						objinst.add(x.Obj3D);
 						Vew.Scene.add(objinst);
-						func();
+						if('Inst' in inst) {
+							async.eachSeries(inst.Inst, instance, func);
+						} else {
+							func();
+						}
 					}
 				}
 			}

@@ -2,6 +2,7 @@
 	"name" : "Cvt3DS",
 	"version" : "0.0.3",
 	"dependencies" : {
-	  "3dstojs":"~0.1.0"
+	  "3dstojs":"~0.1.0",
+	  "jszip":"~3.1.3"
 	}
 }

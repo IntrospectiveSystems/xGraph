@@ -1,5 +1,6 @@
 (function ModelServer() {
-	var Dir;	// Directory containing model (ephemeral)
+	var fs = require('fs');
+	var jszip = require("jszip");
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -17,7 +18,6 @@
 		console.log('--ModelServer/Setup');
 		var that = this;
 		var async = require('async');
-		var fs = require('fs');
 		var Par = this.Par;
 		if(!('Archive' in Par)){
 			var err = 'No Archive provided';
@@ -25,6 +25,10 @@
 			if(fun)
 				fun(err);
 			return;
+		}
+		var Stash = './stash';
+		if (!fs.existsSync(Stash)){
+			fs.mkdirSync(Stash);
 		}
 		var Models = Par.Archive;
 		var Stack = [];
@@ -185,11 +189,20 @@
 			console.log('..generate');
 			console.log('Pars', Pars);
 			console.log('Par', Par);
-			async.eachSeries(Pars, genx3d, pau);
+			async.eachSeries(Pars, check, pau);
 
 			function pau(err) {
 				if(fun)
 					fun(err);
+			}
+
+			function check(par, func) {
+				var probe = Stash + '/' + par.Name + '.zip';
+				if (fs.existsSync(probe)) {
+					func();
+				} else {
+					genx3d(par, func);
+				}
 			}
 
 			function genx3d(par, func) {
@@ -415,7 +428,16 @@
 						func(err);
 						return;
 					}
-					func();
+					var path = Stash + '/' + par.Name + '.zip';
+					var zip = new jszip();
+					zip.file('Type', 'X3D');
+					zip.file('X3D', JSON.stringify(x3d));
+					zip.generateNodeStream({type:'nodebuffer',streamFiles:true})
+						.pipe(fs.createWriteStream(path))
+						.on('finish', function () {
+							console.log("out.zip written.");
+							func();
+						});
 				}
 			}
 		}
@@ -430,27 +452,25 @@
 
 	//-----------------------------------------------------GetModel
 	function GetModel(com, fun) {
-		console.log('--GetModel', com);
+		console.log('--ModelServer/GetModel', com);
 		if (!('Name' in com)) {
 			console.log(' ** ERR:No Name in com');
 			if (fun)
 				fun('No Name in com');
 			return;
 		}
-		var that = this;
-		var fs = __Fs3;
-		var mix = this.Par.ModelIndex;
 		var name = com.Name;
-		if (!(name in mix)) {
-			var err = 'Model <' + name + '> not available';
+		var that = this;
+		var Stash = './stash';
+		var path = Stash + '/' + name + '.zip';
+		if (fs.existsSync(path)) {
+			fs.readFile(path, done);
+		} else {
+			var err = 'Model <' + name + '> not in archive';
 			console.log(' ** ERR:' + err);
 			if(fun)
-				fun(err);
-			return;
+				fun(err, com);
 		}
-		var pid8 = mix[name];
-		var path = __Config.Cache + '/' + pid8 + '.x3d';
-		fs.readFile(path, done);
 
 		function done(err, data) {
 			if(err) {
@@ -461,7 +481,7 @@
 			}
 			com.Model = {};
 			com.Model.Type = 'X3D';
-			com.Model.X3D = JSON.parse(data.toString());
+			com.Model.X3D = data.toString('base64');
 			if(fun)
 				fun(null, com);
 		}

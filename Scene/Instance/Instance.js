@@ -5,7 +5,8 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		AddInstance: AddInstance
+		AddInstance: AddInstance,
+		GetModel: GetModel
 	};
 
 	return {
@@ -33,6 +34,10 @@
 		var links = Par.Inst;
 		var inst = {};
 		inst.Model = Par.Model;
+		if('Role' in Par)
+			inst.Role = Par.Role;
+		else
+			inst.Role = 'Fixed';
 		inst.Instance = Par.Pid;
 		inst.Position = Par.Position;
 		inst.Axis = Par.Axis;
@@ -47,6 +52,40 @@
 		function instance(pid, func) {
 			that.send(q, pid, func);
 		}
+	}
+
+	//-----------------------------------------------------GetModel
+	function GetModel(com, fun) {
+		console.log('..Instance/GetModel');
+		var Par = this.Par;
+		if(!'Model' in Par) {
+			var err = 'No model provided';
+			console.log(' ** ERR:' + err);
+			if(fun)
+				fun(err);
+			return;
+		}
+		var q = {};
+		for(key in com)
+			q[key] = com[key];
+		if('Name' in Par)
+			q.Name = Par.Name;
+		this.send(q, Par.Model, reply);
+
+		function reply(err, r) {
+			console.log('..Instance/reply');
+			if(err) {
+				if(fun)
+					fun(err);
+				return;
+			}
+			console.log('r', typeof r);
+			console.log('A');
+			com.Model = r.Model;
+			console.log('B');
+			fun(null, com);
+		}
+
 	}
 
 })();

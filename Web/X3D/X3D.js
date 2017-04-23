@@ -38,13 +38,10 @@
 		var zipx3d = new JSZip();
 		var Zip;
 		var Textures = {};
-		console.log('A', modx3d.length);
 		zipx3d.loadAsync(modx3d, {base64: true}).then(function(zip){
-			console.log('B==========================================================');
 			Zip = zip;
 			textures();
 		});
-		console.log('C');
 
 		function textures() {
 			console.log('..textures');
@@ -102,9 +99,7 @@
 		function genmod() {
 			console.log('..genmod');
 			Zip.file('X3D').async('string').then(function(str){
-				console.log('str', str);
 				var x3d = JSON.parse(str);
-				console.log('x3d', JSON.stringify(x3d, null, 2));
 				if (!('Root' in x3d)) {
 					console.log(' ** ERR: No root in x3d object');
 					if(fun)

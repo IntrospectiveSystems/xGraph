@@ -526,8 +526,6 @@
 				while (obj != null) {
 					if ('userData' in obj) {
 						data = obj.userData;
-						//	console.log('hit', hit);
-						//	console.log('mouseRay', data);
 						if ('Type' in data) {
 							switch (data.Type) {
 								case 'Terrain':
