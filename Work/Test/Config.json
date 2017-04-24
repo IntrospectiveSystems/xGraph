@@ -55,8 +55,10 @@
 	  "Module":"xGraph:Scene/Instance",
 	  "Par":{
 		"Model":"$Flatland",
+		"Name":"Flatland",
+		"Role":"Terrain",
 		"Inst":[
-		  "$ModelInst"
+		  "$Model1"
 		]
 	  }
 	},
@@ -68,18 +70,20 @@
 		"Texture":"../Root/Images/sand-12.png"
 	  }
 	},
-	"ModelInst": {
+	"Model1": {
 	  "Module":"xGraph:Scene/Instance",
 	  "Par":{
 		"Model":"$Model",
+		"Name":"Geo.101Plants.Cactus3",
+	  "Role":"Artifact",
 		"Inst":[
 		]
 	  }
 	},
 	"Model": {
-	  "Module":"xGraph:Scene/Model",
+	  "Module":"xGraph:Scene/ModelServer",
 	  "Par":{
-		"Model":"../Root/Models/Cactus5/cactus5.3ds"
+		"Archive":"../Root/Models"
 	  }
 	}
   }

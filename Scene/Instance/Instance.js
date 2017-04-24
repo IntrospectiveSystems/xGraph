@@ -6,7 +6,8 @@
 		Setup: Setup,
 		Start: Start,
 		AddInstance: AddInstance,
-		GetModel: GetModel
+		GetModel: GetModel,
+		Move: Move
 	};
 
 	return {
@@ -86,6 +87,14 @@
 			fun(null, com);
 		}
 
+	}
+
+	//-----------------------------------------------------Move
+	// Process move request (includes rotations)
+	function Move(com, fun) {
+		console.log('--Instance/Move', com);
+		if(fun)
+			fun(null, com);
 	}
 
 })();

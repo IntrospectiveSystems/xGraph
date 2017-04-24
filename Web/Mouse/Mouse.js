@@ -113,6 +113,8 @@
 
 		//-----------------------------------------------------mouseMove
 		function mouseMove(evt) {
+			if(Vew.Mouse.Mode == 'Idle')
+				return;
 			var info = mouseRay(evt);
 			if (!info)
 				return;
@@ -127,6 +129,7 @@
 
 		//-----------------------------------------------------Dispatch
 		function Dispatch(info) {
+			console.log('Dispatch', Vew.Mouse.Mode, info);
 			var dispatch;
 			if ('Dispatch' in Vew) {
 				dispatch = Vew.Dispatch;
@@ -140,8 +143,9 @@
 				harvest(Evoke);
 			}
 			var key = Vew.Mouse.Mode + '.' + info.Action;
-			if ('Type' in info)
-				key += '.' + info.Type;
+			console.log('key', key);
+			if ('Role' in info)
+				key += '.' + info.Role;
 			info.Key = key;
 //		console.log('Dispatch', key);
 			if (key in dispatch) {
@@ -311,15 +315,15 @@
 		// TBD: Remove Three.js dependancy
 		function Select(info) {
 			var dispatch = {
-				'Idle.LeftMouseDown.Thing': start,
-				'Select1.Move.Thing': move,
+				'Idle.LeftMouseDown.Artifact': start,
+				'Select1.Move.Artifact': move,
 				'Select1.Move.Terrain': move,
 				'Select1.LeftMouseUp': mouseup,
-				'Select2.Move.Thing': move,
+				'Select2.Move.Artifact': move,
 				'Select2.Move.Terrain': move,
 				'Select2.Wheel': spin,
 				'Select2.LeftMouseDown.Terrain': stop,
-				'Select2.LeftMouseDown.Thing': stop
+				'Select2.LeftMouseDown.Artifact': stop
 			}
 			if (info.Action == 'Harvest') {
 				for (key in dispatch)
@@ -347,7 +351,7 @@
 				q.Cmd = 'Move';
 				q.Thing = Vew.pidSelect;
 				q.Spin = 6.0*info.Factor;
-				that.send(q, Par.Holodeck);
+				that.send(q, info.Pid);
 			}
 
 			function move() {
@@ -361,7 +365,7 @@
 				loc.push(info.Point.y);
 				loc.push(info.Point.z);
 				q.Loc = loc;
-				that.send(q, Par.Holodeck);
+				that.send(q, info.Pid);
 			}
 
 			function stop() {
@@ -505,6 +509,7 @@
 
 		//-----------------------------------------------------mouseRay
 		function mouseRay(evt) {
+			console.log('--mouseRay');
 			var info = {};
 			Vew.Ray.precision = 0.00001;
 			container = document.getElementById("Grok");
@@ -517,34 +522,36 @@
 			var hits = Vew.Ray.intersectObjects(Vew.Scene.children, true);
 			var hit;
 			var obj;
+			console.log('nhits', hits.length);
 			//	console.log('Hits length is', hits.length);
 			for (var i = 0; i < hits.length; i++) {
 				hit = hits[i];
+				console.log('hit[', i, ']', hit);
 				obj = hit.object;
 				var data;
 				var pt;
 				while (obj != null) {
 					if ('userData' in obj) {
 						data = obj.userData;
-						if ('Type' in data) {
-							switch (data.Type) {
+						console.log(i, data);
+						if ('Role' in data) {
+							switch (data.Role) {
 								case 'Terrain':
-									//	if(!('Type' in info))
-									//		info.Type = 'Terrain';
-									info.Type = 'Terrain';
-									info.Terrain = data.Pid;
+									info.Role = 'Terrain';
+									info.Pid = data.Pid;
 									info.Point = hit.point;
 									break;
-								case 'Thing':
-									info.Type = 'Thing';
-									info.pidThing = data.pidThing;
-									info.pidAgent = data.pidAgent;
+								case 'Artifact':
+									info.Role = 'Artifact';
+									info.Pid = data.Pid;
 									break;
 							}
 							pt = hit.point;
 						}
+					} else {
+						console.log(i, 'no data');
 					}
-					if ('Type' in info)
+					if ('Role' in info)
 						return info;
 					obj = obj.parent;
 				}
