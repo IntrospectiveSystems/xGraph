@@ -5,7 +5,9 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		GetGraph: GetGraph
+		GetGraph: GetGraph,
+		Move: Move,
+		Save: Save
 	};
 
 	return {
@@ -55,6 +57,22 @@
 	function GetGraph(com, fun) {
 		console.log('--Scene/GetGraph')
 		com.Graph = this.Vlt.Graph;
+		if(fun)
+			fun(null, com);
+	}
+
+	//-----------------------------------------------------Move
+	// Move/rotate object in scene
+	function Move(com, fun) {
+		console.log('--Move', com);
+		if(fun)
+			fun(null, com);
+	}
+
+	//-----------------------------------------------------Save
+	// Freeze position of instance
+	function Save(com, fun) {
+		console.log('--Save', com);
 		if(fun)
 			fun(null, com);
 	}

@@ -3,7 +3,8 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Setup,
-		Start: Start
+		Start: Start,
+		'*':Relay
 	};
 
 	return {
@@ -65,7 +66,7 @@
 			}
 			var root = new THREE.Object3D();
 			var tree = q.Graph; // Array of instances
-			async.eachSeries(tree, instance, render);
+			async.eachSeries(tree, instance, openstream);
 
 			function instance(inst, func) {
 				if(!('Model' in inst)) {
@@ -75,6 +76,7 @@
 				}
 				var q = {};
 				q.Cmd = 'GetModel';
+				// TBD: Need to change to route through Scene
 				that.send(q, inst.Instance, reply);
 
 				function reply(err, r) {
@@ -135,6 +137,13 @@
 				}
 			}
 
+			// Request scen to stream commands
+			function openstream() {
+				var q = {};
+				q.Cmd = 'Stream';
+				that.send(q, Par.Scene, render);
+			}
+
 			function render() {
 				renderLoop();
 				if(fun)
@@ -151,6 +160,17 @@
 				requestAnimationFrame(loop);
 			}
 		}
+
+	}
+
+	//-------------------------------------------------Relay
+	// Relay simply sends everyting else to its vertualization
+	// of a Scene on the server.
+	function Relay(com, fun) {
+		console.log('--View.Relay', com);
+		this.send(com, this.Par.Scene);
+		if(fun)
+			fun(null, com);
 	}
 
 })();

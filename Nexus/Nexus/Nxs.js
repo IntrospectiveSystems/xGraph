@@ -254,7 +254,8 @@ __Nexus = (function() {
 		//-------------------------------------------------send
 		function send(com, pid, fun) {
 			com.Passport = {};
-			com.Passport.From = Par.Pid;
+			if(fun)
+				com.Passport.From = Par.Pid;
 			com.Passport.To = pid;
 			__Nexus.send(com, pid, fun);
 		}
@@ -486,6 +487,7 @@ __Nexus = (function() {
 					if(str.charAt(0) == '#') {
 						var lbl = str.substr(1);
 						if(!(lbl in lbls)) {
+							console.log('Root1', JSON.stringify(Root, null, 2));
 							var err = ' ** Symbol ' + lbl + ' not defined';
 							throw err;
 						}
@@ -494,6 +496,7 @@ __Nexus = (function() {
 					if(str.charAt(0) == '$') {
 						var sym = str.substr(1);
 						if(!(sym in Root.Apex)) {
+							console.log('Root1', JSON.stringify(Root, null, 2));
 							var err = ' ** Symbol ' + sym + ' not defined';
 							throw err;
 						}

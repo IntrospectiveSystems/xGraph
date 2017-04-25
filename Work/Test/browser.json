@@ -13,7 +13,8 @@
 	"Mouse":{
 	  "Module":"xGraph:Web/Mouse",
 	  "Par":{
-		"Div":"Grok"
+		"Div":"Grok",
+		"View":"$View"
 	  }
 	},
 	"X3D":{
