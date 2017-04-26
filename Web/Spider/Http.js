@@ -3,7 +3,8 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Setup,
-		Start: Start
+		Start: Start,
+		'*': Publish
 	};
 
 	return {
@@ -24,6 +25,7 @@
 		var port;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
+		Vlt.ClientList = [];
 		Vlt.Session = this.Nxs.genPid();
 		if (Par.Authenticate) {
 			var auth = require(Par.Authenticate).Auth;
@@ -49,15 +51,21 @@
 		web.listen(port);
 		webSocket(web);
 		console.log(' ** Spider listening on port', port);
+		if('Service' in Par) {
+			var q = {};
+			q.Cmd = 'Subscribe';
+			q.Pid = Par.Pid;
+			that.send(q, Par.Service, fun);
+			return;
+		}
 		if(fun)
 			fun();
 
 		//---------------------------------------------------------webSocket
 		function webSocket(web) {
 			var listener = sockio.listen(web);
-			var vlt = that.Vlt;
-			vlt.Sockets = {};
-			var Sockets = vlt.Sockets;
+			Vlt.Sockets = {};
+			var Sockets = Vlt.Sockets;
 
 			listener.sockets.on('connection', function (socket) {
 				console.log('sock/connection');
@@ -104,6 +112,19 @@
 					}
 					if (!('Passport' in com)) {
 						console.log(' ** ERR:No Passport in routed msg');
+						return;
+					}
+
+					if(com.Cmd == 'Subscribe') {
+						if('Pid' in com) {
+							var client = {};
+							client.Pid = com.Pid;
+							client.Sock = socket;
+							Vlt.ClientList.push(client);
+						}
+						com.Passport.Reply = true;
+						var str = JSON.stringify(com);
+						socket.send(str);
 						return;
 					}
 
@@ -291,6 +312,13 @@
 				return;
 			}
 		}
+	}
+
+	//-----------------------------------------------------Publish
+	function Publish(com, fun) {
+		console.log('--Spider/Publish', com.Cmd);
+		if(fun)
+			fun(null, com);
 	}
 
 })();

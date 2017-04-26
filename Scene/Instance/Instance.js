@@ -7,7 +7,8 @@
 		Start: Start,
 		AddInstance: AddInstance,
 		GetModel: GetModel,
-		Move: Move
+		Move: Move,
+		Save: Save
 	};
 
 	return {
@@ -32,6 +33,7 @@
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
+		Vlt.Scene = com.Scene;
 		var links = Par.Inst;
 		var inst = {};
 		inst.Model = Par.Model;
@@ -93,6 +95,28 @@
 	// Process move request (includes rotations)
 	function Move(com, fun) {
 		console.log('--Instance/Move', com);
+		console.log(JSON.stringify(com, null, 2));
+		var Par = this.Par;
+		if('Loc' in com) {
+			Par.Position = com.Loc;
+		}
+		if('Spin' in com)
+			Par.Angle += com.Spin;
+		var q = {};
+		q.Cmd = 'Move';
+		q.Position = Par.Position;
+		q.Axis = Par.Axis;
+		q.Angle = Par.Angle;
+		q.Publish = true;
+		this.send(q, Par.Scene);
+		if(fun)
+			fun(null, com);
+	}
+
+	//-----------------------------------------------------Save
+	// Save module
+	function Save(com, fun) {
+		console.log('--Instance/Save', com);
 		if(fun)
 			fun(null, com);
 	}

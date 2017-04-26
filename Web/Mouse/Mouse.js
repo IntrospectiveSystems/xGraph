@@ -397,7 +397,7 @@
 			function spin() {
 				var q = {};
 				q.Cmd = 'Move';
-				q.pidSelect = Vew.pidSelect;
+				q.Instance = Vew.pidSelect;
 				q.Spin = 6.0*info.Factor;
 				that.send(q, Par.View);
 			}
@@ -407,7 +407,7 @@
 					return;
 				var q = {};
 				q.Cmd = 'Move';
-				q.pidSelect = Vew.pidSelect;
+				q.Instance = Vew.pidSelect;
 				var loc = [];
 				loc.push(info.Point.x);
 				loc.push(info.Point.y);
@@ -420,7 +420,7 @@
 				Vew.Mouse.Mode = 'Idle';
 				var q = {};
 				q.Cmd = 'Save';
-				q.pidSelect = Vew.pidSelect;
+				q.Instance = Vew.pidSelect;
 				that.send(q, Par.View);
 			}
 		}

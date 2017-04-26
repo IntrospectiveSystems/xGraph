@@ -66,7 +66,7 @@
 			}
 			var root = new THREE.Object3D();
 			var tree = q.Graph; // Array of instances
-			async.eachSeries(tree, instance, openstream);
+			async.eachSeries(tree, instance, subscribe);
 
 			function instance(inst, func) {
 				if(!('Model' in inst)) {
@@ -76,8 +76,9 @@
 				}
 				var q = {};
 				q.Cmd = 'GetModel';
+				q.Instance = inst.Instance;
 				// TBD: Need to change to route through Scene
-				that.send(q, inst.Instance, reply);
+				that.send(q, Par.Scene, reply);
 
 				function reply(err, r) {
 				//	console.log('..reply', r);
@@ -138,9 +139,10 @@
 			}
 
 			// Request scen to stream commands
-			function openstream() {
+			function subscribe() {
 				var q = {};
-				q.Cmd = 'Stream';
+				q.Cmd = 'Subscribe';
+				q.Pid = Par.Pid;
 				that.send(q, Par.Scene, render);
 			}
 
