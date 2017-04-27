@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8" />
+<head>
+<title>GIS Screen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    console.log('Hello world');
+	SockIO = io();
+	console.log('SockIO', SockIO);
+	SockIO.on('connect', function () {
+		console.log('SockIO connection established');
+	});
+
+	SockIO.on('message', function (data) {
+	//	console.log('Rcvd', data.toString());
+        var com = JSON.parse(data);
+        console.log('Rcvd:', com.Cmd);
+        Nxs = eval(com.Nxs);
+        console.log('Nxs', Nxs);
+	});
+</script>
+</head>
+<body id="Body" style="height:100vh;" class="container-fluid">
+</body>
+</html>

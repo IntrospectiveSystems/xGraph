@@ -21,7 +21,8 @@
 	  "Par": {
 		"Port": 8080,
 		"Url": "Paint",
-		"Page":"$Paint"
+		"Page":"$Paint",
+		"Service":"$Scene"
 	  }
 	},
 	"Paint":{
