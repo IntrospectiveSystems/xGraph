@@ -6,19 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    console.log('Hello world');
 	SockIO = io();
-	console.log('SockIO', SockIO);
 	SockIO.on('connect', function () {
 		console.log('SockIO connection established');
 	});
-
 	SockIO.on('message', function (data) {
-	//	console.log('Rcvd', data.toString());
         var com = JSON.parse(data);
-        console.log('Rcvd:', com.Cmd);
-        Nxs = eval(com.Nxs);
-        console.log('Nxs', Nxs);
+        console.log('<<' + com.Cmd);
+        console.log('Nxs', com.Nxs);
+        eval(com.Nxs);
+        console.log('apres eval');
+        delete com.Nxs;
+         __Nexus.start(SockIO, com);
 	});
 </script>
 </head>

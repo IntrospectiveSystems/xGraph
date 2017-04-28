@@ -62,20 +62,34 @@
 				obj.User = {};
 				obj.User.Pid = '160D25754C01438388CE6A946CD4480C';
 				Sockets[pidsock] = obj;
+
 				var cmd = {};
 				cmd.Cmd = "SetNxs";
 				cmd.Pid24 = pidsock;
-				var path = genPath(Par.Nxs);
-				console.log('Nxs path', path);
-				fs.readFile(path, function(err, data) {
-					if(err) {
-						console.log(' ** ERR:Cannot read Nxs file');
-						return;
-					}
-					cmd.Nxs = data.toString();
-					var str = JSON.stringify(cmd);
-					socket.send(str);
-				});
+				cmd.pidServer = Par.Pid;
+				getscripts();
+
+				function getscripts() {
+					fs.readFile('browser.json', function(err, data) {
+						if(!err)
+							cmd.Config = JSON.parse(data.toString());
+						getnxs();
+					});
+				}
+
+				function getnxs() {
+					var path = genPath(Par.Nxs);
+					console.log('Nxs path', path);
+					fs.readFile(path, function(err, data) {
+						if(err) {
+							console.log(' ** ERR:Cannot read Nxs file');
+							return;
+						}
+						cmd.Nxs = data.toString();
+						var str = JSON.stringify(cmd);
+						socket.send(str);
+					});
+				}
 
 				socket.on('disconnect', function () {
 					console.log(' >> Socket', pidsock, 'disconnected');
@@ -93,6 +107,10 @@
 					console.log(com);
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
+						return;
+					}
+					if(com.Cmd == 'GetFile') {
+						getfile();
 						return;
 					}
 					if (!('Passport' in com)) {
@@ -115,6 +133,20 @@
 						var str = JSON.stringify(com);
 						console.log('####Send:' + str.length);
 						socket.send(str);
+					}
+
+					//.....................................getfile
+					/// Read file from local directory
+					function getfile() {
+						var path = com.File;
+						fs.readFile(path, function(err, data) {
+							if(!err)
+								com.Data = data.toString();
+							if('Passport' in com)
+								com.Passport.Reply = true;
+							var str = JSON.stringify(com);
+							socket.send(str);
+						});
 					}
 				});
 			});
