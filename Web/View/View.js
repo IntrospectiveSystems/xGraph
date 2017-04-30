@@ -16,9 +16,14 @@
 		var that = this;
 		var Vlt = this.Vlt;
 		var Par = this.Par;
-		var div = document.getElementById(Par.Div);
+//		var div = document.getElementById(Par.Div);
+		var div = document.createElement('div');
+		div.id = Par.Div;
+		document.getElementsByTagName('body')[0].appendChild(div);
 		var Vew = {};
-		$('#'+Par.Div).data('View', Vew);
+//		$('#'+Par.Div).data('View', Vew);
+//		sessionStorage.setItem(Par.Div, Vew);
+		__Share[Par.Div] = Vew;
 		Vew.Render = new THREE.WebGLRenderer({antialias: true});
 		Vew.Render.setClearColor(0xBEDCF7, 1);
 		Vew.Render.setSize(div.scrollWidth, div.scrollHeight);
@@ -49,7 +54,11 @@
 		console.log('--View/Start');
 		var that = this;
 		var Par = this.Par;
-		var Vew = $('#'+Par.Div).data('View');
+//		var Vew = $('#'+Par.Div).data('View');
+//		var Vew = sessionStorage.getItem(Par.Div);
+		console.log('__Share', __Share);
+		var Vew = __Share[Par.Div];
+		console.log('Par.Div', Par.Div, Vew);
 		var q = {};
 		q.Cmd = 'GetGraph';
 		console.log('Par', JSON.stringify(Par, null, 2));
@@ -128,6 +137,8 @@
 						data.Pid = inst.Instance;
 						objinst.userData = data;
 						objinst.add(x.Obj3D);
+						console.log('Par.Div', Par.Div, Vew);
+						console.log('keys', Object.keys(Vew));
 						Vew.Scene.add(objinst);
 						if('Inst' in inst) {
 							async.eachSeries(inst.Inst, instance, func);

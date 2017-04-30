@@ -11,13 +11,13 @@
 		console.log('SockIO connection established');
 	});
 	SockIO.on('message', function (data) {
-        var com = JSON.parse(data);
-        console.log('<<' + com.Cmd);
-        console.log('Nxs', com.Nxs);
-        eval(com.Nxs);
-        console.log('apres eval');
-        delete com.Nxs;
-         __Nexus.start(SockIO, com);
+		var com = JSON.parse(data);
+		console.log('<<' + com.Cmd);
+	//	console.log('Nxs', com.Nxs);
+		eval(com.Nxs);
+		console.log('apres eval');
+		delete com.Nxs;
+		__Nexus.start(SockIO, com);
 	});
 </script>
 </head>

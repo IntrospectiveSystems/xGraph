@@ -19,9 +19,38 @@
 	"Server": {
 	  "Module": "xGraph:Holodeck/Server",
 	  "Par": {
+		"Apex":{
+		  "Scene":"$Scene"
+		},
 		"Nxs":"{xGraph}/Nexus/Nexus/Nxs2.js",
 		"Port": 8080,
 		"Url": "Paint"
+	  }
+	},
+	"Scene":{
+	  "Module":"xGraph:Scene/Scene",
+	  "Par":{
+		"Inst":[
+		  "$Terrain"
+		]
+	  }
+	},
+	"Terrain": {
+	  "Module":"xGraph:Scene/Instance",
+	  "Par":{
+		"Model":"$Flatland",
+		"Name":"Flatland",
+		"Role":"Terrain",
+		"Inst":[
+		]
+	  }
+	},
+	"Flatland": {
+	  "Module":"xGraph:Scene/Flatland",
+	  "Par":{
+		"Size":[100, 100],
+		"TextureSize":[25,25],
+		"Texture":"../Root/Images/sand-12.png"
 	  }
 	}
   }

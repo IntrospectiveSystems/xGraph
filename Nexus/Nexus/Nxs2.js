@@ -3,6 +3,7 @@ __Nexus = (function() {
 	var SockIO;
 	var Root;
 	var Pid24;
+	var PidServer;
 	var PidNxs;
 	var PidTop;
 	var PidStart;
@@ -22,6 +23,7 @@ __Nexus = (function() {
 	var that = this;
 	__Config = {};
 	__Config.TrackIO = false;
+	__Share = {};
 
 	return {
 		start: start,
@@ -34,6 +36,7 @@ __Nexus = (function() {
 		console.log('cfg', JSON.stringify(cfg, null, 2));
 		console.log('SockIO', SockIO);
 		Pid24 = cfg.Pid24;
+		PidServer = cfg.PidServer;
 		SockIO = sockio;
 		SockIO.removeListener('message');
 		SockIO.on('message', function (data) {
@@ -314,13 +317,11 @@ __Nexus = (function() {
 		console.log('--Nxs/Genesis');
 		Config = cfg.Config;
 		Root = {};
-//		Root.SymTab = {};
 		Root.Global = {};
-//		Root.System = {};
 		Root.Setup = {};
 		Root.Start = {};
-		if('Apex' in Config)
-			Root.Apex = Config.Apex;
+		if('Apex' in cfg)
+			Root.Apex = cfg.Apex;
 		else
 			Root.Apex = {};
 		scripts();
@@ -342,6 +343,7 @@ __Nexus = (function() {
 					return;
 				}
 				var key = keys[ikey];
+				ikey++;
 				var q = {};
 				q.Cmd = 'GetFile';
 				q.File = Config.Scripts[key];
@@ -361,7 +363,7 @@ __Nexus = (function() {
 				var txt = document.createTextNode(data);
 				tag.appendChild(txt);
 				document.head.appendChild(tag);
-				console.log('JSZip', JSZip);
+				nextscript();
 			}
 		}
 
@@ -378,6 +380,7 @@ __Nexus = (function() {
 				Root.Apex[key] = genPid();
 			}
 			nextmodule();
+
 			function nextmodule() {
 				console.log('..nextmodule')
 				if(ikey >= nkeys) {
@@ -386,12 +389,12 @@ __Nexus = (function() {
 				}
 				modkey = keys[ikey];
 				mod = Config.Modules[modkey];
+				ikey++;
 				var com = {};
 				com.Cmd = 'GetModule';
 				com.Module = mod.Module;
 				console.log(com);
-				send(com, Config.pidServer, addmodule);
-				ikey++;
+				send(com, PidServer, addmodule);
 			}
 
 			function addmodule(err, com) {

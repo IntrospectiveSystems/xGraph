@@ -1,9 +1,13 @@
 (function Http() {
+	var fs = require('fs');
+	var async = require('async');
+	var jszip = require("jszip");
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Setup,
-		Start: Start
+		Start: Start,
+		GetModule: GetModule
 	};
 
 	return {
@@ -66,7 +70,9 @@
 				var cmd = {};
 				cmd.Cmd = "SetNxs";
 				cmd.Pid24 = pidsock;
-				cmd.pidServer = Par.Pid;
+				cmd.PidServer = Par.Pid;
+				if('Apex' in Par)
+					cmd.Apex = Par.Apex;
 				getscripts();
 
 				function getscripts() {
@@ -140,14 +146,61 @@
 					function getfile() {
 						var path = com.File;
 						fs.readFile(path, function(err, data) {
-							if(!err)
-								com.Data = data.toString();
+							if(err) {
+								console.log(' ** ERR', err);
+								return;
+							}
+							com.Data = data.toString('utf8');
+							var str = com.Data;
 							if('Passport' in com)
 								com.Passport.Reply = true;
 							var str = JSON.stringify(com);
 							socket.send(str);
 						});
 					}
+
+					//-----------------------------------------------------getModule
+					// Retrieve module from module server
+					// For now is retrieved from local file system
+					function getodule(com, fun) {
+						console.log('--Page/getModule');
+						console.log(JSON.stringify(com));
+						var that = this;
+						var zip = new jszip();
+						var dir = that.Nxs.genPath(com.Module);
+						var man = [];
+						console.log('dir', dir);
+						fs.readdir(dir, function(err, files) {
+							if(err) {
+								console.log(' ** ERR:Cannot read module directory');
+								if(fun)
+									fun('Cannot read module directlry');
+								return;
+							}
+							async.eachSeries(files, build, ship);
+						})
+
+						function build(file, func) {
+							var path = dir + '/' + file;
+							fs.readFile(path, add);
+
+							function add(err, data) {
+								var str = data.toString();
+								zip.file(file, str);
+								man.push(file);
+								func();
+							}
+						}
+
+						function ship() {
+							zip.file('manifest.json', JSON.stringify(man));
+							zip.generateAsync({type:'base64'}).then(function(data) {
+								com.Zip = data;
+								fun(null, com);
+							});
+						}
+					}
+
 				});
 			});
 		}
@@ -187,6 +240,48 @@
 			var page = data.toString();
 			res.setHeader('Content-Type', 'text/html');
 			res.end(page);
+		}
+	}
+
+	//-----------------------------------------------------getModule
+	// Retrieve module from module server
+	// For now is retrieved from local file system
+	function GetModule(com, fun) {
+		console.log('--Page/getModule');
+		console.log(JSON.stringify(com));
+		var that = this;
+		var zip = new jszip();
+		var dir = that.Nxs.genPath(com.Module);
+		var man = [];
+		console.log('dir', dir);
+		fs.readdir(dir, function(err, files) {
+			if(err) {
+				console.log(' ** ERR:Cannot read module directory');
+				if(fun)
+					fun('Cannot read module directlry');
+				return;
+			}
+			async.eachSeries(files, build, ship);
+		})
+
+		function build(file, func) {
+			var path = dir + '/' + file;
+			fs.readFile(path, add);
+
+			function add(err, data) {
+				var str = data.toString();
+				zip.file(file, str);
+				man.push(file);
+				func();
+			}
+		}
+
+		function ship() {
+			zip.file('manifest.json', JSON.stringify(man));
+			zip.generateAsync({type:'base64'}).then(function(data) {
+				com.Zip = data;
+				fun(null, com);
+			});
 		}
 	}
 
