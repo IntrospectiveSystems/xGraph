@@ -20,14 +20,14 @@
 		console.log('--Mouse/Start');
 		var that = this;
 		var Par = this.Par;
-//		var Vew = $('#'+Par.Div).data('View');
-		var Vew = __Share[Par.Div];
+		var Vew = $('#'+Par.Div).data('View');
+//		var Vew = __Share[Par.Div];
 		Vew.Mouse = {};
 		Vew.Mouse.Mode = 'Idle';
 		Vew.Mouse.inPanel = true;
 		Vew.Ray = new THREE.Raycaster();
-//		var Grok = $('#Grok');
-		var Grok = document.getElementById(Par.Div);
+		var Grok = $('#Grok');
+//		var Grok = document.getElementById(Par.Div);
 		Grok.mouseenter(function (evt) {
 			mouseEnter(evt);
 		});
@@ -46,6 +46,9 @@
 		Grok.mouseup(function (evt) {
 			mouseUp(evt);
 		});
+		if(fun)
+			fun(null, com);
+
 		//-----------------------------------------------------mouseEnter
 		function mouseEnter(evt) {
 		}

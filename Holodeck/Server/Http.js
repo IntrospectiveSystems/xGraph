@@ -73,12 +73,20 @@
 				cmd.PidServer = Par.Pid;
 				if('Apex' in Par)
 					cmd.Apex = Par.Apex;
-				getscripts();
+				getconfig();
 
-				function getscripts() {
+				function getconfig() {
 					fs.readFile('browser.json', function(err, data) {
 						if(!err)
 							cmd.Config = JSON.parse(data.toString());
+						getscripts();
+					});
+				}
+
+				function getscripts() {
+					fs.readFile('scripts.json', function(err, data) {
+						if(!err)
+							cmd.Config.Scripts = JSON.parse(data.toString());
 						getnxs();
 					});
 				}

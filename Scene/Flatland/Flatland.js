@@ -74,22 +74,47 @@
 		var zip = new jszip();
 		zip.file('Type', 'X3D');
 		zip.file('X3D', JSON.stringify(x3d));
-		var path = Par.Texture;
-		console.log('path', path);
 		if(text) {
-			fs.readFile(path, add);
+			var path = Par.Texture;
+			var dot = path.lastIndexOf('.');
+			var suffix = path.substr(dot+1);
+			var next;
+			switch(suffix) {
+				case 'png':
+					fs.readFile(path, ping);
+					break;
+				case 'jpg':
+					fs.readFile(path, jpeg);
+					break;
+				default:
+					zipit();
+					return;
+			}
 		} else {
-			add();
+			zipit();
 		}
 
-		function add(err, data) {
+		function ping(err, data) {
 			console.log('..add');
 			if(data) {
 				var str = data.toString('base64');
 				zip.file(text, str);
 			}
+			zipit();
+		}
+
+		function jpeg(err, data) {
+			console.log('..add');
+			if(data) {
+				var str = data.toString('base64');
+				zip.file(text, str);
+			}
+			zipit();
+		}
+
+		function zipit() {
 			zip.generateAsync({type:'base64'}).then(function(data) {
-			//	test(data);
+				//	test(data);
 				Vlt.X3D = data;
 				if(fun)
 					fun();
