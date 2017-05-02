@@ -51,6 +51,7 @@
 
 			function texture(obj, func) {
 				var file = obj.name;
+				console.log('..texture', file);
 				var parts = file.split('.');
 				if(parts.length < 2) {
 					func();
@@ -59,83 +60,30 @@
 				var suffix = parts[parts.length-1];
 				switch(suffix) {
 					case 'png':
-						ping(obj, func);
+						mime = 'image/png';
 						break;
 					case 'jpg':
-						jpeg(obj, func);
+						mime = 'image/jpeg';
 						break;
 					default:
 						func();
 						return;
 				}
-			}
-
-			function ping(obj, func) {
-				var file = obj.name;
-				Zip.file(file).async('string').then(function(img64){
-					console.log('img64', img64.length);
-					var img = atob(img64);
+				Zip.file(file).async('uint8array').then(function(img) {
 					console.log('img', img.length);
-					var reader = new PNGReader(img);
-					reader.parse(function(err, png){
-						if (err) throw err;
-						console.log('png', png);
-						console.log('png.width', png.width);
-						console.log('colorType', png.getColorType());
-						console.log('obj', obj);
-						var pix = png.pixels;
-						console.log('pix.length', pix.length);
-						var tex;
-						switch(png.colorType) {
-						case 2: // RGB
-							tex = new THREE.DataTexture(pix, png.width, png.height, THREE.RGBFormat);
-							break;
-						case 6: // RGBA
-							tex = new THREE.DataTexture(pix, png.width, png.height, THREE.RGBAFormat);
-							break;
-						default:
-							var err = 'Invalid color type in ping';
-							console.log(' ** ERR:' + err);
-							if(fun)
-								fun(err);
-							return;
-						}
-						tex.wrapS = THREE.RepeatWrapping;
-						tex.wrapT = THREE.RepeatWrapping;
-						tex.needsUpdate = true;
-						Textures[file] = tex;
-						console.log('file', file);
-						console.log('Textures', Textures);
-						func();
-					});
-				});
-			}
-
-			function jpeg(obj, func) {
-				console.log('..jpeg');
-				var file = obj.name;
-				Zip.file(file).async('string').then(function(img64) {
-					console.log('img64', img64.length);
-				/*	var raw = atob(img64);
-				//	img = base64ToUint8Array(img64);
-					var len = raw.length;
-					var img = new ArrayBuffer( len );
-					for (var i = 0; i < len; i++)        {
-						img[i] = raw.charCodeAt(i);
-					} */
-				//	img = Uint8Array.from(atob(img64), c => c.charCodeAt(0));
-					var img = Base64Binary.decode(img64);
-					console.log('img', img.length);
-					console.log('typeof img', typeof img);
-					// decoded: { width: number, height: number, data: Uint8Array }
-					inkjet.decode(img, function(err, decoded) {
-						if(err)
-							console.log(' ** ERR:' + err);
-						else
-							console.log('decoded', decoded);
-						func();
-					});
-					return;
+					var blob = new Blob([img], {type: mime});
+					console.log('blob', blob);
+					var url = URL.createObjectURL(blob);
+					console.log('url', url);
+					var image = document.createElement('img');
+					image.src = url;
+					var tex = new THREE.Texture(image);
+					console.log('text', tex);
+					tex.wrapS = THREE.RepeatWrapping;
+					tex.wrapT = THREE.RepeatWrapping;
+					tex.needsUpdate = true;
+					Textures[file] = tex;
+					func();
 				});
 			}
 

@@ -48,6 +48,7 @@
 		Par = this.Par;
 		var path = com.Path;
 		var x3d = Parse(path);
+		console.log('X3D', JSON.stringify(x3d, null, 2));
 		if (x3d != null) {
 			if ('Rig' in com) {
 				Rig(x3d, com.Rig);
@@ -287,7 +288,7 @@
 							part.Vrt.push(vert[3 * ivert + 2]);
 							if (uv != null) {
 								part.UV.push(uv[2 * ivert]);
-								part.UV.push(1-uv[2 * ivert+1]);
+								part.UV.push(uv[2 * ivert+1]);
 							}
 						} else { // Already added to vertex list
 							iVrt = vix[ivert];

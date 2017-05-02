@@ -77,60 +77,26 @@
 		if(text) {
 			var path = Par.Texture;
 			var dot = path.lastIndexOf('.');
-			var suffix = path.substr(dot+1);
-			var next;
-			switch(suffix) {
-				case 'png':
-					fs.readFile(path, ping);
-					break;
-				case 'jpg':
-					fs.readFile(path, jpeg);
-					break;
-				default:
-					zipit();
+			var suffix = path.substr(dot + 1);
+			fs.readFile(path, function (err, data) {
+				if (err) {
+					if (fun)
+						fun(err);
 					return;
-			}
+				}
+				zip.file(text, data);
+				zipit();
+			});
 		} else {
-			zipit();
-		}
-
-		function ping(err, data) {
-			console.log('..add');
-			if(data) {
-				var str = data.toString('base64');
-				zip.file(text, str);
-			}
-			zipit();
-		}
-
-		function jpeg(err, data) {
-			console.log('..add');
-			if(data) {
-				var str = data.toString('base64');
-				zip.file(text, str);
-			}
 			zipit();
 		}
 
 		function zipit() {
 			zip.generateAsync({type:'base64'}).then(function(data) {
-				//	test(data);
 				Vlt.X3D = data;
 				if(fun)
 					fun();
 			});
-		}
-
-		function test(data64) {
-			console.log('..test');
-			var zip2 = new jszip();
-			console.log('A', data64.length);
-			zip2.loadAsync(data64, {base64: true}).then(function(zip){
-				console.log('B==========================================================');
-				var dir = zip.file(/.*./);
-				console.log('dir', dir);
-			});
-			console.log('C');
 		}
 	}
 

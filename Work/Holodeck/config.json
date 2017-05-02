@@ -51,7 +51,7 @@
 	  "Par":{
 		"Size":[100, 100],
 		"TextureSize":[25,25],
-		"Texture":"sand-12.png"
+		"Texture":"sand-12.jpg"
 	  }
 	},
 	"Model1": {
@@ -59,6 +59,7 @@
 	  "Par":{
 		"Model":"$Model",
 		"Name":"Geo.101Plants.Cactus3",
+		"Name":"3DStudio.WeapShop",
 		"Role":"Artifact",
 		"Inst":[
 		]

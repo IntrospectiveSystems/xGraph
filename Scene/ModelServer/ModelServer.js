@@ -252,6 +252,7 @@
 						return;
 					}
 					var x3d = q.X3D;
+				//	console.log('X3D', JSON.stringify(x3d, null, 2));
 					if ('Units' in rig) {
 						Scale = null;
 						var units = rig.Units;
@@ -268,6 +269,8 @@
 							default:
 								break;
 						}
+						if('Scale' in rig)
+							Scale = rig.Scale;
 						if (Scale == null) {
 							console.log(' ** ERR:Invalid units <' + units + '>');
 							funz(err);
@@ -277,11 +280,11 @@
 							traverse();
 						}
 					}
-					if ('Scale' in rig) {
-						Scale = rig.Scale;
-						Process = scale;
-						traverse();
-					}
+				//	if ('Scale' in rig) {
+				//		Scale = rig.Scale;
+				//		Process = scale;
+				//		traverse();
+				//	}
 					if ("FlipYZ" in rig && rig.FlipYZ == true) {
 						Process = flipyz;
 						traverse();
@@ -399,6 +402,12 @@
 										Process('Vertex', part.Vrt);
 									if ('Nrm' in part)
 										Process('Normal', part.Nrm);
+									if('Texture' in part) {
+										if(!('Textures' in par))
+											par.Textures = [];
+										if(par.Textures.indexOf(part.Texture) < 0)
+											par.Textures.push(part.Texture);
+									}
 								}
 							}
 							if ('Nodes' in obj) {
@@ -417,28 +426,48 @@
 				function textures(par, x3d) {
 					console.log('..textures==============================================');
 					console.log('par', par);
-					save(par, x3d);
-				}
-
-				function save(par, x3d) {
-					console.log('..save');
-					console.log('par', JSON.stringify(par, null, 2));
-					if(err) {
-						console.log(' ** ERR:' + err);
-						func(err);
-						return;
-					}
-					var path = Stash + '/' + par.Name + '.zip';
 					var zip = new jszip();
 					zip.file('Type', 'X3D');
 					zip.file('X3D', JSON.stringify(x3d));
-					zip.generateNodeStream({type:'nodebuffer',streamFiles:true})
-						.pipe(fs.createWriteStream(path))
-						.on('finish', function () {
-							console.log("out.zip written.");
-							func();
-						});
+					if('Textures' in par) {
+						var slash = par.Path.lastIndexOf('/');
+						var base = par.Path.substr(0, slash+1);
+						async.eachSeries(par.Textures, function(text, func) {
+							var path = base + text;
+							console.log('Path', path);
+							fs.readFile(path, function(err, data) {
+								if (err) {
+									console.log(' ** ERR:' + err);
+									func();
+									return;
+								}
+								console.log('writing', text, data.length);
+								zip.file(text, data);
+								func();
+							});
+						}, save);
+					} else {
+						save();
+					}
+
+					function save() {
+						console.log('..save');
+						console.log('par', JSON.stringify(par, null, 2));
+						if(err) {
+							console.log(' ** ERR:' + err);
+							func(err);
+							return;
+						}
+						var path = Stash + '/' + par.Name + '.zip';
+						zip.generateNodeStream({type:'nodebuffer',streamFiles:true})
+							.pipe(fs.createWriteStream(path))
+							.on('finish', function () {
+								console.log("out.zip written.");
+								func();
+							});
+					}
 				}
+
 			}
 		}
 	}
