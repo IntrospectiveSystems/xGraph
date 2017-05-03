@@ -33,7 +33,7 @@
 		}
 	}
 
-	var config = 'Config.json';
+	var config = 'config.json';
 	if('Config' in Params)
 		config = Params.Config;
 	let str = fs.readFileSync(config);
@@ -55,7 +55,7 @@
 	}
 	console.log(JSON.stringify(Config, null, 2));
 
-	CacheDir = 'Cache';
+	CacheDir = 'cache';
 	if('Cache' in Params)
 		CacheDir = Params.Cache;
 	if(!fs.existsSync(CacheDir)) {
