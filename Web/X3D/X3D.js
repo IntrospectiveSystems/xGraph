@@ -38,81 +38,76 @@
 		var zipx3d = new JSZip();
 		var Zip;
 		var Textures = {};
-		console.log('A', modx3d.length);
 		zipx3d.loadAsync(modx3d, {base64: true}).then(function(zip){
-			console.log('B==========================================================');
 			Zip = zip;
 			textures();
-/*			var dir = zip.file(/.*./);
-			console.log('dir', dir);
-			zip.file('X3D').async('string').then(function(x3d){
-				console.log('x3d', x3d);
-				if(fun)
-					fun('Good cucumber');
-				return;
-			}); */
 		});
-		console.log('C');
 
 		function textures() {
 			console.log('..textures');
 			var dir = Zip.file(/.*./);
 			console.log('dir', dir);
-			async.eachSeries(dir, ping, genmod);
+			async.eachSeries(dir, texture, genmod);
 
-			function ping(obj, func) {
+			function texture(obj, func) {
 				var file = obj.name;
+				console.log('..texture', file);
 				var parts = file.split('.');
-				if(parts.length < 2 || parts[parts.length-1] != 'png') {
+				if(parts.length < 2) {
 					func();
 					return;
 				}
-				Zip.file(file).async('string').then(function(img64){
-					console.log('img64', img64.length);
-					var img = atob(img64);
-					console.log('img', img.length);
-					var reader = new PNGReader(img);
-					reader.parse(function(err, png){
-						if (err) throw err;
-						console.log('png', png);
-						console.log('png.width', png.width);
-						console.log('colorType', png.getColorType());
-						console.log('obj', obj);
-						var pix = png.pixels;
-						console.log('pix.length', pix.length);
-						var tex;
-						switch(png.colorType) {
-						case 2: // RGB
-							tex = new THREE.DataTexture(pix, png.width, png.height, THREE.RGBFormat);
-							break;
-						case 6: // RGBA
-							tex = new THREE.DataTexture(pix, png.width, png.height, THREE.RGBAFormat);
-							break;
-						default:
-							var err = 'Invalid color type in ping';
-							console.log(' ** ERR:' + err);
-							if(fun)
-								fun(err);
-							return;
-						}
-						tex.wrapS = THREE.RepeatWrapping;
-						tex.wrapT = THREE.RepeatWrapping;
-						tex.needsUpdate = true;
-						Textures[file] = tex;
-						console.log('file', file);
-						console.log('Textures', Textures);
+				var suffix = parts[parts.length-1];
+				switch(suffix) {
+					case 'png':
+						mime = 'image/png';
+						break;
+					case 'jpg':
+						mime = 'image/jpeg';
+						break;
+					default:
 						func();
-					});
+						return;
+				}
+				Zip.file(file).async('uint8array').then(function(img) {
+					console.log('img', img.length);
+					var blob = new Blob([img], {type: mime});
+					console.log('blob', blob);
+					var url = URL.createObjectURL(blob);
+					console.log('url', url);
+					var image = document.createElement('img');
+					image.src = url;
+					var tex = new THREE.Texture(image);
+					console.log('text', tex);
+					tex.wrapS = THREE.RepeatWrapping;
+					tex.wrapT = THREE.RepeatWrapping;
+					tex.needsUpdate = true;
+					Textures[file] = tex;
+					func();
 				});
+			}
+
+			function base64ToUint8Array(data) {
+				console.log('base64', data.substr(0, 11));
+			//	var BASE64_MARKER = ';base64,';
+			//	var base64Index = data.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
+			//	var base64 = data.substring(base64Index);
+			//	var raw = atob(base64);
+				var raw = atob(data);
+				var rawLength = raw.length;
+				console.log('rawLength', rawLength);
+				var array = new Uint8Array(new ArrayBuffer(rawLength));
+				for(var i = 0; i < rawLength; i++) {
+					array[i] = raw.charCodeAt(i);
+				}
+				return array;
 			}
 		}
 
 		function genmod() {
 			console.log('..genmod');
 			Zip.file('X3D').async('string').then(function(str){
-				console.log('str', str);
 				var x3d = JSON.parse(str);
-				console.log('x3d', JSON.stringify(x3d, null, 2));
 				if (!('Root' in x3d)) {
 					console.log(' ** ERR: No root in x3d object');
 					if(fun)

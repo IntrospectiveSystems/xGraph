@@ -33,7 +33,7 @@
 		}
 	}
 
-	var config = 'config.json';
+	var config = 'Config.json';
 	if('Config' in Params)
 		config = Params.Config;
 	let str = fs.readFileSync(config);
@@ -67,12 +67,14 @@
 	//---------------------------------------------------------start
 	function Setup() {
 		console.log('--Nexus/Setup');
+		console.log('Root', Root);
 		var pids = Object.keys(Root.Setup);
 		if(!Async)
 			Async = require('async');
 		Async.eachSeries(pids, setup, Start);
 
 		function setup(pid8, func) {
+			console.log('..setup', pid8);
 			var q = {};
 			q.Cmd = Root.Setup[pid8];
 			var pid = Pid24 + pid8;
@@ -152,10 +154,13 @@
 			return;
 		}
 		var to = com.Passport.To;
+		console.log('to', to);
 		if (to.charAt(0) == '$') {
+			console.log('#########################');
+			console.log('com', com);
 			var sym = to.substr(1);
-			if (sym in Root.Global) {
-				com.Passport.To = Root.Global[sym];
+			if (sym in Root.SymTab) {
+				com.Passport.To = Root.SymTab[sym];
 			} else
 			if (sym in Root.SymTab) {
 				com.Passport.To = Pid24 + Root.SymTab[sym];
@@ -500,7 +505,7 @@
 	};
 
 	//-----------------------------------------------------Genesis
-	// Create cache if it does not exist and populate
+	// Create cache if it does nto exist and populate
 	// This is called only once when a new systems is
 	// first instantiated
 	function Genesis(fun) {
@@ -508,6 +513,7 @@
 		var path;
 		var obj;
 		var package;
+		var scripts;
 		Root = {};
 		Root.Apex = {};
 		Root.Setup = {};
@@ -518,7 +524,8 @@
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
 			var mod = Config.Modules[key];
-			path = genPath(mod.Module) + '/package.json';
+			var moddir = genPath(mod.Module);
+			path = moddir + '/package.json';
 			console.log('Package:' + path);
 			if(fs.existsSync(path)) {
 				let str = fs.readFileSync(path);
@@ -528,22 +535,39 @@
 						package = obj;
 						continue;
 					}
-					if(obj.dependencies) {
-						if (!package.dependencies) package.dependencies = {};
-						for (key in obj.dependencies) {
-							if (!(key in package.dependencies))
-								package.dependencies[key] = obj.dependencies[key];
-						}
-					}
-					if (obj.devDependencies) {
-						if (!package.devDependencies) package.devDependencies = {};
-						for (key in obj.devDependencies) {
-							if (!(key in package.devDependencies))
-								package.devDependencies[key] = obj.devDependencies[key];
-						}
+					console.log('obj', JSON.stringify(obj, null, 2));
+					for(key in obj.dependencies) {
+						if(!(key in package.dependencies))
+							package.dependencies[key] = obj.dependencies[key];
 					}
 				}
 			}
+			// script files
+			path = moddir + '/scripts.json';
+			console.log('Scripts:' + path);
+			if(fs.existsSync(path)) {
+				let str = fs.readFileSync(path);
+				var obj = JSON.parse(str);
+				for(key in obj) {
+					var script = obj[key];
+					path = moddir + '/' + script;
+					if(fs.existsSync(path)) {
+						if(!scripts)
+							scripts = {};
+						if(!(key in scripts)) {
+							var scr = fs.readFileSync(path);
+							fs.writeFileSync(script, scr);
+							scripts[key] = script;
+						}
+					} else {
+						console.log(' ** ERR:Script <' + script + '> not available');
+					}
+				}
+			}
+		}
+		if(scripts) {
+			var scrout = JSON.stringify(scripts, null, 2);
+			fs.writeFileSync('scripts.json', scrout);
 		}
 		// Create node_module folder
 		var strout = JSON.stringify(package, null, 2);
@@ -612,7 +636,7 @@
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
-
+		console.log('schema path', path);
 		fs.exists(path, compile);
 
 		function compile(yes) {

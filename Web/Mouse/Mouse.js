@@ -21,11 +21,13 @@
 		var that = this;
 		var Par = this.Par;
 		var Vew = $('#'+Par.Div).data('View');
+//		var Vew = __Share[Par.Div];
 		Vew.Mouse = {};
 		Vew.Mouse.Mode = 'Idle';
 		Vew.Mouse.inPanel = true;
 		Vew.Ray = new THREE.Raycaster();
 		var Grok = $('#Grok');
+//		var Grok = document.getElementById(Par.Div);
 		Grok.mouseenter(function (evt) {
 			mouseEnter(evt);
 		});
@@ -44,6 +46,9 @@
 		Grok.mouseup(function (evt) {
 			mouseUp(evt);
 		});
+		if(fun)
+			fun(null, com);
+
 		//-----------------------------------------------------mouseEnter
 		function mouseEnter(evt) {
 		}
@@ -113,6 +118,8 @@
 
 		//-----------------------------------------------------mouseMove
 		function mouseMove(evt) {
+			if(Vew.Mouse.Mode == 'Idle')
+				return;
 			var info = mouseRay(evt);
 			if (!info)
 				return;
@@ -127,6 +134,7 @@
 
 		//-----------------------------------------------------Dispatch
 		function Dispatch(info) {
+		//	console.log('Dispatch', Vew.Mouse.Mode, info);
 			var dispatch;
 			if ('Dispatch' in Vew) {
 				dispatch = Vew.Dispatch;
@@ -140,10 +148,10 @@
 				harvest(Evoke);
 			}
 			var key = Vew.Mouse.Mode + '.' + info.Action;
-			if ('Type' in info)
-				key += '.' + info.Type;
+		//	console.log('key', key);
+			if ('Role' in info)
+				key += '.' + info.Role;
 			info.Key = key;
-//		console.log('Dispatch', key);
 			if (key in dispatch) {
 				var proc = dispatch[key];
 				proc(info, that);
@@ -158,6 +166,55 @@
 					var key = q.Keys[i];
 					dispatch[key] = proc;
 					//	console.log('key', key);
+				}
+			}
+		}
+
+		//-----------------------------------------------------mouseRay
+		function mouseRay(evt) {
+		//	console.log('--mouseRay');
+			var info = {};
+			Vew.Ray.precision = 0.00001;
+			container = document.getElementById("Grok");
+			var w = container.clientWidth;
+			var h = container.clientHeight - 2 * container.clientTop;
+			var vec = new THREE.Vector2();
+			vec.x = 2 * (evt.clientX - container.offsetLeft) / w - 1;
+			vec.y = 1 - 2 * (evt.clientY - container.offsetTop) / h;
+			Vew.Ray.setFromCamera(vec, Vew.Camera);
+			var hits = Vew.Ray.intersectObjects(Vew.Scene.children, true);
+			var hit;
+			var obj;
+		//	console.log('nhits', hits.length);
+			//	console.log('Hits length is', hits.length);
+			for (var i = 0; i < hits.length; i++) {
+				hit = hits[i];
+			//	console.log('hit[', i, ']', hit);
+				obj = hit.object;
+				var data;
+				var pt;
+				while (obj != null) {
+					if ('userData' in obj) {
+						data = obj.userData;
+					//	console.log(i, data);
+						if ('Role' in data) {
+							switch (data.Role) {
+								case 'Terrain':
+									info.Role = 'Terrain';
+									info.Pid = data.Pid;
+									info.Point = hit.point;
+									break;
+								case 'Artifact':
+									info.Role = 'Artifact';
+									info.Pid = data.Pid;
+									break;
+							}
+							pt = hit.point;
+						}
+					}
+					if ('Role' in info)
+						return info;
+					obj = obj.parent;
 				}
 			}
 		}
@@ -202,7 +259,6 @@
 					info.Keys.push(key);
 				return;
 			}
-			console.log('..Mouse/Translate', info.key);
 			if(info.Key in dispatch)
 				dispatch[info.Key]();
 
@@ -311,15 +367,15 @@
 		// TBD: Remove Three.js dependancy
 		function Select(info) {
 			var dispatch = {
-				'Idle.LeftMouseDown.Thing': start,
-				'Select1.Move.Thing': move,
+				'Idle.LeftMouseDown.Artifact': start,
+				'Select1.Move.Artifact': move,
 				'Select1.Move.Terrain': move,
 				'Select1.LeftMouseUp': mouseup,
-				'Select2.Move.Thing': move,
+				'Select2.Move.Artifact': move,
 				'Select2.Move.Terrain': move,
 				'Select2.Wheel': spin,
 				'Select2.LeftMouseDown.Terrain': stop,
-				'Select2.LeftMouseDown.Thing': stop
+				'Select2.LeftMouseDown.Artifact': stop
 			}
 			if (info.Action == 'Harvest') {
 				for (key in dispatch)
@@ -330,11 +386,12 @@
 				dispatch[info.Key]();
 
 			function start() {
+				console.log('..start', info);
 				var mouse = Vew.Mouse;
 				mouse.Mode = 'Select1';
 				mouse.x = info.Mouse.x;
 				mouse.y = info.Mouse.y;
-				Vew.pidSelect = info.pidThing;
+				Vew.pidSelect = info.Pid;
 			}
 
 			function mouseup() {
@@ -345,9 +402,9 @@
 			function spin() {
 				var q = {};
 				q.Cmd = 'Move';
-				q.Thing = Vew.pidSelect;
+				q.Instance = Vew.pidSelect;
 				q.Spin = 6.0*info.Factor;
-				that.send(q, Par.Holodeck);
+				that.send(q, Par.View);
 			}
 
 			function move() {
@@ -355,23 +412,21 @@
 					return;
 				var q = {};
 				q.Cmd = 'Move';
-				q.Thing = Vew.pidSelect;
+				q.Instance = Vew.pidSelect;
 				var loc = [];
 				loc.push(info.Point.x);
 				loc.push(info.Point.y);
 				loc.push(info.Point.z);
 				q.Loc = loc;
-				that.send(q, Par.Holodeck);
+				that.send(q, Par.View);
 			}
 
 			function stop() {
 				Vew.Mouse.Mode = 'Idle';
 				var q = {};
 				q.Cmd = 'Save';
-				q.Loc = Vew.Info.Loc;
-				q.Angle = Vew.Info.Angle;
-				q.Axis = Vew.Info.Axis;
-				that.send(q, Vew.pidSelect);
+				q.Instance = Vew.pidSelect;
+				that.send(q, Par.View);
 			}
 		}
 
@@ -503,55 +558,6 @@
 			Vew.Camera.lookAt(Vew.Focus);
 		}
 
-		//-----------------------------------------------------mouseRay
-		function mouseRay(evt) {
-			var info = {};
-			Vew.Ray.precision = 0.00001;
-			container = document.getElementById("Grok");
-			var w = container.clientWidth;
-			var h = container.clientHeight - 2 * container.clientTop;
-			var vec = new THREE.Vector2();
-			vec.x = 2 * (evt.clientX - container.offsetLeft) / w - 1;
-			vec.y = 1 - 2 * (evt.clientY - container.offsetTop) / h;
-			Vew.Ray.setFromCamera(vec, Vew.Camera);
-			var hits = Vew.Ray.intersectObjects(Vew.Scene.children, true);
-			var hit;
-			var obj;
-			//	console.log('Hits length is', hits.length);
-			for (var i = 0; i < hits.length; i++) {
-				hit = hits[i];
-				obj = hit.object;
-				var data;
-				var pt;
-				while (obj != null) {
-					if ('userData' in obj) {
-						data = obj.userData;
-						//	console.log('hit', hit);
-						//	console.log('mouseRay', data);
-						if ('Type' in data) {
-							switch (data.Type) {
-								case 'Terrain':
-									//	if(!('Type' in info))
-									//		info.Type = 'Terrain';
-									info.Type = 'Terrain';
-									info.Terrain = data.Pid;
-									info.Point = hit.point;
-									break;
-								case 'Thing':
-									info.Type = 'Thing';
-									info.pidThing = data.pidThing;
-									info.pidAgent = data.pidAgent;
-									break;
-							}
-							pt = hit.point;
-						}
-					}
-					if ('Type' in info)
-						return info;
-					obj = obj.parent;
-				}
-			}
-		}
 	}
 
 })();

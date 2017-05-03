@@ -74,38 +74,29 @@
 		var zip = new jszip();
 		zip.file('Type', 'X3D');
 		zip.file('X3D', JSON.stringify(x3d));
-		var path = Par.Texture;
-		console.log('path', path);
 		if(text) {
-			fs.readFile(path, add);
+			var path = Par.Texture;
+			var dot = path.lastIndexOf('.');
+			var suffix = path.substr(dot + 1);
+			fs.readFile(path, function (err, data) {
+				if (err) {
+					if (fun)
+						fun(err);
+					return;
+				}
+				zip.file(text, data);
+				zipit();
+			});
 		} else {
-			add();
+			zipit();
 		}
 
-		function add(err, data) {
-			console.log('..add');
-			if(data) {
-				var str = data.toString('base64');
-				zip.file(text, str);
-			}
+		function zipit() {
 			zip.generateAsync({type:'base64'}).then(function(data) {
-			//	test(data);
 				Vlt.X3D = data;
 				if(fun)
 					fun();
 			});
-		}
-
-		function test(data64) {
-			console.log('..test');
-			var zip2 = new jszip();
-			console.log('A', data64.length);
-			zip2.loadAsync(data64, {base64: true}).then(function(zip){
-				console.log('B==========================================================');
-				var dir = zip.file(/.*./);
-				console.log('dir', dir);
-			});
-			console.log('C');
 		}
 	}
 
@@ -131,6 +122,7 @@
 		com.Model = {};
 		com.Model.Type = 'X3D';
 		com.Model.X3D = Vlt.X3D;
+		console.log('Flatland returns', com.Passport);
 		if(fun)
 			fun(null, com);
 	}

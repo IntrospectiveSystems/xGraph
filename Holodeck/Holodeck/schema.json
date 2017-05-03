@@ -1,8 +1,0 @@
-{
-  "Holodeck": {
-	"$Setup": "Setup",
-	"$Start": "Start",
-	"$Global":"Holodeck",
-	"Entity": "Holodeck.js"
-  }
-}

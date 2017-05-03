@@ -3,6 +3,7 @@ __Nexus = (function() {
 	var SockIO;
 	var Root;
 	var Pid24;
+	var PidServer;
 	var PidNxs;
 	var PidTop;
 	var PidStart;
@@ -12,6 +13,7 @@ __Nexus = (function() {
 	var ModCache = {};
 	var ZipCache = {};
 	var SymTab = {};
+	var Scripts = [];
 	var Nxs = {
 		genPid: genPid,
 		genEntity: genEntity,
@@ -22,6 +24,7 @@ __Nexus = (function() {
 	var that = this;
 	__Config = {};
 	__Config.TrackIO = false;
+	__Share = {};
 
 	return {
 		start: start,
@@ -29,66 +32,42 @@ __Nexus = (function() {
 		send: send
 	};
 
-	function start(config) {
-		console.log(' ** Nxs config', config);
-		Config = JSON.parse(config);
-		console.log('Config...\n');
-		console.log(JSON.stringify(Config, null, 2));
-		SockIO = io();
-		var that = this;
-		if(typeof __Start !== 'undefined') {
-			__Start();
-		}
-
-		// Suppress browser context menus
-		$(document).bind("contextmenu", function (e) {
-			return false;
-		});
-
-		SockIO.on('connect', function () {
-			console.log('SockIO connection established');
-			SendIO = SockIO.send;
-		});
-
+	function start(sockio, cfg) {
+		console.log('--Nxs/start');
+		console.log('cfg', JSON.stringify(cfg, null, 2));
+		console.log('SockIO', SockIO);
+		Pid24 = cfg.Pid24;
+		PidServer = cfg.PidServer;
+		SockIO = sockio;
+		SockIO.removeListener('message');
 		SockIO.on('message', function (data) {
 			var cmd = JSON.parse(data);
 			console.log(' << Msg:' + cmd.Cmd);
-			switch (cmd.Cmd) {
-			case 'SetPid':
-				Pid24 = cmd.Pid24;
-				if ('Config' in cmd)
-					__Config = cmd.Config;
-				PidNxs = Pid24 + '00000000';
-			//	console.log('Pid24 <=', Pid24);
-				Genesis(pau);
-				break;
-			default:
-				//	console.log('cmd', cmd);
-				//	console.log('Passport', JSON.stringify(cmd.Passport, null, 2));
-				if('Passport' in cmd && cmd.Passport.Reply) {
-					var pid = cmd.Passport.Pid;
-					var ixmsg = MsgFifo.indexOf(pid);
-					if(ixmsg >= 0) {
-						var func = MsgPool[pid];
-						MsgFifo.splice(ixmsg, 1);
-						delete MsgPool[pid];
-						if(func)
-							func(null, cmd);
-					}
-					return;
+			console.log('cmd', cmd);
+			//	console.log('Passport', JSON.stringify(cmd.Passport, null, 2));
+			if ('Passport' in cmd && cmd.Passport.Reply) {
+				var pid = cmd.Passport.Pid;
+				var ixmsg = MsgFifo.indexOf(pid);
+				if (ixmsg >= 0) {
+					var func = MsgPool[pid];
+					MsgFifo.splice(ixmsg, 1);
+					delete MsgPool[pid];
+					if (func)
+						func(null, cmd);
 				}
-				// Not reply, try to dispatch on browser
-				var pid = cmd.Passport.To;
-				var pid24 = pid.substr(0, 24);
-				if (pid24 == Pid24) {
-					if (pid in EntCache) {
-						var ent = EntCache[pid];
-						ent.dispatch(cmd, reply);
-					} else {
-						console.log(' ** ERR:Local', pid, 'not in Cache');
-					}
-					return;
+				return;
+			}
+			// Not reply, try to dispatch on browser
+			var pid = cmd.Passport.To;
+			var pid24 = pid.substr(0, 24);
+			if (pid24 == Pid24) {
+				if (pid in EntCache) {
+					var ent = EntCache[pid];
+					ent.dispatch(cmd, reply);
+				} else {
+					console.log(' ** ERR:Local', pid, 'not in Cache');
 				}
+				return;
 			}
 
 			function reply(err, cmd) {
@@ -102,46 +81,8 @@ __Nexus = (function() {
 					SockIO.send(str);
 				}
 			}
-
-			function pau(err) {
-				console.log('..pau');
-				console.log(JSON.stringify(Root, null, 2));
-			}
-
 		});
-	}
-
-	//-----------------------------------------------------engage
-	// This function is triggered on receipt of the 'SetPid'
-	// command which establishes the identity of the browser
-	// bag. It generate an 'Engage' message and on reply
-	// creates the seed entity and fires off a start command
-	// to it.
-	function engage() {
-		var com = {};
-		com.Cmd = 'Engage';
-		com.Passport = {};
-		com.Passport.From = Pid24 + '00000000';
-		send(com, PidTop, reply);
-
-		function reply(err, com) {
-			if ('Par' in com) {
-				var par = com.Par;
-				genEntity(com.Par, start);
-			}
-		}
-
-		function start(err, ent) {
-			if (err) {
-				console.log(' ** ERR:engage failed to create starting entity');
-				return;
-			}
-			var q = {};
-			q.Cmd = 'Start';
-			PidStart = ent.getPid();
-			console.log('..starting, pid=' + PidStart);
-			send(q, PidStart);
-		}
+		Genesis(cfg);
 	}
 
 	//-----------------------------------------------------send
@@ -346,169 +287,249 @@ __Nexus = (function() {
 	// Create cache if it does nto exist and populate
 	// This is called only once when a new systems is
 	// first instantiated
-	function Genesis(fun) {
+	function Genesis(cfg) {
 		console.log('--Nxs/Genesis');
+		Config = cfg;
 		Root = {};
-//		Root.SymTab = {};
 		Root.Global = {};
-//		Root.System = {};
 		Root.Setup = {};
 		Root.Start = {};
-		if('Apex' in Config)
-			Root.Apex = Config.Apex;
+		if('Apex' in cfg)
+			Root.Apex = cfg.Apex;
 		else
 			Root.Apex = {};
-		var path;
-		var obj;
-		var package;
-		// Merge npm package dependencies
-		var keys = Object.keys(Config.Modules);
-		for(var i=0; i<keys.length; i++) {
-			var key = keys[i];
-			Root.Apex[key] = genPid();
-		}
-		var nkeys = keys.length;
-		var ikey = 0;
-		var mod;
-		var modkey;
-		nextmodule();
+		scripts();
 
-		function nextmodule() {
-			console.log('..nextmodule')
-			if(ikey >= nkeys) {
-				Setup();
-				return;
+		function scripts() {
+			var ikey = 0;
+			if('Scripts' in Config) {
+				var keys = Object.keys(Config.Scripts);
+				nkeys = keys.length;
+			} else {
+				nkeys = 0;
 			}
-			modkey = keys[ikey];
-			mod = Config.Modules[modkey];
-			var com = {};
-			com.Cmd = 'GetModule';
-			com.Module = mod.Module;
-			console.log(com);
-			send(com, Config.pidServer, addmodule);
-			ikey++;
-		}
+			nextscript();
 
-		function addmodule(err, com) {
-			console.log('..addmodule');
-			console.log(com);
-			var ents = {};
-			var lbls = {};
-			var module = com.Module;
-			var zipmod = new JSZip();
-			zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
-				zip.file('schema.json').async('string').then(function(str){
-					console.log('Finally', str);
-					compile(str);
-				});
-			});
-
-			function compile(str) {
-				var schema = JSON.parse(str);
-				console.log('schema...\n' + JSON.stringify(schema, null, 2));
-				ZipCache[module] = zipmod;
-				for (let lbl in schema) {
-					var ent = schema[lbl];
-					if('Par' in mod) {
-						for(key in mod.Par) {
-							ent[key] = mod.Par[key];
-						}
-					}
-					CurrentModule = modkey;
-					ent.Module = module;
-					if(lbl == 'Apex')
-						ent.Pid = Root.Apex[modkey];
-					else
-						ent.Pid = genPid();
-					lbls[lbl] = ent.Pid;
-					ents[lbl] = ent;
+			function nextscript() {
+				console.log('..nextscript');
+				if (ikey >= nkeys) {
+					modules();
+					return;
 				}
-				var keys = Object.keys(ents);
-				var nkey = keys.length;
-				var ikey = 0;
-				nextent();
-
-				function nextent() {
-					if(ikey >= nkey) {
-						nextmodule();
+				var key = keys[ikey];
+				ikey++;
+				var q = {};
+				q.Cmd = 'GetFile';
+				q.File = Config.Scripts[key];
+				send(q, Config.pidServer, function(err, r) {
+					if(err) {
+						console.log(' ** ERR:Script error', err);
 						return;
 					}
-					var key = keys[ikey];
-					var ent = ents[key];
-					if('Par' in mod) {
-						for(key in mod.Par) {
-							ent[key] = mod.Par[key];
-						}
-					}
-					console.log('ent', ent);
-					ikey++;
-					for (let key in ent) {
-						val = ent[key];
-						if (key == '$Setup') {
-							Root.Setup[ent.Pid.substr(24)] = ent[key];
-							continue;
-						}
-						if (key == '$Start') {
-							Root.Start[ent.Pid.substr(24)] = ent[key];
-							continue;
-						}
-						if(typeof val == 'string')
-							ent[key] = symbol(val);
-						if(Array.isArray(val)) {
-							for (var i = 0; i < val.length; i++) {
-								if (typeof val[i] == 'string')
-									val[i] = symbol(val[i]);
-							}
-							continue;
-						}
-						if(typeof val == 'object') {
-							for(let sym in val) {
-								var tmp = val[sym];
-								if(typeof tmp == 'string')
-									val[sym] = symbol(tmp);
-							}
-							console.log('After', val);
-						}
-					}
-					console.log('ent', ent);
-					var modkey = ent.Module + '/' + ent.Entity;
-					ZipCache[mod] = zipmod;
-					console.log('modkey', modkey);
-					zipmod.file(ent.Entity).async('string').then(function(str){
-						var mod = eval(str);
-						ModCache[modkey] = mod;
-						EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
-						console.log('Root', Root);
-						nextent();
-					});
-				}
+					script(key, r.Data);
+				});
+			}
 
-				function symbol(str) {
-					if(str.charAt(0) == '#') {
-						var lbl = str.substr(1);
-						if(!(lbl in lbls)) {
-							console.log('Root1', JSON.stringify(Root, null, 2));
-							var err = ' ** Symbol ' + lbl + ' not defined';
-							throw err;
+			function script(url, data) {
+				var tag = document.createElement('script');
+				tag.setAttribute("data-script-url", url);
+				tag.setAttribute("type", 'text/javascript');
+				var txt = document.createTextNode(data);
+				tag.appendChild(txt);
+				document.head.appendChild(tag);
+				nextscript();
+			}
+		}
+
+		function modules() {
+			// Merge npm package dependencies
+			var keys = Object.keys(Config.Modules);
+			var key;
+			var nkeys = keys.length;
+			var ikey = 0;
+			var mod;
+			var modkey;
+			for(var i=0; i<keys.length; i++) {
+				key = keys[i];
+				Root.Apex[key] = genPid();
+			}
+			nextmodule();
+
+			function nextmodule() {
+				console.log('..nextmodule')
+				if(ikey >= nkeys) {
+					Setup();
+					return;
+				}
+				modkey = keys[ikey];
+				mod = Config.Modules[modkey];
+				ikey++;
+				var com = {};
+				com.Cmd = 'GetModule';
+				com.Module = mod.Module;
+				console.log(com);
+				send(com, PidServer, addmodule);
+			}
+
+			function addmodule(err, com) {
+				console.log('..addmodule');
+				console.log(com);
+				var ents = {};
+				var lbls = {};
+				var module = com.Module;
+				var zipmod = new JSZip();
+				zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
+					var dir = zipmod.file(/.*./);
+					console.log('dir', dir);
+					scripts();
+
+					function scripts() {
+						if(zipmod.file('scripts.json')) {
+							zip.file('scripts.json').async('string').then(function(str) {
+								var obj = JSON.parse(str);
+								console.log('obj', JSON.stringify(obj, null, 2));
+								var keys = Object.keys(obj);
+								async.eachSeries(keys, function(key, func) {
+									console.log('/////', key);
+									if(Scripts.indexOf(key) >= 0) {
+										func();
+										return;
+									}
+									console.log(' ** Loading script', key);
+									Scripts.push(key);
+									var file = obj[key];
+									zip.file(file).async('string').then(function(scr) {
+										var tag = document.createElement('script');
+										tag.setAttribute("data-script-url", key);
+										tag.setAttribute("type", 'text/javascript');
+										var txt = document.createTextNode(scr);
+										tag.appendChild(txt);
+										document.head.appendChild(tag);
+										func();
+									});
+								}, schema);
+							});
+						} else {
+							schema();
 						}
-						return lbls[lbl];
 					}
-					if(str.charAt(0) == '$') {
-						var sym = str.substr(1);
-						if(!(sym in Root.Apex)) {
-							console.log('Root1', JSON.stringify(Root, null, 2));
-							var err = ' ** Symbol ' + sym + ' not defined';
-							throw err;
+
+					function schema() {
+						zip.file('schema.json').async('string').then(function(str){
+							console.log('Finally', str);
+							compile(str);
+						});
+					}
+				});
+
+				function compile(str) {
+					var schema = JSON.parse(str);
+					console.log('schema...\n' + JSON.stringify(schema, null, 2));
+					ZipCache[module] = zipmod;
+					for (let lbl in schema) {
+						var ent = schema[lbl];
+						if('Par' in mod) {
+							for(key in mod.Par) {
+								ent[key] = mod.Par[key];
+							}
 						}
-						return Root.Apex[sym];
+						CurrentModule = modkey;
+						ent.Module = module;
+						if(lbl == 'Apex')
+							ent.Pid = Root.Apex[modkey];
+						else
+							ent.Pid = genPid();
+						lbls[lbl] = ent.Pid;
+						ents[lbl] = ent;
 					}
-					return str;
+					var keys = Object.keys(ents);
+					var nkey = keys.length;
+					var ikey = 0;
+					nextent();
+
+					function nextent() {
+						if(ikey >= nkey) {
+							nextmodule();
+							return;
+						}
+						var key = keys[ikey];
+						var ent = ents[key];
+						if('Par' in mod) {
+							for(key in mod.Par) {
+								ent[key] = mod.Par[key];
+							}
+						}
+						console.log('ent', ent);
+						ikey++;
+						for (let key in ent) {
+							val = ent[key];
+							if (key == '$Setup') {
+								Root.Setup[ent.Pid.substr(24)] = ent[key];
+								continue;
+							}
+							if (key == '$Start') {
+								Root.Start[ent.Pid.substr(24)] = ent[key];
+								continue;
+							}
+							if(typeof val == 'string')
+								ent[key] = symbol(val);
+							if(Array.isArray(val)) {
+								for (var i = 0; i < val.length; i++) {
+									if (typeof val[i] == 'string')
+										val[i] = symbol(val[i]);
+								}
+								continue;
+							}
+							if(typeof val == 'object') {
+								for(let sym in val) {
+									var tmp = val[sym];
+									if(typeof tmp == 'string')
+										val[sym] = symbol(tmp);
+								}
+								console.log('After', val);
+							}
+						}
+						console.log('ent', ent);
+						var modkey = ent.Module + '/' + ent.Entity;
+						ZipCache[mod] = zipmod;
+						console.log('modkey', modkey);
+						zipmod.file(ent.Entity).async('string').then(function(str){
+							var mod = eval(str);
+							ModCache[modkey] = mod;
+							EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
+							console.log('Root', Root);
+							nextent();
+						});
+					}
+
+					function symbol(str) {
+						if(str.charAt(0) == '#') {
+							var lbl = str.substr(1);
+							if(!(lbl in lbls)) {
+								console.log('Root1', JSON.stringify(Root, null, 2));
+								var err = ' ** Symbol ' + lbl + ' not defined';
+								throw err;
+							}
+							return lbls[lbl];
+						}
+						if(str.charAt(0) == '$') {
+							var sym = str.substr(1);
+							if(!(sym in Root.Apex)) {
+								console.log('Root1', JSON.stringify(Root, null, 2));
+								var err = ' ** Symbol ' + sym + ' not defined';
+								throw err;
+							}
+							return Root.Apex[sym];
+						}
+						return str;
+					}
 				}
 			}
 		}
+
 		//---------------------------------------------------------start
 		function Setup() {
-			console.log('--Nxs/Setup');
+			console.log('--Nexus/Setup');
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
 			var ipid = 0;

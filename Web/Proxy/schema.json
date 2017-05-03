@@ -1,8 +1,0 @@
-{
-  "Proxy": {
-	"$Setup": "Setup",
-	"$Start": "Start",
-	"Entity": "Proxy.js",
-	"Proxy":"$Proxy"
-  }
-}

@@ -3,7 +3,8 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Setup,
-		Start: Start
+		Start: Start,
+		'*':Relay
 	};
 
 	return {
@@ -15,9 +16,14 @@
 		var that = this;
 		var Vlt = this.Vlt;
 		var Par = this.Par;
-		var div = document.getElementById(Par.Div);
+//		var div = document.getElementById(Par.Div);
+		var div = document.createElement('div');
+		div.id = Par.Div;
+		div.style.height = '100%';
+		document.getElementsByTagName('body')[0].appendChild(div);
 		var Vew = {};
 		$('#'+Par.Div).data('View', Vew);
+//		__Share[Par.Div] = Vew;
 		Vew.Render = new THREE.WebGLRenderer({antialias: true});
 		Vew.Render.setClearColor(0xBEDCF7, 1);
 		Vew.Render.setSize(div.scrollWidth, div.scrollHeight);
@@ -49,6 +55,9 @@
 		var that = this;
 		var Par = this.Par;
 		var Vew = $('#'+Par.Div).data('View');
+//		console.log('__Share', __Share);
+//		var Vew = __Share[Par.Div];
+		console.log('Par.Div', Par.Div, Vew);
 		var q = {};
 		q.Cmd = 'GetGraph';
 		console.log('Par', JSON.stringify(Par, null, 2));
@@ -65,7 +74,7 @@
 			}
 			var root = new THREE.Object3D();
 			var tree = q.Graph; // Array of instances
-			async.eachSeries(tree, instance, render);
+			async.eachSeries(tree, instance, subscribe);
 
 			function instance(inst, func) {
 				if(!('Model' in inst)) {
@@ -75,10 +84,12 @@
 				}
 				var q = {};
 				q.Cmd = 'GetModel';
-				that.send(q, inst.Model, reply);
+				q.Instance = inst.Instance;
+				// TBD: Need to change to route through Scene
+				that.send(q, Par.Scene, reply);
 
 				function reply(err, r) {
-					console.log('..reply', r);
+				//	console.log('..reply', r);
 					console.log('..reply, model received');
 					var type = r.Model.Type;
 					if(!(type in Par.Gen)) {
@@ -118,14 +129,31 @@
 							objinst.setRotationFromAxisAngle(vec, ang);
 						}
 						var data = {};
-						data.Type = 'Terrain';
+						if('Role' in inst)
+							data.Role = inst.Role;
+						else
+							data.Role = 'Fixed';
 						data.Pid = inst.Instance;
 						objinst.userData = data;
 						objinst.add(x.Obj3D);
+						console.log('Par.Div', Par.Div, Vew);
+						console.log('keys', Object.keys(Vew));
 						Vew.Scene.add(objinst);
-						func();
+						if('Inst' in inst) {
+							async.eachSeries(inst.Inst, instance, func);
+						} else {
+							func();
+						}
 					}
 				}
+			}
+
+			// Request scen to stream commands
+			function subscribe() {
+				var q = {};
+				q.Cmd = 'Subscribe';
+				q.Pid = Par.Pid;
+				that.send(q, Par.Scene, render);
 			}
 
 			function render() {
@@ -144,6 +172,17 @@
 				requestAnimationFrame(loop);
 			}
 		}
+
+	}
+
+	//-------------------------------------------------Relay
+	// Relay simply sends everyting else to its vertualization
+	// of a Scene on the server.
+	function Relay(com, fun) {
+		console.log('--View.Relay', com);
+		this.send(com, this.Par.Scene);
+		if(fun)
+			fun(null, com);
 	}
 
 })();
