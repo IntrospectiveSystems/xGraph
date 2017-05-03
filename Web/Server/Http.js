@@ -29,6 +29,7 @@
 		var port;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
+		console.log('Module', Par.Module);
 		Vlt.Session = this.Nxs.genPid();
 		if ('Port' in this.Par)
 			port = this.Par.Port;
@@ -47,8 +48,41 @@
 		web.listen(port);
 		webSocket(web);
 		console.log(' ** Spider listening on port', port);
-		if(fun)
-			fun();
+		fs.readFile('browser.json', function(err, data) {
+			if(err) {
+				console.log(' ** ERR::Cannot read browser config');
+				fun(err);
+				return;
+			}
+			Vlt.Browser = JSON.parse(data.toString());
+			getscr();
+		});
+
+		function getscr() {
+			fs.readFile('scripts.json', function(err, data) {
+				if(err) {
+					console.log(' ** ERR:Cannot read script.json');
+					fun(err);
+					return;
+				}
+				Vlt.Browser.Scripts = JSON.parse(data.toString());
+				getnxs();
+			})
+		}
+
+		function getnxs() {
+		//	var path = genPath(Par.Nxs);
+			var path = genPath(Par.Module + '/Nxs.js');
+			console.log('Nxs path', path);
+			fs.readFile(path, function(err, data) {
+				if(err) {
+					console.log(' ** ERR:Cannot read Nxs file');
+					return;
+				}
+				Vlt.Browser.Nxs = data.toString();
+				fun();
+			});
+		}
 
 		//---------------------------------------------------------webSocket
 		function webSocket(web) {
@@ -67,43 +101,13 @@
 				obj.User.Pid = '160D25754C01438388CE6A946CD4480C';
 				Sockets[pidsock] = obj;
 
-				var cmd = {};
-				cmd.Cmd = "SetNxs";
-				cmd.Pid24 = pidsock;
-				cmd.PidServer = Par.Pid;
+				var cfg = Vlt.Browser;
+				cfg.Pid24 = pidsock;
+				cfg.PidServer = Par.Pid;
 				if('Apex' in Par)
-					cmd.Apex = Par.Apex;
-				getconfig();
-
-				function getconfig() {
-					fs.readFile('browser.json', function(err, data) {
-						if(!err)
-							cmd.Config = JSON.parse(data.toString());
-						getscripts();
-					});
-				}
-
-				function getscripts() {
-					fs.readFile('scripts.json', function(err, data) {
-						if(!err)
-							cmd.Config.Scripts = JSON.parse(data.toString());
-						getnxs();
-					});
-				}
-
-				function getnxs() {
-					var path = genPath(Par.Nxs);
-					console.log('Nxs path', path);
-					fs.readFile(path, function(err, data) {
-						if(err) {
-							console.log(' ** ERR:Cannot read Nxs file');
-							return;
-						}
-						cmd.Nxs = data.toString();
-						var str = JSON.stringify(cmd);
-						socket.send(str);
-					});
-				}
+					cfg.Apex = Par.Apex;
+				var str = JSON.stringify(cfg);
+				socket.send(str);
 
 				socket.on('disconnect', function () {
 					console.log(' >> Socket', pidsock, 'disconnected');

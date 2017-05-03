@@ -13,6 +13,7 @@ __Nexus = (function() {
 	var ModCache = {};
 	var ZipCache = {};
 	var SymTab = {};
+	var Scripts = [];
 	var Nxs = {
 		genPid: genPid,
 		genEntity: genEntity,
@@ -82,33 +83,6 @@ __Nexus = (function() {
 			}
 		});
 		Genesis(cfg);
-
-/*
-		SockIO.on('message', function (data) {
-			console.log('Carrion');
-			var cmd = JSON.parse(data);
-			console.log(' << Msg:' + cmd.Cmd);
-			if(cmd.Cmd == 'SetFile') {
-				switch(cmd.Type) {
-				case 'Script':
-					script(cmd.Url, cmd.Data);
-					break;
-				}
-			}
-		});
-		var config = cfg.Config;
-		if('Scripts' in config) {
-			var scripts = config.Scripts;
-			for(key in scripts) {
-				var q = {};
-				q.Cmd = 'GetFile';
-				q.Type = 'Script';
-				q.Url = key;
-				q.File = scripts[key];
-				str = JSON.stringify(q);
-				SockIO.send(str);
-			}
-		} */
 	}
 
 	//-----------------------------------------------------send
@@ -315,7 +289,7 @@ __Nexus = (function() {
 	// first instantiated
 	function Genesis(cfg) {
 		console.log('--Nxs/Genesis');
-		Config = cfg.Config;
+		Config = cfg;
 		Root = {};
 		Root.Global = {};
 		Root.Setup = {};
@@ -405,10 +379,47 @@ __Nexus = (function() {
 				var module = com.Module;
 				var zipmod = new JSZip();
 				zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
-					zip.file('schema.json').async('string').then(function(str){
-						console.log('Finally', str);
-						compile(str);
-					});
+					var dir = zipmod.file(/.*./);
+					console.log('dir', dir);
+					scripts();
+
+					function scripts() {
+						if(zipmod.file('scripts.json')) {
+							zip.file('scripts.json').async('string').then(function(str) {
+								var obj = JSON.parse(str);
+								console.log('obj', JSON.stringify(obj, null, 2));
+								var keys = Object.keys(obj);
+								async.eachSeries(keys, function(key, func) {
+									console.log('/////', key);
+									if(Scripts.indexOf(key) >= 0) {
+										func();
+										return;
+									}
+									console.log(' ** Loading script', key);
+									Scripts.push(key);
+									var file = obj[key];
+									zip.file(file).async('string').then(function(scr) {
+										var tag = document.createElement('script');
+										tag.setAttribute("data-script-url", key);
+										tag.setAttribute("type", 'text/javascript');
+										var txt = document.createTextNode(scr);
+										tag.appendChild(txt);
+										document.head.appendChild(tag);
+										func();
+									});
+								}, schema);
+							});
+						} else {
+							schema();
+						}
+					}
+
+					function schema() {
+						zip.file('schema.json').async('string').then(function(str){
+							console.log('Finally', str);
+							compile(str);
+						});
+					}
 				});
 
 				function compile(str) {

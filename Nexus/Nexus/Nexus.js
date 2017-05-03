@@ -152,10 +152,13 @@
 			return;
 		}
 		var to = com.Passport.To;
+		console.log('to', to);
 		if (to.charAt(0) == '$') {
+			console.log('#########################');
+			console.log('com', com);
 			var sym = to.substr(1);
-			if (sym in Root.Global) {
-				com.Passport.To = Root.Global[sym];
+			if (sym in Root.SymTab) {
+				com.Passport.To = Root.SymTab[sym];
 			} else
 			if (sym in Root.SymTab) {
 				com.Passport.To = Pid24 + Root.SymTab[sym];
@@ -508,6 +511,7 @@
 		var path;
 		var obj;
 		var package;
+		var scripts;
 		Root = {};
 		Root.Apex = {};
 		Root.Setup = {};
@@ -518,7 +522,8 @@
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
 			var mod = Config.Modules[key];
-			path = genPath(mod.Module) + '/package.json';
+			var moddir = genPath(mod.Module);
+			path = moddir + '/package.json';
 			console.log('Package:' + path);
 			if(fs.existsSync(path)) {
 				let str = fs.readFileSync(path);
@@ -528,12 +533,39 @@
 						package = obj;
 						continue;
 					}
+					console.log('obj', JSON.stringify(obj, null, 2));
 					for(key in obj.dependencies) {
 						if(!(key in package.dependencies))
 							package.dependencies[key] = obj.dependencies[key];
 					}
 				}
 			}
+			// script files
+			path = moddir + '/scripts.json';
+			console.log('Scripts:' + path);
+			if(fs.existsSync(path)) {
+				let str = fs.readFileSync(path);
+				var obj = JSON.parse(str);
+				for(key in obj) {
+					var script = obj[key];
+					path = moddir + '/' + script;
+					if(fs.existsSync(path)) {
+						if(!scripts)
+							scripts = {};
+						if(!(key in scripts)) {
+							var scr = fs.readFileSync(path);
+							fs.writeFileSync(script, scr);
+							scripts[key] = script;
+						}
+					} else {
+						console.log(' ** ERR:Script <' + script + '> not available');
+					}
+				}
+			}
+		}
+		if(scripts) {
+			var scrout = JSON.stringify(scripts, null, 2);
+			fs.writeFileSync('scripts.json', scrout);
 		}
 		// Create node_module folder
 		var strout = JSON.stringify(package, null, 2);
