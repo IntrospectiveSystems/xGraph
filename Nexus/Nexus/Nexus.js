@@ -67,12 +67,14 @@
 	//---------------------------------------------------------start
 	function Setup() {
 		console.log('--Nexus/Setup');
+		console.log('Root', Root);
 		var pids = Object.keys(Root.Setup);
 		if(!Async)
 			Async = require('async');
 		Async.eachSeries(pids, setup, Start);
 
 		function setup(pid8, func) {
+			console.log('..setup', pid8);
 			var q = {};
 			q.Cmd = Root.Setup[pid8];
 			var pid = Pid24 + pid8;
@@ -634,6 +636,7 @@
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
+		console.log('schema path', path);
 		fs.exists(path, compile);
 
 		function compile(yes) {

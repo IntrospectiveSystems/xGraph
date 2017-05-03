@@ -1,5 +1,5 @@
 {
-  "Proxy": {
+  "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
 	"Entity": "Proxy.js"

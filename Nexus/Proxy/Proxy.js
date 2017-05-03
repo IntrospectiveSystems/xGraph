@@ -18,6 +18,14 @@
 		var err;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
+		var tmp = new Buffer(2);
+		tmp[0] = 2;
+		tmp[1] = 3;
+		var str = tmp.toString();
+		Vlt.STX = str.charAt(0);
+		Vlt.ETX = str.charAt(1);
+		Vlt.Buf = '';
+		Vlt.State = 0;
 		if('Host' in Par) {
 			if('Port' in Par) {
 				client();
@@ -66,32 +74,23 @@
 					}
 					var str = data.toString('utf8', 1, nd-1);
 					console.log('MSG:[' + str + ']');
-					send(str);
+					var com = JSON.parse(str);
+					//	console.log(JSON.stringify(com, null, 2));
+					if (!com) {
+						console.log(' ** ERR:Invalid portal message rcvd');
+						return;
+					}
+					that.send(com, Par.Link, reply);
 
-					function send(str) {
-						//	console.log('..Portal/send');
-						var com = JSON.parse(str);
-						//	console.log(JSON.stringify(com, null, 2));
-						if (!com) {
-							console.log(' ** ERR:Invalid portal message rcvd');
-							return;
-						}
-						if ('Passport' in com) {
-							that.Nxs.send(com, reply);
-						} else {
-							console.log(' ** ERR:Portal message no passport');
-							return;
-						}
+					function reply(err, com) {
+						console.log('..Proxy/reply');
+						com.Passport.Reply = true;
+						str = JSON.stringify(com);
+						let msg = Vlt.STX + str + Vlt.ETX;
+						var res = sock.write(msg, 'utf8', kapau);
 
-						function reply() {
-							//	console.log('..Portal/reply');
-							com.Passport.Reply = true;
-							str = JSON.stringify(com);
-							Msg = STX + str + ETX;
-							var res = sock.write(Msg, 'utf8', kapau);
-
-							function kapau() {
-							}
+						function kapau() {
+							console.log('.. kapau');
 						}
 					}
 				});
@@ -100,7 +99,64 @@
 		}
 
 		function client() {
+			var sock = new net.Socket();
+			var host = Par.Host;
+			var port = Par.Port;
+			sock.connect(port, host, function () {
+				console.log('..Connection established');
+			});
 
+			sock.on('connect', function () {
+				console.log('Proxy - Connected on host:' + host + ', port:' + port);
+				Vlt.Sock = sock;
+			});
+
+			sock.on('error', (err) => {
+				console.log(' ** ERR:' + err);
+			});
+
+			sock.on('data', function (data) {
+				var nd = data.length;
+				console.log('data[0]', data[0], Vlt.STX);
+				var i1= 0;
+				var i2;
+				var STX = 2;
+				var ETX = 3;
+				if(Vlt.State == 0)
+					Vlt.Buf = '';
+				for(let i=0; i<nd; i++) {
+					switch(Vlt.State) {
+					case 0:
+						if(data[i] == STX) {
+							Vlt.Buf = '';
+							Vlt.State = 1;
+							i1 = i+1;
+						}
+						break;
+					case 1:
+						i2 = i;
+						if(data[i] == ETX)
+							Vlt.State = 2;
+						break;
+					}
+				}
+				console.log('i1, i2, nd', i1, i2, nd, Vlt.State);
+				switch(Vlt.State) {
+					case 0:
+						break;
+					case 1:
+						Vlt.Buf += data.toString('utf8', i1, i2+1);
+						break;
+					default:
+						Vlt.Buf += data.toString('utf8', i1, i2);
+						Vlt.State = 0;
+						var com = JSON.parse(Vlt.Buf);
+						console.log('Returning', com.Cmd);
+						if(Vlt.Fun)
+							Vlt.Fun(null, com);
+						break;
+				}
+			});
 		}
 	}
 
@@ -112,8 +168,23 @@
 
 	function Proxy(com, fun) {
 		console.log('--Proxy/Proxy', com.Cmd);
+		var STX = 2;
+		var ETX = 3;
+		var Vlt = this.Vlt;
+		var sock = Vlt.Sock;
+		if(!sock) {
+			console.log(' ** ERR:Proxy not connected to server');
+			if(fun)
+				fun('Proxy not connected');
+			return;
+		}
+		var str = JSON.stringify(com);
+		var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
+		sock.write(msg);
 		if(fun)
-			fun(null, com);
+			Vlt.Fun = fun;
+		else
+			Vlt.Fun = null;
 	}
 
 })();

@@ -75,6 +75,7 @@
 			var path = genPath(Par.Module + '/Nxs.js');
 			console.log('Nxs path', path);
 			fs.readFile(path, function(err, data) {
+				console.log('#####Nxs read and stored');
 				if(err) {
 					console.log(' ** ERR:Cannot read Nxs file');
 					return;
@@ -174,7 +175,7 @@
 					//-----------------------------------------------------getModule
 					// Retrieve module from module server
 					// For now is retrieved from local file system
-					function getodule(com, fun) {
+					function getmodule(com, fun) {
 						console.log('--Page/getModule');
 						console.log(JSON.stringify(com));
 						var that = this;
