@@ -1,7 +1,7 @@
 (function Http() {
 	var fs = require('fs');
 	var async = require('async');
-	//var jszip = require("jszip");
+	var jszip = require("jszip");
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
