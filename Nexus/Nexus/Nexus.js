@@ -536,10 +536,23 @@
 						continue;
 					}
 					console.log('obj', JSON.stringify(obj, null, 2));
-					for(key in obj.dependencies) {
-						if(!(key in package.dependencies))
-							package.dependencies[key] = obj.dependencies[key];
+					
+
+					if (obj.dependencies) {
+						if (!package.dependencies) package.dependencies = {};
+						for (key in obj.dependencies) {
+							if (!(key in package.dependencies))
+								package.dependencies[key] = obj.dependencies[key];
+						}
 					}
+					if (obj.devDependencies) {
+						if (!package.devDependencies) package.devDependencies = {};
+						for (key in obj.devDependencies) {
+							if (!(key in package.devDependencies))
+								package.devDependencies[key] = obj.devDependencies[key];
+						}
+					}
+
 				}
 			}
 			// script files
