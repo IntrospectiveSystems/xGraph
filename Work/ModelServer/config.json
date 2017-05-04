@@ -10,7 +10,7 @@
 	 "Model": {
 	   "Module":"xGraph:Scene/ModelServer",
 	   "Par":{
-		 "Archive":"../Root/Models"
+		 "Archive":"c:/S3/Models"
 	   }
 	 }
    }

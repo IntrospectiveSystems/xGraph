@@ -54,7 +54,7 @@
 		console.log('..CvtObj/Parse', path);
 		var Math3D = require('math3d');
 		var earcut = require('earcut');
-		var fs = __Fs3;
+		var fs = require('fs');
 		var V = [];
 		var Vt = [];
 		var Vn = [];
