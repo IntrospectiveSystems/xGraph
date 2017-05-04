@@ -46,6 +46,7 @@
 		Vew.Camera.up.set(0.0, 0.0, 1.0);
 		Vew.Camera.lookAt(Vew.Focus);
 		Vew.Camera.updateProjectionMatrix();
+
 		if(fun)
 			fun();
 	}
