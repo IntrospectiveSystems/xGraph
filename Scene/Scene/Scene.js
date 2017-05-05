@@ -30,14 +30,12 @@
 		var omst = {};
 		var q = {};
 		var inst = [];
-		console.log('links', links);
 		q.Cmd = 'AddInstance';
 		q.Scebe - Par.Pid;
 		q.Inst = inst;
 		async.eachSeries(links, instance, pau);
 
 		function instance(pid, func) {
-			console.log('..instance', pid);
 			that.send(q, pid, func);
 		}
 
@@ -47,7 +45,7 @@
 					fun(err);
 				return;
 			}
-			console.log('Graph', JSON.stringify(inst, null, 2));
+		//	console.log('Graph', JSON.stringify(inst, null, 2));
 			Vlt.Graph = inst;
 			if(fun)
 				fun(null, com);
@@ -65,7 +63,7 @@
 	//-----------------------------------------------------GetModel
 	// Retrieeve mode from instance module
 	function GetModel(com, fun) {
-		console.log('--Scene/GetModle');
+		console.log('--Scene/GetModel');
 		var that = this;
 		var q = {};
 		q.Cmd = 'GetModel';

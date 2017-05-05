@@ -386,7 +386,7 @@
 				dispatch[info.Key]();
 
 			function start() {
-				console.log('..start', info);
+			//	console.log('..start', info);
 				var mouse = Vew.Mouse;
 				mouse.Mode = 'Select1';
 				mouse.x = info.Mouse.x;

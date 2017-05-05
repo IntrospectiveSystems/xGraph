@@ -11,6 +11,7 @@
 		dispatch: dispatch
 	};
 
+	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
 		console.log('--Proxy/Setup');
 		var that = this;
@@ -26,6 +27,7 @@
 		Vlt.ETX = str.charAt(1);
 		Vlt.Buf = '';
 		Vlt.State = 0;
+		Vlt.Subscribed = false;
 		if('Host' in Par) {
 			if('Port' in Par) {
 				client();
@@ -34,10 +36,10 @@
 			}
 		} else {
 			if('Port' in Par) {
-				if('Link' in Par)
+				if('Child' in Par)
 					server();
 				else
-					err = 'No Link in server proxy';
+					err = 'No Child in server proxy';
 			} else {
 				var err = 'No port for server proxy';
 			}
@@ -50,12 +52,14 @@
 			var STX = 2;
 			var ETX = 3;
 			var Msg;
+			Vlt.Server = true;
+			Vlt.Socks = [];
 			net.createServer(function(sock) {
 				console.log('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
 				var Buf = '';
 				var State = 0;
-				// TBD: Need to allow for max sockets or timeout
+				Vlt.Socks.push(sock);
 
 				sock.on('error', (err) => {
 					console.log(' ** ERR:' + err);
@@ -67,30 +71,34 @@
 				// data content may contain multiple messages
 				// TBD: Implement more flexible buffering policy
 				sock.on('data', function (data) {
+					TBD: Need to allow for concatenated messages here
 					var nd = data.length;
 					if(data[0] != STX || data[nd-1] != ETX) {
 						console.log(' ** ERR: Proxy/server - improper framing');
 						return;
 					}
 					var str = data.toString('utf8', 1, nd-1);
-					console.log('MSG:[' + str + ']');
 					var com = JSON.parse(str);
-					//	console.log(JSON.stringify(com, null, 2));
 					if (!com) {
 						console.log(' ** ERR:Invalid portal message rcvd');
 						return;
 					}
-					that.send(com, Par.Link, reply);
+					if(com.Passport.Disp && com.Passport.Disp == 'Query')
+						sock.isQuery = true;
+					else
+						sock.isQuery = false;
+					that.send(com, Par.Child, reply);
 
 					function reply(err, com) {
 						console.log('..Proxy/reply');
-						com.Passport.Reply = true;
-						str = JSON.stringify(com);
-						let msg = Vlt.STX + str + Vlt.ETX;
-						var res = sock.write(msg, 'utf8', kapau);
+						if(sock.isQuery) {
+							com.Passport.Reply = true;
+							str = JSON.stringify(com);
+							let msg = Vlt.STX + str + Vlt.ETX;
+							var res = sock.write(msg, 'utf8', kapau);
+						}
 
 						function kapau() {
-							console.log('.. kapau');
 						}
 					}
 				});
@@ -102,6 +110,7 @@
 			var sock = new net.Socket();
 			var host = Par.Host;
 			var port = Par.Port;
+			Vlt.Server = false;
 			sock.connect(port, host, function () {
 				console.log('..Connection established');
 			});
@@ -117,7 +126,6 @@
 
 			sock.on('data', function (data) {
 				var nd = data.length;
-				console.log('data[0]', data[0], Vlt.STX);
 				var i1= 0;
 				var i2;
 				var STX = 2;
@@ -140,51 +148,73 @@
 						break;
 					}
 				}
-				console.log('i1, i2, nd', i1, i2, nd, Vlt.State);
 				switch(Vlt.State) {
-					case 0:
-						break;
-					case 1:
-						Vlt.Buf += data.toString('utf8', i1, i2+1);
-						break;
-					default:
-						Vlt.Buf += data.toString('utf8', i1, i2);
-						Vlt.State = 0;
-						var com = JSON.parse(Vlt.Buf);
-						console.log('Returning', com.Cmd);
+				case 0:
+					break;
+				case 1:
+					Vlt.Buf += data.toString('utf8', i1, i2+1);
+					break;
+				default:
+					Vlt.Buf += data.toString('utf8', i1, i2);
+					Vlt.State = 0;
+					var com = JSON.parse(Vlt.Buf);
+					if('Reply' in com.Passport) {
 						if(Vlt.Fun)
 							Vlt.Fun(null, com);
-						break;
+					} else {
+						that.send(com, Par.Parent);
+					}
+					break;
 				}
 			});
 		}
 	}
 
+	//.....................................................Start
 	function Start(com, fun) {
 		console.log('--Proxy/Start');
 		if(fun)
 			fun(null, com);
 	}
 
+	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
 		console.log('--Proxy/Proxy', com.Cmd);
-		var STX = 2;
-		var ETX = 3;
 		var Vlt = this.Vlt;
-		var sock = Vlt.Sock;
-		if(!sock) {
-			console.log(' ** ERR:Proxy not connected to server');
-			if(fun)
-				fun('Proxy not connected');
-			return;
-		}
-		var str = JSON.stringify(com);
-		var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
-		sock.write(msg);
-		if(fun)
-			Vlt.Fun = fun;
+		if(Vlt.Server)
+			server();
 		else
-			Vlt.Fun = null;
+			client();
+
+		function server() {
+			if(!Vlt.Subscribed) {
+				if(fun)
+					fun();
+				return;
+			}
+
+		}
+
+		function client() {
+			var STX = 2;
+			var ETX = 3;
+			var sock = Vlt.Sock;
+			if(!sock) {
+				console.log(' ** ERR:Proxy not connected to server');
+				if(fun)
+					fun('Proxy not connected');
+				return;
+			}
+			if(fun) {
+				Vlt.Fun = fun;
+				com.Passport.Disp = 'Query';
+			} else {
+				Vlt.Fun = null;
+			}
+			var str = JSON.stringify(com);
+			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
+			sock.write(msg);
+		}
 	}
 
 })();

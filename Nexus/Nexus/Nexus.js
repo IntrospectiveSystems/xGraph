@@ -74,7 +74,7 @@
 		Async.eachSeries(pids, setup, Start);
 
 		function setup(pid8, func) {
-			console.log('..setup', pid8);
+		//	console.log('..setup', pid8);
 			var q = {};
 			q.Cmd = Root.Setup[pid8];
 			var pid = Pid24 + pid8;
@@ -156,8 +156,6 @@
 		var to = com.Passport.To;
 		console.log('to', to);
 		if (to.charAt(0) == '$') {
-			console.log('#########################');
-			console.log('com', com);
 			var sym = to.substr(1);
 			if (sym in Root.SymTab) {
 				com.Passport.To = Root.SymTab[sym];
@@ -205,7 +203,6 @@
 	// Get Pid associated with a global symbol
 	function getGlobal(sym) {
 		console.log('--Nexus/getGlobal');
-		console.log(JSON.stringify(Root, null, 2));
 		if(sym in Root.Apex)
 			return Root.Apex[sym];
 	}
@@ -237,11 +234,9 @@
 
 		function exists(yes) {
 			if (!yes) {
-				console.log(' ** Pid <' + pid + '> not available');
 				fun(' ** Not found');
 				return;
 			}
-			console.log('pathpar', pathpar);
 			fs.readFile(pathpar, parent);
 			return;
 		}
@@ -260,12 +255,11 @@
 				finish();
 			} else {
 				var path = genPath(type);
-				console.log('Mod path is', path);
 				fs.readFile(path, done);
 
 				function done(err, data) {
 					if (err) {
-						console.log(' ** Cannot read code file', path);
+						console.log(' ** ERR:Cannot read code file', path);
 						fun(err);
 						return;
 					}
@@ -337,8 +331,6 @@
 					com.Passport.From = Par.Pid;
 				com.Passport.Pid = genPid();
 			}
-			//	console.log('Entity/send/this', this);
-			//	console.log('Entity/send/Nxs', that.Nxs);
 			Nxs.sendMessage(com, fun);
 		}
 
@@ -390,7 +382,7 @@
 
 			function done(err, data) {
 				if (err) {
-					console.log(' ** Cannot read code file', path);
+					console.log(' ** ERR:Cannot read code file', path);
 					fun(err);
 					return;
 				}
@@ -425,7 +417,7 @@
 	function genPath(filein) {
 		console.log('!!genPath', filein);
 		if(!filein) {
-			console.log(' ** Invalid file name');
+			console.log(' ** ERR:Invalid file name');
 			return '';
 		}
 		var cfg = Config;
@@ -435,14 +427,12 @@
 		if(Config.Redirect) {
 			if(file in Config.Redirect)
 				file = Config.Redirect[file];
-			console.log('Nexus/genPath', filein, file);
 		}
 		if (file.charAt(0) == '/')
 			return file;
 		if (file.charAt(0) == '{') { // Macro
 			parts = file.split('}');
 			if (parts.length != 2) {
-				console.log('File <' + file + '> invalide {} syntax');
 				return;
 			}
 			var name = parts[0].substr(1);
@@ -499,8 +489,6 @@
 		}
 		if (state != 1)
 			throw 'Curley brackets not matched in __Macro';
-		console.log('__Macro in', str);
-		console.log('__Macro out', s);
 		return s;
 	};
 
@@ -520,13 +508,11 @@
 		Root.Start = {};
 		// Merge npm package dependencies
 		var keys = Object.keys(Config.Modules);
-		console.log('keys', keys);
 		for(let i=0; i<keys.length; i++) {
 			let key = keys[i];
 			var mod = Config.Modules[key];
 			var moddir = genPath(mod.Module);
 			path = moddir + '/package.json';
-			console.log('Package:' + path);
 			if(fs.existsSync(path)) {
 				let str = fs.readFileSync(path);
 				if(str) {
@@ -535,7 +521,6 @@
 						package = obj;
 						continue;
 					}
-					console.log('obj', JSON.stringify(obj, null, 2));
 					for(key in obj.dependencies) {
 						if(!(key in package.dependencies))
 							package.dependencies[key] = obj.dependencies[key];
@@ -544,7 +529,6 @@
 			}
 			// script files
 			path = moddir + '/scripts.json';
-			console.log('Scripts:' + path);
 			if(fs.existsSync(path)) {
 				let str = fs.readFileSync(path);
 				var obj = JSON.parse(str);
@@ -571,7 +555,6 @@
 		}
 		// Create node_module folder
 		var strout = JSON.stringify(package, null, 2);
-		console.log('package.json', strout);
 		fs.writeFileSync('package.json', strout);
 		const proc = require('child_process');
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
@@ -590,7 +573,6 @@
 			genPid();	// Generate Pid24 for this Nexus
 			fs.mkdirSync(CacheDir);
 			let keys = Object.keys(Config.Modules);
-			console.log('Keys', keys);
 			for(var i=0; i<keys.length; i++) {
 				var key = keys[i];
 				Root.Apex[key] = genPid();
@@ -599,7 +581,6 @@
 
 			function addmod(key, func) {
 				CurrentModule = key;
-				console.log('addmod', key);
 				let mod = Config.Modules[key];
 				addModule(mod, func);
 			}
@@ -615,7 +596,6 @@
 			Root.Pid24 = Pid24;
 			var path = CacheDir + '/00000000.json';
 			var str = JSON.stringify(Root, null, 2);
-			console.log("Writing to ROOOOOOOOT");
 			fs.writeFile(path, str, done);
 
 			function done(err) {
@@ -636,27 +616,23 @@
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
-		console.log('schema path', path);
 		fs.exists(path, compile);
 
 		function compile(yes) {
 			if(!yes) {
-				console.log(' ** No schema **');
+				console.log(' ** ERR:No schema **');
 				fun();
 				return;
 			}
-			console.log('..compile', path);
 			fs.readFile(path, parse);
 
 			function parse(err, data) {
-				console.log('..parse', path);
 				if (err) {
 					console.log('File err:' + err);
 					fun(err);
 					return;
 				}
 				var schema = JSON.parse(data.toString());
-				console.log('schema...\n' + JSON.stringify(schema, null, 2));
 				for (let lbl in schema) {
 					var obj = schema[lbl];
 					if('Par' in mod) {
@@ -676,7 +652,6 @@
 					var obj = ents[lbl];
 					for(let key in obj) {
 						val = obj[key];
-					//	console.log('key, val', key, val, typeof val);
 						if (key == '$Setup') {
 							Root.Setup[obj.Pid.substr(24)] = obj[key];
 							continue;
@@ -705,7 +680,6 @@
 							continue;
 						}
 					}
-				//	console.log('After:' + JSON.stringify(obj, null, 2));
 				}
 				var keys = Object.keys(ents);
 				Async.eachSeries(keys, cache, fun);
@@ -726,7 +700,6 @@
 			}
 
 			function symbol(str) {
-			//	console.log('..symbol', str);
 				var esc = str.charAt(0);
 				if(esc == '#') {
 					var sym = str.substr(1);

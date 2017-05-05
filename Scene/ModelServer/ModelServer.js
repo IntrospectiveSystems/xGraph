@@ -56,10 +56,10 @@
 			if(dir.length > 0)
 				path += '/' + dir;
 			var rigfile = path + '/' + 'Rig.json';
-			console.log(rigfile);
+		//	console.log(rigfile);
 			fs.exists(rigfile, function (yes) {
 				if (yes) {
-					console.log(rigfile);
+				//	console.log(rigfile);
 					fs.readFile(rigfile, readrig);
 				} else {
 					Stack.push(Stack[Stack.length - 1]);
@@ -159,13 +159,10 @@
 							par.Path = Models + '/' + sub;
 							var name = old['Name'] + '.' + Name;
 							if (name in ModelIndex) {
-								console.log('    ' + name);
-								console.log(ModelIndex[name] + ' ' + name);
 								funq();
 								return;
 							}
 							par.Name = name;
-							console.log('New ' + name);
 							for (key in old) {
 								switch (key) {
 								case 'Name':
@@ -187,8 +184,6 @@
 		//-------------------------------------------------generate
 		function generate() {
 			console.log('..generate');
-			console.log('Pars', Pars);
-			console.log('Par', Par);
 			async.eachSeries(Pars, check, pau);
 
 			function pau(err) {
@@ -206,17 +201,12 @@
 			}
 
 			function genx3d(par, func) {
-				console.log('..gen3d');
 				var path = par.Path;
 				var nclip = path.lastIndexOf('/');
 				var dir = path.substr(0, nclip);
-				console.log('dir', dir);
 				var file = path.substr(nclip + 1);
-				console.log('file', file);
 				var parts = file.split('.');
-				console.log('parts', parts);
 				var suffix = parts[[parts.length - 1]].toLowerCase();
-				console.log('suffix', suffix);
 				if (suffix in Par.Cvt) {
 					var q = {};
 					q.Cmd = 'Convert';
@@ -232,7 +222,6 @@
 				//.........................................rigger
 				// Apply scaling, orientation and animation
 				function rigger(err, q) {
-					console.log('..rigger');
 					if (err) {
 						console.log(' ** ERR:' + err);
 						func(err);
@@ -252,7 +241,6 @@
 						return;
 					}
 					var x3d = q.X3D;
-				//	console.log('X3D', JSON.stringify(x3d, null, 2));
 					if ('Units' in rig) {
 						Scale = null;
 						var units = rig.Units;
@@ -293,7 +281,6 @@
 						ground(1);
 					if ('Base' in rig && rig.Base == true)
 						ground(2);
-					console.log(' ** Rigging complete');
 					textures(par, x3d);
 
 					//.....................................scale
@@ -342,8 +329,6 @@
 						var cntr = [0, 0, 0];
 						for (var i = 0; i < 3; i++)
 							cntr[i] = 0.5 * (xyz[2 * i] + xyz[2 * i + 1]);
-						console.log('xyz', xyz);
-						console.log('cntr', cntr);
 						Process = shift;
 						traverse();
 
@@ -424,8 +409,6 @@
 				// Load textures from filenames stored by
 				// conversion loaders (CvtXXX)
 				function textures(par, x3d) {
-					console.log('..textures==============================================');
-					console.log('par', par);
 					var zip = new jszip();
 					zip.file('Type', 'X3D');
 					zip.file('X3D', JSON.stringify(x3d));
@@ -434,14 +417,12 @@
 						var base = par.Path.substr(0, slash+1);
 						async.eachSeries(par.Textures, function(text, func) {
 							var path = base + text;
-							console.log('Path', path);
 							fs.readFile(path, function(err, data) {
 								if (err) {
 									console.log(' ** ERR:' + err);
 									func();
 									return;
 								}
-								console.log('writing', text, data.length);
 								zip.file(text, data);
 								func();
 							});
@@ -451,8 +432,6 @@
 					}
 
 					function save() {
-						console.log('..save');
-						console.log('par', JSON.stringify(par, null, 2));
 						if(err) {
 							console.log(' ** ERR:' + err);
 							func(err);
@@ -462,7 +441,6 @@
 						zip.generateNodeStream({type:'nodebuffer',streamFiles:true})
 							.pipe(fs.createWriteStream(path))
 							.on('finish', function () {
-								console.log("out.zip written.");
 								func();
 							});
 					}

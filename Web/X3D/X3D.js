@@ -32,8 +32,6 @@
 	//-----------------------------------------------------GenModel
 	function GenModel(com, fun) {
 		console.log('--GenModel');
-		console.log(com);
-//		console.log(PNG);
 		var modx3d = com.Model;
 		var zipx3d = new JSZip();
 		var Zip;
@@ -44,14 +42,12 @@
 		});
 
 		function textures() {
-			console.log('..textures');
+		//	console.log('..textures');
 			var dir = Zip.file(/.*./);
-			console.log('dir', dir);
 			async.eachSeries(dir, texture, genmod);
 
 			function texture(obj, func) {
 				var file = obj.name;
-				console.log('..texture', file);
 				var parts = file.split('.');
 				if(parts.length < 2) {
 					func();
@@ -70,15 +66,11 @@
 						return;
 				}
 				Zip.file(file).async('uint8array').then(function(img) {
-					console.log('img', img.length);
 					var blob = new Blob([img], {type: mime});
-					console.log('blob', blob);
 					var url = URL.createObjectURL(blob);
-					console.log('url', url);
 					var image = document.createElement('img');
 					image.src = url;
 					var tex = new THREE.Texture(image);
-					console.log('text', tex);
 					tex.wrapS = THREE.RepeatWrapping;
 					tex.wrapT = THREE.RepeatWrapping;
 					tex.needsUpdate = true;
@@ -88,14 +80,8 @@
 			}
 
 			function base64ToUint8Array(data) {
-				console.log('base64', data.substr(0, 11));
-			//	var BASE64_MARKER = ';base64,';
-			//	var base64Index = data.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-			//	var base64 = data.substring(base64Index);
-			//	var raw = atob(base64);
 				var raw = atob(data);
 				var rawLength = raw.length;
-				console.log('rawLength', rawLength);
 				var array = new Uint8Array(new ArrayBuffer(rawLength));
 				for(var i = 0; i < rawLength; i++) {
 					array[i] = raw.charCodeAt(i);
@@ -105,7 +91,7 @@
 		}
 
 		function genmod() {
-			console.log('..genmod');
+		//	console.log('..genmod');
 			Zip.file('X3D').async('string').then(function(str){
 				var x3d = JSON.parse(str);
 				if (!('Root' in x3d)) {
@@ -141,7 +127,6 @@
 						if ('Parts' in obj) {
 							for (var ipart = 0; ipart < obj.Parts.length; ipart++) {
 								part = obj.Parts[ipart];
-								console.log('part', ipart, part);
 								geo = new THREE.BufferGeometry();
 								geo.castShadow = true;
 								var vrt = new Float32Array(part.Vrt.length);
@@ -188,10 +173,8 @@
 								opt.color = color;
 								opt.side = THREE.DoubleSide;
 								if ('UV' in part && 'Texture' in part) {
-									console.log('Textures', Textures);
 									opt.map = Textures[part.Texture];
 								}
-								console.log(opt);
 								mat = new THREE.MeshPhongMaterial(opt);
 								mesh = new THREE.Mesh(geo, mat);
 								mesh.castShadow = true;
@@ -220,7 +203,7 @@
 
 	//-----------------------------------------------------GenModel
 	function GenModelx(com, fun) {
-		console.log('--X3D/GenModel');
+	//	console.log('--X3D/GenModel');
 		var that = this;
 		var x3d = com.Model;
 		if (!('Root' in x3d)) {
@@ -305,7 +288,6 @@
 							var txtr = texture(part.Texture);
 							opt.map = txtr;
 						}
-						console.log(opt);
 						mat = new THREE.MeshPhongMaterial(opt);
 						mesh = new THREE.Mesh(geo, mat);
 						mesh.castShadow = true;
@@ -359,10 +341,8 @@
 		}
 
 		function texture(filename) {
-			console.log('filename', filename);
 			if (!('Textures' in x3d))
 				return;
-			console.log(x3d.Textures);
 			if (!(filename in x3d.Textures))
 				return;
 			var obj = x3d.Textures[filename];

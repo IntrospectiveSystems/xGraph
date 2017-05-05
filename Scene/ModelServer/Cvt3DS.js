@@ -48,7 +48,7 @@
 		Par = this.Par;
 		var path = com.Path;
 		var x3d = Parse(path);
-		console.log('X3D', JSON.stringify(x3d, null, 2));
+	//	console.log('X3D', JSON.stringify(x3d, null, 2));
 		if (x3d != null) {
 			if ('Rig' in com) {
 				Rig(x3d, com.Rig);

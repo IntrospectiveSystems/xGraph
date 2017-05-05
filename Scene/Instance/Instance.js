@@ -76,16 +76,12 @@
 		this.send(q, Par.Model, reply);
 
 		function reply(err, r) {
-			console.log('..Instance/reply');
 			if(err) {
 				if(fun)
 					fun(err);
 				return;
 			}
-			console.log('r', typeof r);
-			console.log('A');
 			com.Model = r.Model;
-			console.log('B');
 			fun(null, com);
 		}
 
