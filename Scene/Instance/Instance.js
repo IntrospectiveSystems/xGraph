@@ -34,6 +34,7 @@
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		Vlt.Scene = com.Scene;
+		console.log('AddInstance>>>>>>>>>>>>>>>>>>>>', com.Scene, Vlt.Scene);
 		var links = Par.Inst;
 		var inst = {};
 		inst.Model = Par.Model;
@@ -50,6 +51,7 @@
 		var q = {};
 		q.Cmd = 'AddInstance';
 		q.Inst = inst.Inst;
+		q.Scene = com.Scene;
 		async.eachSeries(links, instance, fun);
 
 		function instance(pid, func) {
@@ -93,18 +95,19 @@
 		console.log('--Instance/Move', com);
 		console.log(JSON.stringify(com, null, 2));
 		var Par = this.Par;
+		var Vlt = this.Vlt;
 		if('Loc' in com) {
 			Par.Position = com.Loc;
 		}
 		if('Spin' in com)
 			Par.Angle += com.Spin;
 		var q = {};
-		q.Cmd = 'Move';
+		q.Cmd = 'SetPosition';
 		q.Position = Par.Position;
 		q.Axis = Par.Axis;
 		q.Angle = Par.Angle;
 		q.Publish = true;
-		this.send(q, Par.Scene);
+		this.send(q, Vlt.Scene);
 		if(fun)
 			fun(null, com);
 	}

@@ -60,7 +60,10 @@ __Nexus = (function() {
 			if (pid24 == Pid24) {
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
-					ent.dispatch(cmd, reply);
+					if('Disp' in cmd && cmd.Disp == 'Query')
+						ent.dispatch(cmd, reply);
+					else
+						ent.dispatch(cmd);
 				} else {
 					console.log(' ** ERR:Local', pid, 'not in Cache');
 				}

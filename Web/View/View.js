@@ -4,6 +4,7 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
+		SetPosition: SetPosition,
 		'*':Relay
 	};
 
@@ -144,7 +145,8 @@
 				var q = {};
 				q.Cmd = 'Subscribe';
 				q.Pid = Par.Pid;
-				that.send(q, Par.Scene, render);
+				that.send(q, Par.Scene);
+				render();
 			}
 
 			function render() {
@@ -164,6 +166,14 @@
 			}
 		}
 
+	}
+
+	//-------------------------------------------------SetPosition
+	function SetPosition(com, fun) {
+		console.log('--SetPositon');
+		console.log(JSON.stringify(com, null, 2));
+		if(fun)
+			fun(null, com);
 	}
 
 	//-------------------------------------------------Relay

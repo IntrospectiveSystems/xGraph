@@ -7,7 +7,8 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		GetModule: GetModule
+		GetModule: GetModule,
+		'*': Publish
 	};
 
 	return {
@@ -89,7 +90,7 @@
 
 			listener.sockets.on('connection', function (socket) {
 				console.log('sock/connection');
-				var pidsock = ''
+				var pidsock = '';
 				for(var i=0; i<3; i++)
 					pidsock += that.Nxs.genPid().substr(24);
 				var obj = {};
@@ -127,6 +128,10 @@
 						getfile();
 						return;
 					}
+					if(com.Cmd == 'Subscribe') {
+						obj.User.Publish = com.Pid;
+						return;
+					}
 					if (!('Passport' in com)) {
 						console.log(' ** ERR:No Passport in routed msg');
 						return;
@@ -137,9 +142,11 @@
 						that.Nxs.send(com, com.Passport.To);
 						return;
 					}
+					console.log('..before send to com.Passport.To', com.Passport.To);
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
+						console.log('..reply');
 						if (cmd) {
 							com = cmd;
 						}
@@ -208,6 +215,31 @@
 
 				});
 			});
+		}
+	}
+
+	//-------------------------------------------------------Publish
+	// This is called when message needs to be sent to all
+	// browsers that have subscribed
+	function Publish(com, fun) {
+		console.log('--Publish', com.Cmd);
+		var Vlt = this.Vlt;
+		var socks = Vlt.Sockets;
+		var keys = Object.keys(socks);
+		console.log('keys', keys);
+		for(var i=0; i<keys.length; i++) {
+			var obj = socks[keys[i]];
+			var sock = obj.Socket;
+			var user = obj.User;
+			console.log('User', user);
+			if('Publish' in user) {
+				console.log('Sending to', user.Publish);
+				com.Passport.To = user.Publish;
+				if(fun)
+					com.Passport.Disp = 'Query';
+				var str = JSON.stringify(com);
+				sock.send(str);
+			}
 		}
 	}
 

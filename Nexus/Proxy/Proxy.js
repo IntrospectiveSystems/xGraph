@@ -28,21 +28,20 @@
 		Vlt.Buf = '';
 		Vlt.State = 0;
 		Vlt.Subscribed = false;
-		if('Host' in Par) {
-			if('Port' in Par) {
-				client();
-			} else {
-				var err = 'No port for client proxy';
+		if('Role' in Par) {
+			switch(Par.Role) {
+				case 'Client':
+					client();
+					break;
+				case 'Server':
+					server();
+					break;
+				default:
+					err = 'Bad Role <' + Par.Role + '> in Proxy';
+					break;
 			}
 		} else {
-			if('Port' in Par) {
-				if('Child' in Par)
-					server();
-				else
-					err = 'No Child in server proxy';
-			} else {
-				var err = 'No port for server proxy';
-			}
+			err = 'No Role in Proxy';
 		}
 		if(err)
 			console.log(' ** ERR:' + err);
@@ -57,9 +56,10 @@
 			net.createServer(function(sock) {
 				console.log('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
-				var Buf = '';
-				var State = 0;
 				Vlt.Socks.push(sock);
+				sock._userData = {};
+				sock._userData.Buf = '';
+				sock._userData.State = 0;
 
 				sock.on('error', (err) => {
 					console.log(' ** ERR:' + err);
@@ -71,34 +71,54 @@
 				// data content may contain multiple messages
 				// TBD: Implement more flexible buffering policy
 				sock.on('data', function (data) {
-					TBD: Need to allow for concatenated messages here
+					var Buf = sock._userData.Buf;
+					var State = sock._userData.State;
+					var Fifo = [];
+					var isQuery;
 					var nd = data.length;
-					if(data[0] != STX || data[nd-1] != ETX) {
-						console.log(' ** ERR: Proxy/server - improper framing');
-						return;
-					}
-					var str = data.toString('utf8', 1, nd-1);
-					var com = JSON.parse(str);
-					if (!com) {
-						console.log(' ** ERR:Invalid portal message rcvd');
-						return;
-					}
-					if(com.Passport.Disp && com.Passport.Disp == 'Query')
-						sock.isQuery = true;
-					else
-						sock.isQuery = false;
-					that.send(com, Par.Child, reply);
-
-					function reply(err, com) {
-						console.log('..Proxy/reply');
-						if(sock.isQuery) {
-							com.Passport.Reply = true;
-							str = JSON.stringify(com);
-							let msg = Vlt.STX + str + Vlt.ETX;
-							var res = sock.write(msg, 'utf8', kapau);
+					for(let i=0; i<nd; i++) {
+						switch(State) {
+						case 0:
+							if(data[i] == STX) {
+								Buf = '';
+								State = 1;
+								i1 = i+1;
+							}
+							break;
+						case 1:
+							i2 = i;
+							let str = data.toString()
+							if(data[i] == ETX) {
+								Buf += data.toString('utf8', i1, i2);
+								var obj = JSON.parse(Buf);
+								Fifo.push(obj);
+								State = 0;
+							}
+							break;
 						}
+					}
+					if(State == 1)
+						Buf += data.toString('utf8', i1, i2+1);
+					sock._userData.State = State;
+					loop();
 
-						function kapau() {
+					function loop() {
+						if(Fifo.length < 1)
+							return;
+						var q = Fifo.shift();
+						if(q.Passport.Disp && q.Passport.Disp == 'Query')
+							isQuery = true;
+						else
+							isQuery = false;
+						that.send(q, Par.Link, reply);
+
+						function reply(err, r) {
+							if(isQuery) {
+								r.Passport.Reply = true;
+								str = JSON.stringify(r);
+								let msg = Vlt.STX + str + Vlt.ETX;
+								var res = sock.write(msg, 'utf8', loop);
+							}
 						}
 					}
 				});
@@ -162,7 +182,7 @@
 						if(Vlt.Fun)
 							Vlt.Fun(null, com);
 					} else {
-						that.send(com, Par.Parent);
+						that.send(com, Par.Link);
 					}
 					break;
 				}
@@ -180,22 +200,40 @@
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
 		console.log('--Proxy/Proxy', com.Cmd);
+		var Par = this.Par;
 		var Vlt = this.Vlt;
-		if(Vlt.Server)
-			server();
-		else
-			client();
+		if('Role' in Par) {
+			switch(Par.Role) {
+				case 'Client':
+					client();
+					break;
+				case 'Server':
+					server();
+					break;
+				default:
+					break;
+			}
+		} else {
+			var err = 'Proxy has no role';
+			console.log(' ** ERR:' + err);
+			if(fun)
+				fun(err);
+		}
+
 
 		function server() {
-			if(!Vlt.Subscribed) {
-				if(fun)
-					fun();
-				return;
+			console.log('..server');
+			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
+			for(var i=0; i<Vlt.Socks.length; i++) {
+				var sock = Vlt.Socks[i];
+				sock.write(msg);
 			}
-
+			if(fun)
+				fun(null, com);
 		}
 
 		function client() {
+			console.log('..client');
 			var STX = 2;
 			var ETX = 3;
 			var sock = Vlt.Sock;

@@ -6,7 +6,6 @@
 		Setup: Setup,
 		Start: Start,
 		GetGraph: GetGraph,
-		Subscribe: Subscribe,
 		'*': Relay
 	};
 
@@ -31,7 +30,7 @@
 		var q = {};
 		var inst = [];
 		q.Cmd = 'AddInstance';
-		q.Scebe - Par.Pid;
+		q.Scene = Par.Pid;
 		q.Inst = inst;
 		async.eachSeries(links, instance, pau);
 
@@ -79,30 +78,20 @@
 		}
 	}
 
-	//-----------------------------------------------------Subscribe
-	// Move/rotate object in scene
-	function Subscribe(com, fun) {
-		console.log('--Subscribe', com);
-		var Vlt = this.Vlt;
-		if('ClientList' in Vlt) {
-			Vlt.ClientList.push(com.Pid);
-		} else {
-			Vlt.ClientList = [];
-			Vlt.ClientList.push(com.Pid);
-		}
-		if(fun)
-			fun(null, com);
-	}
-
 	//-----------------------------------------------------Relay
 	// Pass on to instances
 	function Relay(com, fun) {
 		console.log('--Relay', com.Cmd);
 		var that = this;
-		if(com.Publish) {
-			publish();
+		var Par = this.Par;
+		if('Publish' in com) {
+			console.log('Par.View', Par.View);
+			that.send(com, Par.View);
+			if(fun)
+				fun(null, com);
 			return;
 		}
+		console.log('--Scene/Relay\n', JSON.stringify(com, null, 2));
 		var pass = com.Passport;
 		this.send(com, com.Instance, reply);
 
@@ -112,27 +101,6 @@
 				fun(err);
 			q.Passport = pass;
 			fun(null, q);
-		}
-
-		//.................................................publish
-		function publish() {
-			var Vlt = that.Vlt;
-			var that = this;
-			if('ClientList' in Vlt) {
-				async.eachSeries(Vlt.ClientList, pub, pau);
-			} else {
-				if(fun)
-					fun();
-			}
-
-			function pub(pid, func) {
-				that.send(com, pid, func);
-			}
-
-			function pau(err) {
-				if(fun)
-					fun(err);
-			}
 		}
 	}
 

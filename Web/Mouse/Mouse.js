@@ -408,6 +408,7 @@
 			}
 
 			function move() {
+				console.log('..move', info);
 				if (!('Point' in info))
 					return;
 				var q = {};
