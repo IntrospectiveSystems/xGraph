@@ -6,6 +6,7 @@
 		Setup: Setup,
 		Start: Start,
 		GetGraph: GetGraph,
+		SetPosition: SetPosition,
 		'*': Relay
 	};
 
@@ -78,6 +79,41 @@
 		}
 	}
 
+	//-----------------------------------------------------SetPostion
+	// Update scene graph from commands sent from models
+	// to make sure that people that log in later get a
+	// correct scene graph.
+	function SetPosition(com, fun) {
+		console.log('--SetPositoin');
+		var Vlt = this.Vlt;
+		var that = this;
+		var graph = Vlt.Graph;
+		trv(graph);
+
+		function trv(inst) {
+			for(let i=0; i<inst.length; i++) {
+				var obj = inst[i];
+				console.log('obj', obj.Instance, com.Instance);
+				if(obj.Instance == com.Instance) {
+					console.log('..found');
+					if('Position' in com)
+						obj.Position = com.Position;
+					if('Axis' in com)
+						obj.Axis = com.Axis;
+					if('Angle' in com)
+						obj.Angle = com.Angle;
+					Relay.call(that, com, fun);
+					return;
+				}
+				if('Inst' in obj)
+					trv(obj.Inst);
+			}
+			console.log(' ** ERR:No tickee, no laundry');
+			if(fun)
+				fun();
+		}
+	}
+
 	//-----------------------------------------------------Relay
 	// Pass on to instances
 	function Relay(com, fun) {
@@ -85,13 +121,13 @@
 		var that = this;
 		var Par = this.Par;
 		if('Publish' in com) {
-			console.log('Par.View', Par.View);
+		//	console.log('Par.View', Par.View);
 			that.send(com, Par.View);
 			if(fun)
 				fun(null, com);
 			return;
 		}
-		console.log('--Scene/Relay\n', JSON.stringify(com, null, 2));
+//		console.log('--Scene/Relay\n', JSON.stringify(com, null, 2));
 		var pass = com.Passport;
 		this.send(com, com.Instance, reply);
 

@@ -268,6 +268,10 @@
 							traverse();
 						}
 					}
+					if('Marlin' in rig && rig.Marlin == true) {
+						Process = marlin;
+						traverse();
+					}
 				//	if ('Scale' in rig) {
 				//		Scale = rig.Scale;
 				//		Process = scale;
@@ -313,6 +317,19 @@
 									arr[i + 2] = arr[i + 1];
 									arr[i + 1] = -tmp;
 								}
+								break;
+						}
+					}
+
+					//.....................................marlin
+					function marlin(comp, arr) {
+						console.log('comp', comp);
+						switch(comp) {
+							case 'Diffuse':
+								console.log('Diffuse', arr);
+								arr[0] = 255;
+								arr[1] = 255;
+								arr[2] = 255;
 								break;
 						}
 					}
@@ -387,6 +404,8 @@
 										Process('Vertex', part.Vrt);
 									if ('Nrm' in part)
 										Process('Normal', part.Nrm);
+									if('Diffuse' in part)
+										Process('Diffuse', part.Diffuse);
 									if('Texture' in part) {
 										if(!('Textures' in par))
 											par.Textures = [];

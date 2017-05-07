@@ -142,11 +142,9 @@
 						that.Nxs.send(com, com.Passport.To);
 						return;
 					}
-					console.log('..before send to com.Passport.To', com.Passport.To);
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
-						console.log('..reply');
 						if (cmd) {
 							com = cmd;
 						}
@@ -222,18 +220,15 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
-		console.log('--Publish', com.Cmd);
+	//	console.log('--Publish', com.Cmd);
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
 		var keys = Object.keys(socks);
-		console.log('keys', keys);
 		for(var i=0; i<keys.length; i++) {
 			var obj = socks[keys[i]];
 			var sock = obj.Socket;
 			var user = obj.User;
-			console.log('User', user);
 			if('Publish' in user) {
-				console.log('Sending to', user.Publish);
 				com.Passport.To = user.Publish;
 				if(fun)
 					com.Passport.Disp = 'Query';

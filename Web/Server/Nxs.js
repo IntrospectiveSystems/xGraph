@@ -209,7 +209,7 @@ __Nexus = (function() {
 	//-----------------------------------------------------genNode
 	// Generate node from parameter object
 	function genEntity(par, fun) {
-		console.log('--genEntity', par.Entity);
+	//	console.log('--genEntity', par.Entity);
 		var name = par.Entity;
 		if (name in ModCache) {
 			var mod = ModCache[name];
@@ -309,7 +309,7 @@ __Nexus = (function() {
 			nextscript();
 
 			function nextscript() {
-				console.log('..nextscript');
+			//	console.log('..nextscript');
 				if (ikey >= nkeys) {
 					modules();
 					return;
@@ -354,7 +354,7 @@ __Nexus = (function() {
 			nextmodule();
 
 			function nextmodule() {
-				console.log('..nextmodule')
+			//	console.log('..nextmodule')
 				if(ikey >= nkeys) {
 					Setup();
 					return;
@@ -365,12 +365,12 @@ __Nexus = (function() {
 				var com = {};
 				com.Cmd = 'GetModule';
 				com.Module = mod.Module;
-				console.log(com);
+			//	console.log(com);
 				send(com, PidServer, addmodule);
 			}
 
 			function addmodule(err, com) {
-				console.log('..addmodule');
+			//	console.log('..addmodule');
 				var ents = {};
 				var lbls = {};
 				var module = com.Module;

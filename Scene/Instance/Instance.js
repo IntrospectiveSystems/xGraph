@@ -92,8 +92,7 @@
 	//-----------------------------------------------------Move
 	// Process move request (includes rotations)
 	function Move(com, fun) {
-		console.log('--Instance/Move', com);
-		console.log(JSON.stringify(com, null, 2));
+	//	console.log('--Instance/Move', com);
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		if('Loc' in com) {
@@ -103,6 +102,7 @@
 			Par.Angle += com.Spin;
 		var q = {};
 		q.Cmd = 'SetPosition';
+		q.Instance = Par.Pid;
 		q.Position = Par.Position;
 		q.Axis = Par.Axis;
 		q.Angle = Par.Angle;
@@ -116,8 +116,15 @@
 	// Save module
 	function Save(com, fun) {
 		console.log('--Instance/Save', com);
-		if(fun)
-			fun(null, com);
+		this.save(pau);
+
+		function pau(err) {
+			if(err) {
+				console.log(' ** ERR:Save failed');
+			}
+			if(fun)
+				fun(err, com);
+		}
 	}
 
 })();

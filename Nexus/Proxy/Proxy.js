@@ -199,7 +199,7 @@
 
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
-		console.log('--Proxy/Proxy', com.Cmd);
+	//	console.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		if('Role' in Par) {
@@ -222,7 +222,6 @@
 
 
 		function server() {
-			console.log('..server');
 			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
 			for(var i=0; i<Vlt.Socks.length; i++) {
 				var sock = Vlt.Socks[i];
@@ -233,7 +232,6 @@
 		}
 
 		function client() {
-			console.log('..client');
 			var STX = 2;
 			var ETX = 3;
 			var sock = Vlt.Sock;

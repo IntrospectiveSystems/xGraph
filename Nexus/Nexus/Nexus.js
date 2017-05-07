@@ -15,6 +15,7 @@
 		genPid: genPid,
 		genPath: genPath,
 		getGlobal: getGlobal,
+		getParameter: getParameter,
 		sendMessage: sendMessage
 	}
 	console.log('=================================================');
@@ -154,7 +155,6 @@
 			return;
 		}
 		var to = com.Passport.To;
-		console.log('to', to);
 		if (to.charAt(0) == '$') {
 			var sym = to.substr(1);
 			if (sym in Root.SymTab) {
@@ -193,7 +193,7 @@
 		}
 
 		function reply(err, q) {
-			//	console.log('..Nexus/send/reply', com.Cmd, com.Passport);
+		//	console.log('..Nexus/send/reply', com.Cmd, com.Passport);
 			if(fun)
 				fun(null, q);
 		}
@@ -205,6 +205,15 @@
 		console.log('--Nexus/getGlobal');
 		if(sym in Root.Apex)
 			return Root.Apex[sym];
+	}
+
+	//-----------------------------------------------------getParameter
+	// Retrieve command line parameter
+	function getParameter(name) {
+		console.log('--Nexus/GetParameter');
+		console.log('Params', JSON.stringify(Params, null, 2));
+		if(name in Params)
+			return Params[name];
 	}
 
 	//-----------------------------------------------------getEntity
@@ -303,8 +312,8 @@
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
-			//	console.log(Mod);
-			console.log('||dispatch', com.Cmd);
+		//	console.log(Mod);
+		//	console.log('||dispatch', com.Cmd);
 			var disp = Mod.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -337,10 +346,9 @@
 		//-------------------------------------------------save
 		// Save entity in Cache
 		function save(fun) {
-			var file = Par.Pid.substr(24) + '.json';
-			var path = __Config.Cache + '/' + file;
+			var path = CacheDir + '/' + Par.Pid.substr(24) + '.json';
 			var str = JSON.stringify(Par, null, 2);
-			__Fs3.writeFile(path, str, done);
+			fs.writeFile(path, str, done);
 
 			function done(err) {
 				if (fun)
@@ -415,7 +423,7 @@
 
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
-		console.log('!!genPath', filein);
+	//	console.log('!!genPath', filein);
 		if(!filein) {
 			console.log(' ** ERR:Invalid file name');
 			return '';

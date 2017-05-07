@@ -101,6 +101,7 @@
 		//-----------------------------------------------------mouseWheel
 		function mouseWheel(evt) {
 			var fac;
+		//	var direction  = (evt.detail<0 || evt.wheelDelta>0) ? 1: -1;
 			var delta = evt.originalEvent.wheelDelta;
 			if (delta != null) {
 				fac = delta / 120;
@@ -408,7 +409,7 @@
 			}
 
 			function move() {
-				console.log('..move', info);
+			//	console.log('..move', info);
 				if (!('Point' in info))
 					return;
 				var q = {};
