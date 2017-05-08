@@ -5,17 +5,23 @@
 	"Entity": "ModelServer.js",
 	"Cvt":{
 	  "obj":"#CvtObj",
-	  "3ds":"#Cvt3DS"
+	  "3ds":"#Cvt3ds",
+	  "lwo":"#CvtLwo"
 	}
   },
-  "Cvt3DS": {
+  "Cvt3ds": {
 	"$Setup": "Setup",
 	"$Start": "Start",
-	"Entity": "Cvt3DS.js"
+	"Entity": "Cvt3ds.js"
   },
   "CvtObj": {
 	"$Setup": "Setup",
 	"$Start": "Start",
 	"Entity": "CvtObj.js"
+  },
+  "CvtLwo": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "CvtLwo.js"
   }
 }

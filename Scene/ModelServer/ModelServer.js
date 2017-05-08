@@ -13,6 +13,13 @@
 		dispatch: dispatch
 	};
 
+	//-----------------------------------------------------Setup
+	function Start(com, fun) {
+		console.log('--ModelServer/Start')
+		if(fun)
+			fun();
+	}
+
 	//-----------------------------------------------------Start
 	function Setup(com, fun) {
 		console.log('--ModelServer/Setup');
@@ -31,6 +38,7 @@
 			fs.mkdirSync(Stash);
 		}
 		var Models = Par.Archive;
+		console.log('Models', Models);
 		var Stack = [];
 		var Pars = [];
 		var Cvt = {};
@@ -55,6 +63,7 @@
 			path = Models;
 			if(dir.length > 0)
 				path += '/' + dir;
+			console.log('trv', path);
 			var rigfile = path + '/' + 'Rig.json';
 		//	console.log(rigfile);
 			fs.exists(rigfile, function (yes) {
@@ -141,10 +150,13 @@
 						if (nparts > 1) {
 							switch (parts[nparts - 1]) {
 							case '3ds':
-								type = '3DS';
+								type = '3ds';
 								break;
 							case 'obj':
 								type = 'Obj';
+								break;
+							case 'lwo':
+								type = 'Lwo';
 								break;
 							}
 						}
@@ -432,6 +444,7 @@
 					zip.file('Type', 'X3D');
 					zip.file('X3D', JSON.stringify(x3d));
 					if('Textures' in par) {
+						console.log('Textures', JSON.stringify(par.Textures));
 						var slash = par.Path.lastIndexOf('/');
 						var base = par.Path.substr(0, slash+1);
 						async.eachSeries(par.Textures, function(text, func) {
@@ -467,13 +480,6 @@
 
 			}
 		}
-	}
-
-	//-----------------------------------------------------Start
-	function Start(com, fun) {
-		console.log('--ModelServer/Start')
-		if(fun)
-			fun();
 	}
 
 	//-----------------------------------------------------GetModel
