@@ -3,7 +3,6 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup:Setup,
-		Start,Start,
 		PostAddress:PostAddress,
 		GetAddress:GetAddress
 	};
@@ -22,12 +21,6 @@
 		Vlt.Waiting={};
 
 		
-		if(fun)
-			fun(null, com);
-	}
-
-	function Start(com, fun) {
-		console.log('--Registry/Start');
 		if(fun)
 			fun(null, com);
 	}
