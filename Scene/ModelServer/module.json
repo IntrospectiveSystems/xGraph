@@ -1,0 +1,18 @@
+{
+  "input": {
+    "required":[],
+    "opts":["GetModel"]
+  },
+  "output":{
+    "required":[],
+    "opts":[]
+  },
+  "par":{
+    "required": ["Archive"],
+    "opts":[]
+  },
+  "name": "ModelServer",
+  "icon": null,
+  "doc": "ModelServer.md",
+  "src": "xGraph:Scene/ModelServer"
+}

@@ -1,4 +1,4 @@
-(function scene() {
+(function Instance() {
 	var async = require('async');
 
 	//-----------------------------------------------------dispatch
