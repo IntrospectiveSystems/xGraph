@@ -158,6 +158,7 @@
 		if (to.charAt(0) == '$') {
 			console.log('#########################');
 			console.log('com', com);
+			console.log(Root);
 			var sym = to.substr(1);
 			if (sym in Root.SymTab) {
 				com.Passport.To = Root.SymTab[sym];

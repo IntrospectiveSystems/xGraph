@@ -2,6 +2,7 @@
   "name": "ModuleServer",
   "version": "0.0.1",
   "dependencies": {
-    "async": "*"
+    "async": "*",
+    "jszip": "*"
   }
 }

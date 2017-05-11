@@ -2,6 +2,12 @@
   "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
-	"Entity": "ModuleServer.js"
+	"Entity": "ModuleServer.js",
+	"FileManager": "#FileManager"
+  },
+  "FileManager": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "FileManager.js"
   }
 }
