@@ -232,6 +232,8 @@
 
 		// First time entity encountered, generate and
 		// store in Cache
+		console.log('pid8: ', pid8);
+		console.log(CacheDir);
 		var pathpar = CacheDir + '/' + pid8 + '.json';
 		fs.exists(pathpar, exists);
 
