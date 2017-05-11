@@ -56,12 +56,12 @@
 			if(dir.length > 0)
 				path += '/' + dir;
 			var rigfile = path + '/' + 'Rig.json';
-			console.log(rigfile);
 			fs.exists(rigfile, function (yes) {
 				if (yes) {
 					console.log(rigfile);
 					fs.readFile(rigfile, readrig);
 				} else {
+					console.log("No",rigfile);
 					Stack.push(Stack[Stack.length - 1]);
 					scandir();
 				}

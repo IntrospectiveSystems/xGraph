@@ -56,7 +56,7 @@
 
 	//-----------------------------------------------------GetGraph
 	function GetGraph(com, fun) {
-		console.log('--Scene/GetGraph')
+		console.log('--Scene/GetGraph');
 		com.Graph = this.Vlt.Graph;
 		if(fun)
 			fun(null, com);
@@ -65,7 +65,7 @@
 	//-----------------------------------------------------GetModel
 	// Retrieeve mode from instance module
 	function GetModel(com, fun) {
-		console.log('--Scene/GetModle');
+		console.log('--Scene/GetModel');
 		var that = this;
 		var q = {};
 		q.Cmd = 'GetModel';

@@ -90,6 +90,8 @@
 			}
 
 			function reply(err) {
+				if (err)
+					console.log(" ** Error passed to Nexus' async Setup"+err);
 				func(err);
 			}
 		}
@@ -99,9 +101,12 @@
 	function Start() {
 		console.log('--Nexus/Start');
 		var pids = Object.keys(Root.Start);
+		console.log(pids);
 		Async.eachSeries(pids, start, Run);
 
 		function start(pid8, func) {
+			console.log('..start', pid8);
+
 			var q = {};
 			q.Cmd = Root.Start[pid8];
 			var pid = Pid24 + pid8;
@@ -117,6 +122,8 @@
 			}
 
 			function reply(err) {
+				if (err)
+					console.log(" ** Error passed to Nexus' async Setup"+err);
 				func(err);
 			}
 		}
