@@ -94,27 +94,22 @@
 		//	console.log('..genmod');
 			Zip.file('X3D').async('string').then(function(str){
 				var x3d = JSON.parse(str);
+				dump(x3d);
 				if (!('Root' in x3d)) {
 					console.log(' ** ERR: No root in x3d object');
 					if(fun)
 						fun('No Root in X3D model.');
 					return;
 				}
-				var obj3d = trv(x3d.Root, null, 0);
-				if (obj3d) {
-					com.Obj3D = obj3d;
-					if(fun)
-						fun(null, com);
-					return;
-				}
-				var err = 'X3D object <' + x3d.Name + '> invalid';
-				console.log(' ** ERR:' + err);
+				var root = new THREE.Object3D();
+				trv(x3d.Root, root, 0);
+				com.Obj3D = root;
 				if(fun)
-					fun(err);
+					fun(null, com);
 				return;
 
 				function trv(nodes, par, lev) {
-					//	console.log('trv', lev, node.length);
+				//	console.log('trv', lev, nodes.length);
 					var obj;
 					var mesh;
 					var part;
@@ -122,6 +117,7 @@
 					var mat;
 					for (var i = 0; i < nodes.length; i++) {
 						obj = nodes[i];
+						console.log('Name', obj.Name);
 						var obj3d = new THREE.Object3D();
 						obj3d.castShadow = true;
 						if ('Parts' in obj) {
@@ -176,6 +172,7 @@
 									opt.map = Textures[part.Texture];
 								}
 								mat = new THREE.MeshPhongMaterial(opt);
+								mat.transparent = true;
 								mesh = new THREE.Mesh(geo, mat);
 								mesh.castShadow = true;
 								obj3d.add(mesh);
@@ -198,6 +195,46 @@
 					fun('Good cucumber');
 				return;
 			});
+		}
+	}
+
+	function dump(x3d) {
+		if('Textures' in x3d)
+			console.log('Textures', JSON.stringify(x3d.Textures));
+		if('Root' in x3d) {
+			console.log('Root...');
+			for(var iobj=0; iobj<x3d.Root.length; iobj++) {
+				var obj = x3d.Root[iobj];
+				console.log('Object:' + obj.Name);
+				console.log('    Pivot:' + JSON.stringify(obj.Pivot));
+				//	console.log(JSON.stringify(Object.keys(obj)));
+				for(var iprt=0; iprt<obj.Parts.length; iprt++) {
+					var part = obj.Parts[iprt];
+					console.log('    Part:' + iprt);
+					for(key in part) {
+						switch(key) {
+							case 'Name':
+								console.log('        Name:' + part.Name);
+								break;
+							case 'Vrt':
+								console.log('        Vrt:' + part.Vrt.length/3);
+								break;
+							case 'UV':
+								console.log('        UV:' + part.UV.length/2);
+								break;
+							case 'Idx':
+								console.log('        Idx:' + part.Idx.length/3);
+								break;
+							case 'Texture':
+								console.log('        Texture:' + part.Texture);
+								break;
+							default:
+								console.log('        ' + key);
+								break;
+						}
+					}
+				}
+			}
 		}
 	}
 

@@ -213,6 +213,8 @@
 			}
 
 			function genx3d(par, func) {
+				var Textures;
+				var Alias;
 				var path = par.Path;
 				var nclip = path.lastIndexOf('/');
 				var dir = path.substr(0, nclip);
@@ -284,6 +286,37 @@
 						Process = marlin;
 						traverse();
 					}
+					if('Textures' in rig) {
+						Textures = rig.Textures;
+					}
+					if('Alias' in rig) {
+						console.log('////Alias');
+						Alias = rig.Alias;
+						Process = alias;
+						traverse();
+						if('Textures' in x3d) {
+							var obj = x3d.Textures;
+							console.log(JSON.stringify(x3d.Textures, null, 2));
+							if(Array.isArray(obj)) {
+								for(var itxt=0; itxt<obj.length; itxt++) {
+									var text = obj[itxt];
+									if(text in Alias)
+										obj[itxt] = Alias[text];
+								}
+							} else {
+								var keys = Object.keys(obj);
+								for(var ikey=0; ikey<keys.length; ikey++) {
+									var key = keys[ikey];
+									if(key in Alias) {
+										delete obj[key];
+										obj[Alias.key] = {};
+									}
+								}
+							}
+							console.log(JSON.stringify(x3d.Textures, null, 2));
+						}
+					}
+
 				//	if ('Scale' in rig) {
 				//		Scale = rig.Scale;
 				//		Process = scale;
@@ -400,6 +433,19 @@
 						}
 					}
 
+					//.....................................alias
+					// Replaces texture files with different ones
+					function alias(comp, part) {
+						if(comp == 'Part') {
+							if('Texture' in part) {
+								if(part.Texture in Alias) {
+									console.log(part.Texture, '<=', Alias[part.Texture]);
+									part.Texture = Alias[part.Texture];
+								}
+							}
+						}
+					}
+
 					function traverse() {
 						var arr = x3d.Root;
 						for (var i = 0; i < arr.length; i++)
@@ -412,18 +458,19 @@
 								var arr = obj.Parts;
 								for (var i = 0; i < arr.length; i++) {
 									var part = arr[i];
+									Process('Part', part);
 									if ('Vrt' in part)
 										Process('Vertex', part.Vrt);
 									if ('Nrm' in part)
 										Process('Normal', part.Nrm);
 									if('Diffuse' in part)
 										Process('Diffuse', part.Diffuse);
-									if('Texture' in part) {
+								/*	if('Texture' in part) {
 										if(!('Textures' in par))
 											par.Textures = [];
 										if(par.Textures.indexOf(part.Texture) < 0)
 											par.Textures.push(part.Texture);
-									}
+									} */
 								}
 							}
 							if ('Nodes' in obj) {
@@ -443,12 +490,27 @@
 					var zip = new jszip();
 					zip.file('Type', 'X3D');
 					zip.file('X3D', JSON.stringify(x3d));
-					if('Textures' in par) {
-						console.log('Textures', JSON.stringify(par.Textures));
-						var slash = par.Path.lastIndexOf('/');
-						var base = par.Path.substr(0, slash+1);
-						async.eachSeries(par.Textures, function(text, func) {
-							var path = base + text;
+					if('Textures' in x3d) {
+						console.log(JSON.stringify(x3d.Textures, null, 2));
+						async.eachSeries(x3d.Textures, function(file, func) {
+							var path;
+							var file;
+							console.log('Alias', Alias);
+							if(Alias && file in Alias) {
+								text = Alias[file];
+							} else {
+								text = file;
+							}
+							console.log('Textures:', Textures);
+							console.log('text', text);
+							if(Textures) {
+								path = Models + '/' + Textures + '/' + text;
+							} else {
+								var slash = par.Path.lastIndexOf('/');
+								var base = par.Path.substr(0, slash+1);
+								path = base + text;
+							}
+							console.log('Texture path:' + path);
 							fs.readFile(path, function(err, data) {
 								if (err) {
 									console.log(' ** ERR:' + err);

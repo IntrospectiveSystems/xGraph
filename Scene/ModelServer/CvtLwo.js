@@ -40,11 +40,11 @@
 				return;
 			}
 			dump(x3d);
-			console.log(' ** CvtObj processing completed');
 			x3d.Name = com.Name;
 			com.X3D = x3d;
-//			if(fun)
-//				fun();
+			console.log(' ** CvtLwo processing completed');
+			if(fun)
+				fun(null, com);
 		}
 
 		function dump(x3d) {
@@ -618,7 +618,7 @@
 					var idx = [];
 					var uv = [];
 					var nvrt = layer.Pnts.length/3;
-					var ixvrt = new Int8Array(nvrt);
+					var ixvrt = new Int16Array(nvrt);
 					var ivrt;
 					for(i=0; i<nvrt; i++)
 						ixvrt[i] = -1;
