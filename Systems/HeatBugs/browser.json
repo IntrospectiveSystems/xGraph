@@ -1,0 +1,10 @@
+{
+  "Modules":{
+	"Heatbugs":{
+	  "Module":"xGraph:HeatBugsModule",
+	  "Par": {
+		  "Div":"Grok"
+	  }
+	}
+  }
+}
