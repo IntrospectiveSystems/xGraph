@@ -76,7 +76,7 @@
 						zipModule(file, '', func);
 					}, function() {
 						//console.log(zip);
-						that.send({Cmd:'AddModule', Module:zip, ModuleStorage:that.Par.ModuleStorage, Info: ModuleInfo}, that.Par.FileManager, function(err, com) {
+						that.send({Cmd:'AddModule', Module:zip, ModuleStorage:that.Par.ModuleStorage, Name: ModuleInfo.name}, that.Par.FileManager, function(err, com) {
 							console.log('Module Saved');
 							callback();
 						})
@@ -154,6 +154,9 @@
 	}
 
 	// Get module from moduleCache, return full Module zip
+	// Requires:
+	//	com.Name,
+	// Returns zipped module in base64 in com.Module
 	function GetModule(com, fun) {
 		var async = require('async');
 		// Check if Module is in registry
@@ -189,7 +192,9 @@
 	}
 
 	// Inspect module files for required pars, create module entity, add zipped module to module location
-	// Expects com.Module as zipped module file
+	// Requires:
+	// 	com.Module as zipped module file:
+	//	com.Name as named in module.json
 	function AddModule(com, fun) {
 		// TODO: Send to ModuleData to check compatibility
 		// ModuleData should return module.json obj

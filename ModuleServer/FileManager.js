@@ -24,16 +24,18 @@
 
 	// Receives module data and writes module to designated storage
 	function AddModule(com, fun) {
+		console.log(com);
 		console.log('FileManager::AddModule');
 		var that = this;
 		if ('Module' in com) {
 			console.log(com);
-			var path = Nxs.genPath(com.ModuleStorage + '/' + com.Info.name + '.zip');
+			var path = Nxs.genPath(com.ModuleStorage + '/' + com.Name + '.zip');
 			// TODO: Check if file exists and overwrite (sanity check should take place in ModuleServer)
 			com.Module.generateNodeStream({type:'nodebuffer',streamFiles:true})
 				.pipe(fs.createWriteStream(path))
 				.on('finish', function () {
 					console.log("out.zip written.");
+					//delete(com.Module);
 					if(fun) fun(null, com);
 				});
 		} else {

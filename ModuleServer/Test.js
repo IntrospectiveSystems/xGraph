@@ -44,13 +44,11 @@
 				}
 				let cmd = {
 					Cmd: 'AddModule',
-					Info: {
-						name: 'testModule5'
-					},
+					Name: 'testModule5',
 					Module: data
 				};
 				that.send(cmd, pid, function(err, com) {
-					console.log('test:GetModule:Callback: ', com);
+					console.log('test:AddModule:Callback: ', com);
 				})
 
 			}
