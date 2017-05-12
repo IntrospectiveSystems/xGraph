@@ -17,8 +17,8 @@
 	 "ModuleServer": {
 	   "Module":"xGraph:ModuleServer",
 	   "Par":{
-		 "Modules": "xGraph:/Work/ModuleServer/modules",
-		 "ModuleStorage": "xGraph:/Work/ModuleServer/moduleData",
+		 "Modules": "xGraph:Work/ModuleServer/modules",
+		 "ModuleStorage": "xGraph:Work/ModuleServer/moduleData",
 		 "bTest": 0
 	   }
 	 }
