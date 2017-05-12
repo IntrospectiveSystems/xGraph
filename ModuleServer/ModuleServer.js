@@ -225,6 +225,9 @@
 	}
 
 	// Get module list based on filters, return module info
+	// Requires:
+	//	com.Filters as object with possible filters Input,Output,Name as strings
+	// Returns Array of module.json typeobjects in com.Info
 	function Query(com, fun) {
 		console.log('ModuleServer:Query');
 		var that = this;
