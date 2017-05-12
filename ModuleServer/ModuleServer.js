@@ -16,57 +16,69 @@
 		dispatch: dispatch
 	};
 
-
-	// Iterate through import folder and create modules
 	function Setup(com, fun) {
-		var that = this;
-
-		that.Vlt.ModuleCache = {};
-
-
-		// If cache not setup
-		// iterate through modules folder
-		// add module info to cache
 		console.log('ModuleServer:Setup');
-		console.log(this.Par.Modules);
-		fun();
-
+		var that = this;
+		if ('ModuleCache' in that.Par) {
+			fun();
+		} else {
+			that.Par.ModuleCache = {};
+			fun();
+		}
 	}
 
 	function Start(com, fun) {
 		console.log('ModuleServer:Start');
 		var that = this;
+		if (that.Par.bInitialized) {
+			if (that.Par.bTest) {
+				that.send({Cmd:'StartTests', ModuleServer:that.Par.Pid}, that.Par.Test, (err, com) => {
+					console.log('Tests Finished');
+				})
+			}
+			fun();
+			return;
+		}
 		var async = require('async');
 		var JSZip = require('jszip');
 
 
-		console.log(that.Vlt);
-
-		fs.readdir(that.Par.Modules, function(err, files) {
+		// Read Module import directory
+		fs.readdir(Nxs.genPath(that.Par.Modules), function(err, files) {
 			if (err) {
 				console.log(' ** ERR:Project file err:' + err);
 				return;
 			}
+			// Iterate through modules in module import directory and read each
 			async.eachSeries(files, (file, func) => {
-				readModule(that.Par.Modules + '/' + file, func);
+				readModule(Nxs.genPath(that.Par.Modules + '/' + file), func);
 			}, function(err) {
 				console.log('Finished scanning module folder');
+				that.Par.bInitialized = true;
+				that.save();
+				console.log(that.Par.bTest);
+				if (that.Par.bTest) {
+					that.send({Cmd:'StartTests', ModuleServer:that.Par.Pid}, that.Par.Test, (err, com) => {
+						console.log('Tests Finished');
+					})
+				}
 			});
 		});
 
 		// Read Module Folder and create zipped module
 		function readModule(dir, callback) {
 			var zip = new JSZip();
-			var bTop = true;
+			var ModuleInfo = {};
 			scanModule(dir, function() {
 				console.log('Finished scanning module');
 				fs.readdir(dir, (err, files) => {
 					async.eachSeries(files, (file, func) => {
 						zipModule(file, '', func);
 					}, function() {
-						console.log(zip);
-						that.send({Cmd:'AddModule', Module:zip}, that.Par.FileManager, function(err, com) {
+						//console.log(zip);
+						that.send({Cmd:'AddModule', Module:zip, ModuleStorage:that.Par.ModuleStorage, Info: ModuleInfo}, that.Par.FileManager, function(err, com) {
 							console.log('Module Saved');
+							callback();
 						})
 					})
 				});
@@ -92,8 +104,9 @@
 									return;
 								}
 								let modData = JSON.parse(data);
-								that.Vlt.ModuleCache[modData.name] = modData;
-								//that.send({Cmd:'AddModule', Module: dir});
+								ModuleInfo = modData;
+								console.log(ModuleInfo);
+								that.Par.ModuleCache[modData.name] = modData;
 								func();
 							});
 						} else {
@@ -108,8 +121,6 @@
 
 			function zipModule(fileName, sub, callback) {
 				let path = dir + sub + '/' + fileName;
-				console.log('ZipModule: ', path);
-				console.log('Sub: ', sub);
 
 				fs.lstat(path, (err, stats) => {
 					if (err) {
@@ -117,7 +128,6 @@
 						callback();
 					}
 					if (stats.isDirectory()) {
-						console.log('isDirectory');
 						sub += '/' + fileName;
 						zip.folder(sub);
 
@@ -133,7 +143,6 @@
 								callback();
 								return;
 							}
-							console.log('writing', sub + '/' + fileName, data.length);
 							zip.file(sub + '/' + fileName, data);
 							callback();
 						});
@@ -141,29 +150,149 @@
 				})
 			}
 		}
-
 		fun();
-
 	}
 
 	// Get module from moduleCache, return full Module zip
 	function GetModule(com, fun) {
-		//
+		var async = require('async');
+		// Check if Module is in registry
+		var that = this;
+		if ('Name' in com) {
+			console.log(that.Par.ModuleCache);
+			// Async through moduleCache and check filter properties
+			async.forEach(Object.keys(that.Par.ModuleCache), (module, func) => {
+				let ModuleInfo = that.Par.ModuleCache[module];
+
+				if (ModuleInfo) {
+					if (com.Name === ModuleInfo) {
+						com.Module = ModuleInfo;
+					}
+				}
+			}, (err) => {
+				console.log('Finished');
+				if (com.Module) {
+					that.send(com, that.Par.FileManager, (err, com) => {
+						if (fun) {
+							fun(null, com);
+						}
+					})
+				}
+			})
+		}
+		com.ModuleStorage = that.Par.ModuleStorage;
+		that.send(com, that.Par.FileManager, function(err, com) {
+			if (fun) {
+				fun(null, com);
+			}
+		})
 	}
 
 	// Inspect module files for required pars, create module entity, add zipped module to module location
+	// Expects com.Module as zipped module file
 	function AddModule(com, fun) {
-		// Create Module entity
-		//
+		// TODO: Send to ModuleData to check compatibility
+		// ModuleData should return module.json obj
+		var that = this;
+		if ('Module' in com) {
+			that.send(com, that.Par.ModuleData, function(err, com) {
+				if (err) {
+					console.log(err);
+					fun(err, com);
+					return;
+				}
+				com.ModuleStorage = that.Par.ModuleStorage;
+				that.send(com, that.Par.FileManager, function(err, com) {
+					if (err) {
+						console.log(err);
+						fun(err, com);
+						return;
+					}
+
+					if (fun) fun(null, com);
+				});
+				if (fun) fun(null, com);
+			})
+		} else {
+			if(fun) fun('ERR:ModuleServer: Missing com.Module(zipped module)', com);
+		}
 
 	}
 
-	// Get module list based on filters, return pids and limited data describing modules
+	// Get module list based on filters, return module info
 	function Query(com, fun) {
-		// Check Filter
-		// Send Command to modules based on filter
-		if ('Filter' in com) {
+		console.log('ModuleServer:Query');
+		var that = this;
+		var async = require('async');
+		com.Info = [];
+		if ('Filters' in com) {
+
 			// Async through moduleCache and check filter properties
+			async.forEach(Object.keys(that.Par.ModuleCache), (module, func) => {
+				CheckFilters(that.Par.ModuleCache[module], com.Filters, (err, bMatch) => {
+					if(bMatch) {
+						com.Info.push(that.Par.ModuleCache[module]);
+					}
+					func();
+				});
+				}, (err) => {
+				console.log('Finished');
+				if (fun) {
+					fun(null, com);
+				}
+			})
+		}
+
+		function CheckFilters(Mod, Filters, callback) {
+			let bMatch = true;
+			console.log('CheckFilters');
+			// Iterate through filters
+			// Check against each property in module
+			async.forEach(Object.keys(Filters), (Filter, func) => {
+				if(!bMatch) {
+					func();
+				}
+				let Match = [];
+				switch(Filter) {
+					// TODO: Add cases for info and par
+					case 'input':
+					case 'output':
+						if (Mod[Filter].required.length > 0) {
+							for (let key in Mod[Filter].required) {
+								Match = Match.concat(Mod[Filter].required[key].cmd);
+							}
+						}
+						if (Mod[Filter].opts.length > 0) {
+							for (let key in Mod[Filter].opts) {
+								Match = Match.concat(Mod[Filter].opts[key].cmd);
+							}
+						}
+						break;
+					case 'name':
+						Match.push(Mod.name);
+						break;
+					default:
+						break;
+				}
+				for (let i=0; i<Match.length;i++) {
+					// TODO: Change to function and compare n to n for par and info (recursive?)
+					if (Filters[Filter] === Match[i]) {
+						bMatch = true;
+						break;
+					} else {
+						bMatch = false;
+					}
+				}
+				console.log('FilterKey: ', Filter, ' Filter:', Filters[Filter], ' Match:', Match, ' bMatch:', bMatch);
+				func();
+
+
+			}, (err) => {
+				if (err) {
+					console.log(err);
+				}
+				callback(err, bMatch);
+			});
 		}
 	}
 

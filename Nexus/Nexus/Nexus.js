@@ -355,14 +355,15 @@
 		//-------------------------------------------------save
 		// Save entity in Cache
 		function save(fun) {
-			var file = Par.Pid.substr(24) + '.json';
-			var path = __Config.Cache + '/' + file;
+			var path = CacheDir + '/' + Par.Pid.substr(24) + '.json';
 			var str = JSON.stringify(Par, null, 2);
-			__Fs3.writeFile(path, str, done);
+			console.log(Par);
+			fs.writeFile(path, str, done);
 
 			function done(err) {
-				if (fun)
-					fun(err);
+				if (err)
+					throw err;
+				if (fun)fun();
 			}
 		}
 

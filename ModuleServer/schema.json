@@ -3,11 +3,19 @@
 	"$Setup": "Setup",
 	"$Start": "Start",
 	"Entity": "ModuleServer.js",
-	"FileManager": "#FileManager"
+	"FileManager": "#FileManager",
+	"Test": "#Test",
+	"ModuleData": "#ModuleData"
   },
   "FileManager": {
 	"$Setup": "Setup",
 	"$Start": "Start",
 	"Entity": "FileManager.js"
+  },
+  "ModuleData": {
+	"Entity": "ModuleData.js"
+  },
+  "Test": {
+	"Entity": "Test.js"
   }
 }
