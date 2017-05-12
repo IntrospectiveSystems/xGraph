@@ -1,0 +1,26 @@
+{
+  "xGraph": "{xGraph}",
+  "Cache": "cache",
+   "Modules": {
+	 "Nexus": {
+	   "Module": "xGraph:Nexus/Nexus",
+	   "Par": {
+	   }
+	 },
+	 "Proxy": {
+	   "Module":"xGraph:Nexus/Proxy",
+	   "Par": {
+		 "Link":"$ModuleServer",
+		 "Port":27000
+	   }
+	 },
+	 "ModuleServer": {
+	   "Module":"xGraph:ModuleServer",
+	   "Par":{
+		 "Modules": "xGraph:/Work/ModuleServer/modules",
+		 "ModuleStorage": "xGraph:/Work/ModuleServer/moduleData",
+		 "bTest": 0
+	   }
+	 }
+   }
+}
