@@ -167,16 +167,18 @@
 									}
 								}
 								opt.color = color;
+						//		opt.color = #FFFFFF;
 								opt.side = THREE.DoubleSide;
 								if ('UV' in part && 'Texture' in part) {
 									opt.map = Textures[part.Texture];
 								}
 								mat = new THREE.MeshPhongMaterial(opt);
 								mat.transparent = true;
+								mat.alphaTest = 0.5;
 								mesh = new THREE.Mesh(geo, mat);
-								mesh.castShadow = true;
+							//	mesh.castShadow = true;
 								obj3d.add(mesh);
-								obj3d.castShadow = true;
+							//	obj3d.castShadow = true;
 							}
 						}
 						if ('Nodes' in obj) {
@@ -207,7 +209,9 @@
 				var obj = x3d.Root[iobj];
 				console.log('Object:' + obj.Name);
 				console.log('    Pivot:' + JSON.stringify(obj.Pivot));
-				//	console.log(JSON.stringify(Object.keys(obj)));
+				console.log(JSON.stringify(Object.keys(obj)));
+				if(!('Parts' in obj))
+					continue;
 				for(var iprt=0; iprt<obj.Parts.length; iprt++) {
 					var part = obj.Parts[iprt];
 					console.log('    Part:' + iprt);

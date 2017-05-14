@@ -34,13 +34,14 @@
 		var Jimp = require('jimp');
 		var blend = {};
 		var target = this.Nxs.getParameter('Target');
-		var path = 'C:/Archive/Raw/Marlin/TreeFarmDecid/lwo/Leaves004_green.jpg';
+		var path = 'C:/Archive/Raw/Marlin/TreeFarmDecid/lwo/Leaves02_yellow.jpg';
+		var path = 'C:/Archive/Raw/Marlin/TreeFarmPalms/textures/PalmLeaf008_Dead.jpg';
 		var dot = path.lastIndexOf('.');
 		var bar = path.lastIndexOf('_');
 		var slash = path.lastIndexOf('/');
 		blend.Texture = path;
 		blend.Alpha = path.substr(0, bar) + '_alpha.jpg';
-		blend.Diffuse = path.substr(0, bar) + '_diffuse.jpg';
+	//	blend.Diffuse = path.substr(0, bar) + '_diffuse.jpg';
 		if('Alpha' in blend)
 			blend.Output = path.substr(slash+1, dot-slash-1) + '.png';
 		else
@@ -70,43 +71,7 @@
 					fun(err);
 				return;
 			});
-/*
-			function alpha() {
-				if(!('Alpha' in blend)) {
-					save();
-					return;
-				}
-				console.log('alpha', blend.Alpha);
-				Jimp.read(blend.Alpha).then(function(img) {
-					var pix = img.bitmap.data;
-					var w = img.bitmap.width;
-					var h = img.bitmap.height;
-					if(w != width || h != height) {
-						var err = 'Alpha dimensions incompatible';
-						console.log(' ** ERR:' + err);
-						if(fun)
-							fun(err);
-						return;
-					}
-					var n = 0;
-					console.log('npixels', npixels);
-					for(var ipix=0; ipix<npixels; ipix+=4) {
-						//	var a = pix[ipix];
-						//	if(a > 0)
-						//		console.log('a', a);
-						pixels[ipix + 3] = pix[ipix];
-						n++;
-					}
-					console.log('n', n);
-					save();
-				}).catch(function(err) {
-					console.log(' ERR:' + err);
-					if(fun)
-						fun(err);
-					return;
-				});
-			}
-*/
+
 			function alpha() {
 				if(!('Alpha' in blend)) {
 					diffuse();

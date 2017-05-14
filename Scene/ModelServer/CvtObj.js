@@ -407,12 +407,16 @@
 					part.Specular = mat.Spec;
 				if ('Text' in mat) {
 					part.Texture = mat.Text;
-					if ('Textures' in x3d) {
+					if(!('Textures' in x3d))
+						x3d.Textures = [];
+					if(x3d.Textures.indexOf(mat.Text) < 0)
+						x3d.Textures.push(mat.Text);
+				/*	if ('Textures' in x3d) {
 						x3d.Textures[mat.Text] = {};
 					} else {
 						x3d.Textures = {};
 						x3d.Textures[mat.Text] = {};
-					}
+					} */
 				}
 				node.Parts.push(part);
 			}

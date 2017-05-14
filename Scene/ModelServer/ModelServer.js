@@ -37,8 +37,10 @@
 		if (!fs.existsSync(Stash)){
 			fs.mkdirSync(Stash);
 		}
-		var Models = Par.Archive;
+		var Models = './models';
+		var Textures;
 		console.log('Models', Models);
+		console.log('Stash', Stash);
 		var Stack = [];
 		var Pars = [];
 		var Cvt = {};
@@ -97,6 +99,8 @@
 							else
 								rig[key] = jsn[key];
 							break;
+						case 'Textures':
+							Textures = jsn.Textures;
 						default:
 							rig[key] = jsn[key];
 							break;
@@ -491,6 +495,7 @@
 					zip.file('Type', 'X3D');
 					zip.file('X3D', JSON.stringify(x3d));
 					if('Textures' in x3d) {
+					//	console.log(JSON.stringify(x3d, null, 2));
 						console.log(JSON.stringify(x3d.Textures, null, 2));
 						async.eachSeries(x3d.Textures, function(file, func) {
 							var path;

@@ -8,8 +8,9 @@
 	   }
 	 },
 	 "Model": {
-	   "Module":"xGraph:Scene/ModelServer",
+	   "Module":"xGraph:Scene/ModelConverter",
 	   "Par":{
+		 "Models":"c:/S3/X3D/LightGreen02"
 	   }
 	 }
    }
