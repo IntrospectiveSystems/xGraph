@@ -1,0 +1,8 @@
+{
+  "Nexus": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "xGraph:Nexus/Test",
+	"$Params": "Test"
+  }
+}
