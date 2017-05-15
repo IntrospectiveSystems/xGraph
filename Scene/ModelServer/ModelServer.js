@@ -65,9 +65,8 @@
 			path = Models;
 			if(dir.length > 0)
 				path += '/' + dir;
-			console.log('trv', path);
 			var rigfile = path + '/' + 'Rig.json';
-		//	console.log(rigfile);
+			console.log(rigfile);
 			fs.exists(rigfile, function (yes) {
 				if (yes) {
 				//	console.log(rigfile);

@@ -26,6 +26,12 @@
 		Vlt.Mouse.Mode = 'Idle';
 		Vlt.Mouse.inPanel = true;
 
+		var div = document.createElement('div');
+		div.id = Par.Div;
+		div.style.height = '100%';
+		document.getElementsByTagName('body')[0].appendChild(div);
+
+
 		$("body").css('overflow', 'hidden');
 		var Grok = $('#Grok');
 		Grok.mouseenter(function (evt) {

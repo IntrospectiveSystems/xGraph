@@ -91,6 +91,8 @@
 			}
 
 			function reply(err) {
+				if (err)
+					console.log(" ** Error passed to Nexus' async Setup"+err);
 				func(err);
 			}
 		}
@@ -100,9 +102,12 @@
 	function Start() {
 		console.log('--Nexus/Start');
 		var pids = Object.keys(Root.Start);
+		console.log(pids);
 		Async.eachSeries(pids, start, Run);
 
 		function start(pid8, func) {
+			console.log('..start', pid8);
+
 			var q = {};
 			q.Cmd = Root.Start[pid8];
 			var pid = Pid24 + pid8;
@@ -118,6 +123,8 @@
 			}
 
 			function reply(err) {
+				if (err)
+					console.log(" ** Error passed to Nexus' async Setup"+err);
 				func(err);
 			}
 		}
@@ -529,10 +536,24 @@
 						package = obj;
 						continue;
 					}
-					for(key in obj.dependencies) {
-						if(!(key in package.dependencies))
-							package.dependencies[key] = obj.dependencies[key];
+					console.log('obj', JSON.stringify(obj, null, 2));
+
+
+					if (obj.dependencies) {
+						if (!package.dependencies) package.dependencies = {};
+						for (key in obj.dependencies) {
+							if (!(key in package.dependencies))
+								package.dependencies[key] = obj.dependencies[key];
+						}
 					}
+					if (obj.devDependencies) {
+						if (!package.devDependencies) package.devDependencies = {};
+						for (key in obj.devDependencies) {
+							if (!(key in package.devDependencies))
+								package.devDependencies[key] = obj.devDependencies[key];
+						}
+					}
+
 				}
 			}
 			// script files

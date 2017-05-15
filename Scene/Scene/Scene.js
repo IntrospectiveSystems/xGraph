@@ -54,7 +54,7 @@
 
 	//-----------------------------------------------------GetGraph
 	function GetGraph(com, fun) {
-		console.log('--Scene/GetGraph')
+		console.log('--Scene/GetGraph');
 		com.Graph = this.Vlt.Graph;
 		if(fun)
 			fun(null, com);
