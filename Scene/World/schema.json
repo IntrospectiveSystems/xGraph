@@ -2,6 +2,6 @@
   "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
-	"Entity": "Palette.js"
+	"Entity": "World.js"
   }
 }

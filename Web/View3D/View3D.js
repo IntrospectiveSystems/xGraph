@@ -1,4 +1,4 @@
-(function Viewer() {
+(function View3D() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -13,7 +13,7 @@
 	};
 
 	function Setup(com, fun) {
-		console.log('--View/Setup');
+		console.log('--View3D/Setup');
 		var that = this;
 		var Vlt = this.Vlt;
 		var Par = this.Par;
@@ -54,7 +54,7 @@
 	}
 
 	function Start(com, fun) {
-		console.log('--View/Start');
+		console.log('--View3D/Start');
 		var that = this;
 		var Par = this.Par;
 		var Vew = $('#'+Par.Div).data('View');
@@ -63,7 +63,7 @@
 		this.send(q, Par.Scene, scene);
 
 		function scene(err, q) {
-			console.log('..View/scene');
+			console.log('..View3D/scene');
 			console.log(JSON.stringify(q.Graph, null, 2));
 			if(err) {
 				console.log(' ** ERR:' + err);

@@ -4,6 +4,7 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
+		GetGraph: GetGraph,
 		GetModel: GetModel
 	};
 
@@ -105,6 +106,24 @@
 		console.log('--Flatland/Start');
 		if(fun)
 			fun();
+	}
+
+	//-----------------------------------------------------AddInstance
+	function GetGraph(com, fun) {
+		console.log('--Flatland/GetGraph');
+		var Vlt = this.Vlt;
+		var Par = this.Par;
+		Vlt.Scene = com.Scene;
+		var inst = {};
+		inst.Model = Par.Pid;
+		inst.Role = 'Terrain';
+		inst.Instance = Par.Pid;
+		inst.Position = [0,0,0];
+		inst.Axis = [0,0,1];
+		inst.Angle = 0.0;
+		inst.Inst = [];
+		com.Graph.push(inst);
+		fun(null, com);
 	}
 
 	//-----------------------------------------------------GetModel

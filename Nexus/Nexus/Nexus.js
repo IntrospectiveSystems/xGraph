@@ -15,6 +15,7 @@
 		genPid: genPid,
 		genPath: genPath,
 		getGlobal: getGlobal,
+		addModule: addModule,
 		getParameter: getParameter,
 		sendMessage: sendMessage
 	}
@@ -311,6 +312,7 @@
 			Vlt: Vlt,
 			Nxs: Nxs,
 			dispatch: dispatch,
+			genModule: genModule,
 			send: send,
 			save: save,
 			getPid: getPid
@@ -332,6 +334,21 @@
 			}
 			console.log(' ** ERR:Nada Cmd:' + com.Cmd);
 			fun('Nada', com);
+		}
+
+		//-------------------------------------------------addModule
+		function genModule(mod, fun) {
+			addModule(mod, done);
+
+			function done(err, pidapx) {
+				if(fun) {
+					if(err)
+						fun(err);
+					else
+						fun(null, pidapx);
+				}
+			}
+
 		}
 
 		//-------------------------------------------------send
@@ -616,6 +633,7 @@
 		});
 
 		function done(err) {
+			CurrentModule = null;
 			saveRoot(fun);
 		}
 
@@ -645,12 +663,15 @@
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
+		console.log('path', path);
+		var pidapx;
 		fs.exists(path, compile);
 
 		function compile(yes) {
 			if(!yes) {
 				console.log(' ** ERR:No schema **');
-				fun();
+				if(fun)
+					fun();
 				return;
 			}
 			fs.readFile(path, parse);
@@ -658,7 +679,8 @@
 			function parse(err, data) {
 				if (err) {
 					console.log('File err:' + err);
-					fun(err);
+					if(fun)
+						fun(err);
 					return;
 				}
 				var schema = JSON.parse(data.toString());
@@ -670,10 +692,15 @@
 						}
 					}
 					obj.Module = mod.Module;
-					if(lbl == 'Apex')
-						obj.Pid = Root.Apex[CurrentModule];
-					else
+					if(lbl == 'Apex') {
+						if(CurrentModule)
+							obj.Pid = Root.Apex[CurrentModule];
+						else
+							obj.Pid = genPid();
+						pidapx = obj.Pid;
+					} else {
 						obj.Pid = genPid();
+					}
 					lbls[lbl] = obj.Pid;
 					ents[lbl] = obj;
 				}
@@ -688,7 +715,7 @@
 						if (key == '$Start') {
 							Root.Start[obj.Pid.substr(24)] = obj[key];
 							continue;
-						}
+						}	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
 						if(typeof val == 'string') {
 							obj[key] = symbol(val);
 							continue;
@@ -711,7 +738,7 @@
 					}
 				}
 				var keys = Object.keys(ents);
-				Async.eachSeries(keys, cache, fun);
+				Async.eachSeries(keys, cache, pau);
 
 				function cache(key, func) {
 					var obj = ents[key];
@@ -725,6 +752,16 @@
 							throw err;
 						func();
 					}
+				}
+
+				function pau(err) {
+					if(err) {
+						console.log(' ** ERR:' + err);
+						if(fun)
+							fun(err);
+						return;
+					}
+					fun(null, pidapx);
 				}
 			}
 

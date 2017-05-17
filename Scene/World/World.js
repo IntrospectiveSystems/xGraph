@@ -1,4 +1,4 @@
-(function scene() {
+(function World() {
 	var async = require('async');
 	var fs = require('fs');
 
@@ -17,46 +17,21 @@
 	};
 
 	function Setup(com, fun) {
-		console.log('--Scene/Setup');
+		console.log('--World/Setup');
 		this.Vlt.Graph = [];
 		if(fun)
 			fun();
 	}
 
 	function Start(com, fun) {
-		console.log('--Scene/Start');
-		var that = this;
-		var Par = this.Par;
-		var Vlt = this.Vlt;
-		var links = Par.Inst;
-		var omst = {};
-		var q = {};
-		var inst = [];
-		q.Cmd = 'AddInstance';
-		q.Scene = Par.Pid;
-		q.Inst = inst;
-		async.eachSeries(links, instance, pau);
-
-		function instance(pid, func) {
-			that.send(q, pid, func);
-		}
-
-		function pau(err) {
-			if(err) {
-				if(fun)
-					fun(err);
-				return;
-			}
-		//	console.log('Graph', JSON.stringify(inst, null, 2));
-			Vlt.Graph = inst;
-			if(fun)
-				fun(null, com);
-		}
+		console.log('--World/Start');
+		if(fun)
+			fun();
 	}
 
 	//-----------------------------------------------------AddModel
 	function AddModel(com, fun) {
-		console.log('--Scene/AddModel');
+		console.log('--World/AddModel');
 		var that = this;
 		var Par = this.Par;
 		var mod = {};
@@ -101,16 +76,42 @@
 
 	//-----------------------------------------------------GetGraph
 	function GetGraph(com, fun) {
-		console.log('--Scene/GetGraph');
-		com.Graph = this.Vlt.Graph;
-		if(fun)
+		console.log('--World/GetGraph');
+		var that = this;
+		var Par = this.Par;
+		com.Scene = Par.Pid;
+		com.Graph = [];
+		this.send(com, Par.Terrain, models);
+
+		function models(err) {
+			if(err) {
+				console.log(' ** ERR:' + err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			async.eachSeries(Par.Inst, instance, done);
+		}
+
+		function instance(pidmod, func) {
+			that.send(com, pidmod, func);
+		}
+
+		function done(err) {
+			if(err) {
+				console.log(' ** ERR:' + err);
+				if(fun)
+					fun(err);
+				return;
+			}
 			fun(null, com);
+		}
 	}
 
 	//-----------------------------------------------------GetModel
 	// Retrieeve mode from instance module
 	function GetModel(com, fun) {
-		console.log('--Scene/GetModel');
+		console.log('--World/GetModel');
 		var that = this;
 		var q = {};
 		q.Cmd = 'GetModel';
@@ -174,7 +175,7 @@
 				fun(null, com);
 			return;
 		}
-//		console.log('--Scene/Relay\n', JSON.stringify(com, null, 2));
+//		console.log('--World/Relay\n', JSON.stringify(com, null, 2));
 		var pass = com.Passport;
 		this.send(com, com.Instance, reply);
 
