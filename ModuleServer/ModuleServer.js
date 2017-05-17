@@ -19,7 +19,6 @@
 	};
 
 	function Setup(com, fun) {
-		console.log('Com: ', com, ' :this: ', this);
 		console.log('ModuleServer:Setup');
 		var that = this;
 		if ('ModuleCache' in that.Par) {
@@ -59,7 +58,6 @@
 				console.log('Finished scanning module folder');
 				that.Par.bInitialized = true;
 				that.save();
-				console.log(that.Par.bTest);
 				if (that.Par.bTest) {
 					that.send({Cmd:'StartTests', ModuleServer:that.Par.Pid}, that.Par.Test, (err, com) => {
 						console.log('Tests Finished');
@@ -90,7 +88,6 @@
 
 			// Scan Module directory for module.json
 			function scanModule(dir, callback) {
-				console.log('Scanning ', dir, ' for module.json');
 				fs.readdir(dir, function (err, files) {
 					if (err) {
 						console.log(' ** ERR:Project file err:' + err);
@@ -98,8 +95,6 @@
 					}
 					async.eachSeries(files, (file, func) => {
 						if (file === 'module.json') {
-							console.log('Module file found');
-							console.log(dir);
 							fs.readFile(dir + '/' + file, (err, data) => {
 								if (err) {
 									console.log(' ** ERR:' + err);
@@ -108,7 +103,6 @@
 								}
 								let modData = JSON.parse(data);
 								ModuleInfo = modData;
-								console.log(ModuleInfo);
 								that.Par.ModuleCache[modData.name] = modData;
 								func();
 							});
@@ -116,7 +110,6 @@
 							func();
 						}
 					}, function(err) {
-						console.log('Finished Scanning for module.json')
 						callback();
 					});
 				});
@@ -124,7 +117,6 @@
 
 			function zipModule(fileName, sub, callback) {
 				let path = dir + sub + '/' + fileName;
-				console.log(path);
 
 				fs.lstat(path, (err, stats) => {
 					if (err) {
@@ -132,7 +124,6 @@
 						callback();
 					}
 					if (stats.isDirectory()) {
-						console.log(sub);
 						sub += '/' + fileName;
 						zip.folder(sub);
 
@@ -173,7 +164,6 @@
 		if (!'Name' in com) {
 			fun(null, com);
 		}
-		console.log(that.Par.ModuleCache);
 		if (com.Name in that.Par.ModuleCache) {
 			com.Module = that.Par.ModuleCache[com.Name];
 			that.send(com, that.Par.FileManager, (err, com) => {
@@ -196,11 +186,8 @@
 	function GetDocumentation(com, fun) {
 		console.log('ModuleServer:GetDocumentation');
 		var that = this;
-		//console.log(that.Par.ModuleCache);
-		//console.log(that.Par.ModuleCache[com.Name]);
 		let modInfo = that.Par.ModuleCache[com.Name];
 		that.send({Cmd:'GetFile',Name:com.Name,Filename:modInfo.doc}, that.Par.FileManager, (err, cmd) => {
-			console.log(cmd);
 			com.Info = cmd.File;
 			if (fun) fun(null, com);
 		})
@@ -265,7 +252,6 @@
 					}
 				});
 				}, (err) => {
-				console.log('Finished');
 				if (fun) {
 					fun(null, com);
 				}
@@ -312,7 +298,7 @@
 						bMatch = false;
 					}
 				}
-				console.log('FilterKey: ', Filter, ' Filter:', Filters[Filter], ' Match:', Match, ' bMatch:', bMatch);
+				//console.log('FilterKey: ', Filter, ' Filter:', Filters[Filter], ' Match:', Match, ' bMatch:', bMatch);
 				func();
 
 

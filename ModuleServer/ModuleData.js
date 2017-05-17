@@ -14,9 +14,6 @@
 		var that = this;
 		var JSZip = require('jszip');
 		var async = require('async');
-
-		console.log(com.Module);
-		console.log(that.Mod);
 		// TODO: Load from external template
 		com.Checklist = {
 			input: {
@@ -43,10 +40,7 @@
 			.then(function(zip) {
 				console.log('ModuleData:AddModule:JSZip::::');
 				com.Module = zip;
-				console.log(zip);
 				zip.file("module.json").async("string").then(function (data) {
-					console.log('************** module.json ************** ');
-					console.log(data);
 					let mod = JSON.parse(data);
 					com.Info = mod;
 					checkMod(mod, com.Checklist, function() {
@@ -60,9 +54,8 @@
 		function checkMod(obj, checklist, callback) {
 			let keys = Object.keys(checklist);
 			async.forEach(keys, (key, func) => {
-				console.log(key);
+
 				if (obj[key]) {
-					console.log('True');
 					if( (typeof checklist[key] === "object") && (key !== null) ) {
 						checkMod(obj[key], checklist[key], func);
 					} else {
@@ -71,7 +64,6 @@
 						if (obj[key]) {
 							checklist[key] = true;
 						}
-						console.log(key, ', ', checklist[key]);
 						func();
 					}
 				} else {

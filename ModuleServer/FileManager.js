@@ -33,10 +33,8 @@
 		console.log('FileManager::AddModule');
 		//var JSZip = require('jszip');
 		var that = this;
-		console.log(com);
 
 		if ('Module' in com) {
-			console.log(com);
 			var path = Nxs.genPath(that.Par.ModuleStorage + '/' + com.Info.name);
 			// TODO: Check if file exists and overwrite (sanity check should take place in ModuleServer)
 			// Create Module Folder

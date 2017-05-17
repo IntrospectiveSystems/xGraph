@@ -7,13 +7,6 @@
 	   "Par": {
 	   }
 	 },
-	 "Proxy": {
-	   "Module":"xGraph:Nexus/Proxy",
-	   "Par": {
-		 "Link":"$ModuleServer",
-		 "Port":27000
-	   }
-	 },
 	 "ModuleServer": {
 	   "Module":"xGraph:ModuleServer",
 	   "Par":{
