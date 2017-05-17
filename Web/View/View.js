@@ -4,6 +4,7 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
+		SetPosition: SetPosition,
 		'*':Relay
 	};
 
@@ -24,6 +25,7 @@
 		var Vew = {};
 		$('#'+Par.Div).data('View', Vew);
 //		__Share[Par.Div] = Vew;
+		Vew.Inst = {};
 		Vew.Render = new THREE.WebGLRenderer({antialias: true});
 		Vew.Render.setClearColor(0xBEDCF7, 1);
 		Vew.Render.setSize(div.scrollWidth, div.scrollHeight);
@@ -56,17 +58,13 @@
 		var that = this;
 		var Par = this.Par;
 		var Vew = $('#'+Par.Div).data('View');
-//		console.log('__Share', __Share);
-//		var Vew = __Share[Par.Div];
-		console.log('Par.Div', Par.Div, Vew);
 		var q = {};
 		q.Cmd = 'GetGraph';
-		console.log('Par', JSON.stringify(Par, null, 2));
 		this.send(q, Par.Scene, scene);
 
 		function scene(err, q) {
 			console.log('..View/scene');
-			console.log(JSON.stringify(q, null, 2));
+			console.log(JSON.stringify(q.Graph, null, 2));
 			if(err) {
 				console.log(' ** ERR:' + err);
 				if (fun)
@@ -91,7 +89,6 @@
 
 				function reply(err, r) {
 				//	console.log('..reply', r);
-					console.log('..reply, model received');
 					var type = r.Model.Type;
 					if(!(type in Par.Gen)) {
 						var err = 'No translation for type ' + type;
@@ -102,7 +99,6 @@
 					var gen = {};
 					gen.Cmd = 'GenModel';
 					gen.Model = r.Model.X3D;
-					console.log('Par', Par);
 					that.send(gen, Par.Gen[type], back);
 
 					function back(err, x) {
@@ -119,9 +115,9 @@
 						var objinst = new THREE.Object3D();
 						if('Position' in inst) {
 							var pos = inst.Position;
-							objinst.x = pos[0];
-							objinst.y = pos[1];
-							objinst.z = pos[2];
+							objinst.position.x = pos[0];
+							objinst.position.y = pos[1];
+							objinst.position.z = pos[2];
 						}
 						if('Axis' in inst && 'Angle' in inst) {
 							var axis = inst.Axis;
@@ -137,9 +133,8 @@
 						data.Pid = inst.Instance;
 						objinst.userData = data;
 						objinst.add(x.Obj3D);
-						console.log('Par.Div', Par.Div, Vew);
-						console.log('keys', Object.keys(Vew));
 						Vew.Scene.add(objinst);
+						Vew.Inst[inst.Instance] = objinst;
 						if('Inst' in inst) {
 							async.eachSeries(inst.Inst, instance, func);
 						} else {
@@ -154,7 +149,8 @@
 				var q = {};
 				q.Cmd = 'Subscribe';
 				q.Pid = Par.Pid;
-				that.send(q, Par.Scene, render);
+				that.send(q, Par.Scene);
+				render();
 			}
 
 			function render() {
@@ -176,11 +172,36 @@
 
 	}
 
+	//-------------------------------------------------SetPosition
+	function SetPosition(com, fun) {
+	//	console.log('--SetPositon');
+		var Par = this.Par;
+		var Vew = $('#'+Par.Div).data('View');
+		obj3d = Vew.Inst[com.Instance];
+		if('Instance' in com) {
+			if(obj3d) {
+				if('Position' in com) {
+					var pos = com.Position;
+					obj3d.position.x = pos[0];
+					obj3d.position.y = pos[1];
+					obj3d.position.z = pos[2];
+				}
+				if('Axis' in com && 'Angle' in com) {
+					var axis = new THREE.Vector3(...com.Axis);
+					var angle = Math.PI*com.Angle/180.0;
+					obj3d.setRotationFromAxisAngle(axis, angle);
+				}
+			}
+		}
+		if(fun)
+			fun(null, com);
+	}
+
 	//-------------------------------------------------Relay
 	// Relay simply sends everyting else to its vertualization
 	// of a Scene on the server.
 	function Relay(com, fun) {
-		console.log('--View.Relay', com);
+	//	console.log('--View.Relay', com);
 		this.send(com, this.Par.Scene);
 		if(fun)
 			fun(null, com);

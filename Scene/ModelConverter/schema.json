@@ -2,7 +2,7 @@
   "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
-	"Entity": "ModelServer.js",
+	"Entity": "ModelConverter.js",
 	"Cvt":{
 	  "obj":"#CvtObj",
 	  "3ds":"#Cvt3ds",

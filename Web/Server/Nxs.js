@@ -35,7 +35,6 @@ __Nexus = (function() {
 	function start(sockio, cfg) {
 		console.log('--Nxs/start');
 		console.log('cfg', JSON.stringify(cfg, null, 2));
-		console.log('SockIO', SockIO);
 		Pid24 = cfg.Pid24;
 		PidServer = cfg.PidServer;
 		SockIO = sockio;
@@ -43,8 +42,6 @@ __Nexus = (function() {
 		SockIO.on('message', function (data) {
 			var cmd = JSON.parse(data);
 			console.log(' << Msg:' + cmd.Cmd);
-			console.log('cmd', cmd);
-			//	console.log('Passport', JSON.stringify(cmd.Passport, null, 2));
 			if ('Passport' in cmd && cmd.Passport.Reply) {
 				var pid = cmd.Passport.Pid;
 				var ixmsg = MsgFifo.indexOf(pid);
@@ -63,7 +60,10 @@ __Nexus = (function() {
 			if (pid24 == Pid24) {
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
-					ent.dispatch(cmd, reply);
+					if('Disp' in cmd && cmd.Disp == 'Query')
+						ent.dispatch(cmd, reply);
+					else
+						ent.dispatch(cmd);
 				} else {
 					console.log(' ** ERR:Local', pid, 'not in Cache');
 				}
@@ -73,10 +73,8 @@ __Nexus = (function() {
 			function reply(err, cmd) {
 				if (cmd == null)
 					return;
-				console.log('++Sending reply to server');
 				if ('Passport' in cmd) {
 					cmd.Passport.Reply = true;
-					console.log('++Setting Reply to true');
 					var str = JSON.stringify(cmd);
 					SockIO.send(str);
 				}
@@ -211,7 +209,7 @@ __Nexus = (function() {
 	//-----------------------------------------------------genNode
 	// Generate node from parameter object
 	function genEntity(par, fun) {
-		console.log('--genEntity', par.Entity);
+	//	console.log('--genEntity', par.Entity);
 		var name = par.Entity;
 		if (name in ModCache) {
 			var mod = ModCache[name];
@@ -311,7 +309,7 @@ __Nexus = (function() {
 			nextscript();
 
 			function nextscript() {
-				console.log('..nextscript');
+			//	console.log('..nextscript');
 				if (ikey >= nkeys) {
 					modules();
 					return;
@@ -356,7 +354,7 @@ __Nexus = (function() {
 			nextmodule();
 
 			function nextmodule() {
-				console.log('..nextmodule')
+			//	console.log('..nextmodule')
 				if(ikey >= nkeys) {
 					Setup();
 					return;
@@ -367,35 +365,30 @@ __Nexus = (function() {
 				var com = {};
 				com.Cmd = 'GetModule';
 				com.Module = mod.Module;
-				console.log(com);
+			//	console.log(com);
 				send(com, PidServer, addmodule);
 			}
 
 			function addmodule(err, com) {
-				console.log('..addmodule');
-				console.log(com);
+			//	console.log('..addmodule');
 				var ents = {};
 				var lbls = {};
 				var module = com.Module;
 				var zipmod = new JSZip();
 				zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
 					var dir = zipmod.file(/.*./);
-					console.log('dir', dir);
 					scripts();
 
 					function scripts() {
 						if(zipmod.file('scripts.json')) {
 							zip.file('scripts.json').async('string').then(function(str) {
 								var obj = JSON.parse(str);
-								console.log('obj', JSON.stringify(obj, null, 2));
 								var keys = Object.keys(obj);
 								async.eachSeries(keys, function(key, func) {
-									console.log('/////', key);
 									if(Scripts.indexOf(key) >= 0) {
 										func();
 										return;
 									}
-									console.log(' ** Loading script', key);
 									Scripts.push(key);
 									var file = obj[key];
 									zip.file(file).async('string').then(function(scr) {
@@ -416,7 +409,6 @@ __Nexus = (function() {
 
 					function schema() {
 						zip.file('schema.json').async('string').then(function(str){
-							console.log('Finally', str);
 							compile(str);
 						});
 					}
@@ -424,7 +416,6 @@ __Nexus = (function() {
 
 				function compile(str) {
 					var schema = JSON.parse(str);
-					console.log('schema...\n' + JSON.stringify(schema, null, 2));
 					ZipCache[module] = zipmod;
 					for (let lbl in schema) {
 						var ent = schema[lbl];
@@ -459,7 +450,6 @@ __Nexus = (function() {
 								ent[key] = mod.Par[key];
 							}
 						}
-						console.log('ent', ent);
 						ikey++;
 						for (let key in ent) {
 							val = ent[key];
@@ -486,18 +476,14 @@ __Nexus = (function() {
 									if(typeof tmp == 'string')
 										val[sym] = symbol(tmp);
 								}
-								console.log('After', val);
 							}
 						}
-						console.log('ent', ent);
 						var modkey = ent.Module + '/' + ent.Entity;
 						ZipCache[mod] = zipmod;
-						console.log('modkey', modkey);
 						zipmod.file(ent.Entity).async('string').then(function(str){
 							var mod = eval(str);
 							ModCache[modkey] = mod;
 							EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
-							console.log('Root', Root);
 							nextent();
 						});
 					}
@@ -506,7 +492,6 @@ __Nexus = (function() {
 						if(str.charAt(0) == '#') {
 							var lbl = str.substr(1);
 							if(!(lbl in lbls)) {
-								console.log('Root1', JSON.stringify(Root, null, 2));
 								var err = ' ** Symbol ' + lbl + ' not defined';
 								throw err;
 							}
@@ -515,7 +500,6 @@ __Nexus = (function() {
 						if(str.charAt(0) == '$') {
 							var sym = str.substr(1);
 							if(!(sym in Root.Apex)) {
-								console.log('Root1', JSON.stringify(Root, null, 2));
 								var err = ' ** Symbol ' + sym + ' not defined';
 								throw err;
 							}

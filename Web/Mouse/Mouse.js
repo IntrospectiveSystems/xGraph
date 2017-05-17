@@ -101,6 +101,7 @@
 		//-----------------------------------------------------mouseWheel
 		function mouseWheel(evt) {
 			var fac;
+		//	var direction  = (evt.detail<0 || evt.wheelDelta>0) ? 1: -1;
 			var delta = evt.originalEvent.wheelDelta;
 			if (delta != null) {
 				fac = delta / 120;
@@ -386,7 +387,7 @@
 				dispatch[info.Key]();
 
 			function start() {
-				console.log('..start', info);
+			//	console.log('..start', info);
 				var mouse = Vew.Mouse;
 				mouse.Mode = 'Select1';
 				mouse.x = info.Mouse.x;
@@ -408,6 +409,7 @@
 			}
 
 			function move() {
+			//	console.log('..move', info);
 				if (!('Point' in info))
 					return;
 				var q = {};

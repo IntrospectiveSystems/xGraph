@@ -32,8 +32,6 @@
 	//-----------------------------------------------------GenModel
 	function GenModel(com, fun) {
 		console.log('--GenModel');
-		console.log(com);
-//		console.log(PNG);
 		var modx3d = com.Model;
 		var zipx3d = new JSZip();
 		var Zip;
@@ -44,14 +42,12 @@
 		});
 
 		function textures() {
-			console.log('..textures');
+		//	console.log('..textures');
 			var dir = Zip.file(/.*./);
-			console.log('dir', dir);
 			async.eachSeries(dir, texture, genmod);
 
 			function texture(obj, func) {
 				var file = obj.name;
-				console.log('..texture', file);
 				var parts = file.split('.');
 				if(parts.length < 2) {
 					func();
@@ -70,15 +66,11 @@
 						return;
 				}
 				Zip.file(file).async('uint8array').then(function(img) {
-					console.log('img', img.length);
 					var blob = new Blob([img], {type: mime});
-					console.log('blob', blob);
 					var url = URL.createObjectURL(blob);
-					console.log('url', url);
 					var image = document.createElement('img');
 					image.src = url;
 					var tex = new THREE.Texture(image);
-					console.log('text', tex);
 					tex.wrapS = THREE.RepeatWrapping;
 					tex.wrapT = THREE.RepeatWrapping;
 					tex.needsUpdate = true;
@@ -88,14 +80,8 @@
 			}
 
 			function base64ToUint8Array(data) {
-				console.log('base64', data.substr(0, 11));
-			//	var BASE64_MARKER = ';base64,';
-			//	var base64Index = data.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-			//	var base64 = data.substring(base64Index);
-			//	var raw = atob(base64);
 				var raw = atob(data);
 				var rawLength = raw.length;
-				console.log('rawLength', rawLength);
 				var array = new Uint8Array(new ArrayBuffer(rawLength));
 				for(var i = 0; i < rawLength; i++) {
 					array[i] = raw.charCodeAt(i);
@@ -105,30 +91,25 @@
 		}
 
 		function genmod() {
-			console.log('..genmod');
+		//	console.log('..genmod');
 			Zip.file('X3D').async('string').then(function(str){
 				var x3d = JSON.parse(str);
+				dump(x3d);
 				if (!('Root' in x3d)) {
 					console.log(' ** ERR: No root in x3d object');
 					if(fun)
 						fun('No Root in X3D model.');
 					return;
 				}
-				var obj3d = trv(x3d.Root, null, 0);
-				if (obj3d) {
-					com.Obj3D = obj3d;
-					if(fun)
-						fun(null, com);
-					return;
-				}
-				var err = 'X3D object <' + x3d.Name + '> invalid';
-				console.log(' ** ERR:' + err);
+				var root = new THREE.Object3D();
+				trv(x3d.Root, root, 0);
+				com.Obj3D = root;
 				if(fun)
-					fun(err);
+					fun(null, com);
 				return;
 
 				function trv(nodes, par, lev) {
-					//	console.log('trv', lev, node.length);
+				//	console.log('trv', lev, nodes.length);
 					var obj;
 					var mesh;
 					var part;
@@ -136,12 +117,12 @@
 					var mat;
 					for (var i = 0; i < nodes.length; i++) {
 						obj = nodes[i];
+						console.log('Name', obj.Name);
 						var obj3d = new THREE.Object3D();
 						obj3d.castShadow = true;
 						if ('Parts' in obj) {
 							for (var ipart = 0; ipart < obj.Parts.length; ipart++) {
 								part = obj.Parts[ipart];
-								console.log('part', ipart, part);
 								geo = new THREE.BufferGeometry();
 								geo.castShadow = true;
 								var vrt = new Float32Array(part.Vrt.length);
@@ -186,17 +167,18 @@
 									}
 								}
 								opt.color = color;
+						//		opt.color = #FFFFFF;
 								opt.side = THREE.DoubleSide;
 								if ('UV' in part && 'Texture' in part) {
-									console.log('Textures', Textures);
 									opt.map = Textures[part.Texture];
 								}
-								console.log(opt);
 								mat = new THREE.MeshPhongMaterial(opt);
+								mat.transparent = true;
+								mat.alphaTest = 0.5;
 								mesh = new THREE.Mesh(geo, mat);
-								mesh.castShadow = true;
+							//	mesh.castShadow = true;
 								obj3d.add(mesh);
-								obj3d.castShadow = true;
+							//	obj3d.castShadow = true;
 							}
 						}
 						if ('Nodes' in obj) {
@@ -218,9 +200,51 @@
 		}
 	}
 
+	function dump(x3d) {
+		if('Textures' in x3d)
+			console.log('Textures', JSON.stringify(x3d.Textures));
+		if('Root' in x3d) {
+			console.log('Root...');
+			for(var iobj=0; iobj<x3d.Root.length; iobj++) {
+				var obj = x3d.Root[iobj];
+				console.log('Object:' + obj.Name);
+				console.log('    Pivot:' + JSON.stringify(obj.Pivot));
+				console.log(JSON.stringify(Object.keys(obj)));
+				if(!('Parts' in obj))
+					continue;
+				for(var iprt=0; iprt<obj.Parts.length; iprt++) {
+					var part = obj.Parts[iprt];
+					console.log('    Part:' + iprt);
+					for(key in part) {
+						switch(key) {
+							case 'Name':
+								console.log('        Name:' + part.Name);
+								break;
+							case 'Vrt':
+								console.log('        Vrt:' + part.Vrt.length/3);
+								break;
+							case 'UV':
+								console.log('        UV:' + part.UV.length/2);
+								break;
+							case 'Idx':
+								console.log('        Idx:' + part.Idx.length/3);
+								break;
+							case 'Texture':
+								console.log('        Texture:' + part.Texture);
+								break;
+							default:
+								console.log('        ' + key);
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	//-----------------------------------------------------GenModel
 	function GenModelx(com, fun) {
-		console.log('--X3D/GenModel');
+	//	console.log('--X3D/GenModel');
 		var that = this;
 		var x3d = com.Model;
 		if (!('Root' in x3d)) {
@@ -305,7 +329,6 @@
 							var txtr = texture(part.Texture);
 							opt.map = txtr;
 						}
-						console.log(opt);
 						mat = new THREE.MeshPhongMaterial(opt);
 						mesh = new THREE.Mesh(geo, mat);
 						mesh.castShadow = true;
@@ -359,10 +382,8 @@
 		}
 
 		function texture(filename) {
-			console.log('filename', filename);
 			if (!('Textures' in x3d))
 				return;
-			console.log(x3d.Textures);
 			if (!(filename in x3d.Textures))
 				return;
 			var obj = x3d.Textures[filename];

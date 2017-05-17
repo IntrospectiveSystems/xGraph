@@ -7,7 +7,8 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		GetModule: GetModule
+		GetModule: GetModule,
+		'*': Publish
 	};
 
 	return {
@@ -29,14 +30,13 @@
 		var port;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		console.log('Module', Par.Module);
 		Vlt.Session = this.Nxs.genPid();
 		if ('Port' in this.Par)
 			port = this.Par.Port;
 		else
 			port = 80;
 		var web = http.createServer(function (req, res) {
-			console.log(req.method + ':' + req.url);
+		//	console.log(req.method + ':' + req.url);
 			switch (req.method) {
 			case 'POST':
 				break;
@@ -71,11 +71,8 @@
 		}
 
 		function getnxs() {
-		//	var path = genPath(Par.Nxs);
 			var path = genPath(Par.Module + '/Nxs.js');
-			console.log('Nxs path', path);
 			fs.readFile(path, function(err, data) {
-				console.log('#####Nxs read and stored');
 				if(err) {
 					console.log(' ** ERR:Cannot read Nxs file');
 					return;
@@ -93,7 +90,7 @@
 
 			listener.sockets.on('connection', function (socket) {
 				console.log('sock/connection');
-				var pidsock = ''
+				var pidsock = '';
 				for(var i=0; i<3; i++)
 					pidsock += that.Nxs.genPid().substr(24);
 				var obj = {};
@@ -123,13 +120,16 @@
 				socket.on('message', function (msg) {
 					var com = JSON.parse(msg);
 					console.log('>>Msg:' + com.Cmd);
-					console.log(com);
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
 						return;
 					}
 					if(com.Cmd == 'GetFile') {
 						getfile();
+						return;
+					}
+					if(com.Cmd == 'Subscribe') {
+						obj.User.Publish = com.Pid;
 						return;
 					}
 					if (!('Passport' in com)) {
@@ -150,7 +150,6 @@
 						}
 						com.Passport.Reply = true;
 						var str = JSON.stringify(com);
-						console.log('####Send:' + str.length);
 						socket.send(str);
 					}
 
@@ -177,12 +176,10 @@
 					// For now is retrieved from local file system
 					function getmodule(com, fun) {
 						console.log('--Page/getModule');
-						console.log(JSON.stringify(com));
 						var that = this;
 						var zip = new jszip();
 						var dir = that.Nxs.genPath(com.Module);
 						var man = [];
-						console.log('dir', dir);
 						fs.readdir(dir, function(err, files) {
 							if(err) {
 								console.log(' ** ERR:Cannot read module directory');
@@ -219,6 +216,28 @@
 		}
 	}
 
+	//-------------------------------------------------------Publish
+	// This is called when message needs to be sent to all
+	// browsers that have subscribed
+	function Publish(com, fun) {
+	//	console.log('--Publish', com.Cmd);
+		var Vlt = this.Vlt;
+		var socks = Vlt.Sockets;
+		var keys = Object.keys(socks);
+		for(var i=0; i<keys.length; i++) {
+			var obj = socks[keys[i]];
+			var sock = obj.Socket;
+			var user = obj.User;
+			if('Publish' in user) {
+				com.Passport.To = user.Publish;
+				if(fun)
+					com.Passport.Disp = 'Query';
+				var str = JSON.stringify(com);
+				sock.send(str);
+			}
+		}
+	}
+
 	//-------------------------------------------------------Get
 	// Process GET request including authentication and
 	// validation if required. If anything looks fishy, simply
@@ -231,11 +250,9 @@
 		if (url.charAt(0) == '/')
 			url = url.substr(1);
 		var path = './' + url + '.html';
-		console.log('path', path);
 		fs.exists(path, html);
 
 		function html(yes) {
-			console.log('..html', yes);
 			if(!yes) {
 				res.writeHead(404);
 				res.end('You are out of your verbial guord');
@@ -261,12 +278,10 @@
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
 		console.log('--Page/getModule');
-		console.log(JSON.stringify(com));
 		var that = this;
 		var zip = new jszip();
 		var dir = that.Nxs.genPath(com.Module);
 		var man = [];
-		console.log('dir', dir);
 		fs.readdir(dir, function(err, files) {
 			if(err) {
 				console.log(' ** ERR:Cannot read module directory');

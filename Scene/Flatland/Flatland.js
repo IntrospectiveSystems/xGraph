@@ -122,7 +122,6 @@
 		com.Model = {};
 		com.Model.Type = 'X3D';
 		com.Model.X3D = Vlt.X3D;
-		console.log('Flatland returns', com.Passport);
 		if(fun)
 			fun(null, com);
 	}

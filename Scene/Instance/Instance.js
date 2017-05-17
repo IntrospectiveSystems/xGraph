@@ -34,6 +34,7 @@
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		Vlt.Scene = com.Scene;
+		console.log('AddInstance>>>>>>>>>>>>>>>>>>>>', com.Scene, Vlt.Scene);
 		var links = Par.Inst;
 		var inst = {};
 		inst.Model = Par.Model;
@@ -50,6 +51,7 @@
 		var q = {};
 		q.Cmd = 'AddInstance';
 		q.Inst = inst.Inst;
+		q.Scene = com.Scene;
 		async.eachSeries(links, instance, fun);
 
 		function instance(pid, func) {
@@ -76,16 +78,12 @@
 		this.send(q, Par.Model, reply);
 
 		function reply(err, r) {
-			console.log('..Instance/reply');
 			if(err) {
 				if(fun)
 					fun(err);
 				return;
 			}
-			console.log('r', typeof r);
-			console.log('A');
 			com.Model = r.Model;
-			console.log('B');
 			fun(null, com);
 		}
 
@@ -94,21 +92,22 @@
 	//-----------------------------------------------------Move
 	// Process move request (includes rotations)
 	function Move(com, fun) {
-		console.log('--Instance/Move', com);
-		console.log(JSON.stringify(com, null, 2));
+	//	console.log('--Instance/Move', com);
 		var Par = this.Par;
+		var Vlt = this.Vlt;
 		if('Loc' in com) {
 			Par.Position = com.Loc;
 		}
 		if('Spin' in com)
 			Par.Angle += com.Spin;
 		var q = {};
-		q.Cmd = 'Move';
+		q.Cmd = 'SetPosition';
+		q.Instance = Par.Pid;
 		q.Position = Par.Position;
 		q.Axis = Par.Axis;
 		q.Angle = Par.Angle;
 		q.Publish = true;
-		this.send(q, Par.Scene);
+		this.send(q, Vlt.Scene);
 		if(fun)
 			fun(null, com);
 	}
@@ -117,8 +116,15 @@
 	// Save module
 	function Save(com, fun) {
 		console.log('--Instance/Save', com);
-		if(fun)
-			fun(null, com);
+		this.save(pau);
+
+		function pau(err) {
+			if(err) {
+				console.log(' ** ERR:Save failed');
+			}
+			if(fun)
+				fun(err, com);
+		}
 	}
 
 })();

@@ -6,7 +6,7 @@
 		Setup: Setup,
 		Start: Start,
 		GetGraph: GetGraph,
-		Subscribe: Subscribe,
+		SetPosition: SetPosition,
 		'*': Relay
 	};
 
@@ -30,14 +30,12 @@
 		var omst = {};
 		var q = {};
 		var inst = [];
-		console.log('links', links);
 		q.Cmd = 'AddInstance';
-		q.Scebe - Par.Pid;
+		q.Scene = Par.Pid;
 		q.Inst = inst;
 		async.eachSeries(links, instance, pau);
 
 		function instance(pid, func) {
-			console.log('..instance', pid);
 			that.send(q, pid, func);
 		}
 
@@ -47,7 +45,7 @@
 					fun(err);
 				return;
 			}
-			console.log('Graph', JSON.stringify(inst, null, 2));
+		//	console.log('Graph', JSON.stringify(inst, null, 2));
 			Vlt.Graph = inst;
 			if(fun)
 				fun(null, com);
@@ -81,19 +79,39 @@
 		}
 	}
 
-	//-----------------------------------------------------Subscribe
-	// Move/rotate object in scene
-	function Subscribe(com, fun) {
-		console.log('--Subscribe', com);
+	//-----------------------------------------------------SetPostion
+	// Update scene graph from commands sent from models
+	// to make sure that people that log in later get a
+	// correct scene graph.
+	function SetPosition(com, fun) {
+		console.log('--SetPositoin');
 		var Vlt = this.Vlt;
-		if('ClientList' in Vlt) {
-			Vlt.ClientList.push(com.Pid);
-		} else {
-			Vlt.ClientList = [];
-			Vlt.ClientList.push(com.Pid);
+		var that = this;
+		var graph = Vlt.Graph;
+		trv(graph);
+
+		function trv(inst) {
+			for(let i=0; i<inst.length; i++) {
+				var obj = inst[i];
+				console.log('obj', obj.Instance, com.Instance);
+				if(obj.Instance == com.Instance) {
+					console.log('..found');
+					if('Position' in com)
+						obj.Position = com.Position;
+					if('Axis' in com)
+						obj.Axis = com.Axis;
+					if('Angle' in com)
+						obj.Angle = com.Angle;
+					Relay.call(that, com, fun);
+					return;
+				}
+				if('Inst' in obj)
+					trv(obj.Inst);
+			}
+			console.log(' ** ERR:No tickee, no laundry');
+			if(fun)
+				fun();
 		}
-		if(fun)
-			fun(null, com);
 	}
 
 	//-----------------------------------------------------Relay
@@ -101,10 +119,15 @@
 	function Relay(com, fun) {
 		console.log('--Relay', com.Cmd);
 		var that = this;
-		if(com.Publish) {
-			publish();
+		var Par = this.Par;
+		if('Publish' in com) {
+		//	console.log('Par.View', Par.View);
+			that.send(com, Par.View);
+			if(fun)
+				fun(null, com);
 			return;
 		}
+//		console.log('--Scene/Relay\n', JSON.stringify(com, null, 2));
 		var pass = com.Passport;
 		this.send(com, com.Instance, reply);
 
@@ -114,27 +137,6 @@
 				fun(err);
 			q.Passport = pass;
 			fun(null, q);
-		}
-
-		//.................................................publish
-		function publish() {
-			var Vlt = that.Vlt;
-			var that = this;
-			if('ClientList' in Vlt) {
-				async.eachSeries(Vlt.ClientList, pub, pau);
-			} else {
-				if(fun)
-					fun();
-			}
-
-			function pub(pid, func) {
-				that.send(com, pid, func);
-			}
-
-			function pau(err) {
-				if(fun)
-					fun(err);
-			}
 		}
 	}
 

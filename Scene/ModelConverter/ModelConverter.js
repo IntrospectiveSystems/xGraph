@@ -5,8 +5,7 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Setup,
-		Start: Start,
-		GetModel: GetModel
+		Start: Start
 	};
 
 	return {
@@ -26,18 +25,11 @@
 		var that = this;
 		var async = require('async');
 		var Par = this.Par;
-		if(!('Archive' in Par)){
-			var err = 'No Archive provided';
-			console.log(' ** ERR:' + err);
-			if(fun)
-				fun(err);
-			return;
-		}
-		var Stash = './stash';
+		var Models = Par.Models;
+		var Stash = Models + '/stash';
 		if (!fs.existsSync(Stash)){
 			fs.mkdirSync(Stash);
 		}
-		var Models = './models';
 		var Textures;
 		console.log('Models', Models);
 		console.log('Stash', Stash);
@@ -65,8 +57,9 @@
 			path = Models;
 			if(dir.length > 0)
 				path += '/' + dir;
+			console.log('trv', path);
 			var rigfile = path + '/' + 'Rig.json';
-			console.log(rigfile);
+		//	console.log(rigfile);
 			fs.exists(rigfile, function (yes) {
 				if (yes) {
 				//	console.log(rigfile);
@@ -545,43 +538,6 @@
 				}
 
 			}
-		}
-	}
-
-	//-----------------------------------------------------GetModel
-	function GetModel(com, fun) {
-		console.log('--ModelServer/GetModel', com);
-		if (!('Name' in com)) {
-			console.log(' ** ERR:No Name in com');
-			if (fun)
-				fun('No Name in com');
-			return;
-		}
-		var name = com.Name;
-		var that = this;
-		var Stash = './stash';
-		var path = Stash + '/' + name + '.zip';
-		if (fs.existsSync(path)) {
-			fs.readFile(path, done);
-		} else {
-			var err = 'Model <' + name + '> not in archive';
-			console.log(' ** ERR:' + err);
-			if(fun)
-				fun(err, com);
-		}
-
-		function done(err, data) {
-			if(err) {
-				console.log(' ** ERR:' + err);
-				if(fun)
-					fun(err);
-				return;
-			}
-			com.Model = {};
-			com.Model.Type = 'X3D';
-			com.Model.X3D = data.toString('base64');
-			if(fun)
-				fun(null, com);
 		}
 	}
 

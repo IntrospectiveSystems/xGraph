@@ -44,11 +44,10 @@
 	//---------------------------------------------------------Convert
 	// Convert 3ds model into x3d format
 	function Convert(com, fun) {
-		console.log('--Cvt3DS/Convert', com);
+		console.log('Cvt3DS:Convert', com);
 		Par = this.Par;
 		var path = com.Path;
 		var x3d = Parse(path);
-	//	console.log('X3D', JSON.stringify(x3d, null, 2));
 		if (x3d != null) {
 			if ('Rig' in com) {
 				Rig(x3d, com.Rig);
@@ -64,7 +63,6 @@
 	//---------------------------------------------------------Parse
 	// Set output file
 	function Parse(path) {
-		console.log('..Parse')
 		var fs = require('fs');
 		var cvt3ds = require('3dstojs');
 		var options = {
@@ -77,7 +75,6 @@
 			console.log(' ** ERR:Cvt3DS parse failed');
 			return;
 		}
-//		traffic.log(JSON.stringify(raw, null, 2));
 		var x3j = {};
 		x3j.Name = 'Aardvark';
 		var o;
@@ -288,7 +285,7 @@
 							part.Vrt.push(vert[3 * ivert + 2]);
 							if (uv != null) {
 								part.UV.push(uv[2 * ivert]);
-								part.UV.push(uv[2 * ivert+1]);
+								part.UV.push(1-uv[2 * ivert+1]);
 							}
 						} else { // Already added to vertex list
 							iVrt = vix[ivert];
@@ -296,7 +293,6 @@
 						part.Idx.push(iVrt);
 					}
 				}
-				//	traffic.log('Part' + JSON.stringify(part, null, 2));
 				if ('diffuse' in mat) {
 					part.Diffuse = new Array(3);
 					for (var i = 0; i < 3; i++)
