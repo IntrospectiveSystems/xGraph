@@ -15,7 +15,7 @@
   "info": {
 	"author": "Alex Johnson"
   },
-  "icon": "icon.png",
+  "icon": "cat.png",
   "doc": "testModule.md",
   "src": "testModule"
 }

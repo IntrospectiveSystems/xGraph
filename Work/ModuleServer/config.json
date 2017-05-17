@@ -19,7 +19,7 @@
 	   "Par":{
 		 "Modules": "xGraph:Work/ModuleServer/modules",
 		 "ModuleStorage": "xGraph:Work/ModuleServer/moduleData",
-		 "bTest": 0
+		 "bTest": 1
 	   }
 	 }
    }

@@ -10,16 +10,16 @@
 
 	function StartTests(com, fun) {
 		var that = this;
+		let pid = com.ModuleServer;
 		console.log('test::StartTests');
-		Query(com.ModuleServer);
-		GetModule(com.ModuleServer);
-		AddModule(com.ModuleServer);
-
-
-
+		//AddModule();
+		//Query();
+		//GetModule();
+		GetDocumentation();
+		if (fun) fun(null, com);
 
 		// test Cases::
-		function Query(pid) {
+		function Query() {
 			//TODO: load test cases from json
 			let cmd = {
 				Cmd: 'Query',
@@ -32,7 +32,7 @@
 			})
 
 		}
-		function AddModule(pid) {
+		function AddModule() {
 			console.log('Test:AddModule');
 			fs.readFile(Nxs.genPath('xGraph:/Work/ModuleServer/testModule5.zip'), done);
 
@@ -50,15 +50,13 @@
 				that.send(cmd, pid, function(err, com) {
 					console.log('test:AddModule:Callback: ', com);
 				})
-
 			}
-
 		}
 
-		function GetModule(pid) {
+		function GetModule() {
 			let cmd = {
 				Cmd: 'GetModule',
-				Name: 'testModule5'
+				Name: 'testModule'
 			};
 			that.send(cmd, pid, function(err, com) {
 				console.log('test:GetModule:Callback: ', com);
@@ -66,9 +64,21 @@
 
 		}
 
-		if (fun) {
-			fun(null, com);
+		function GetDocumentation() {
+
+			let cmd = {
+				Cmd:'GetDocumentation',
+				Name: 'testModule1',
+			};
+			console.log(that.Par);
+
+			that.send(cmd, pid, (err, com) => {
+				var buf = Buffer.from(com.Info, 'base64');
+				console.log(buf.toString('ascii'));
+			})
 		}
+
+
 
 	}
 })();

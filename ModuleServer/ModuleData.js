@@ -11,11 +11,14 @@
 	//
 	function AddModule(com, fun) {
 		console.log('ModuleData::AddModule');
+		var that = this;
 		var JSZip = require('jszip');
 		var async = require('async');
 
 		console.log(com.Module);
-		var Checklist = {
+		console.log(that.Mod);
+		// TODO: Load from external template
+		com.Checklist = {
 			input: {
 				required: false,
 				opts: false
@@ -39,32 +42,42 @@
 		JSZip.loadAsync(com.Module)
 			.then(function(zip) {
 				console.log('ModuleData:AddModule:JSZip::::');
-				console.log(zip);
 				com.Module = zip;
-
-				// TODO: Read module.json from zip and compare with Checklist
-				/*
-				checkMod(Checklist, () => {
-					console.log(Checklist);
+				console.log(zip);
+				zip.file("module.json").async("string").then(function (data) {
+					console.log('************** module.json ************** ');
+					console.log(data);
+					let mod = JSON.parse(data);
+					com.Info = mod;
+					checkMod(mod, com.Checklist, function() {
+						fun(null, com);
+					})
 
 				});
-				*/
-
-				fun(null, com);
 			});
 
 
-		function checkMod(obj, callback) {
-			console.log('checkMod: ', obj);
-			let keys = Object.keys(obj);
+		function checkMod(obj, checklist, callback) {
+			let keys = Object.keys(checklist);
 			async.forEach(keys, (key, func) => {
-				if( (typeof key === "object") && (key !== null) ) {
-					checkMod(obj[key], func);
+				console.log(key);
+				if (obj[key]) {
+					console.log('True');
+					if( (typeof checklist[key] === "object") && (key !== null) ) {
+						checkMod(obj[key], checklist[key], func);
+					} else {
+						// TODO: ensure icon/src/doc are files in module zip
+
+						if (obj[key]) {
+							checklist[key] = true;
+						}
+						console.log(key, ', ', checklist[key]);
+						func();
+					}
 				} else {
-					// TODO: key against module.json
-					// TODO: ensure icon/src/doc are files in module zip
-					obj[key] = true;
+					func();
 				}
+
 			}, (err) => {
 				if (err) console.log(err);
 				callback();
