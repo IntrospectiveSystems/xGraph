@@ -12,10 +12,10 @@
 		var that = this;
 		let pid = com.ModuleServer;
 		console.log('test::StartTests');
-		//AddModule();
+		AddModule();
 		//Query();
 		//GetModule();
-		GetDocumentation();
+		//GetDocumentation();
 		if (fun) fun(null, com);
 
 		// test Cases::
