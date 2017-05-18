@@ -60,7 +60,6 @@
 						checkMod(obj[key], checklist[key], func);
 					} else {
 						// TODO: ensure icon/src/doc are files in module zip
-
 						if (obj[key]) {
 							checklist[key] = true;
 						}

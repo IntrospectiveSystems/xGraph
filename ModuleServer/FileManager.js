@@ -42,12 +42,16 @@
 				fs.mkdirSync(path);
 			}
 
-			com.Module.file(com.Info.icon).async('base64').then(function(data) {
-				fs.writeFileSync(path + '/' + com.Info.icon, data)
-			});
-			com.Module.file(com.Info.doc).async('string').then(function(data) {
-				fs.writeFileSync(path + '/' + com.Info.doc, data);
-			});
+			if ('icon' in com.Info && com.Info.icon !== null) {
+				com.Module.file(com.Info.icon).async('base64').then(function(data) {
+					fs.writeFileSync(path + '/' + com.Info.icon, data)
+				});
+			}
+			if ('doc' in com.Info && com.Info.doc !== null) {
+				com.Module.file(com.Info.doc).async('string').then(function(data) {
+					fs.writeFileSync(path + '/' + com.Info.doc, data);
+				});
+			}
 			com.Module.file('module.json').async('string').then(function(data) {
 				fs.writeFileSync(path + '/module.json', data);
 			});

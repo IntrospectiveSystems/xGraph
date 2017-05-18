@@ -242,11 +242,17 @@
 				CheckFilters(that.Par.ModuleCache[module], com.Filters, (err, bMatch) => {
 					if(bMatch) {
 						let modInfo = JSON.parse(JSON.stringify(that.Par.ModuleCache[module]));
-						that.send({Cmd:'GetFile',Name:modInfo.name,Filename:modInfo.icon}, that.Par.FileManager, function(err, cmd) {
-							modInfo.icon = cmd.File;
+						if ('icon' in modInfo && modInfo.icon !== null) {
+							that.send({Cmd:'GetFile',Name:modInfo.name,Filename:modInfo.icon}, that.Par.FileManager, function(err, cmd) {
+								modInfo.icon = cmd.File;
+								com.Info.push(modInfo);
+								func();
+							});
+						} else {
 							com.Info.push(modInfo);
 							func();
-						});
+						}
+
 					} else {
 						func();
 					}
