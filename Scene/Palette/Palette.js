@@ -54,6 +54,24 @@
 
 		function populate() {
 			console.log(JSON.stringify(Models, null, 2));
+			nmodels = Models.length;
+			if(nmodels < 1) {
+				console.log('Yes we have no bananas, yes we have no bananas today!');
+				if(fun)
+					fun();
+				return;
+			}
+			var nroot = Math.floor(Math.sqrt(nmodels));
+			var imodel = 0;
+			var nrow;
+			var ncol;
+			if(nroot*nroot == nmodels) {
+				nrow = nroot;
+				ncol = nroot;
+			} else {
+				nrow = nroot + 1;
+				ncol = nmodels - nroot * nroot;
+			}
 			async.eachSeries(Models, ship, function(err) {
 				if(err) {
 					console.log(' ** ERR:' + err);
@@ -70,6 +88,7 @@
 						func(err);
 						return;
 					}
+
 					var q = {};
 					var idot = model.lastIndexOf('.');
 					var name = model.substr(0, idot);
@@ -77,7 +96,7 @@
 					console.log('name, suffix', name, suffix);
 					q.Cmd = 'AddModel';
 					q.Name = name;
-					q.Loc = [0,0];
+					q.Position = [10, 0, 0];
 					q.Model = data.toString('base64');
 					that.send(q, Par.Scene, func);
 				});

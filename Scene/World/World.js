@@ -37,7 +37,7 @@
 		var mod = {};
 		mod.Module = "xGraph:Scene/Model";
 		mod.Par = {};
-		mod.Par.Loc = com.Loc;
+		mod.Par.Position = com.Position;
 		mod.Par.Name = com.Name;
 		var path = path = 'models/' + com.Name;
 		console.log('path', path);
