@@ -1,0 +1,19 @@
+{
+  "xGraph": "{xGraph}",
+  "Cache": "cache",
+   "Modules": {
+	 "Nexus": {
+	   "Module": "xGraph:Nexus/Nexus",
+	   "Par": {
+	   }
+	 },
+	 "ModuleServer": {
+	   "Module":"xGraph:ModuleServer",
+	   "Par":{
+		 "Modules": "xGraph:Work/ModuleServer/modules",
+		 "ModuleStorage": "xGraph:Work/ModuleServer/moduleData",
+		 "bTest": 1
+	   }
+	 }
+   }
+}
