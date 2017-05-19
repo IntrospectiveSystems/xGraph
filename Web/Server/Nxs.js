@@ -392,12 +392,12 @@ __Nexus = (function() {
 									Scripts.push(key);
 									var file = obj[key];
 									zip.file(file).async('string').then(function(scr) {
-										var tag = document.createElement('script');
-										tag.setAttribute("data-script-url", key);
-										tag.setAttribute("type", 'text/javascript');
-										var txt = document.createTextNode(scr);
-										tag.appendChild(txt);
-										document.head.appendChild(tag);
+										// var tag = document.createElement('script');
+										// tag.setAttribute("data-script-url", key);
+										// tag.setAttribute("type", 'text/javascript');
+										// var txt = document.createTextNode(scr);
+										// tag.appendChild(txt);
+										// document.head.appendChild(tag);
 										eval(scr);
 										func();
 									});
