@@ -398,6 +398,7 @@ __Nexus = (function() {
 										var txt = document.createTextNode(scr);
 										tag.appendChild(txt);
 										document.head.appendChild(tag);
+										eval(scr);
 										func();
 									});
 								}, schema);
