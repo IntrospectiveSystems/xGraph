@@ -10,7 +10,8 @@
 	"Palette": {
 	  "Module":"xGraph:Scene/Palette",
 	  "Par": {
-		"Scene":"$World"
+		"Scene":"$World",
+		"Spacing":10
 	  }
 	},
 	"Proxy": {
