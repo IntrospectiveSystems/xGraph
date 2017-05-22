@@ -1,5 +1,6 @@
 {
   "xGraph": "{xGraph}",
+  "Target":"{Target}",
   "Cache": "cache",
    "Modules": {
 	 "Nexus": {
@@ -7,8 +8,8 @@
 	   "Par": {
 	   }
 	 },
-	 "Model": {
-	   "Module":"xGraph:Scene/ModelServer",
+	 "Fuser": {
+	   "Module":"xGraph:Scene/TextureFuser",
 	   "Par":{
 	   }
 	 }

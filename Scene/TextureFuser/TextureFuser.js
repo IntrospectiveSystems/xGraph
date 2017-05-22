@@ -35,7 +35,7 @@
 		var blend = {};
 		var target = this.Nxs.getParameter('Target');
 		var path = 'C:/Archive/Raw/Marlin/TreeFarmDecid/lwo/Leaves02_yellow.jpg';
-		var path = 'C:/Archive/Raw/Marlin/TreeFarmPalms/textures/PalmLeaf008_Dead.jpg';
+		var path = 'C:/Archive/Raw/Marlin/TreeFarmPalms/textures/PalmLeaf006_DarkGreen.jpg';
 		var dot = path.lastIndexOf('.');
 		var bar = path.lastIndexOf('_');
 		var slash = path.lastIndexOf('/');

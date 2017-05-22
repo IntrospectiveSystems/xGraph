@@ -14,18 +14,21 @@
 		"Spacing":10
 	  }
 	},
-	"Proxy": {
-	  "Module":"xGraph:Nexus/Proxy",
+	"Server": {
+	  "Module": "xGraph:Web/Server",
 	  "Par": {
-		"Role":"Server",
-		"Link":"$World",
-		"Port":27000
+		"Apex":{
+		  "Scene":"$World"
+		},
+		"Nxs":"{xGraph}Web/Server/Nxs.js",
+		"Port": 8080,
+		"Url": "Paint"
 	  }
 	},
 	"World":{
 	  "Module":"xGraph:Scene/World",
 	  "Par":{
-		"View":"$Proxy",
+		"View":"$Server",
 		"Terrain":"$Terrain",
 		"Inst":[
 		]

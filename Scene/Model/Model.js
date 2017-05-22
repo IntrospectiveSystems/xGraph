@@ -41,7 +41,7 @@
 		if('Role' in Par)
 			inst.Role = Par.Role;
 		else
-			inst.Role = 'Fixed';
+			inst.Role = 'Artifact';
 		inst.Instance = Par.Pid;
 		inst.Model = Par.Pid;
 		inst.Position = Par.Position;
@@ -97,7 +97,7 @@
 	//-----------------------------------------------------Move
 	// Process move request (includes rotations)
 	function Move(com, fun) {
-	//	console.log('--Instance/Move', com);
+		console.log('--Model/Move', com);
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		if('Loc' in com) {

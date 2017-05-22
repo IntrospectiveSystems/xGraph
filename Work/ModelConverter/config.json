@@ -10,7 +10,8 @@
 	 "Model": {
 	   "Module":"xGraph:Scene/ModelConverter",
 	   "Par":{
-		 "Models":"c:/S3/X3D/LightGreen02"
+		 "Models":"c:/S3/X3D/LightGreen02",
+		 "Models":"c:/S3/X3D/PalmsGreen"
 	   }
 	 }
    }

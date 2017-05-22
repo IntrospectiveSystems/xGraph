@@ -769,17 +769,23 @@
 				var esc = str.charAt(0);
 				if(esc == '#') {
 					var sym = str.substr(1);
-					if(sym in lbls)
+					if(sym in lbls) {
 						return lbls[sym];
-					else
-						throw 'Invalid local sysmbol' + sym;
+					} else {
+						var err = 'Invalide global symbol <' + sym + '>';
+						console.log(' ** ERR:' + err);
+						throw 'Invalid local sysmbol';
+					}
 				}
 				if(esc == '$') {
 					var sym = str.substr(1);
 					if(sym in Root.Apex)
 						return Root.Apex[sym];
-					else
-						throw 'Invalid global sysmbol' + sym;
+					else {
+						var err = 'Invalide global symbol <' + sym + '>';
+						console.log(' ** ERR:' + err);
+						throw 'Invalid global symbol';
+					}
 				}
 				return str;
 			}

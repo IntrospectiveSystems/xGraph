@@ -61,17 +61,20 @@
 					fun();
 				return;
 			}
-			var nroot = Math.floor(Math.sqrt(nmodels));
-			var imodel = 0;
-			var nrow;
-			var ncol;
-			if(nroot*nroot == nmodels) {
-				nrow = nroot;
-				ncol = nroot;
-			} else {
-				nrow = nroot + 1;
-				ncol = nmodels - nroot * nroot;
+			var ncol = Math.floor(Math.sqrt(nmodels));
+			if(ncol*ncol != nmodels) {
+				ncol++;
 			}
+			var nrow = ncol-1;
+			if(nrow*ncol < nmodels)
+				nrow++;
+			var space = 5;
+			if('Spacing' in Par)
+				space = Par.Spacing;
+			var x0 = -0.5*(ncol-1)*space;
+			var y0 =  0.5*(nrow-1)*space;
+			console.log('x0,y0,space', x0, y0, nrow, ncol, space);
+			var imodel = 0;
 			async.eachSeries(Models, ship, function(err) {
 				if(err) {
 					console.log(' ** ERR:' + err);
@@ -88,19 +91,23 @@
 						func(err);
 						return;
 					}
-
+					var irow = Math.floor(imodel/ncol);
+					var icol = imodel - irow*ncol;
+					var x = x0 + space*icol;
+					var y = y0 - space*irow;
 					var q = {};
+					console.log('>>>>>>>>>', x0, y0, x, y, icol, irow, space);
+					imodel++;
 					var idot = model.lastIndexOf('.');
 					var name = model.substr(0, idot);
 					var suffix = model.substr(idot);
 					console.log('name, suffix', name, suffix);
 					q.Cmd = 'AddModel';
 					q.Name = name;
-					q.Position = [10, 0, 0];
+					q.Position = [x, y, 0];
 					q.Model = data.toString('base64');
 					that.send(q, Par.Scene, func);
 				});
-
 			}
 		}
 	}
