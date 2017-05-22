@@ -1,0 +1,17 @@
+{
+  "xGraph": "{xGraph}",
+  "Target":"{Target}",
+  "Cache": "cache",
+   "Modules": {
+	 "Nexus": {
+	   "Module": "xGraph:Nexus/Nexus",
+	   "Par": {
+	   }
+	 },
+	 "Fuser": {
+	   "Module":"xGraph:Scene/TextureFuser",
+	   "Par":{
+	   }
+	 }
+   }
+}
