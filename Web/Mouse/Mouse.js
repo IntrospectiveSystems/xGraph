@@ -149,9 +149,9 @@
 				harvest(Evoke);
 			}
 			var key = Vew.Mouse.Mode + '.' + info.Action;
-		//	console.log('key', key);
 			if ('Role' in info)
 				key += '.' + info.Role;
+			console.log('key', key);
 			info.Key = key;
 			if (key in dispatch) {
 				var proc = dispatch[key];
@@ -440,6 +440,32 @@
 		// then an 'ItemSelect' widget is instantiated, and the
 		// resulting selection determines which widget is shown.
 		function Evoke(info) {
+			var dispatch = {
+				'Idle.RightMouseDown.Artifact': evoke
+			}
+			if (info.Action == 'Harvest') {
+				for (key in dispatch)
+					info.Keys.push(key);
+				return;
+			}
+			if (info.Key in dispatch)
+				dispatch[info.Key]();
+			return;
+
+			function evoke() {
+				console.log('..evoke', info);
+				Vew.Mouse.Mode = 'Idle';
+				var q = {};
+				q.Cmd = 'Evoke';
+				q.Instance = info.Pid;
+				that.send(q, Par.View, reply);
+			}
+
+			function reply(err, q) {
+				console.log('..reply', q);
+			}
+		}
+		function Evokex(info) {
 			if(info.Action == 'Harvest') {
 				info.Keys.push('Idle.RightMouseDown.Thing');
 				return;

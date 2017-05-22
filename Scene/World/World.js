@@ -132,34 +132,8 @@
 	// to make sure that people that log in later get a
 	// correct scene graph.
 	function SetPosition(com, fun) {
-		console.log('--SetPositoin');
-		var Vlt = this.Vlt;
-		var that = this;
-		var graph = Vlt.Graph;
-		trv(graph);
-
-		function trv(inst) {
-			for(let i=0; i<inst.length; i++) {
-				var obj = inst[i];
-				console.log('obj', obj.Instance, com.Instance);
-				if(obj.Instance == com.Instance) {
-					console.log('..found');
-					if('Position' in com)
-						obj.Position = com.Position;
-					if('Axis' in com)
-						obj.Axis = com.Axis;
-					if('Angle' in com)
-						obj.Angle = com.Angle;
-					Relay.call(that, com, fun);
-					return;
-				}
-				if('Inst' in obj)
-					trv(obj.Inst);
-			}
-			console.log(' ** ERR:No tickee, no laundry');
-			if(fun)
-				fun();
-		}
+		console.log('--World/SetPosition');
+		Relay.call(this, com, fun);
 	}
 
 	//-----------------------------------------------------Relay
