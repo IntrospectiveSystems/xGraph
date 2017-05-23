@@ -68,6 +68,12 @@
 			console.log("No Role...");
 			fun();
 		}
+		this.Vlt.started = false;
+		setInterval(() => {
+			if(this.Vlt.started) return;
+			console.log('--Nexus/Troxy Connection timeout, moving on...');
+			fun(null, com);
+		}, 3000);
 
 		function server() {
 			var STX = 2;
@@ -131,6 +137,7 @@
 			});
 
 			sock.on('connect', function () {
+				this.Vlt.started = true;
 				console.log('Proxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
