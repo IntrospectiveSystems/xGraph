@@ -18,6 +18,8 @@
 		}
 
 		console.log('--Troxy/Setup', this.Par.Pid);
+		if ("Name" in this.Par)
+			console.log("Setup troxy --",this.Par.Name);
 		var that = this;
 		var net = require('net');
 		var err;
@@ -62,7 +64,10 @@
 
 		if(err)
 			console.log(' ** ERR:' + err);
-		fun();
+		if (!(Par.Role)) {
+			console.log("No Role...");
+			fun();
+		}
 
 		function server() {
 			var STX = 2;
@@ -114,6 +119,7 @@
 				});
 			}).listen(Par.Port);
 			console.log('Portal listening on port', Par.Port);
+			fun();
 		}
 
 		function client() {
@@ -122,6 +128,7 @@
 			var port = Par.Port;
 			sock.connect(port, host, function () {
 				console.log('..Connection established');
+				fun();
 			});
 
 			sock.on('connect', function () {
