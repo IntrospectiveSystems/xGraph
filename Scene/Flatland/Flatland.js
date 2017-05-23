@@ -123,6 +123,7 @@
 		inst.Angle = 0.0;
 		inst.Inst = [];
 		com.Graph.push(inst);
+		com.Terrain = inst;
 		fun(null, com);
 	}
 

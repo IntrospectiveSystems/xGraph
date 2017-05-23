@@ -62,9 +62,133 @@
 		q.Cmd = 'GetGraph';
 		this.send(q, Par.Scene, scene);
 
+		function scene(err, r) {
+			console.log('..View3D/scene');
+			var terrain = r.Terrain;
+			//	console.log(JSON.stringify(q.Graph, null, 2));
+			console.log(JSON.stringify(r, null, 2));
+			if(err) {
+				console.log(' ** ERR:' + err);
+				if (fun)
+					fun(err);
+				return;
+			}
+			var root = new THREE.Object3D();
+			var pidmod = r.Terrain.Instance;
+			var q = {};
+			q.Cmd = 'GetModel';
+			q.Instance =  pidmod;
+			that.send(q, Par.Scene, terra);
+
+			function terra(err, r) {
+				genmod(terrain, r, function(err) {
+					var tree = q.Inst;
+					async.eachSeries(tree, instance, subscribe);
+				});
+			}
+
+			function instance(inst, func) {
+				var q = {};
+				q.Cmd = 'GetModel';
+				q.Instance =  inst.Instance;
+				that.send(q, Par.Scene, rply);
+
+				function rply(err, r) {
+					genmod(inst, r, func);
+				}
+			}
+
+			function genmod(inst, r, func) {
+				var type = r.Model.Type;
+				if(!(type in Par.Gen)) {
+					var err = 'No translation for type ' + type;
+					console.log(' ** ERR:' + err);
+					func(err);
+					return;
+				}
+				var gen = {};
+				gen.Cmd = 'GenModel';
+				gen.Model = r.Model.X3D;
+				that.send(gen, Par.Gen[type], back);
+
+				function back(err, x) {
+					if(err) {
+						func(err);
+						return;
+					}
+					if(!('Obj3D' in x)) {
+						var err = 'No model returned';
+						console.log(' ** ERR:' + err);
+						func(err);
+						return;
+					}
+					var objinst = new THREE.Object3D();
+					if('Position' in inst) {
+						var pos = inst.Position;
+						objinst.position.x = pos[0];
+						objinst.position.y = pos[1];
+						objinst.position.z = pos[2];
+					}
+					if('Axis' in inst && 'Angle' in inst) {
+						var axis = inst.Axis;
+						var ang = inst.Angle*Math.PI/180.0;
+						var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
+						objinst.setRotationFromAxisAngle(vec, ang);
+					}
+					var data = {};
+					if('Role' in inst)
+						data.Role = inst.Role;
+					else
+						data.Role = 'Fixed';
+					data.Pid = inst.Instance;
+					objinst.userData = data;
+					objinst.add(x.Obj3D);
+					Vew.Scene.add(objinst);
+					func();
+				}
+			}
+
+			// Request scen to stream commands
+			function subscribe() {
+				var q = {};
+				q.Cmd = 'Subscribe';
+				q.Pid = Par.Pid;
+				that.send(q, Par.Scene);
+				render();
+			}
+
+			function render() {
+				renderLoop();
+				if(fun)
+					fun();
+			}
+		}
+
+		//-----------------------------------------------------Render
+		function renderLoop() {
+			loop();
+
+			function loop() {
+				Vew.Render.render(Vew.Scene, Vew.Camera);
+				requestAnimationFrame(loop);
+			}
+		}
+
+	}
+
+	function Startx(com, fun) {
+		console.log('--View3D/Start');
+		var that = this;
+		var Par = this.Par;
+		var Vew = $('#'+Par.Div).data('View');
+		var q = {};
+		q.Cmd = 'GetGraph';
+		this.send(q, Par.Scene, scene);
+
 		function scene(err, q) {
 			console.log('..View3D/scene');
-			console.log(JSON.stringify(q.Graph, null, 2));
+		//	console.log(JSON.stringify(q.Graph, null, 2));
+			console.log(JSON.stringify(q, null, 2));
 			if(err) {
 				console.log(' ** ERR:' + err);
 				if (fun)

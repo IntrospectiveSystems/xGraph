@@ -47,10 +47,11 @@ __Nexus = (function() {
 				var ixmsg = MsgFifo.indexOf(pid);
 				if (ixmsg >= 0) {
 					var func = MsgPool[pid];
-					MsgFifo.splice(ixmsg, 1);
 					delete MsgPool[pid];
-					if (func)
+					MsgFifo.splice(ixmsg, 1);
+					if (func) {
 						func(null, cmd);
+					}
 				}
 				return;
 			}

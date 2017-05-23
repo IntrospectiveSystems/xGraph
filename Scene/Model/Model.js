@@ -48,7 +48,16 @@
 		inst.Axis = Par.Axis;
 		inst.Angle = Par.Angle;
 		inst.Inst = [];
-		console.log(JSON.stringify(com));
+		com.Graph[0].Inst.push(inst);
+
+		if('Inst' in com) {
+			com.Inst.push(inst);
+		} else {
+			com.Inst = [];
+			com.Inst.push(inst);
+		}
+		fun(null, com);
+/*		console.log(JSON.stringify(com));
 		com.Graph[0].Inst.push(inst);
 		if(!('Inst' in Par)) {
 			fun();
@@ -63,7 +72,7 @@
 
 		function instance(pid, func) {
 			that.send(q, pid, func);
-		}
+		} */
 	}
 
 	//-----------------------------------------------------GetModel
