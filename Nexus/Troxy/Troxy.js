@@ -12,7 +12,7 @@
 	};
 
 	function Setup(com, fun) {
-		if (!(this.Par.Setup)){
+		if (!(this.Par.Setup) && ("Start" in this.Par)){
 			fun();
 			return;
 		}
@@ -52,6 +52,11 @@
 				} else {
 					var err = 'No port for server proxy';
 				}
+			}	break;
+
+
+			default:{
+				console.log("Not sure what your role is...");
 			}
 		}
 
@@ -177,7 +182,7 @@
 
 
 	function Start(com, fun) {
-		if (!(this.Par.Start)){
+		if (!(this.Par.Start) && ("Setup" in this.Par)){
 			fun();
 			return;
 		}
@@ -258,6 +263,8 @@
 						}
 					}
 				}
+				break;
+
 			}
 
 			default:{
