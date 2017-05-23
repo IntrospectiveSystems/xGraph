@@ -134,7 +134,6 @@
 				console.log('Proxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
-
 			});
 
 			sock.on('error', (err) => {
