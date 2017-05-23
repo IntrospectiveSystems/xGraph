@@ -128,12 +128,13 @@
 			var port = Par.Port;
 			sock.connect(port, host, function () {
 				console.log('..Connection established');
-				fun();
 			});
 
 			sock.on('connect', function () {
 				console.log('Proxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
+				fun();
+
 			});
 
 			sock.on('error', (err) => {
