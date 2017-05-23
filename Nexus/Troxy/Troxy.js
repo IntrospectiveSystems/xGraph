@@ -68,7 +68,8 @@
 			console.log("No Role...");
 			fun();
 		}
-		this.Vlt.started = false;
+		if (!("started" in this.Vlt))
+			this.Vlt.started = false;
 		setInterval(() => {
 			if (this.Vlt.started) return;
 			if (!this.Par.Optional) return;
@@ -296,7 +297,8 @@
 			console.log("No Role...");
 			fun();
 		}
-		this.Vlt.started = false;
+		if (!("started" in this.Vlt))
+			this.Vlt.started = false;
 		setInterval(() => {
 			if (this.Vlt.started) return;
 			if (!this.Par.Optional) return;
