@@ -121,8 +121,6 @@
 		inst.Position = [0,0,0];
 		inst.Axis = [0,0,1];
 		inst.Angle = 0.0;
-		inst.Inst = [];
-		com.Graph.push(inst);
 		com.Terrain = inst;
 		fun(null, com);
 	}

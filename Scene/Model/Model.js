@@ -47,9 +47,6 @@
 		inst.Position = Par.Position;
 		inst.Axis = Par.Axis;
 		inst.Angle = Par.Angle;
-		inst.Inst = [];
-		com.Graph[0].Inst.push(inst);
-
 		if('Inst' in com) {
 			com.Inst.push(inst);
 		} else {

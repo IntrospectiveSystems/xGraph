@@ -58,15 +58,19 @@
 		var that = this;
 		var Par = this.Par;
 		var Vew = $('#'+Par.Div).data('View');
+		var Inst;
+		var Terrain;
 		var q = {};
 		q.Cmd = 'GetGraph';
 		this.send(q, Par.Scene, scene);
 
 		function scene(err, r) {
 			console.log('..View3D/scene');
-			var terrain = r.Terrain;
+			Terrain = r.Terrain;
+			Inst = r.Inst;
 			//	console.log(JSON.stringify(q.Graph, null, 2));
-			console.log(JSON.stringify(r, null, 2));
+			console.log('Terrain', JSON.stringify(Terrain, null, 2));
+			console.log('Knst', JSON.stringify(Inst, null, 2));
 			if(err) {
 				console.log(' ** ERR:' + err);
 				if (fun)
@@ -74,16 +78,15 @@
 				return;
 			}
 			var root = new THREE.Object3D();
-			var pidmod = r.Terrain.Instance;
+			var pidmod = Terrain.Instance;
 			var q = {};
 			q.Cmd = 'GetModel';
 			q.Instance =  pidmod;
 			that.send(q, Par.Scene, terra);
 
 			function terra(err, r) {
-				genmod(terrain, r, function(err) {
-					var tree = q.Inst;
-					async.eachSeries(tree, instance, subscribe);
+				genmod(Terrain, r, function(err) {
+					async.eachSeries(Inst, instance, subscribe);
 				});
 			}
 
