@@ -1,0 +1,16 @@
+{
+  "xGraph": "{xGraph}",
+  "Cache": "cache",
+   "Modules": {
+	 "Nexus": {
+	   "Module": "xGraph:Nexus/Nexus",
+	   "Par": {
+	   }
+	 },
+	 "Model": {
+	   "Module":"xGraph:Nexus/Initiate/Initiate",
+	   "Par":{
+	   }
+	 }
+   }
+}

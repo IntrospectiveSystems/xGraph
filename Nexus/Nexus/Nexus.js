@@ -134,6 +134,9 @@
 	//-----------------------------------------------------Run
 	function Run() {
 		console.log('--Nexus/Run');
+		if ('send' in process) {
+			process.send('{"cmd":"Finished"}');
+		}
 	}
 
 	//-----------------------------------------------------send

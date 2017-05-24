@@ -57,7 +57,6 @@
 			});
 
 
-
 			// Write icon
 			// Write module.json
 			// Write doc.md
