@@ -225,7 +225,6 @@
 	// 	com.Module as zipped module file
 	//	com.Name as named in module.json
 	function AddModule(com, fun) {
-		com.Module = new Buffer(com.Module, 'base64').toString();
 		console.log('ModuleServer:AddModule');
 		var that = this;
 		if ('Module' in com) {
@@ -247,6 +246,7 @@
 						return;
 					}
 
+					// debugger;
 					if (fun) fun(null, com);
 				});
 				if (fun) fun(null, com);
