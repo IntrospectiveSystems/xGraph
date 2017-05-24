@@ -11,7 +11,8 @@
 		GetModule: GetModule,
 		GetDocumentation: GetDocumentation,
 		AddModule: AddModule,
-		Query: Query
+		Query: Query,
+		DownloadModule: DownloadModule
 	};
 
 	return {
@@ -153,6 +154,32 @@
 		fun();
 	}
 
+	// Pull a module from another ModuleServer into this one.
+	// Requires:
+	//	com.Module as the name of the module
+	//	com.From as the pid of the other ModuleServer
+	// Returns:
+	//	Nothing
+	function DownloadModule(com, fun) {
+
+		let otherModuleServer = com.From;
+		let name = com.Module;
+		let that = this;
+
+		that.send({ Cmd: 'GetModule', Name: name }, otherModuleServer, (err, com) => {
+
+			let moduleZip = com.Module;
+
+			that.send({ Cmd: 'AddModule', Name: name, Module: moduleZip }, that.Par.Pid, (err, com) => {
+				
+				fun(null, com);
+
+			});
+
+		});
+
+	}
+
 	// Get module from moduleCache, return full Module zip
 	// Requires:
 	//	com.Name,
@@ -198,6 +225,7 @@
 	// 	com.Module as zipped module file:
 	//	com.Name as named in module.json
 	function AddModule(com, fun) {
+		com.Module = new Buffer(com.Module, 'base64').toString();
 		console.log('ModuleServer:AddModule');
 		var that = this;
 		if ('Module' in com) {
