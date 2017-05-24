@@ -195,12 +195,15 @@
 
 	// Inspect module files for required pars, create module entity, add zipped module to module location
 	// Requires:
-	// 	com.Module as zipped module file:
+	// 	com.Module as zipped module file
 	//	com.Name as named in module.json
 	function AddModule(com, fun) {
 		console.log('ModuleServer:AddModule');
 		var that = this;
 		if ('Module' in com) {
+			let buf = Buffer.from(com.Module, 'base64');
+			com.Module = buf;
+
 			that.send(com, that.Par.ModuleData, function(err, com) {
 				if (err) {
 					console.log(err);
