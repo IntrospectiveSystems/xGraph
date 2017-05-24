@@ -140,7 +140,7 @@
 			});
 
 			sock.on('connect', function () {
-				this.Vlt.started = true;
+				that.Vlt.started = true;
 				console.log('Proxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
@@ -200,7 +200,7 @@
 
 
 	function Start(com, fun) {
-		if (!(this.Par.Start) && ("Setup" in this.Par)){
+		if (!(this.Par.Start) && ("Setup" in this.Par) && !this.Vlt.started){
 			fun();
 			return;
 		}
@@ -369,7 +369,7 @@
 			});
 
 			sock.on('connect', function () {
-				this.Vlt.started = true;
+				that.Vlt.started = true;
 				console.log('Troxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
