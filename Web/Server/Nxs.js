@@ -14,6 +14,7 @@ __Nexus = (function() {
 	var ZipCache = {};
 	var SymTab = {};
 	var Scripts = [];
+	var Fonts = {};
 	var Nxs = {
 		genPid: genPid,
 		genEntity: genEntity,
@@ -29,7 +30,8 @@ __Nexus = (function() {
 	return {
 		start: start,
 		genPid: genPid,
-		send: send
+		send: send,
+		getFont: getFont
 	};
 
 	function start(sockio, cfg) {
@@ -146,6 +148,12 @@ __Nexus = (function() {
                 console.log(' ** ERR:Local', pid, 'not in Cache');
             }
 		}
+	}
+
+	//--------------------------------------------------------getFont
+	function getFont(font) {
+		if(font in Fonts)
+			return Fonts[font];
 	}
 
 	//--------------------------------------------------------Entity
@@ -399,6 +407,31 @@ __Nexus = (function() {
 										var txt = document.createTextNode(scr);
 										tag.appendChild(txt);
 										document.head.appendChild(tag);
+										func();
+									});
+								}, fonts);
+							});
+						} else {
+							fonts();
+						}
+					}
+
+					function fonts() {
+						if(zipmod.file('fonts.json')) {
+							zip.file('fonts.json').async('string').then(function(str) {
+								var obj = JSON.parse(str);
+								var keys = Object.keys(obj);
+								async.eachSeries(keys, function(key, func) {
+									if(key in Fonts) {
+										func();
+										return;
+									}
+									var file = obj[key];
+									zip.file(file).async('string').then(function(str) {
+										var json = JSON.parse(str);
+										var font = new THREE.Font(json);
+										console.log('font', font);
+										Fonts[key] = font;
 										func();
 									});
 								}, schema);

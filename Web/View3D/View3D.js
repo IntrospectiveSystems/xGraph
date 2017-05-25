@@ -48,6 +48,7 @@
 		Vew.Camera.up.set(0.0, 0.0, 1.0);
 		Vew.Camera.lookAt(Vew.Focus);
 		Vew.Camera.updateProjectionMatrix();
+		TestFont(Vew, "Hello World");
 
 		if(fun)
 			fun();
@@ -177,6 +178,29 @@
 			}
 		}
 
+	}
+
+	function TestFont(vew, text) {
+		console.log('--TestFont');
+		var font = __Nexus.getFont('Helvetiker.Bold');
+		var mesh;
+		var size = 0.5;
+		var height = 0.25 * size;
+		var clr = 0x00ff00;
+		var geo = new THREE.TextGeometry(text, {
+			font: font,
+			size: size,
+			height: height
+		});
+		geo.computeBoundingBox();
+		geo.computeVertexNormals();
+		var mat = new THREE.MeshPhongMaterial({ color: clr, shading: THREE.FlatShading });
+		mesh = new THREE.Mesh(geo, mat);
+		var box = geo.boundingBox;
+		mesh.position.x = -0.5 * (box.max.x - box.min.x);
+		mesh.position.y = -0.5 * (box.max.y - box.min.y);
+		mesh.position.z = -0.5 * (box.max.z - box.min.z) + 5.0;
+		vew.Scene.add(mesh);
 	}
 
 	function Startx(com, fun) {
