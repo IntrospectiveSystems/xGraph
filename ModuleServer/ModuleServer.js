@@ -166,11 +166,11 @@
 		let name = com.Module;
 		let that = this;
 
-		that.send({ Cmd: 'GetModule', Name: name }, otherModuleServer, (err, com) => {
+		that.send({ Cmd: 'GetModule', Name: name }, otherModuleServer, (err, cmd) => {
 
-			let moduleZip = com.Module;
+			let moduleZip = cmd.Module;
 
-			that.send({ Cmd: 'AddModule', Name: name, Module: moduleZip }, that.Par.Pid, (err, com) => {
+			that.send({ Cmd: 'AddModule', Name: name, Module: moduleZip }, that.Par.Pid, (err, cmd) => {
 				
 				fun(null, com);
 
