@@ -14,7 +14,7 @@
 
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
-		console.log('--Proxy/Setup');
+		console.log('--Plexus/Setup');
 		var that = this;
 		var net = require('net');
 		var err;
@@ -28,14 +28,14 @@
 
 	//.....................................................Start
 	function Start(com, fun) {
-		console.log('--Proxy/Start');
+		console.log('--Plexus/Start');
 		if(fun)
 			fun(null, com);
 	}
 
 	//-----------------------------------------------------Publish
 	function Publish(com, fun) {
-		//	console.log('--Plexus/Publish);
+		console.log('--Plexus/Publish');
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		var err;
@@ -44,7 +44,7 @@
 		if(!('Host' in com))
 			err = 'No Host in com';
 		// TBD: This should be err after cleanup implemented correctly
-		if(com.Name in Servers)
+		if(com.Name in Vlt.Servers)
 			console.log(' ** ERR"Server <' + com.Name + '> already assigned');
 		if(err) {
 			if(fun)
@@ -52,11 +52,15 @@
 			return;
 		}
 		var port;
-		for(var iport=27001; iport<27099; iport++) {
-			if(iport in Vlt.Ports)
-				continue;
-			port = iport;
-			break;
+		if(com.Name == 'Plexus') {
+			port = 27000;
+		} else {
+			for(var iport=27001; iport<27099; iport++) {
+				if(iport in Vlt.Ports)
+					continue;
+				port = iport;
+				break;
+			}
 		}
 		if(!port) {
 			err = 'No ports available';
