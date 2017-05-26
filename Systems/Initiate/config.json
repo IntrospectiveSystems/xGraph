@@ -7,9 +7,19 @@
 	   "Par": {
 	   }
 	 },
-	 "Model": {
+	 "Initiate": {
 	   "Module":"xGraph:Nexus/Initiate/Initiate",
 	   "Par":{
+		 "Systems": [
+		   {
+			 "Name": "ModuleServer",
+			 "Work": "xGraph:Work/ModuleServer"
+		   },
+		   {
+			 "Name": "ModelServer",
+			 "Work": "xGraph:Systems/ModelServer"
+		   }
+		 ]
 	   }
 	 }
    }
