@@ -1,3 +1,4 @@
+//# sourceURL=Nxs
 __Nexus = (function() {
 	console.log(' ** Nxs executing');
 	var SockIO;
