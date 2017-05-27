@@ -22,6 +22,7 @@
 		var Vlt = this.Vlt;
 		Vlt.Ports = [];
 		Vlt.Servers = {};
+		Vlt.Clients = {};
 		if(fun)
 			fun(null, com);
 	}
@@ -39,20 +40,21 @@
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		var err;
-		if(!('Name' in com))
-			err = 'No Name in com';
+		if(!('Chan' in com))
+			err = 'No Chan in com';
 		if(!('Host' in com))
 			err = 'No Host in com';
 		// TBD: This should be err after cleanup implemented correctly
-		if(com.Name in Vlt.Servers)
-			console.log(' ** ERR"Server <' + com.Name + '> already assigned');
+		if(com.Chan in Vlt.Servers)
+			console.log(' ** ERR"Server <' + com.Chan + '> already assigned');
 		if(err) {
+			console.log(' ** ERR:' + err);
 			if(fun)
 				fun(err);
 			return;
 		}
 		var port;
-		if(com.Name == 'Plexus') {
+		if(com.Chan == 'Plexus') {
 			port = 27000;
 		} else {
 			for(var iport=27001; iport<27099; iport++) {
@@ -70,21 +72,31 @@
 			return;
 		}
 		var srv = {};
+		srv.Name = com.Name;
+		srv.Chan = com.Chan;
 		srv.Host = com.Host;
 		srv.Port = port;
-		Vlt.Servers[com.Name] = srv;
+		Vlt.Servers[com.Chan] = srv;
 		Vlt.Ports.push(port);
+		console.log('Servers', JSON.stringify(Vlt.Servers, null, 2));
 		com.Port = port;
-		console.log(com.Name, 'assigned to port', port);
+		console.log(com.Chan, 'assigned to port', port);
 		if(fun)
 			fun(null, com);
 	}
 
 	//-----------------------------------------------------Publish
 	function Subscribe(com, fun) {
-		//	console.log('--Plexus/Publish);
+		console.log('--Plexus/Subscribe');
 		var Par = this.Par;
 		var Vlt = this.Vlt;
+		if(com.Chan in Vlt.Servers) {
+			var srv = Vlt.Servers[com.Chan];
+			com.Host = srv.Host;
+			com.Port = srv.Port;
+			if(fun)
+				fun(null, com);
+		}
 		if(fun)
 			fun(null, com);
 	}

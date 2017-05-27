@@ -16,7 +16,7 @@
 		console.log('--Proxy/Setup', this.Par.Pid);
 		var Par = this.Par;
 		console.log('Par', JSON.stringify(Par, null, 2));
-		if(Par.Name == 'Plexus') {
+		if(Par.Chan == 'Plexus') {
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -35,7 +35,7 @@
 		console.log('--Proxy/Start', this.Par.Pid);
 		var Par = this.Par;
 		console.log('Par', JSON.stringify(Par, null, 2));
-		if(Par.Name != 'Plexus') {
+		if(Par.Chan != 'Plexus') {
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -57,8 +57,8 @@
 		var Vlt = this.Vlt;
 		console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
-		if(!('Name' in Par))
-			err = 'No Name in Par';
+		if(!('Chan' in Par))
+			err = 'No Chan in Par';
 		if(!('Plexus' in Par))
 			err = 'No Plexus in Par';
 		if(err) {
@@ -68,11 +68,21 @@
 		}
 		var q = {};
 		q.Cmd = 'Publish';
-		q.Name = Par.Name;
+		if('Name' in Par)
+			q.Name = Par.Name;
+		else
+			q.Name = 'Nemo';
+		q.Chan = Par.Chan;
 		q.Host = '127.0.0.1';
+		console.log('q', JSON.stringify(q));
 		that.send(q, Par.Plexus, connect);
 
 		function connect(err, r) {
+			if(err) {
+				console.log(' ** ERR:' + err);
+				fun(err);
+				return;
+			}
 			console.log('..connect', r);
 			var net = require('net');
 			var err;
@@ -101,7 +111,7 @@
 
 				sock.on('error', (err) => {
 					console.log(' ** ERR2:' + err);
-					console.log('    Proxy:' + Par.Name);
+					console.log('    Proxy:' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -176,8 +186,8 @@
 		var Vlt = this.Vlt;
 		console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
-		if(!('Name' in Par))
-			err = 'No Name in Par';
+		if(!('Chan' in Par))
+			err = 'No Chan in Par';
 		if(!('Plexus' in Par))
 			err = 'No Plexus in Par';
 		if(err) {
@@ -187,9 +197,13 @@
 		}
 		var q = {};
 		q.Cmd = 'Subscribe';
-		q.Name = Par.Name;
+		if('Name' in Par)
+			q.Name = Par.Name;
+		else
+			q.Name = 'Nemo';
+		q.Chan = Par.Chan;
 		q.Host = '127.0.0.1';
-		if(Par.Name == 'Plexus') {
+		if(Par.Chan == 'Plexus') {
 			q.Port = 27000;
 			connect(null, q);
 		} else {
@@ -199,7 +213,7 @@
 		function connect(err, r) {
 			if(err) {
 				console.log(' ** ERR:' + err);
-				console.log('    Proxy:' + Par.Name);
+				console.log('    Proxy:' + Par.Chan);
 				if(fun)
 					fun(err);
 				return;
@@ -235,9 +249,9 @@
 
 			sock.on('error', (err) => {
 				console.log(' ** ERR3:' + err);
-				console.log('    Proxy:' + Par.Name);
+				console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
 				if(fun)
-					fun('Connection declinded');
+					fun('Connection declined');
 			});
 
 			sock.on('data', function (data) {
@@ -290,10 +304,10 @@
 	function Proxy(com, fun) {
 		console.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
+		console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
 		var Vlt = this.Vlt;
 		if('Role' in Par) {
 			switch(Par.Role) {
-				case 'Plexus':
 				case 'Client':
 					client();
 					break;
@@ -304,9 +318,10 @@
 					break;
 			}
 		} else {
+			console.log('Par', JSON.stringify(Par, null, 2));
 			var err = 'Proxy has no role';
 			console.log(' ** ERR:' + err);
-			console.log('    Proxy:' + Par.Name);
+			console.log('    Proxy:' + Par.Chan);
 			if(fun)
 				fun(err);
 		}
@@ -328,7 +343,7 @@
 			var sock = Vlt.Sock;
 			if(!sock) {
 				console.log(' ** ERR:Proxy not connected to server');
-				console.log('    Proxy:' + Par.Name);
+				console.log('    Proxy:' + Par.Chan);
 				if(fun)
 					fun('Proxy not connected');
 				return;

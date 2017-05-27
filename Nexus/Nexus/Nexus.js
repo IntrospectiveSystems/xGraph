@@ -779,13 +779,13 @@
 				}
 				if(esc == '$') {
 					var sym = str.substr(1);
-					if(sym in Root.Apex)
+					if (sym in Root.Apex)
 						return Root.Apex[sym];
-					else {
-						var err = 'Invalide global symbol <' + sym + '>';
-						console.log(' ** ERR:' + err);
-						throw 'Invalid global symbol';
-					}
+					if(sym in Config)
+						return Config[sym];
+					var err = 'Invalide global symbol <' + sym + '>';
+					console.log(' ** ERR:' + err);
+					throw 'Invalid global symbol';
 				}
 				return str;
 			}
