@@ -55,8 +55,20 @@
 				return;
 			}
 			Vlt.Browser = JSON.parse(data.toString());
-			getscr();
+			getcss();
 		});
+
+		function getcss() {
+			fs.readFile('css.json', function(err, data) {
+				if(err) {
+					console.log(' ** ERR:Cannot read css.json');
+					fun(err);
+					return;
+				}
+				Vlt.Browser.Css = JSON.parse(data.toString());
+				getscr();
+			})
+		}
 
 		function getscr() {
 			fs.readFile('scripts.json', function(err, data) {
@@ -305,6 +317,7 @@
 		}
 
 		function ship() {
+			console.log('Manifest', JSON.stringify(man, null, 2));
 			zip.file('manifest.json', JSON.stringify(man));
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;

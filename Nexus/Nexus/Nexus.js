@@ -534,6 +534,7 @@
 		var obj;
 		var package;
 		var scripts;
+		var css;
 		Root = {};
 		Root.Apex = {};
 		Root.Setup = {};
@@ -573,6 +574,27 @@
 
 				}
 			}
+			// css files
+			path = moddir + '/css.json';
+			if(fs.existsSync(path)) {
+				let str = fs.readFileSync(path);
+				var obj = JSON.parse(str);
+				for(key in obj) {
+					var file = obj[key];
+					path = moddir + '/' + file;
+					if(fs.existsSync(path)) {
+						if(!css)
+							css = {};
+						if(!(key in css)) {
+							var data = fs.readFileSync(path);
+							fs.writeFileSync(file, data);
+							css[key] = file;
+						}
+					} else {
+						console.log(' ** ERR:Css <' + file + '> not available');
+					}
+				}
+			}
 			// script files
 			path = moddir + '/scripts.json';
 			if(fs.existsSync(path)) {
@@ -594,6 +616,10 @@
 					}
 				}
 			}
+		}
+		if(css) {
+			var cssout = JSON.stringify(css, null, 2);
+			fs.writeFileSync('css.json', cssout);
 		}
 		if(scripts) {
 			var scrout = JSON.stringify(scripts, null, 2);

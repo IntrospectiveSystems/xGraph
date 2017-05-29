@@ -14,6 +14,7 @@ __Nexus = (function() {
 	var ModCache = {};
 	var ZipCache = {};
 	var SymTab = {};
+	var Css = [];
 	var Scripts = [];
 	var Fonts = {};
 	var Nxs = {
@@ -308,6 +309,8 @@ __Nexus = (function() {
 			Root.Apex = {};
 		scripts();
 
+		//.................................................scripts
+		// Load scripts needed by module
 		function scripts() {
 			var ikey = 0;
 			if('Scripts' in Config) {
@@ -387,7 +390,42 @@ __Nexus = (function() {
 				var zipmod = new JSZip();
 				zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
 					var dir = zipmod.file(/.*./);
-					scripts();
+					css();
+
+					function css() {
+						if(zipmod.file('css.json')) {
+							zip.file('css.json').async('string').then(function(str) {
+								var obj = JSON.parse(str);
+								var keys = Object.keys(obj);
+								async.eachSeries(keys, function(key, func) {
+									if(Css.indexOf(key) >= 0) {
+										func();
+										return;
+									}
+									Css.push(key);
+									var file = obj[key];
+									zip.file(file).async('string').then(function(css) {
+										var tag = document.createElement('link');
+										tag.setAttribute("data-css-url", key);
+										tag.setAttribute("type", 'text/css');
+										var txt = document.createTextNode(css);
+										tag.appendChild(txt);
+										document.head.appendChild(tag);
+
+									/*	var tag = document.createElement('script');
+										tag.setAttribute("data-script-url", key);
+										tag.setAttribute("type", 'text/javascript');
+										var txt = document.createTextNode(scr);
+										tag.appendChild(txt);
+										document.head.appendChild(tag); */
+										func();
+									});
+								}, scripts);
+							});
+						} else {
+							scripts();
+						}
+					}
 
 					function scripts() {
 						if(zipmod.file('scripts.json')) {
