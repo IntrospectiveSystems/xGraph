@@ -55,10 +55,10 @@
 				return;
 			}
 			Vlt.Browser = JSON.parse(data.toString());
-			getscr();
+			getscripts();
 		});
 
-		function getscr() {
+		function getscripts() {
 			fs.readFile('scripts.json', function(err, data) {
 				if(err) {
 					console.log(' ** ERR:Cannot read script.json');
@@ -277,7 +277,7 @@
 	// Retrieve module from module server
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
-		console.log('--Page/getModule');
+		console.log('--Http/getModule', com.Module);
 		var that = this;
 		var zip = new jszip();
 		var dir = that.Nxs.genPath(com.Module);
@@ -305,6 +305,7 @@
 		}
 
 		function ship() {
+			console.log('Manifest', JSON.stringify(man, null, 2));
 			zip.file('manifest.json', JSON.stringify(man));
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;
