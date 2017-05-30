@@ -1,0 +1,26 @@
+{
+  "xGraph": "{xGraph}",
+  "Cache": "cache",
+   "Modules": {
+	 "Nexus": {
+	   "Module": "xGraph:Nexus/Nexus",
+	   "Par": {
+	   }
+	 },
+	 "Initiate": {
+	   "Module":"xGraph:Nexus/Initiate/Initiate",
+	   "Par":{
+		 "Systems": [
+		   {
+			 "Name": "ModuleServer",
+			 "Work": "xGraph:Work/ModuleServer"
+		   },
+		   {
+			 "Name": "ModelServer",
+			 "Work": "xGraph:Systems/ModelServer"
+		   }
+		 ]
+	   }
+	 }
+   }
+}
