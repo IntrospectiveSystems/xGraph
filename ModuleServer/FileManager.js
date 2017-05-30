@@ -33,6 +33,7 @@
 		console.log('FileManager::AddModule');
 		//var JSZip = require('jszip');
 		var that = this;
+		// debugger;
 
 		if ('Module' in com) {
 			var path = Nxs.genPath(that.Par.ModuleStorage + '/' + com.Info.name);
@@ -55,7 +56,6 @@
 			com.Module.file('module.json').async('string').then(function(data) {
 				fs.writeFileSync(path + '/module.json', data);
 			});
-
 
 
 			// Write icon
@@ -89,14 +89,13 @@
 			if(err) {
 				console.log(' ** ERR:' + err);
 				if(fun)
-					fun(err);
+					fun(err, com);
 				return;
 			}
 			com.Module = data.toString('base64');
 			if(fun)
 				fun(null, com);
 		}
-		fun();
 	}
 
 	// Used to retrieve a file in a given module folder

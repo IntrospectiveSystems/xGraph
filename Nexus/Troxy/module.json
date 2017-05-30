@@ -8,18 +8,11 @@
     "opts":[]
   },
   "par":{
-    "required": [
-      "Name",
-      "Role"
-      ],
-    "opts":[
-      "Registry/Plexus",
-      "Setup",
-      "Start",
-      "Link"]
+    "required": [],
+    "opts": []
   },
   "name": "Troxy",
   "icon": null,
-  "doc": "Troxy.md",
+  "doc": null,
   "src": "xGraph:Nexus/Troxy"
 }
