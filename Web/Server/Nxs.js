@@ -9,7 +9,7 @@ __Nexus = (function() {
 	var PidTop;
 	var PidStart;
 	var Config;
-	var CurrentModule;
+//	var CurrentModule;
 	var EntCache = {};
 	var ModCache = {};
 	var ZipCache = {};
@@ -32,6 +32,7 @@ __Nexus = (function() {
 	return {
 		start: start,
 		genPid: genPid,
+		genModule: genModule,
 		send: send,
 		getFont: getFont
 	};
@@ -292,6 +293,228 @@ __Nexus = (function() {
 		return pid;
 	}
 
+	//-------------------------------------------------addModeul
+	function genModule(modkey, mod, fun) {
+		console.log('..addmodule');
+		console.log(JSON.stringify(mod, null, 2));
+		var ents = {};
+		var lbls = {};
+		var q = {};
+		q.Cmd = 'GetModule';
+		q.Module = mod.Module;
+		//	console.log(com);
+		send(q, PidServer, addmod);
+
+		function addmod(err, r) {
+			console.log('..addmod');
+			var module = com.Module;
+			var zipmod = new JSZip();
+			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
+				var dir = zipmod.file(/.*./);
+				styles();
+
+				function styles() {
+					if(zipmod.file('styles.json')) {
+						zip.file('styles.json').async('string').then(function(str) {
+							var obj = JSON.parse(str);
+							var keys = Object.keys(obj);
+							async.eachSeries(keys, function(key, func) {
+								if(Css.indexOf(key) >= 0) {
+									func();
+									return;
+								}
+								Css.push(key);
+								var file = obj[key];
+								zip.file(file).async('string').then(function(css) {
+									var tag = document.createElement('link');
+									tag.setAttribute("data-css-url", key);
+									tag.setAttribute("type", 'text/css');
+									var txt = document.createTextNode(css);
+									tag.appendChild(txt);
+									document.head.appendChild(tag);
+
+									/*	var tag = document.createElement('script');
+									 tag.setAttribute("data-script-url", key);
+									 tag.setAttribute("type", 'text/javascript');
+									 var txt = document.createTextNode(scr);
+									 tag.appendChild(txt);
+									 document.head.appendChild(tag); */
+									func();
+								});
+							}, scripts);
+						});
+					} else {
+						scripts();
+					}
+				}
+
+				function scripts() {
+					console.log('..scripts');
+					if(zipmod.file('scripts.json')) {
+						zip.file('scripts.json').async('string').then(function(str) {
+							var obj = JSON.parse(str);
+							var keys = Object.keys(obj);
+							async.eachSeries(keys, function(key, func) {
+								if(Scripts.indexOf(key) >= 0) {
+									func();
+									return;
+								}
+								Scripts.push(key);
+								var file = obj[key];
+								zip.file(file).async('string').then(function(scr) {
+									var tag = document.createElement('script');
+									tag.setAttribute("data-script-url", key);
+									tag.setAttribute("type", 'text/javascript');
+									var txt = document.createTextNode(scr);
+									tag.appendChild(txt);
+									document.head.appendChild(tag);
+									func();
+								});
+							}, fonts);
+						});
+					} else {
+						fonts();
+					}
+				}
+
+				function fonts() {
+					console.log('..fonts');
+					if(zipmod.file('fonts.json')) {
+						zip.file('fonts.json').async('string').then(function(str) {
+							var obj = JSON.parse(str);
+							var keys = Object.keys(obj);
+							async.eachSeries(keys, function(key, func) {
+								if(key in Fonts) {
+									func();
+									return;
+								}
+								var file = obj[key];
+								zip.file(file).async('string').then(function(str) {
+									var json = JSON.parse(str);
+									var font = new THREE.Font(json);
+									console.log('font', font);
+									Fonts[key] = font;
+									func();
+								});
+							}, schema);
+						});
+					} else {
+						schema();
+					}
+				}
+
+				function schema() {
+					console.log('..schema');
+					zip.file('schema.json').async('string').then(function(str){
+						compile(str);
+					});
+				}
+			});
+
+			function compile(str) {
+				console.log('..compile');
+				var pidapx;
+				var schema = JSON.parse(str);
+				ZipCache[module] = zipmod;
+				for (let lbl in schema) {
+					var ent = schema[lbl];
+					if('Par' in mod) {
+						for(key in mod.Par) {
+							ent[key] = mod.Par[key];
+						}
+					}
+					//	CurrentModule = modkey;
+					ent.Module = module;
+					if(lbl == 'Apex') {
+						if(modkey)
+							ent.Pid = Root.Apex[modkey];
+						else
+							ent.Pid = genPid();
+						pidapx = ent.Pid;
+					} else {
+						ent.Pid = genPid();
+					}
+					lbls[lbl] = ent.Pid;
+					ents[lbl] = ent;
+				}
+				var keys = Object.keys(ents);
+				var nkey = keys.length;
+				var ikey = 0;
+				nextent();
+
+				function nextent() {
+					if(ikey >= nkey) {
+						fun(null, pidapx);
+						return;
+					}
+					var key = keys[ikey];
+					var ent = ents[key];
+					if('Par' in mod) {
+						for(key in mod.Par) {
+							ent[key] = mod.Par[key];
+						}
+					}
+					ikey++;
+					for (let key in ent) {
+						val = ent[key];
+						if (key == '$Setup') {
+							Root.Setup[ent.Pid.substr(24)] = ent[key];
+							continue;
+						}
+						if (key == '$Start') {
+							Root.Start[ent.Pid.substr(24)] = ent[key];
+							continue;
+						}
+						if(typeof val == 'string')
+							ent[key] = symbol(val);
+						if(Array.isArray(val)) {
+							for (var i = 0; i < val.length; i++) {
+								if (typeof val[i] == 'string')
+									val[i] = symbol(val[i]);
+							}
+							continue;
+						}
+						if(typeof val == 'object') {
+							for(let sym in val) {
+								var tmp = val[sym];
+								if(typeof tmp == 'string')
+									val[sym] = symbol(tmp);
+							}
+						}
+					}
+					var modkey = ent.Module + '/' + ent.Entity;
+					ZipCache[mod] = zipmod;
+					zipmod.file(ent.Entity).async('string').then(function(str){
+						var mod = eval(str);
+						ModCache[modkey] = mod;
+						EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
+						nextent();
+					});
+				}
+
+				function symbol(str) {
+					if(str.charAt(0) == '#') {
+						var lbl = str.substr(1);
+						if(!(lbl in lbls)) {
+							var err = ' ** Symbol ' + lbl + ' not defined';
+							throw err;
+						}
+						return lbls[lbl];
+					}
+					if(str.charAt(0) == '$') {
+						var sym = str.substr(1);
+						if(!(sym in Root.Apex)) {
+							var err = ' ** Symbol ' + sym + ' not defined';
+							throw err;
+						}
+						return Root.Apex[sym];
+					}
+					return str;
+				}
+			}
+		}
+	}
+
 	//-----------------------------------------------------Genesis
 	// Create cache if it does nto exist and populate
 	// This is called only once when a new systems is
@@ -307,39 +530,34 @@ __Nexus = (function() {
 			Root.Apex = cfg.Apex;
 		else
 			Root.Apex = {};
-		scripts();
+		var ikey = 0;
+		if('Scripts' in Config) {
+			var keys = Object.keys(Config.Scripts);
+			nkeys = keys.length;
+		} else {
+			nkeys = 0;
+		}
+		console.log('Scripts', nkeys, Config.Scripts);
+		nextscript();
 
-		//.................................................scripts
-		// Load scripts needed by module
-		function scripts() {
-			var ikey = 0;
-			if('Scripts' in Config) {
-				var keys = Object.keys(Config.Scripts);
-				nkeys = keys.length;
-			} else {
-				nkeys = 0;
-			}
-			nextscript();
-
-			function nextscript() {
+		function nextscript() {
 			//	console.log('..nextscript');
-				if (ikey >= nkeys) {
-					modules();
+			if (ikey >= nkeys) {
+				modules();
+				return;
+			}
+			var key = keys[ikey];
+			ikey++;
+			var q = {};
+			q.Cmd = 'GetFile';
+			q.File = Config.Scripts[key];
+			send(q, Config.pidServer, function(err, r) {
+				if(err) {
+					console.log(' ** ERR:Script error', err);
 					return;
 				}
-				var key = keys[ikey];
-				ikey++;
-				var q = {};
-				q.Cmd = 'GetFile';
-				q.File = Config.Scripts[key];
-				send(q, Config.pidServer, function(err, r) {
-					if(err) {
-						console.log(' ** ERR:Script error', err);
-						return;
-					}
-					script(key, r.Data);
-				});
-			}
+				script(key, r.Data);
+			});
 
 			function script(url, data) {
 				var tag = document.createElement('script');
@@ -352,240 +570,31 @@ __Nexus = (function() {
 			}
 		}
 
+		//.................................................modules
 		function modules() {
-			// Merge npm package dependencies
 			var keys = Object.keys(Config.Modules);
-			var key;
-			var nkeys = keys.length;
-			var ikey = 0;
-			var mod;
-			var modkey;
 			for(var i=0; i<keys.length; i++) {
 				key = keys[i];
 				Root.Apex[key] = genPid();
 			}
-			nextmodule();
+			async.eachSeries(keys, function(key, func) {
+				let mod = Config.Modules[key];
+				genModule(key, mod, addmod);
 
-			function nextmodule() {
-			//	console.log('..nextmodule')
-				if(ikey >= nkeys) {
-					Setup();
-					return;
+				function addmod(err, pid) {
+					if(err) {
+						console.log(' ** ERR:Cannot add mod <' + r.Module + '>');
+					}
+					//TBD: Might want to bail on err
+					console.log('Apex', key, '<=', pid);
+					func();
 				}
-				modkey = keys[ikey];
-				mod = Config.Modules[modkey];
-				ikey++;
-				var com = {};
-				com.Cmd = 'GetModule';
-				com.Module = mod.Module;
-			//	console.log(com);
-				send(com, PidServer, addmodule);
-			}
+			}, Setup);
 
-			function addmodule(err, com) {
-			//	console.log('..addmodule');
-				var ents = {};
-				var lbls = {};
-				var module = com.Module;
-				var zipmod = new JSZip();
-				zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){
-					var dir = zipmod.file(/.*./);
-					css();
-
-					function css() {
-						if(zipmod.file('css.json')) {
-							zip.file('css.json').async('string').then(function(str) {
-								var obj = JSON.parse(str);
-								var keys = Object.keys(obj);
-								async.eachSeries(keys, function(key, func) {
-									if(Css.indexOf(key) >= 0) {
-										func();
-										return;
-									}
-									Css.push(key);
-									var file = obj[key];
-									zip.file(file).async('string').then(function(css) {
-										var tag = document.createElement('link');
-										tag.setAttribute("data-css-url", key);
-										tag.setAttribute("type", 'text/css');
-										var txt = document.createTextNode(css);
-										tag.appendChild(txt);
-										document.head.appendChild(tag);
-
-									/*	var tag = document.createElement('script');
-										tag.setAttribute("data-script-url", key);
-										tag.setAttribute("type", 'text/javascript');
-										var txt = document.createTextNode(scr);
-										tag.appendChild(txt);
-										document.head.appendChild(tag); */
-										func();
-									});
-								}, scripts);
-							});
-						} else {
-							scripts();
-						}
-					}
-
-					function scripts() {
-						if(zipmod.file('scripts.json')) {
-							zip.file('scripts.json').async('string').then(function(str) {
-								var obj = JSON.parse(str);
-								var keys = Object.keys(obj);
-								async.eachSeries(keys, function(key, func) {
-									if(Scripts.indexOf(key) >= 0) {
-										func();
-										return;
-									}
-									Scripts.push(key);
-									var file = obj[key];
-									zip.file(file).async('string').then(function(scr) {
-										var tag = document.createElement('script');
-										tag.setAttribute("data-script-url", key);
-										tag.setAttribute("type", 'text/javascript');
-										var txt = document.createTextNode(scr);
-										tag.appendChild(txt);
-										document.head.appendChild(tag);
-										func();
-									});
-								}, fonts);
-							});
-						} else {
-							fonts();
-						}
-					}
-
-					function fonts() {
-						if(zipmod.file('fonts.json')) {
-							zip.file('fonts.json').async('string').then(function(str) {
-								var obj = JSON.parse(str);
-								var keys = Object.keys(obj);
-								async.eachSeries(keys, function(key, func) {
-									if(key in Fonts) {
-										func();
-										return;
-									}
-									var file = obj[key];
-									zip.file(file).async('string').then(function(str) {
-										var json = JSON.parse(str);
-										var font = new THREE.Font(json);
-										console.log('font', font);
-										Fonts[key] = font;
-										func();
-									});
-								}, schema);
-							});
-						} else {
-							schema();
-						}
-					}
-
-					function schema() {
-						zip.file('schema.json').async('string').then(function(str){
-							compile(str);
-						});
-					}
-				});
-
-				function compile(str) {
-					var schema = JSON.parse(str);
-					ZipCache[module] = zipmod;
-					for (let lbl in schema) {
-						var ent = schema[lbl];
-						if('Par' in mod) {
-							for(key in mod.Par) {
-								ent[key] = mod.Par[key];
-							}
-						}
-						CurrentModule = modkey;
-						ent.Module = module;
-						if(lbl == 'Apex')
-							ent.Pid = Root.Apex[modkey];
-						else
-							ent.Pid = genPid();
-						lbls[lbl] = ent.Pid;
-						ents[lbl] = ent;
-					}
-					var keys = Object.keys(ents);
-					var nkey = keys.length;
-					var ikey = 0;
-					nextent();
-
-					function nextent() {
-						if(ikey >= nkey) {
-							nextmodule();
-							return;
-						}
-						var key = keys[ikey];
-						var ent = ents[key];
-						if('Par' in mod) {
-							for(key in mod.Par) {
-								ent[key] = mod.Par[key];
-							}
-						}
-						ikey++;
-						for (let key in ent) {
-							val = ent[key];
-							if (key == '$Setup') {
-								Root.Setup[ent.Pid.substr(24)] = ent[key];
-								continue;
-							}
-							if (key == '$Start') {
-								Root.Start[ent.Pid.substr(24)] = ent[key];
-								continue;
-							}
-							if(typeof val == 'string')
-								ent[key] = symbol(val);
-							if(Array.isArray(val)) {
-								for (var i = 0; i < val.length; i++) {
-									if (typeof val[i] == 'string')
-										val[i] = symbol(val[i]);
-								}
-								continue;
-							}
-							if(typeof val == 'object') {
-								for(let sym in val) {
-									var tmp = val[sym];
-									if(typeof tmp == 'string')
-										val[sym] = symbol(tmp);
-								}
-							}
-						}
-						var modkey = ent.Module + '/' + ent.Entity;
-						ZipCache[mod] = zipmod;
-						zipmod.file(ent.Entity).async('string').then(function(str){
-							var mod = eval(str);
-							ModCache[modkey] = mod;
-							EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
-							nextent();
-						});
-					}
-
-					function symbol(str) {
-						if(str.charAt(0) == '#') {
-							var lbl = str.substr(1);
-							if(!(lbl in lbls)) {
-								var err = ' ** Symbol ' + lbl + ' not defined';
-								throw err;
-							}
-							return lbls[lbl];
-						}
-						if(str.charAt(0) == '$') {
-							var sym = str.substr(1);
-							if(!(sym in Root.Apex)) {
-								var err = ' ** Symbol ' + sym + ' not defined';
-								throw err;
-							}
-							return Root.Apex[sym];
-						}
-						return str;
-					}
-				}
-			}
 		}
 
-		//---------------------------------------------------------start
-		function Setup() {
+		//-------------------------------------------------Setup
+		function Setup(err) {
 			console.log('--Nexus/Setup');
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
@@ -610,7 +619,7 @@ __Nexus = (function() {
 			}
 		}
 
-		//---------------------------------------------------------Start
+		//-----------------------------------------------------Start
 		function Start() {
 			console.log('--Nxs/Start');
 			var pids = Object.keys(Root.Start);
@@ -635,7 +644,7 @@ __Nexus = (function() {
 			}
 		}
 
-		//-----------------------------------------------------Run
+		//-------------------------------------------------Run
 		function Run() {
 			console.log('--Nxs/Run');
 		}

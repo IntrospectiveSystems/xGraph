@@ -1,0 +1,31 @@
+{
+  "Modules":{
+	"View":{
+	  "Module":"xGraph:Web/View3D",
+	  "Par": {
+		"Scene":"$Scene",
+		"Div":"Grok",
+		"Gen": {
+		  "X3D": "$X3D"
+		}
+	  }
+	},
+	"Mouse":{
+	  "Module":"xGraph:Web/Mouse",
+	  "Par":{
+		"Div":"Grok",
+		"View":"$View"
+	  }
+	},
+	"X3D":{
+	  "Module":"xGraph:Web/X3D",
+	  "Par":{
+	  }
+	},
+	"Menu":{
+	  "Module":"xGraph:Web/Menu",
+	  "Par":{
+	  }
+	}
+  }
+}

@@ -55,22 +55,10 @@
 				return;
 			}
 			Vlt.Browser = JSON.parse(data.toString());
-			getcss();
+			getscripts();
 		});
 
-		function getcss() {
-			fs.readFile('css.json', function(err, data) {
-				if(err) {
-					console.log(' ** ERR:Cannot read css.json');
-					fun(err);
-					return;
-				}
-				Vlt.Browser.Css = JSON.parse(data.toString());
-				getscr();
-			})
-		}
-
-		function getscr() {
+		function getscripts() {
 			fs.readFile('scripts.json', function(err, data) {
 				if(err) {
 					console.log(' ** ERR:Cannot read script.json');
