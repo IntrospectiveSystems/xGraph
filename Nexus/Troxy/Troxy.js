@@ -4,7 +4,7 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		"*":Proxy
+		"*": Proxy
 	};
 
 	return {
@@ -68,6 +68,15 @@
 			console.log("No Role...");
 			fun();
 		}
+		if (!("started" in this.Vlt))
+			this.Vlt.started = false;
+		setInterval(() => {
+			if (this.Vlt.started) return;
+			if (!this.Par.Optional) return;
+			console.log('--Nexus/Troxy Connection timeout, moving on...');
+			this.Vlt.started = true;
+			fun(null, com);
+		}, 3000);
 
 		function server() {
 			var STX = 2;
@@ -131,6 +140,7 @@
 			});
 
 			sock.on('connect', function () {
+				that.Vlt.started = true;
 				console.log('Proxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
@@ -190,7 +200,7 @@
 
 
 	function Start(com, fun) {
-		if (!(this.Par.Start) && ("Setup" in this.Par)){
+		if (!(this.Par.Start) && ("Setup" in this.Par) && !this.Vlt.started){
 			fun();
 			return;
 		}
@@ -278,12 +288,24 @@
 			default:{
 				console.log("Not sure what your role is...");
 			}
-
-			if (!(Par.Role)) {
-				console.log("No Role...");
-				fun();
-			}
 		}
+
+
+		if (err)
+			console.log(' ** ERR:' + err);
+		if (!(Par.Role)) {
+			console.log("No Role...");
+			fun();
+		}
+		if (!("started" in this.Vlt))
+			this.Vlt.started = false;
+		setInterval(() => {
+			if (this.Vlt.started) return;
+			if (!this.Par.Optional) return;
+			console.log('--Nexus/Troxy Connection timeout, moving on...');
+			this.Vlt.started = true;
+			fun(null, com);
+		}, 3000);
 
 		function server() {
 			var STX = 2;
@@ -347,6 +369,7 @@
 			});
 
 			sock.on('connect', function () {
+				that.Vlt.started = true;
 				console.log('Troxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
