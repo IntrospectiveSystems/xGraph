@@ -106,6 +106,7 @@
 
 				startSystem(system, (systemPid) => {
 					let child = that.Vlt.Systems[systemPid].Process;
+
 					child.stdout.on('data', (data) => {
 						console.log(system.Name + ': ' + data.toString());
 					});
@@ -116,8 +117,9 @@
 					child.on('error', (err) => {
 						console.log(err);
 					});
-					child.on('close', (code) => {
-						console.log(code);
+					child.on('exit', (code) => {
+						console.log(systemPid, ': exited with code: ', code, ', removing from systems cache');
+						delete that.Vlt.Systems[systemPid];
 					});
 					func();
 				});
@@ -154,14 +156,13 @@
 	function Stop(com, fun) {
 		var that = this;
 		if ('System' in com && com.System in that.Vlt.Systems) {
-			// TODO:
-			// Send command to system to close
-			// Remove from Systems list
-			if(fun) fun(null, com);
+			// TODO: Change to send message to child allowing it to handle closing gracefully
+			let child = that.Vlt.Systems[com.System].Process;
+			child.kill();
+			delete(that.Vlt.Systems[com.System]);
 		}
-
+		if(fun) fun(null, com);
 	}
-
 
 
 	function SetSystems(com, fun) {
@@ -179,7 +180,6 @@
 			com.Info = {};
 			com.Info.Systems = that.Par.Systems;
 			// TODO: Parse live system list into object with only systemPids
-			//com.Info.Live = systemPids
 			if (fun) fun(null, com);
 		}
 
