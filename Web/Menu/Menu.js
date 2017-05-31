@@ -20,28 +20,24 @@
 
 	function Start(com, fun) {
 		console.log('--Menu/Start');
-		var css = {};
-		css.position = 'absolute';
-		css.backgroundColor = "white";
-		css.fontWeight = 'bold';
-		css.width = '160px';
-		css.height = '210px';
-		css.zIndex = 100001;
-		css.visibility = 'visible';
-		var q = {};
-		q.Cmd = 'Menu';
-		q.CSS = css;
-		q.Size = [100, 66];
-		q.Loc = [400, 100];
-		q.Title = 'Action';
-		q.Items = [];
-		q.Items.push('Export');
-		q.Items.push('Delete');
-		Menu.call(this, q, fun);
-	//	if (fun)
-	//		fun(null, com);
+		if (fun)
+			fun(null, com);
 	}
 
+	//-----------------------------------------------------Menu
+	// Display ephemeral menu
+	// {
+	//	Cmd: 'Menu'
+	//	Pid: <pid to send response>
+	//	CSS: { css styls objects }
+	//  Size: [w, h]
+	//	Loc: [x, y],
+	//	Title: <string>
+	//	Itemm [<list of items>]
+	// }
+	//
+	// Sends 'MenuSelect' message to Pid entity with
+	// 'Item' attribute set to selected text.
 	function Menu(com, fun) {
 		console.log('--Menu/Menu');
 		var that = this;
@@ -84,7 +80,7 @@
 		exitLabel.innerText = 'X';
 		exitLabel.onclick = function (ev) {
 			div.parentNode.removeChild(div);
-			Nxs.delEntity(that.Par.Pid);
+		//	Nxs.delEntity(that.Par.Pid);
 			ev.stopPropagation();
 		};
 		exitDiv.appendChild(exitLabel);
@@ -117,6 +113,10 @@
 				console.log(ev);
 				var slct = ev.target.innerHTML;
 				console.log('slct', slct);
+				var q = {};
+				q.Cmd = 'MenuSelect';
+				q.Item = slct;
+				that.send(q, com.Pid);
 			};
 			console.log('adding', item);
 			list.appendChild(listItem);
@@ -125,6 +125,9 @@
 		list.style.top = hex + 'px';
 		list.style.fontSize = '16px';
 		div.appendChild(list);
+		let wlist = list.offsetWidth;
+		let hlist = list.offsetHeight;
+		console.log('wlist, hlist', wlist, hlist);
 		if(fun)
 			fun(null, com);
 	}

@@ -145,6 +145,7 @@
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
+						console.log('cmd', JSON.stringify(Object.keys(cmd)));
 						if (cmd) {
 							com = cmd;
 						}

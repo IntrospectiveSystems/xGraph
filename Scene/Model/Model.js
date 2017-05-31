@@ -9,6 +9,7 @@
 		GetGraph: GetGraph,
 		GetModel: GetModel,
 		Move: Move,
+		Evoke: Evoke,
 		Save: Save
 	};
 
@@ -121,6 +122,30 @@
 		this.send(q, Vlt.Scene);
 		if(fun)
 			fun(null, com);
+	}
+
+	//-----------------------------------------------------Evoke
+	function Evoke(com, fun) {
+		var Par = this.Par;
+		com.Module = {};
+		com.Module.Module = 'xGraph:Web/Menu';
+		var par = {};
+		var css = {};
+		css.position = 'absolute';
+		css.backgroundColor = "white";
+		css.fontWeight = 'bold';
+		css.width = '160px';
+		css.height = '210px';
+		css.zIndex = 100001;
+		css.visibility = 'visible';
+		par.CSS = css;
+		par.Loc = [400, 100];
+		par.Title = 'Action';
+		par.Pid = Par.Pid;
+		par.Items = [];
+		par.Items.push('Export', 'Delete');
+		com.Module.Par = par;
+		fun(null, com);
 	}
 
 	//-----------------------------------------------------Save

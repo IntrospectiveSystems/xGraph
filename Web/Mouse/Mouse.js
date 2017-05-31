@@ -454,18 +454,70 @@
 			return;
 
 			function evoke() {
+				console.log('info', JSON.stringify(info, null, 2));
+				info.Cmd = 'Evoke';
+				that.send(info, info.Pid, reply);
+
+				function reply(err, q) {
+					console.log('..reply', JSON.stringify(q, null, 2));
+					if('Module' in q) {
+						that.Nxs.genModule(q.Module, done);
+					}
+				}
+
+				function done(err, pid) {
+					console.log('..done', pid);
+				}
+			}
+		}
+/*
+			function evokez() {
+				console.log('..evoke', info);
+				var css = {};
+				css.position = 'absolute';
+				css.backgroundColor = "white";
+				css.fontWeight = 'bold';
+				css.width = '160px';
+				css.height = '210px';
+				css.zIndex = 100001;
+				css.visibility = 'visible';
+				var q = {};
+				q.Cmd = 'Menu';
+				q.Pid = Par.Pid;
+				q.CSS = css;
+				q.Size = [100, 66];
+				q.Loc = [400, 100];
+				q.Title = 'Action';
+				q.Items = [];
+				q.Items.push('Export');
+				q.Items.push('Delete');
+				that.send(q, Par.Menu, reply);
+
+				function reply(err, r) {
+					if(err) {
+						console.log(' ** ERR/Evoke:' + err);
+						return;
+					}
+					console.log(JSON.stringify(r, null, 2));
+				}
+			}
+
+			function evoke() {
 				console.log('..evoke', info);
 				Vew.Mouse.Mode = 'Idle';
 				var q = {};
 				q.Cmd = 'Evoke';
 				q.Instance = info.Pid;
+				console.log('q', q);
 				that.send(q, Par.View, reply);
 			}
 
 			function reply(err, q) {
 				console.log('..reply', q);
 			}
+
 		}
+*/
 		function Evokex(info) {
 			if(info.Action == 'Harvest') {
 				info.Keys.push('Idle.RightMouseDown.Thing');

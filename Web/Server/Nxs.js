@@ -20,7 +20,10 @@ __Nexus = (function() {
 	var Nxs = {
 		genPid: genPid,
 		genEntity: genEntity,
-		delEntity: delEntity
+		delEntity: delEntity,
+		genModule: genModule,
+		send: send,
+		getFont: getFont
 	}
 	var MsgFifo = [];
 	var MsgPool = {};
