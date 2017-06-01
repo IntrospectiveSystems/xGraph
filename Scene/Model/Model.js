@@ -155,15 +155,27 @@
 		console.log('--Model/MenuSelect');
 		console.log('com', JSON.stringify(com, null, 2));
 		console.log('Par', this.Par);
-		var pidWorld = this.Nxs.getGlobal('World');
-		console.log('World', pidWorld);
+		var that = this;
+		var pidExport = this.Nxs.getGlobal('Export');
+		console.log('Export', pidExport);
 		var Par = this.Par;
-		var q = {};
-		q.Cmd = 'ImportModel';
-		q.Name = Par.Name;
-		this.send(q, pidWorld);
-		if(fun)
-			fun(null, com);
+		var path = 'models/' + Par.Name;
+		fs.readFile(path, function(err, data) {
+			if(err) {
+				console.log(' ** MenuSelect:' + err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Cmd = 'AddModel';
+			q.Name = Par.Name;
+			q.Position = [0, 0, 0];
+			q.Model = data.toString();
+			that.send(q, pidExport);
+			if(fun)
+				fun(null, com);
+		});
 	}
 
 	//-----------------------------------------------------Save

@@ -9,6 +9,7 @@
 		AddModel: AddModel,
 		GetGraph: GetGraph,
 		SetPosition: SetPosition,
+		ImportModel: ImportModel,
 		'*': Relay
 	};
 
@@ -47,7 +48,7 @@
 		mod.Par = {};
 		mod.Par.Position = com.Position;
 		mod.Par.Name = com.Name;
-		var path = path = 'models/' + com.Name;
+		var path = 'models/' + com.Name;
 		console.log('path', path);
 		fs.exists('models', function(yes) {
 			if(yes) {

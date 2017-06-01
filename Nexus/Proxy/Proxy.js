@@ -292,6 +292,7 @@
 							if(Vlt.Fun)
 								Vlt.Fun(null, com);
 						} else {
+							console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
 							that.send(com, Par.Link);
 						}
 						break;

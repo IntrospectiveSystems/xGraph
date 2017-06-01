@@ -143,6 +143,7 @@
 	// Send message to an entity in the current systems (bag)
 	// If call back provided, return to sender
 	function sendMessage(com, fun) {
+		//console.log('--sendMessage', com.Cmd, com.Passport);
 		if(!('Passport' in com)) {
 			console.log(' ** ERR:Message has no Passport, ignored');
 			console.trace();
@@ -367,8 +368,6 @@
 					com.Passport.From = Par.Pid;
 				com.Passport.Pid = genPid();
 			}
-			if(com.Cmd == 'ImportModel')
-				console.log('ZZZ', pid, JSON.stringify(com, null, 2));
 			Nxs.sendMessage(com, fun);
 		}
 
