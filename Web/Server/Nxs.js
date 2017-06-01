@@ -9,7 +9,7 @@ __Nexus = (function() {
 	var PidTop;
 	var PidStart;
 	var Config;
-//	var CurrentModule;
+	var CurrentModule;
 	var EntCache = {};
 	var ModCache = {};
 	var ZipCache = {};
@@ -294,7 +294,7 @@ __Nexus = (function() {
 	}
 
 	//-------------------------------------------------addModeul
-	function genModule(modkey, mod, fun) {
+	function genModule(mod, fun) {
 		console.log('..addmodule');
 		console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
@@ -423,11 +423,12 @@ __Nexus = (function() {
 							ent[key] = mod.Par[key];
 						}
 					}
-					//	CurrentModule = modkey;
 					ent.Module = module;
+					//Note: CurrentModule is only used in initial processing
+					//      of browser.json
 					if(lbl == 'Apex') {
-						if(modkey)
-							ent.Pid = Root.Apex[modkey];
+						if(CurrentModule)
+							ent.Pid = Root.Apex[CurrentModule];
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
@@ -579,7 +580,8 @@ __Nexus = (function() {
 			}
 			async.eachSeries(keys, function(key, func) {
 				let mod = Config.Modules[key];
-				genModule(key, mod, addmod);
+				CurrentModule = key;
+				genModule(mod, addmod);
 
 				function addmod(err, pid) {
 					if(err) {
@@ -647,6 +649,7 @@ __Nexus = (function() {
 		//-------------------------------------------------Run
 		function Run() {
 			console.log('--Nxs/Run');
+			CurrentModule = null;
 		}
 	}
 
