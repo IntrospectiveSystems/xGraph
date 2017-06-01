@@ -1,3 +1,4 @@
+//# sourceURL='Proxy.js'
 (function Proxy() {
 
 	//-----------------------------------------------------dispatch
@@ -109,6 +110,9 @@
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
 
+				// var msg = Vlt.STX + JSON.stringify({Cmd:"SomethingCool",Passport:{}}) + Vlt.ETX;
+				// sock.write(msg);
+
 				sock.on('error', (err) => {
 					console.log(' ** ERR2:' + err);
 					console.log('    Proxy:' + Par.Chan);
@@ -136,7 +140,7 @@
 								break;
 							case 1:
 								i2 = i;
-								let str = data.toString()
+								let str = data.toString();
 								if(data[i] == ETX) {
 									Buf += data.toString('utf8', i1, i2);
 									var obj = JSON.parse(Buf);
@@ -289,8 +293,8 @@
 						Vlt.State = 0;
 						var com = JSON.parse(Vlt.Buf);
 						if('Reply' in com.Passport) {
-							if(Vlt.Fun)
-								Vlt.Fun(null, com);
+							if(Vlt.Fun[com.Passport.Pid])
+								Vlt.Fun[com.Passport.Pid](null, com);
 						} else {
 							that.send(com, Par.Link);
 						}
@@ -299,6 +303,8 @@
 			});
 		}
 	}
+
+
 
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
@@ -333,8 +339,18 @@
 				var sock = Vlt.Socks[i];
 				sock.write(msg);
 			}
-			if(fun)
-				fun(null, com);
+
+			if (!(Vlt.Fun))
+				Vlt.Fun={};
+
+			if(fun) {
+				Vlt.Fun[com.Passport.Pid] = fun;
+				com.Passport.Disp = 'Query';
+			}
+			else {
+				Vlt.Fun[com.Passport.Pid] = null;
+			}
+
 		}
 
 		function client() {
@@ -348,11 +364,15 @@
 					fun('Proxy not connected');
 				return;
 			}
+			if (!(Vlt.Fun))
+				Vlt.Fun={};
+
 			if(fun) {
-				Vlt.Fun = fun;
+				Vlt.Fun[com.Passport.Pid] = fun;
 				com.Passport.Disp = 'Query';
-			} else {
-				Vlt.Fun = null;
+			}
+			else {
+				Vlt.Fun[com.Passport.Pid] = null;
 			}
 			var str = JSON.stringify(com);
 			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
