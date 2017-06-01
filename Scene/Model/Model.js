@@ -10,6 +10,7 @@
 		GetModel: GetModel,
 		Move: Move,
 		Evoke: Evoke,
+		MenuSelect: MenuSelect,
 		Save: Save
 	};
 
@@ -75,7 +76,7 @@
 
 	//-----------------------------------------------------GetModel
 	function GetModel(com, fun) {
-		console.log('..Instance/GetModel');
+		console.log('..Model/GetModel');
 		var Par = this.Par;
 		if(!'Name' in Par) {
 			var err = 'No model provided';
@@ -139,19 +140,36 @@
 		css.zIndex = 100001;
 		css.visibility = 'visible';
 		par.CSS = css;
+		par.pidSelect = Par.Pid;
 		par.Loc = [400, 100];
 		par.Title = 'Action';
-		par.Pid = Par.Pid;
+		par.Ephemeral = true;
 		par.Items = [];
 		par.Items.push('Export', 'Delete');
 		com.Module.Par = par;
 		fun(null, com);
 	}
 
+	//-----------------------------------------------------MenuSelect
+	function MenuSelect(com, fun) {
+		console.log('--Model/MenuSelect');
+		console.log('com', JSON.stringify(com, null, 2));
+		console.log('Par', this.Par);
+		var pidWorld = this.Nxs.getGlobal('World');
+		console.log('World', pidWorld);
+		var Par = this.Par;
+		var q = {};
+		q.Cmd = 'ImportModel';
+		q.Name = Par.Name;
+		this.send(q, pidWorld);
+		if(fun)
+			fun(null, com);
+	}
+
 	//-----------------------------------------------------Save
 	// Save module
 	function Save(com, fun) {
-		console.log('--Instance/Save', com);
+		console.log('--ModelSave', com);
 		this.save(pau);
 
 		function pau(err) {

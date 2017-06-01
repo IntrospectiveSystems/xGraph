@@ -10,6 +10,7 @@ __Nexus = (function() {
 	var PidStart;
 	var Config;
 	var CurrentModule;
+	var Initializers = {};
 	var EntCache = {};
 	var ModCache = {};
 	var ZipCache = {};
@@ -296,9 +297,61 @@ __Nexus = (function() {
 		return pid;
 	}
 
-	//-------------------------------------------------addModeul
+	//-------------------------------------------------genModule
+	// This is the version used to install modules
+	// after startup, such as web dashboards and such.
+	// It provides for safe setup and start which is
+	// handled by Nxs for modules instantiated initially.
 	function genModule(mod, fun) {
-		console.log('..addmodule');
+		var pidapx;
+		Initializers = {};
+		addModule(mod, setup);
+
+		function setup(err, pid) {
+			console.log('pid', pid);
+			console.log('Initializers', Initializers);
+			pidapx = pid;
+			if(err) {
+				console.log(' ** genModule:' + err);
+				fun(err);
+				return;
+			}
+			if ('Setup' in Initializers) {
+				var q = {};
+				q.Cmd = Initializers.Setup;
+				send(q, pidapx, start);
+			} else {
+				start();
+			}
+		}
+
+		function start(err, r ) {
+			if(err) {
+				console.log(' ** genModule:' + err);
+				fun(err);
+				return;
+			}
+			if('Start' in Initializers) {
+				var q = {};
+				q.Cmd = Initializers.Start;
+				send(q, pidapx, pau);
+			} else {
+				pau();
+			}
+		}
+
+		function pau(err, r) {
+			if(err) {
+				console.log(' ** genModule:' + err);
+			}
+			fun(err, pidapx);
+		}
+
+	}
+
+	//-------------------------------------------------addModeul
+	function addModule(mod, fun) {
+		console.log('..addModule');
 		console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
@@ -426,7 +479,7 @@ __Nexus = (function() {
 							ent[key] = mod.Par[key];
 						}
 					}
-					ent.Module = module;
+					ent.Module = mod.Module;
 					//Note: CurrentModule is only used in initial processing
 					//      of browser.json
 					if(lbl == 'Apex') {
@@ -435,6 +488,7 @@ __Nexus = (function() {
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
+						console.log('Apex', ent);
 					} else {
 						ent.Pid = genPid();
 					}
@@ -462,10 +516,13 @@ __Nexus = (function() {
 					for (let key in ent) {
 						val = ent[key];
 						if (key == '$Setup') {
+							console.log('ent', ent);
+							Initializers.Setup = ent[key];
 							Root.Setup[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
 						if (key == '$Start') {
+							Initializers.Start = ent[key];
 							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
@@ -584,7 +641,7 @@ __Nexus = (function() {
 			async.eachSeries(keys, function(key, func) {
 				let mod = Config.Modules[key];
 				CurrentModule = key;
-				genModule(mod, addmod);
+				addModule(mod, addmod);
 
 				function addmod(err, pid) {
 					if(err) {

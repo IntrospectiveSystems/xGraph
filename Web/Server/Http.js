@@ -137,7 +137,7 @@
 						return;
 					}
 
-					com.Passport.User = obj.User;
+				//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
 						that.Nxs.send(com, com.Passport.To);
 						return;
@@ -145,7 +145,6 @@
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
-						console.log('cmd', JSON.stringify(Object.keys(cmd)));
 						if (cmd) {
 							com = cmd;
 						}

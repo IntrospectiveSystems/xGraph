@@ -29,6 +29,14 @@
 			fun();
 	}
 
+	//-----------------------------------------------------ImportModel
+	function ImportModel(com, fun) {
+		console.log('--World/ImportModel');
+		console.log(JSON.stringify(com, null, 2));
+		if(fun)
+			fun(null, com);
+	}
+
 	//-----------------------------------------------------AddModel
 	function AddModel(com, fun) {
 		console.log('--World/AddModel');

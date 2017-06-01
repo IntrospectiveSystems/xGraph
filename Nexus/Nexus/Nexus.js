@@ -367,6 +367,8 @@
 					com.Passport.From = Par.Pid;
 				com.Passport.Pid = genPid();
 			}
+			if(com.Cmd == 'ImportModel')
+				console.log('ZZZ', pid, JSON.stringify(com, null, 2));
 			Nxs.sendMessage(com, fun);
 		}
 
