@@ -144,7 +144,6 @@
 				console.log('Proxy - Connected on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				fun();
-
 			});
 
 			sock.on('error', (err) => {
@@ -441,13 +440,17 @@
 		var str = JSON.stringify(com);
 		var msg = Vlt.STX + str + Vlt.ETX;
 		sock.write(msg);
+
 		if (!(Vlt.Fun))
 			Vlt.Fun={};
 
-		if(fun)
+		if(fun) {
 			Vlt.Fun[com.Passport.Pid] = fun;
-		else
+			com.Passport.Disp = 'Query';
+		}
+		else {
 			Vlt.Fun[com.Passport.Pid] = null;
+		}
 	}
 
 })();

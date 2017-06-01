@@ -54,12 +54,17 @@
 			return;
 		}
 		var port;
+
+		console.log(Vlt.Ports, "is the set of taken ports");
 		if(com.Chan == 'Plexus') {
 			port = 27000;
 		} else {
 			for(var iport=27001; iport<27099; iport++) {
-				if(iport in Vlt.Ports)
+				console.log("In Loop");
+				if(Vlt.Ports.indexOf(iport)>-1){
+					console.log("Port" , iport, " is taken");
 					continue;
+				}
 				port = iport;
 				break;
 			}
