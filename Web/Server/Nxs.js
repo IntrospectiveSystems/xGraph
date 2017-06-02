@@ -25,7 +25,7 @@ __Nexus = (function() {
 		genModule: genModule,
 		send: send,
 		getFont: getFont
-	}
+	};
 	var MsgFifo = [];
 	var MsgPool = {};
 	var that = this;
@@ -166,7 +166,7 @@ __Nexus = (function() {
 	//--------------------------------------------------------Entity
 	// Entity base class
 	function Entity(nxs, mod, par) {
-		var Nxs = nxs;
+	//	var Nxs = nxs;
 		var Par = par;
 		var Mod = mod;
 		var Vlt = {};
@@ -175,11 +175,12 @@ __Nexus = (function() {
 			Par: Par,
 			Mod: Mod,
 			Vlt: Vlt,
-			Nxs: Nxs,
+	//		Nxs: Nxs,
 			dispatch: dispatch,
 			send: send,
-			getPid: getPid
-		}
+			getPid: getPid,
+			genModule :genModule
+		};
 
 		//-------------------------------------------------dispatch
 		// This is used by Nexus to dispatch incoming messages.
@@ -206,13 +207,19 @@ __Nexus = (function() {
 			return Par.Pid;
 		}
 
+		//generate a module in the local system
+		function genModule(mod, fun){
+
+			nxs.genModule(mod,fun);
+		}
+
 		//-------------------------------------------------send
 		function send(com, pid, fun) {
 			com.Passport = {};
 			if(fun)
 				com.Passport.From = Par.Pid;
 			com.Passport.To = pid;
-			__Nexus.send(com, pid, fun);
+			nxs.send(com, pid, fun);
 		}
 
 		//-------------------------------------------------reply
@@ -349,7 +356,7 @@ __Nexus = (function() {
 
 	}
 
-	//-------------------------------------------------addModeul
+	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
 		console.log('..addModule');
 		console.log(JSON.stringify(mod, null, 2));
@@ -507,21 +514,25 @@ __Nexus = (function() {
 					}
 					var key = keys[ikey];
 					var ent = ents[key];
-					if('Par' in mod) {
-						for(key in mod.Par) {
-							ent[key] = mod.Par[key];
-						}
-					}
+
+					//The below seems to be duplicate code from 484-488
+
+					// if('Par' in mod) {
+					// 	for(key in mod.Par) {
+					// 		ent[key] = mod.Par[key];
+					// 	}
+					// }
 					ikey++;
 					for (let key in ent) {
 						val = ent[key];
 						if (key == '$Setup') {
-							console.log('ent', ent);
+							//it looks like only one setup will be called. should be an array..
 							Initializers.Setup = ent[key];
 							Root.Setup[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
 						if (key == '$Start') {
+							//it looks like only one start will be called. should be an array..
 							Initializers.Start = ent[key];
 							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
@@ -544,7 +555,10 @@ __Nexus = (function() {
 						}
 					}
 					var modkey = ent.Module + '/' + ent.Entity;
-					ZipCache[mod] = zipmod;
+
+					//seems to be duplicate from line 481
+
+					//ZipCache[mod] = zipmod;
 					zipmod.file(ent.Entity).async('string').then(function(str){
 						var mod = eval(str);
 						ModCache[modkey] = mod;
@@ -554,7 +568,8 @@ __Nexus = (function() {
 				}
 
 				function symbol(str) {
-					if(str.charAt(0) == '#') {
+					var esc = str.charAt(0);
+					if(esc == '#') {
 						var lbl = str.substr(1);
 						if(!(lbl in lbls)) {
 							var err = ' ** Symbol ' + lbl + ' not defined';
@@ -562,7 +577,7 @@ __Nexus = (function() {
 						}
 						return lbls[lbl];
 					}
-					if(str.charAt(0) == '$') {
+					if(esc == '$') {
 						var sym = str.substr(1);
 						if(!(sym in Root.Apex)) {
 							var err = ' ** Symbol ' + sym + ' not defined';

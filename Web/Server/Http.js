@@ -30,7 +30,7 @@
 		var port;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		Vlt.Session = this.Nxs.genPid();
+		Vlt.Session = this.genPid();
 		if ('Port' in this.Par)
 			port = this.Par.Port;
 		else
@@ -92,7 +92,7 @@
 				console.log('sock/connection');
 				var pidsock = '';
 				for(var i=0; i<3; i++)
-					pidsock += that.Nxs.genPid().substr(24);
+					pidsock += that.genPid().substr(24);
 				var obj = {};
 				obj.Socket = socket;
 				obj.User = {};
@@ -139,7 +139,7 @@
 
 				//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
-						that.Nxs.send(com, com.Passport.To);
+						that.send(com, com.Passport.To);
 						return;
 					}
 					that.send(com, com.Passport.To, reply);
@@ -178,7 +178,7 @@
 						console.log('--Page/getModule');
 						var that = this;
 						var zip = new jszip();
-						var dir = that.Nxs.genPath(com.Module);
+						var dir = that.genPath(com.Module);
 						var man = [];
 						fs.readdir(dir, function(err, files) {
 							if(err) {
@@ -280,7 +280,7 @@
 		console.log('--Http/getModule', com.Module);
 		var that = this;
 		var zip = new jszip();
-		var dir = that.Nxs.genPath(com.Module);
+		var dir = that.genPath(com.Module);
 		var man = [];
 		fs.readdir(dir, function(err, files) {
 			if(err) {
@@ -290,7 +290,7 @@
 				return;
 			}
 			async.eachSeries(files, build, ship);
-		})
+		});
 
 		function build(file, func) {
 			var path = dir + '/' + file;

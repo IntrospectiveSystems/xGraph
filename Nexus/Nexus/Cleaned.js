@@ -9,7 +9,6 @@
 	var CacheDir;
 	var Config = {};
 	var EntCache = {};
-	var ModuleCache = {};
 	var CurrentModule;
 	var package = {};
 	var scripts = {};
@@ -19,12 +18,12 @@
 		genPid: genPid,
 		genPath: genPath,
 		getGlobal: getGlobal,
-		addModule:addModule,
+		//addModule:addModule,
 		genModule: genModule,
 		genEntity:genEntity,
 		getParameter: getParameter,
 		sendMessage: sendMessage
-	}
+	};
 	console.log('=================================================');
 
 	// Process input arguments and define macro parameters
@@ -173,6 +172,9 @@
 			return;
 		}
 		var to = com.Passport.To;
+		console.log("To is ",to);
+		if (typeof(to) == Object)
+			debugger;
 		if (to.charAt(0) == '$') {
 			var sym = to.substr(1);
 			if (sym in Root.SymTab) {
@@ -313,18 +315,18 @@
 	function Entity(nxs, mod, par) {
 		var Par = par;
 		var Mod = mod;
-		//	var Nxs = nxs;
+	//	var Nxs = nxs;
 		var Vlt = {};
 
 		return {
 			Par: Par,
 			Mod: Mod,
 			Vlt: Vlt,
-			//	Nxs: Nxs,
+		//	Nxs: Nxs,
 			dispatch: dispatch,
 			genModule: genModule,
 			genEntity:genEntity,
-			addModule:addModule,
+			//addModule:addModule,
 			genPid:genPid,
 			genPath:genPath,
 			send: send,
@@ -335,8 +337,8 @@
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
-			//	console.log(Mod);
-			//	console.log('||dispatch', com.Cmd);
+		//	console.log(Mod);
+		//	console.log('||dispatch', com.Cmd);
 			var disp = Mod.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -351,24 +353,6 @@
 		}
 
 		//-------------------------------------------------addModule
-		function addModule(mod, fun) {
-
-			//nxs.addModule(mod, done);
-			nxs.addModule(mod, done);
-
-			function done(err, pidapx) {
-				if(fun) {
-					if(err)
-						fun(err);
-					else
-						fun(null, pidapx);
-				}
-			}
-
-		}
-
-		//-------------------------------------------------genModule
-
 		function genModule(mod, fun) {
 
 			//nxs.addModule(mod, done);
@@ -451,14 +435,12 @@
 			par.Pid = genPid();
 		}
 		var pid8 = par.Pid.substr(24);
-		var module = par.Module;
 		var type = par.Entity;
 		if (type in Mod) {
 			mod = Mod[type];
 			finish();
 		} else {
-			var path = genPath(module+"/"+type);
-			console.log("Path is ", path);
+			var path = __Path(type) + '.js';
 			fs.readFile(path, done);
 
 			function done(err, data) {
@@ -571,7 +553,7 @@
 		if (state != 1)
 			throw 'Curley brackets not matched in __Macro';
 		return s;
-	}
+	};
 
 	//-----------------------------------------------------Genesis
 	// Create cache if it does nto exist and populate
@@ -588,23 +570,18 @@
 		Root.Apex = {};
 		Root.Setup = {};
 		Root.Start = {};
-		// Merge npm package dependencies
-		var keys = Object.keys(Config.Modules);
-		for(let i=0; i<keys.length; i++) {
-			let key = keys[i];
-			var mod = Config.Modules[key];
-			var moddir = genPath(mod.Module);
-			path = moddir + '/package.json';
-			if(fs.existsSync(path)) {
-				let str = fs.readFileSync(path);
-				if(str) {
-					obj = JSON.parse(str);
-					if(!package) {
-						package = obj;
-						continue;
-					}
-					console.log('obj', JSON.stringify(obj, null, 2));
 
+		///we load NEXUS package json and install it
+		var moddir = genPath(Config.Modules.Nexus.Module);
+		path = moddir + '/package.json';
+		if(fs.existsSync(path)) {
+			let str = fs.readFileSync(path);
+			if(str) {
+				obj = JSON.parse(str);
+				if(!package) {
+					package = obj;
+				}else {
+					console.log('obj', JSON.stringify(obj, null, 2));
 
 					if (obj.dependencies) {
 						if (!package.dependencies) package.dependencies = {};
@@ -620,61 +597,11 @@
 								package.devDependencies[key] = obj.devDependencies[key];
 						}
 					}
+				}
 
-				}
-			}
-			// css files
-			path = moddir + '/css.json';
-			if(fs.existsSync(path)) {
-				let str = fs.readFileSync(path);
-				var obj = JSON.parse(str);
-				for(key in obj) {
-					var file = obj[key];
-					path = moddir + '/' + file;
-					if(fs.existsSync(path)) {
-						if(!css)
-							css = {};
-						if(!(key in css)) {
-							var data = fs.readFileSync(path);
-							fs.writeFileSync(file, data);
-							css[key] = file;
-						}
-					} else {
-						console.log(' ** ERR:Css <' + file + '> not available');
-					}
-				}
-			}
-			// script files
-			path = moddir + '/scripts.json';
-			if(fs.existsSync(path)) {
-				let str = fs.readFileSync(path);
-				var obj = JSON.parse(str);
-				for(key in obj) {
-					var script = obj[key];
-					path = moddir + '/' + script;
-					if(fs.existsSync(path)) {
-						if(!scripts)
-							scripts = {};
-						if(!(key in scripts)) {
-							var scr = fs.readFileSync(path);
-							fs.writeFileSync(script, scr);
-							scripts[key] = script;
-						}
-					} else {
-						console.log(' ** ERR:Script <' + script + '> not available');
-					}
-				}
 			}
 		}
-		if(css) {
-			var cssout = JSON.stringify(css, null, 2);
-			fs.writeFileSync('css.json', cssout);
-		}
-		if(scripts) {
-			var scrout = JSON.stringify(scripts, null, 2);
-			fs.writeFileSync('scripts.json', scrout);
-		}
-		// Create node_module folder
+
 		var strout = JSON.stringify(package, null, 2);
 		fs.writeFileSync('package.json', strout);
 		const proc = require('child_process');
@@ -689,27 +616,96 @@
 		ps.on('exit', (code) => {
 			console.log(`npm process exited with code:` + code);
 			console.log('Current working directory:' + process.cwd());
-			if(!Async)
+
+			if (!Async)
 				Async = require('async');
+
 			genPid();	// Generate Pid24 for this Nexus
+
 			fs.mkdirSync(CacheDir);
+
+
 			let keys = Object.keys(Config.Modules);
-			for(var i=0; i<keys.length; i++) {
+			for (var i = 0; i < keys.length; i++) {
 				var key = keys[i];
 				Root.Apex[key] = genPid();
 			}
 			Async.eachSeries(keys, addmod, done);
 
-			function addmod(key, func) {
-				CurrentModule = key;
-				let mod = Config.Modules[key];
-				addModule(mod, func);
-			}
 		});
 
+
+
+
+		function addmod(key, next) {
+			CurrentModule = key;
+			let mod = Config.Modules[key];
+			addModule(mod, writeToCache);
+
+			function writeToCache(err, ents){
+				if (err)
+					fun (err);
+				console.log("Ents are ", ents);
+				var keys = Object.keys(ents);
+				Async.eachSeries(keys, cache, pau);
+
+				function cache(key, func) {
+					var obj = ents[key];
+					var pid = obj.Pid;
+					var path = CacheDir + '/' + pid.substr(24) + '.json';
+					var str = JSON.stringify(obj, null, 2);
+					fs.writeFile(path, str, done);
+
+					function done(err) {
+						if (err)
+							throw err;
+						func();
+					}
+				}
+
+				function pau(err) {
+					if(err) {
+						console.log(' ** ERR:' + err);
+						if(fun)
+							fun(err);
+						return;
+					}
+					next();
+				}
+			}
+
+		}
+
 		function done(err) {
-			CurrentModule = null;
-			saveRoot(fun);
+			if(css) {
+				var cssout = JSON.stringify(css, null, 2);
+				fs.writeFileSync('css.json', cssout);
+			}
+			if(scripts) {
+				var scrout = JSON.stringify(scripts, null, 2);
+				fs.writeFileSync('scripts.json', scrout);
+			}
+			// Create node_module folder
+			var strout = JSON.stringify(package, null, 2);
+			fs.writeFileSync('package.json', strout);
+			const proc = require('child_process');
+			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+			var ps = proc.spawn(npm, ['install']);
+
+			ps.on('error', (err) => {
+				console.log('Failed to start child process.');
+				console.log('err:' + err);
+			});
+
+			ps.on('exit', (code) => {
+				console.log(`npm process exited with code:` + code);
+				console.log('Current working directory:' + process.cwd());
+
+				CurrentModule = null;
+				saveRoot(fun);
+
+			});
+
 		}
 
 		//------------------------------------------------saveroot
@@ -735,143 +731,6 @@
 	// TBD: Deal with addition of new package.json here
 	function addModule(mod, fun)  {
 		console.log('--addModule', mod.Module);
-		var ents = {};
-		var lbls = {};
-		var path = genPath(mod.Module) + '/schema.json';
-		console.log('path', path);
-		var pidapx;
-		fs.exists(path, compile);
-
-		function compile(yes) {
-			if(!yes) {
-				console.log(' ** ERR:No schema **');
-				if(fun)
-					fun();
-				return;
-			}
-			fs.readFile(path, parse);
-
-			function parse(err, data) {
-				if (err) {
-					console.log('File err:' + err);
-					if(fun)
-						fun(err);
-					return;
-				}
-				var schema = JSON.parse(data.toString());
-				for (let lbl in schema) {
-					var obj = schema[lbl];
-					if('Par' in mod) {
-						for(key in mod.Par) {
-							obj[key] = mod.Par[key];
-						}
-					}
-					obj.Module = mod.Module;
-					if(lbl == 'Apex') {
-						if(CurrentModule)
-							obj.Pid = Root.Apex[CurrentModule];
-						else
-							obj.Pid = genPid();
-						pidapx = obj.Pid;
-					} else {
-						obj.Pid = genPid();
-					}
-					lbls[lbl] = obj.Pid;
-					ents[lbl] = obj;
-				}
-				for (let lbl in ents) {
-					var obj = ents[lbl];
-					for(let key in obj) {
-						val = obj[key];
-						if (key == '$Setup') {
-							Root.Setup[obj.Pid.substr(24)] = obj[key];
-							continue;
-						}
-						if (key == '$Start') {
-							Root.Start[obj.Pid.substr(24)] = obj[key];
-							continue;
-						}	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
-						if(typeof val == 'string') {
-							obj[key] = symbol(val);
-							continue;
-						}
-						if(Array.isArray(val)) {
-							for(var i=0; i<val.length; i++) {
-								if(typeof val[i] == 'string')
-									val[i] = symbol(val[i]);
-							}
-							continue;
-						}
-						if(typeof val === 'object') {
-							for(let sym in val) {
-								var tmp = val[sym];
-								if(typeof tmp === 'string')
-									val[sym] = symbol(tmp);
-							}
-							continue;
-						}
-					}
-				}
-				var keys = Object.keys(ents);
-				Async.eachSeries(keys, cache, pau);
-
-				function cache(key, func) {
-					var obj = ents[key];
-					var pid = obj.Pid;
-					var path = CacheDir + '/' + pid.substr(24) + '.json';
-					var str = JSON.stringify(obj, null, 2);
-					fs.writeFile(path, str, done);
-
-					function done(err) {
-						if (err)
-							throw err;
-						func();
-					}
-				}
-
-				function pau(err) {
-					if(err) {
-						console.log(' ** ERR:' + err);
-						if(fun)
-							fun(err);
-						return;
-					}
-					fun(null, pidapx);
-				}
-			}
-
-			function symbol(str) {
-				var esc = str.charAt(0);
-				if(esc == '#') {
-					var sym = str.substr(1);
-					if(sym in lbls) {
-						return lbls[sym];
-					} else {
-						var err = 'Invalide global symbol <' + sym + '>';
-						console.log(' ** ERR:' + err);
-						throw 'Invalid local sysmbol';
-					}
-				}
-				if(esc == '$') {
-					var sym = str.substr(1);
-					if (sym in Root.Apex)
-						return Root.Apex[sym];
-					if(sym in Config)
-						return Config[sym];
-					var err = 'Invalide global symbol <' + sym + '>';
-					console.log(' ** ERR:' + err);
-					throw 'Invalid global symbol';
-				}
-				return str;
-			}
-		}
-	}
-
-
-	function genModule(mod, fun){
-		console.log('--genModule', mod.Module);
-		let Initializers = {};
-
 
 		var moddir = genPath(mod.Module);
 		path = moddir + '/package.json';
@@ -977,9 +836,11 @@
 						}
 					}
 					obj.Module = mod.Module;
-
 					if(lbl == 'Apex') {
-						obj.Pid = genPid();
+						if(CurrentModule)
+							obj.Pid = Root.Apex[CurrentModule];
+						else
+							obj.Pid = genPid();
 						pidapx = obj.Pid;
 					} else {
 						obj.Pid = genPid();
@@ -992,15 +853,11 @@
 					for(let key in obj) {
 						val = obj[key];
 						if (key == '$Setup') {
-							if (!("Setup" in Initializers))
-								Initializers.Setup = {};
-							Initializers.Setup[obj.Pid.substr(24)] = obj[key];
+							Root.Setup[obj.Pid.substr(24)] = obj[key];
 							continue;
 						}
 						if (key == '$Start') {
-							if (!("Start" in Initializers))
-								Initializers.Start = {};
-							Initializers.Start[obj.Pid.substr(24)] = obj[key];
+							Root.Start[obj.Pid.substr(24)] = obj[key];
 							continue;
 						}
 						if(typeof val == 'string') {
@@ -1022,89 +879,10 @@
 							}
 							continue;
 						}
-
 					}
 				}
-
-				Async.eachSeries(Object.keys(ents),buildEnts, setup);
-
-
-				function buildEnts (entKey,next){
-					let entData = ents[entKey];
-					console.log("EntData is ", entData);
-					genEntity(entData, next);
-
-				}
-			}
-
-			function setup() {
-				console.log('--Nexus/PostSetup');
-				var pids = Object.keys(Initializers.Setup);
-				if(!Async)
-					Async = require('async');
-				Async.eachSeries(pids, ssetup, start);
-
-				function ssetup(pid8, func) {
-					//	console.log('..setup', pid8);
-					var q = {};
-					q.Cmd = Initializers.Setup[pid8];
-					var pid = Pid24 + pid8;
-					getEntity(pid, done);
-
-					function done(err, ent) {
-						if(err) {
-							console.log(' ** ERR:' + err);
-							func(err);
-							return;
-						}
-						ent.dispatch(q, reply);
-					}
-
-					function reply(err) {
-						if (err)
-							console.log(" ** Error passed to Nexus' async Setup"+err);
-						func(err);
-					}
-				}
-			}
-
-			//---------------------------------------------------------Start
-			function start() {
-				console.log('--Nexus/PostStart');
-				var pids = Object.keys(Root.Start);
-				console.log(pids);
-				Async.eachSeries(pids, sstart, pau);
-
-				function sstart(pid8, func) {
-					console.log('..start', pid8);
-
-					var q = {};
-					q.Cmd = Root.Start[pid8];
-					var pid = Pid24 + pid8;
-					getEntity(pid, done);
-
-					function done(err, ent) {
-						if(err) {
-							console.log(' ** ERR:' + err);
-							func(err);
-							return;
-						}
-						ent.dispatch(q, reply);
-					}
-
-					function reply(err) {
-						if (err)
-							console.log(" ** Error passed to Nexus' async Setup"+err);
-						func(err);
-					}
-				}
-			}
-
-			function pau(err, r) {
-				if(err) {
-					console.log(' ** genModule:' + err);
-				}
-				fun(err, pidapx);
+				if (fun)
+					fun(err, ents);
 			}
 
 			function symbol(str) {
@@ -1132,8 +910,62 @@
 				return str;
 			}
 		}
+	}
+
+
+
+
+
+	function genModule(mod,fun){
+
+		var pidapx;
+		Initializers = {};
+		addModule(mod, setup);
+
+		function setup(err, pid) {
+			console.log('pid', pid);
+			console.log('Initializers', Initializers);
+			pidapx = pid;
+			if(err) {
+				console.log(' ** genModule:' + err);
+				fun(err);
+				return;
+			}
+			if ('Setup' in Initializers) {
+				var q = {};
+				q.Cmd = Initializers.Setup;
+				send(q, pidapx, start);
+			} else {
+				start();
+			}
+		}
+
+		function start(err, r ) {
+			if(err) {
+				console.log(' ** genModule:' + err);
+				fun(err);
+				return;
+			}
+			if('Start' in Initializers) {
+				var q = {};
+				q.Cmd = Initializers.Start;
+				send(q, pidapx, pau);
+			} else {
+				pau();
+			}
+		}
+
+		function pau(err, r) {
+			if(err) {
+				console.log(' ** genModule:' + err);
+			}
+			fun(err, pidapx);
+		}
+
+
 
 	}
+
 
 	//-----------------------------------------------------Initialize
 	function Initialiate(fun) {

@@ -93,6 +93,7 @@
 		this.send(com, Par.Terrain, models);
 
 		function models(err) {
+			console.log("in models", Par.Inst);
 			if(err) {
 				console.log(' ** ERR:' + err);
 				if(fun)
@@ -103,6 +104,7 @@
 		}
 
 		function instance(pidmod, func) {
+			debugger;
 			that.send(com, pidmod, func);
 		}
 
