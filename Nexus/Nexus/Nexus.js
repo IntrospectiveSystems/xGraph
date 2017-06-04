@@ -11,6 +11,7 @@
 	var EntCache = {};
 	var ModuleCache = {};
 	var CurrentModule;
+	var Initializers = {};
 	var package = {};
 	var scripts = {};
 	var css = {};
@@ -19,7 +20,6 @@
 		genPid: genPid,
 		genPath: genPath,
 		getGlobal: getGlobal,
-		addModule:addModule,
 		genModule: genModule,
 		genEntity:genEntity,
 		getParameter: getParameter,
@@ -324,7 +324,7 @@
 			dispatch: dispatch,
 			genModule: genModule,
 			genEntity:genEntity,
-			addModule:addModule,
+		//	addModule:addModule,
 			genPid:genPid,
 			genPath:genPath,
 			send: send,
@@ -350,43 +350,49 @@
 			fun('Nada', com);
 		}
 
-		//-------------------------------------------------addModule
-		function addModule(mod, fun) {
-
-			//nxs.addModule(mod, done);
-			nxs.addModule(mod, done);
-
-			function done(err, pidapx) {
-				if(fun) {
-					if(err)
-						fun(err);
-					else
-						fun(null, pidapx);
-				}
-			}
-
-		}
-
 		//-------------------------------------------------genModule
-
+		// Generate module and return (err, pidapx);
 		function genModule(mod, fun) {
-
-			//nxs.addModule(mod, done);
+			console.log('--Entity/genModule');
 			nxs.genModule(mod, done);
 
-			function done(err, pidapx) {
-				if(fun) {
-					if(err)
-						fun(err);
-					else
+			function done(err, pidapx, init) {
+				console.log('..done', pidapx, init);
+				if(err) {
+					console.log(' ** Entity/genModule:' + err);
+					fun();
+					return;
+				}
+				if('Setup' in init) {
+					var q = {};
+					q.Cmd = init.Setup;
+					send(q, pidapx, start);
+				} else {
+					start();
+				}
+
+				function start(err, r) {
+					if('Start' in init) {
+						var q = {};
+						q.Cmd = init.Start;
+						send(q, pidapx, pau);
+					} else {
 						fun(null, pidapx);
+					}
+				}
+
+				function pau(err, r) {
+					if(err) {
+						console.log(' ** Entity/genmodule:' + err);
+						fun(err);
+					}
+					fun(null, pidapx);
 				}
 			}
 
 		}
 
 		function genEntity(par,fun){
-
 			nxs.genEntity(par, fun);
 		}
 
@@ -431,6 +437,73 @@
 		// Return Pid of entity
 		function getPid() {
 			return Par.Pid;
+		}
+
+	}
+
+	//-------------------------------------------------genModule
+	// This is the version used to install modules
+	// after startup, such as web dashboards and such.
+	// It provides for safe setup and start which is
+	// handled by Nxs for modules instantiated initially.
+	// TBD: If modules saved, Initializers will need to be
+	//      added to the Start and Setup lists in Root
+	function genModule(mod, fun) {
+		console.log('--genModule', mod);
+		var pidapx;
+		Initializers = {};
+		addModule(mod, done);
+
+		function done(err, pid) {
+			if(err) {
+				console.log(' ** genModule/done:' + err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			fun(null, pid, Initializers);
+		}
+
+		function setup(err, pid) {
+			console.log('..genModule/setup');
+			console.log('pid', pid);
+			console.log('Initializers', Initializers);
+			pidapx = pid;
+			if(err) {
+				console.log(' ** genModule:' + err);
+				fun(err);
+				return;
+			}
+			if ('Setup' in Initializers) {
+				var q = {};
+				q.Cmd = Initializers.Setup;
+				send(q, pidapx, start);
+			} else {
+				start();
+			}
+		}
+
+		function start(err, r ) {
+			console.log('..genModeul.start');
+			if(err) {
+				console.log(' ** genModule:' + err);
+				fun(err);
+				return;
+			}
+			if('Start' in Initializers) {
+				var q = {};
+				q.Cmd = Initializers.Start;
+				send(q, pidapx, pau);
+			} else {
+				pau();
+			}
+		}
+
+		function pau(err, r) {
+			if(err) {
+				console.log(' ** genModule:' + err);
+			}
+			fun(err, pidapx);
 		}
 
 	}
@@ -785,10 +858,12 @@
 						val = obj[key];
 						if (key == '$Setup') {
 							Root.Setup[obj.Pid.substr(24)] = obj[key];
+							Initializers.Setup = obj[key];
 							continue;
 						}
 						if (key == '$Start') {
 							Root.Start[obj.Pid.substr(24)] = obj[key];
+							Initializers.Start = obj[key];
 							continue;
 						}	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
 						if(typeof val == 'string') {
@@ -865,274 +940,6 @@
 				return str;
 			}
 		}
-	}
-
-
-	function genModule(mod, fun){
-		console.log('--genModule', mod.Module);
-		let Initializers = {};
-
-
-		var moddir = genPath(mod.Module);
-		path = moddir + '/package.json';
-		if(fs.existsSync(path)) {
-			let str = fs.readFileSync(path);
-			if(str) {
-				obj = JSON.parse(str);
-				if(!package) {
-					package = obj;
-				}else {
-					console.log('obj', JSON.stringify(obj, null, 2));
-
-					if (obj.dependencies) {
-						if (!package.dependencies) package.dependencies = {};
-						for (key in obj.dependencies) {
-							if (!(key in package.dependencies))
-								package.dependencies[key] = obj.dependencies[key];
-						}
-					}
-					if (obj.devDependencies) {
-						if (!package.devDependencies) package.devDependencies = {};
-						for (key in obj.devDependencies) {
-							if (!(key in package.devDependencies))
-								package.devDependencies[key] = obj.devDependencies[key];
-						}
-					}
-				}
-
-			}
-		}
-		// css files
-		path = moddir + '/css.json';
-		if(fs.existsSync(path)) {
-			let str = fs.readFileSync(path);
-			var obj = JSON.parse(str);
-			for(key in obj) {
-				var file = obj[key];
-				path = moddir + '/' + file;
-				if(fs.existsSync(path)) {
-					if(!css)
-						css = {};
-					if(!(key in css)) {
-						var data = fs.readFileSync(path);
-						fs.writeFileSync(file, data);
-						css[key] = file;
-					}
-				} else {
-					console.log(' ** ERR:Css <' + file + '> not available');
-				}
-			}
-		}
-		// script files
-		path = moddir + '/scripts.json';
-		if(fs.existsSync(path)) {
-			let str = fs.readFileSync(path);
-			var obj = JSON.parse(str);
-			for(key in obj) {
-				var script = obj[key];
-				path = moddir + '/' + script;
-				if(fs.existsSync(path)) {
-					if(!scripts)
-						scripts = {};
-					if(!(key in scripts)) {
-						var scr = fs.readFileSync(path);
-						fs.writeFileSync(script, scr);
-						scripts[key] = script;
-					}
-				} else {
-					console.log(' ** ERR:Script <' + script + '> not available');
-				}
-			}
-		}
-
-		var ents = {};
-		var lbls = {};
-		var path = genPath(mod.Module) + '/schema.json';
-		console.log('path', path);
-		var pidapx;
-		fs.exists(path, compile);
-
-		function compile(yes) {
-			if(!yes) {
-				console.log(' ** ERR:No schema **');
-				if(fun)
-					fun(null, {});
-				return;
-			}
-			fs.readFile(path, parse);
-
-			function parse(err, data) {
-				if (err) {
-					console.log('File err:' + err);
-					if(fun)
-						fun(err);
-					return;
-				}
-				var schema = JSON.parse(data.toString());
-				for (let lbl in schema) {
-					var obj = schema[lbl];
-					if('Par' in mod) {
-						for(key in mod.Par) {
-							obj[key] = mod.Par[key];
-						}
-					}
-					obj.Module = mod.Module;
-
-					if(lbl == 'Apex') {
-						obj.Pid = genPid();
-						pidapx = obj.Pid;
-					} else {
-						obj.Pid = genPid();
-					}
-					lbls[lbl] = obj.Pid;
-					ents[lbl] = obj;
-				}
-				for (let lbl in ents) {
-					var obj = ents[lbl];
-					for(let key in obj) {
-						val = obj[key];
-						if (key == '$Setup') {
-							if (!("Setup" in Initializers))
-								Initializers.Setup = {};
-							Initializers.Setup[obj.Pid.substr(24)] = obj[key];
-							continue;
-						}
-						if (key == '$Start') {
-							if (!("Start" in Initializers))
-								Initializers.Start = {};
-							Initializers.Start[obj.Pid.substr(24)] = obj[key];
-							continue;
-						}
-						if(typeof val == 'string') {
-							obj[key] = symbol(val);
-							continue;
-						}
-						if(Array.isArray(val)) {
-							for(var i=0; i<val.length; i++) {
-								if(typeof val[i] == 'string')
-									val[i] = symbol(val[i]);
-							}
-							continue;
-						}
-						if(typeof val === 'object') {
-							for(let sym in val) {
-								var tmp = val[sym];
-								if(typeof tmp === 'string')
-									val[sym] = symbol(tmp);
-							}
-							continue;
-						}
-
-					}
-				}
-
-				Async.eachSeries(Object.keys(ents),buildEnts, setup);
-
-
-				function buildEnts (entKey,next){
-					let entData = ents[entKey];
-					console.log("EntData is ", entData);
-					genEntity(entData, next);
-
-				}
-			}
-
-			function setup() {
-				console.log('--Nexus/PostSetup');
-				var pids = Object.keys(Initializers.Setup);
-				if(!Async)
-					Async = require('async');
-				Async.eachSeries(pids, ssetup, start);
-
-				function ssetup(pid8, func) {
-					//	console.log('..setup', pid8);
-					var q = {};
-					q.Cmd = Initializers.Setup[pid8];
-					var pid = Pid24 + pid8;
-					getEntity(pid, done);
-
-					function done(err, ent) {
-						if(err) {
-							console.log(' ** ERR:' + err);
-							func(err);
-							return;
-						}
-						ent.dispatch(q, reply);
-					}
-
-					function reply(err) {
-						if (err)
-							console.log(" ** Error passed to Nexus' async Setup"+err);
-						func(err);
-					}
-				}
-			}
-
-			//---------------------------------------------------------Start
-			function start() {
-				console.log('--Nexus/PostStart');
-				var pids = Object.keys(Root.Start);
-				console.log(pids);
-				Async.eachSeries(pids, sstart, pau);
-
-				function sstart(pid8, func) {
-					console.log('..start', pid8);
-
-					var q = {};
-					q.Cmd = Root.Start[pid8];
-					var pid = Pid24 + pid8;
-					getEntity(pid, done);
-
-					function done(err, ent) {
-						if(err) {
-							console.log(' ** ERR:' + err);
-							func(err);
-							return;
-						}
-						ent.dispatch(q, reply);
-					}
-
-					function reply(err) {
-						if (err)
-							console.log(" ** Error passed to Nexus' async Setup"+err);
-						func(err);
-					}
-				}
-			}
-
-			function pau(err, r) {
-				if(err) {
-					console.log(' ** genModule:' + err);
-				}
-				fun(err, pidapx);
-			}
-
-			function symbol(str) {
-				var esc = str.charAt(0);
-				if(esc == '#') {
-					var sym = str.substr(1);
-					if(sym in lbls) {
-						return lbls[sym];
-					} else {
-						var err = 'Invalide global symbol <' + sym + '>';
-						console.log(' ** ERR:' + err);
-						throw 'Invalid local sysmbol';
-					}
-				}
-				if(esc == '$') {
-					var sym = str.substr(1);
-					if (sym in Root.Apex)
-						return Root.Apex[sym];
-					if(sym in Config)
-						return Config[sym];
-					var err = 'Invalide global symbol <' + sym + '>';
-					console.log(' ** ERR:' + err);
-					throw 'Invalid global symbol';
-				}
-				return str;
-			}
-		}
-
 	}
 
 	//-----------------------------------------------------Initialize

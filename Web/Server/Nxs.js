@@ -209,7 +209,6 @@ __Nexus = (function() {
 
 		//generate a module in the local system
 		function genModule(mod, fun){
-
 			nxs.genModule(mod,fun);
 		}
 
