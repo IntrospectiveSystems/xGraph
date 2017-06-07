@@ -353,11 +353,11 @@
 		//-------------------------------------------------genModule
 		// Generate module and return (err, pidapx);
 		function genModule(mod, fun) {
-			console.log('--Entity/genModule');
+		//	console.log('--Entity/genModule');
 			nxs.genModule(mod, done);
 
 			function done(err, pidapx, init) {
-				console.log('..done', pidapx, init);
+			//	console.log('..done', pidapx, init);
 				if(err) {
 					console.log(' ** Entity/genModule:' + err);
 					fun();
@@ -449,7 +449,7 @@
 	// TBD: If modules saved, Initializers will need to be
 	//      added to the Start and Setup lists in Root
 	function genModule(mod, fun) {
-		console.log('--genModule', mod);
+	//	console.log('--genModule', mod);
 		var pidapx;
 		Initializers = {};
 		addModule(mod, done);
@@ -465,9 +465,9 @@
 		}
 
 		function setup(err, pid) {
-			console.log('..genModule/setup');
-			console.log('pid', pid);
-			console.log('Initializers', Initializers);
+		//	console.log('..genModule/setup');
+		//	console.log('pid', pid);
+		//	console.log('Initializers', Initializers);
 			pidapx = pid;
 			if(err) {
 				console.log(' ** genModule:' + err);
@@ -484,7 +484,7 @@
 		}
 
 		function start(err, r ) {
-			console.log('..genModeul.start');
+		//	console.log('..genModeul.start');
 			if(err) {
 				console.log(' ** genModule:' + err);
 				fun(err);
@@ -807,17 +807,17 @@
 	// later when modules are added to a running xGraph.
 	// TBD: Deal with addition of new package.json here
 	function addModule(mod, fun)  {
-		console.log('--addModule', mod.Module);
+	//	console.log('--addModule', mod.Module);
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
-		console.log('path', path);
+	//	console.log('path', path);
 		var pidapx;
 		fs.exists(path, compile);
 
 		function compile(yes) {
 			if(!yes) {
-				console.log(' ** ERR:No schema **');
+			//	console.log(' ** ERR:No schema **');
 				if(fun)
 					fun();
 				return;

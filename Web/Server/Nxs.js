@@ -314,8 +314,8 @@ __Nexus = (function() {
 		addModule(mod, setup);
 
 		function setup(err, pid) {
-			console.log('pid', pid);
-			console.log('Initializers', Initializers);
+		//	console.log('pid', pid);
+		//	console.log('Initializers', Initializers);
 			pidapx = pid;
 			if(err) {
 				console.log(' ** genModule:' + err);
@@ -357,8 +357,8 @@ __Nexus = (function() {
 
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
-		console.log('..addModule');
-		console.log(JSON.stringify(mod, null, 2));
+	//	console.log('..addModule');
+	//	console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
 		var q = {};
@@ -368,7 +368,7 @@ __Nexus = (function() {
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
-			console.log('..addmod');
+		//	console.log('..addmod');
 			var module = com.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
@@ -411,7 +411,7 @@ __Nexus = (function() {
 				}
 
 				function scripts() {
-					console.log('..scripts');
+				//	console.log('..scripts');
 					if(zipmod.file('scripts.json')) {
 						zip.file('scripts.json').async('string').then(function(str) {
 							var obj = JSON.parse(str);
@@ -440,7 +440,7 @@ __Nexus = (function() {
 				}
 
 				function fonts() {
-					console.log('..fonts');
+				//	console.log('..fonts');
 					if(zipmod.file('fonts.json')) {
 						zip.file('fonts.json').async('string').then(function(str) {
 							var obj = JSON.parse(str);
@@ -466,7 +466,7 @@ __Nexus = (function() {
 				}
 
 				function schema() {
-					console.log('..schema');
+				//	console.log('..schema');
 					zip.file('schema.json').async('string').then(function(str){
 						compile(str);
 					});
@@ -474,7 +474,7 @@ __Nexus = (function() {
 			});
 
 			function compile(str) {
-				console.log('..compile');
+			//	console.log('..compile');
 				var pidapx;
 				var schema = JSON.parse(str);
 				ZipCache[module] = zipmod;
@@ -494,7 +494,7 @@ __Nexus = (function() {
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
-						console.log('Apex', ent);
+					//	console.log('Apex', ent);
 					} else {
 						ent.Pid = genPid();
 					}
