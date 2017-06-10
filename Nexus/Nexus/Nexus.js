@@ -386,7 +386,8 @@
 						console.log(' ** Entity/genmodule:' + err);
 						fun(err);
 					}
-					fun(null, pidapx);
+					if(fun)
+						fun(null, pidapx);
 				}
 			}
 
