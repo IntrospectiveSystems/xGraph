@@ -196,7 +196,7 @@ __Nexus = (function() {
 				disp['*'].call(this, com, fun);
 				return;
 			}
-			console.log(com.Cmd + ' unknown');
+			//console.log(com.Cmd + ' unknown');
 			if(fun)
 				fun(com.Cmd + ' unknown');
 		}

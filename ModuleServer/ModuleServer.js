@@ -4,7 +4,6 @@
 
 (function ModuleServer() {
 
-
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
@@ -298,9 +297,11 @@
 		function CheckFilters(Mod, Filters, callback) {
 			let bMatch = true;
 			console.log('CheckFilters');
+			//console.log(Filters);
 			// Iterate through filters
 			// Check against each property in module
 			async.forEach(Object.keys(Filters), (Filter, func) => {
+				//console.log("Filter is ", Filter);
 				if(!bMatch) {
 					func();
 				}
@@ -321,16 +322,19 @@
 						}
 						break;
 					case 'name':
-						Match.push(Mod.name);
+							Match.push(Mod.name);
 						break;
 					default:
 						break;
 				}
+				//console.log("Match is", Match);
 				for (let i=0; i<Match.length;i++) {
 					// TODO: Change to function and compare n to n for par and info (recursive?)
-					if (Filters[Filter] === Match[i]) {
+
+					if (Filter == "name" && Mod.name.startsWith(Filters[Filter])){
 						bMatch = true;
-						break;
+					}else if (Filters[Filter] === Match[i]) {
+						bMatch = true;
 					} else {
 						bMatch = false;
 					}
