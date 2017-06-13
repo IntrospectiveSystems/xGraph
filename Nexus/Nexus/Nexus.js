@@ -21,7 +21,8 @@
 		genPath: genPath,
 		getGlobal: getGlobal,
 		genModule: genModule,
-		genEntity:genEntity,
+		genEntity: genEntity,
+		deleteEntity: deleteEntity,
 		getParameter: getParameter,
 		sendMessage: sendMessage
 	}
@@ -234,6 +235,27 @@
 			return Params[name];
 	}
 
+	function deleteEntity(pid, fun){
+		if(pid in EntCache) {
+			delete EntCache[pid];
+			var path = CacheDir + '/' + pid.substr(24) + '.json';
+			fs.stat(path, function (err, stats) {
+				console.log("DELETING", stats);//here we got all information of file in stats variable
+
+				if (err) {
+					return console.error(err);
+				}
+
+				fs.unlink(path ,function(err){
+					if(err) return console.log(err);
+					console.log('file deleted successfully');
+				});
+			});
+		}
+		if (fun)
+			fun(pid);
+	}
+
 	//-----------------------------------------------------getEntity
 	function getEntity(pid, fun) {
 		let pid24 = pid.substr(0, 24);
@@ -324,7 +346,8 @@
 			dispatch: dispatch,
 			genModule: genModule,
 			genEntity:genEntity,
-		//	addModule:addModule,
+			deleteEntity: deleteEntity,
+			//	addModule:addModule,
 			genPid:genPid,
 			genPath:genPath,
 			send: send,
@@ -377,7 +400,8 @@
 						q.Cmd = init.Start;
 						send(q, pidapx, pau);
 					} else {
-						fun(null, pidapx);
+						if (fun)
+							fun(null, pidapx);
 					}
 				}
 
@@ -391,6 +415,12 @@
 				}
 			}
 
+		}
+
+
+		function deleteEntity(fun){
+			console.log("DElElTingASDF")
+			nxs.deleteEntity(Par.Pid,fun);
 		}
 
 		function genEntity(par,fun){
