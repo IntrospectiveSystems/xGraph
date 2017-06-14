@@ -29,6 +29,8 @@
 		var async = require('async');
 		var proc = require('child_process');
 
+
+
 		if ('System' in com) {
 			startSystem(com.System, (systemPid) => {
 				let child = that.Vlt.Systems[systemPid].Process;
@@ -56,16 +58,20 @@
 				});
 			});
 		} else {
-			if (com.Async) {
-				startSystemsAsync(that.Par.Systems, () => {
-					console.log('Systems Started');
-					fun();
-				});
+			if (that.Par.Start) {
+				if (com.Async) {
+					startSystemsAsync(that.Par.Systems, () => {
+						console.log('Systems Started');
+						fun();
+					});
+				} else {
+					startSystems(that.Par.Systems, () => {
+						console.log('Systems Started');
+						fun();
+					})
+				}
 			} else {
-				startSystems(that.Par.Systems, () => {
-					console.log('Systems Started');
-					fun();
-				})
+				fun();
 			}
 		}
 

@@ -10,6 +10,7 @@
 	 "Initiate": {
 	   "Module":"xGraph:Nexus/Initiate/Initiate",
 	   "Par":{
+		 "Start": 1,
 		 "Systems": [
 		   {
 			 "Name": "ModuleServer",
