@@ -236,18 +236,27 @@
 	}
 
 	function deleteEntity(pid, fun){
+		//console.log("Deleting", pid, "from", EntCache);
+		if (pid.length>8)
+			pid = pid.substr(24);
 		if(pid in EntCache) {
 			delete EntCache[pid];
-			var path = CacheDir + '/' + pid.substr(24) + '.json';
+			var path = CacheDir + '/' + pid + '.json';
+			console.log("Path is ", path);
 			fs.stat(path, function (err, stats) {
-				console.log("DELETING", stats);//here we got all information of file in stats variable
-
+				//console.log("DELETING", stats);//here we got all information of file in stats variable
+debugger;
 				if (err) {
-					return console.error(err);
+					console.log(err,path);
+					return;
 				}
-
+debugger;
 				fs.unlink(path ,function(err){
-					if(err) return console.log(err);
+					if(err) {
+						console.log(err, path);
+						return;
+					}
+debugger;
 					console.log('file deleted successfully');
 				});
 			});
@@ -292,7 +301,7 @@
 
 		function parent(err, data) {
 			if (err) {
-				console.log(' ** ERR:' + err);
+				err = '** ERR-Entity not in cache:' + err;
 				fun(err);
 				return;
 			}
@@ -419,7 +428,7 @@
 
 
 		function deleteEntity(fun){
-			console.log("DElElTingASDF")
+			//console.log("DElElTingASDF")
 			nxs.deleteEntity(Par.Pid,fun);
 		}
 
@@ -925,6 +934,7 @@
 					var obj = ents[key];
 					var pid = obj.Pid;
 					var path = CacheDir + '/' + pid.substr(24) + '.json';
+					console.log("writing file",path);
 					var str = JSON.stringify(obj, null, 2);
 					fs.writeFile(path, str, done);
 

@@ -1,12 +1,9 @@
 {
   "xGraph": "{xGraph}",
-  "Target":"{Target}",
   "Cache": "cache",
    "Modules": {
 	 "Nexus": {
-	   "Module": "xGraph:Nexus/Nexus",
-	   "Par": {
-	   }
+	   "Module": "xGraph:Nexus/Nexus"
 	 },
 	 "Plexus": {
 	   "Module":"xGraph:Nexus/Plexus",
