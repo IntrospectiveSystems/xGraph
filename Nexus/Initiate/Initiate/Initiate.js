@@ -132,10 +132,11 @@
 		function startSystem(system, callback) {
 			let workDir = Nxs.genPath(system.Work);
 
-			// TODO: Change params to argv 2-n
 			// TODO: Handle failed system starts
-			console.log(process.argv[2]);
-			let child = proc.fork(process.argv[1], [process.argv[2]],{cwd:workDir, silent:true});
+			// TODO: Pass args from Systems array instead of inherit from parent proccess
+			let args = process.argv.slice(2);
+
+			let child = proc.fork(process.argv[1], args,{cwd:workDir, silent:true});
 
 
 			that.Vlt.Systems[child.pid] = {};
