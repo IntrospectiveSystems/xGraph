@@ -29,12 +29,13 @@
 		var async = require('async');
 		var proc = require('child_process');
 
-		if ('System' in Start) {
-			startSystem(com.System, (system) => {
+		if ('System' in com) {
+			startSystem(com.System, (systemPid) => {
 				let child = that.Vlt.Systems[systemPid].Process;
+				let system = that.Vlt.Systems[systemPid];
 				child.stdout.on('data', (data) => {
 
-					console.log(system.Name + ': ' + data.toString());
+					console.log(com.System.Name + ': ' + data.toString());
 				});
 				child.on('message', function(message) {
 					let cmd = JSON.parse(message);
@@ -55,7 +56,7 @@
 				});
 			});
 		} else {
-			if (Start.Async) {
+			if (com.Async) {
 				startSystemsAsync(that.Par.Systems, () => {
 					console.log('Systems Started');
 					fun();
@@ -130,7 +131,7 @@
 		}
 
 		function startSystem(system, callback) {
-			let workDir = Nxs.genPath(system.Work);
+			let workDir = that.genPath(system.Work);
 
 			// TODO: Handle failed system starts
 			// TODO: Pass args from Systems array instead of inherit from parent proccess
@@ -148,10 +149,6 @@
 			}
 			callback(child.pid);
 		}
-
-
-
-
 	}
 
 	function Stop(com, fun) {
