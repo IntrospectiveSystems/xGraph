@@ -29,12 +29,17 @@
 		var async = require('async');
 		var proc = require('child_process');
 
-		if ('System' in Start) {
-			startSystem(com.System, (system) => {
+
+
+
+
+		if ('System' in com) {
+			startSystem(com.System, (systemPid) => {
 				let child = that.Vlt.Systems[systemPid].Process;
+				let system = that.Vlt.Systems[systemPid];
 				child.stdout.on('data', (data) => {
 
-					console.log(system.Name + ': ' + data.toString());
+					console.log(com.System.Name + ': ' + data.toString());
 				});
 				child.on('message', function(message) {
 					let cmd = JSON.parse(message);
@@ -55,16 +60,21 @@
 				});
 			});
 		} else {
-			if (Start.Async) {
-				startSystemsAsync(that.Par.Systems, () => {
-					console.log('Systems Started');
-					fun();
-				});
+			if (that.Par.Start || that.Vlt.Start) {
+				if (com.Async) {
+					startSystemsAsync(that.Par.Systems, () => {
+						console.log('Systems Started');
+						fun();
+					});
+				} else {
+					startSystems(that.Par.Systems, () => {
+						console.log('Systems Started');
+						fun();
+					})
+				}
 			} else {
-				startSystems(that.Par.Systems, () => {
-					console.log('Systems Started');
-					fun();
-				})
+				that.Vlt.Start = true;
+				fun();
 			}
 		}
 
@@ -130,12 +140,13 @@
 		}
 
 		function startSystem(system, callback) {
-			let workDir = Nxs.genPath(system.Work);
+			let workDir = that.genPath(system.Work);
 
-			// TODO: Change params to argv 2-n
 			// TODO: Handle failed system starts
-			console.log(process.argv[2]);
-			let child = proc.fork(process.argv[1], [process.argv[2]],{cwd:workDir, silent:true});
+			// TODO: Pass args from Systems array instead of inherit from parent proccess
+			let args = process.argv.slice(2);
+
+			let child = proc.fork(process.argv[1], args,{cwd:workDir, silent:true});
 
 
 			that.Vlt.Systems[child.pid] = {};
@@ -147,10 +158,6 @@
 			}
 			callback(child.pid);
 		}
-
-
-
-
 	}
 
 	function Stop(com, fun) {
@@ -169,7 +176,7 @@
 		var that = this;
 		if ('Systems' in com) {
 			that.Par.Systems = com.Systems;
-			that.Save();
+			that.save();
 		}
 		if (fun) fun(null, com);
 	}
