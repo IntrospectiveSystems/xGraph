@@ -31,6 +31,8 @@
 
 
 
+
+
 		if ('System' in com) {
 			startSystem(com.System, (systemPid) => {
 				let child = that.Vlt.Systems[systemPid].Process;
@@ -58,7 +60,7 @@
 				});
 			});
 		} else {
-			if (that.Par.Start) {
+			if (that.Par.Start || that.Vlt.Start) {
 				if (com.Async) {
 					startSystemsAsync(that.Par.Systems, () => {
 						console.log('Systems Started');
@@ -71,6 +73,7 @@
 					})
 				}
 			} else {
+				that.Vlt.Start = true;
 				fun();
 			}
 		}
