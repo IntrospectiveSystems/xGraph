@@ -167,7 +167,7 @@
 		var that = this;
 		if ('Systems' in com) {
 			that.Par.Systems = com.Systems;
-			that.Save();
+			that.save();
 		}
 		if (fun) fun(null, com);
 	}
