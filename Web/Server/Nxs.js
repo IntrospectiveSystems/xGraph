@@ -537,22 +537,18 @@ __Nexus = (function() {
 							Root.Start[ent.Pid.substr(24)] = ent[key];
 							continue;
 						}
-						if(typeof val == 'string')
-							ent[key] = symbol(val);
-						if(Array.isArray(val)) {
-							for (var i = 0; i < val.length; i++) {
-								if (typeof val[i] == 'string')
-									val[i] = symbol(val[i]);
+						function recurseSymbol(obj) {
+
+							if (typeof obj == 'string')
+								return symbol(obj);
+							if (typeof obj == 'object') {
+								for (let sym in obj) {
+									obj[sym] = recurseSymbol(obj[sym]);
+								}
 							}
-							continue;
+							return obj;
 						}
-						if(typeof val == 'object') {
-							for(let sym in val) {
-								var tmp = val[sym];
-								if(typeof tmp == 'string')
-									val[sym] = symbol(tmp);
-							}
-						}
+						ent[key] = recurseSymbol(ent[key]);
 					}
 					var modkey = ent.Module + '/' + ent.Entity;
 
