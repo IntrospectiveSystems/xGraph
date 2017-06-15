@@ -193,8 +193,9 @@
 				fun('Message not local');
 			return;
 		}
-		if(pid in EntCache) {
-			var ent = EntCache[pid];
+		let pid8 = pid.substr(24);
+		if(pid8 in EntCache) {
+			var ent = EntCache[pid8];
 			ent.dispatch(com, reply);
 			return;
 		}
@@ -236,28 +237,32 @@
 	}
 
 	function deleteEntity(pid, fun){
-		//console.log("Deleting", pid, "from", EntCache);
-		if (pid.length>8)
-			pid = pid.substr(24);
-		if(pid in EntCache) {
-			delete EntCache[pid];
-			var path = CacheDir + '/' + pid + '.json';
-			console.log("Path is ", path);
+		let pid24 = pid.substr(0, 24);
+		if (pid24 != Pid24) {
+			console.log(' ** Not in my back yard');
+			console.log(pid24, Pid24);
+			fun(' ** Pid not in bag');
+			return;
+		}
+
+		let pid8 = pid.substr(24);
+		//console.log("NEXUS: Deleting         ", pid8);
+		if(pid8 in EntCache) {
+			delete EntCache[pid8];
+			var path = CacheDir + '/' + pid8 + '.json';
+			//console.log("Path is ", path);
 			fs.stat(path, function (err, stats) {
 				//console.log("DELETING", stats);//here we got all information of file in stats variable
-debugger;
 				if (err) {
 					console.log(err,path);
 					return;
 				}
-debugger;
 				fs.unlink(path ,function(err){
 					if(err) {
 						console.log(err, path);
 						return;
 					}
-debugger;
-					console.log('file deleted successfully');
+					console.log('NEXUS: Delete Successful', pid8);
 				});
 			});
 		}
@@ -292,7 +297,7 @@ debugger;
 
 		function exists(yes) {
 			if (!yes) {
-				fun(' ** Not found');
+				fun(' ** Not found '+pid8);
 				return;
 			}
 			fs.readFile(pathpar, parent);
@@ -790,6 +795,7 @@ debugger;
 		// Create node_module folder
 		var strout = JSON.stringify(package, null, 2);
 		fs.writeFileSync('package.json', strout);
+
 		const proc = require('child_process');
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
@@ -801,7 +807,7 @@ debugger;
 
 		ps.on('exit', (code) => {
 			console.log(`npm process exited with code:` + code);
-			console.log('Current working directory:' + process.cwd());
+			console.log('Current working directory: ' + process.cwd());
 			if(!Async)
 				Async = require('async');
 			genPid();	// Generate Pid24 for this Nexus
@@ -857,7 +863,7 @@ debugger;
 
 		function compile(yes) {
 			if(!yes) {
-			//	console.log(' ** ERR:No schema **');
+				console.log(' ** ERR:No schema **');
 				if(fun)
 					fun();
 				return;
@@ -934,13 +940,16 @@ debugger;
 					var obj = ents[key];
 					var pid = obj.Pid;
 					var path = CacheDir + '/' + pid.substr(24) + '.json';
-					console.log("writing file",path);
+					//console.log("NEXUS: Writing to Cache ",pid.substr(24));
 					var str = JSON.stringify(obj, null, 2);
 					fs.writeFile(path, str, done);
 
 					function done(err) {
 						if (err)
 							throw err;
+						else{
+							//console.log("NEXUS: Write Successful ",pid.substr(24));
+						}
 						func();
 					}
 				}
