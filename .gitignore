@@ -41,3 +41,10 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+
+**/cache/*.*
+Work/*/css.json
+Work/*/package.json
+Work/*/scripts.json
+Work/*/*.js

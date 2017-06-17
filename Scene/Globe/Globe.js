@@ -199,7 +199,7 @@
 				var suffix = path.substr(dot + 1);
 				fs.readFile(path, function (err, data) {
 					if (err) {
-						oonsole.log(' ** Globe:' + err);
+						console.log(' ** Globe:' + err);
 						if (fun)
 							fun(err);
 						return;
