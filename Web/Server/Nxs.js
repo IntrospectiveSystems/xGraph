@@ -364,7 +364,7 @@ __Nexus = (function() {
 		var q = {};
 		q.Cmd = 'GetModule';
 		q.Module = mod.Module;
-		//	console.log(com);
+		console.log(q);
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
