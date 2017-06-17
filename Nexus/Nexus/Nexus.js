@@ -847,17 +847,17 @@ debugger;
 	// later when modules are added to a running xGraph.
 	// TBD: Deal with addition of new package.json here
 	function addModule(mod, fun)  {
-	//	console.log('--addModule', mod.Module);
+		console.log('--addModule', mod.Module);
 		var ents = {};
 		var lbls = {};
 		var path = genPath(mod.Module) + '/schema.json';
-	//	console.log('path', path);
+		console.log('path', path);
 		var pidapx;
 		fs.exists(path, compile);
 
 		function compile(yes) {
 			if(!yes) {
-			//	console.log(' ** ERR:No schema **');
+				console.log(' ** ERR:No schema **');
 				if(fun)
 					fun();
 				return;
@@ -872,6 +872,7 @@ debugger;
 					return;
 				}
 				var schema = JSON.parse(data.toString());
+				console.log('schema', schema);
 				for (let lbl in schema) {
 					var obj = schema[lbl];
 					if('Par' in mod) {
