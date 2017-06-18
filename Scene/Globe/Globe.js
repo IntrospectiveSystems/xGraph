@@ -54,7 +54,10 @@
 			facet = Facets[ifacet];
 			drawFacet(facet);
 		}
-		generate();
+		var tex;
+		if('Texture' in Par)
+			tex = Par.Texture;
+		generate(tex);
 
 		function interp(geo1, geo2) {
 			var rlat;
@@ -145,7 +148,7 @@
 				var v = (lat + 90.0) / 180.0;
 				var u = lon / 360.0;
 				uv.push(u);
-				uv.push(1-v);
+				uv.push(v);
 			}
 		}
 
