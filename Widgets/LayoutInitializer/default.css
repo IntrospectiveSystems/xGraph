@@ -1,4 +1,8 @@
 :root {
+
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	color: var(--text);
+
 	/*--view-color: rgba(60, 190, 69, 0.3);*/
 	/* GENERAL STUFF */
 	--introspective-green: #66BC45;
