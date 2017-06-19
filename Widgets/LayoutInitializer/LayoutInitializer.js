@@ -1,5 +1,6 @@
 //# sourceURL=LayoutInitializer.js
 //jshint esversion: 6
+//test change
 (function LayoutInitializer() {
 
 	class LayoutInitializer {
