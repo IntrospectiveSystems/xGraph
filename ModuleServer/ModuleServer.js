@@ -331,7 +331,7 @@
 				for (let i=0; i<Match.length;i++) {
 					// TODO: Change to function and compare n to n for par and info (recursive?)
 
-					if (Filter == "name" && Mod.name.startsWith(Filters[Filter])){
+					if (Filter == "name" && Mod.name.toLowerCase().startsWith(Filters[Filter].toLowerCase())){
 						bMatch = true;
 					}else if (Filters[Filter] === Match[i]) {
 						bMatch = true;

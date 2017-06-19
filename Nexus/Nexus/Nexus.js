@@ -262,7 +262,7 @@
 						console.log(err, path);
 						return;
 					}
-					console.log('NEXUS: Delete Successful', pid8);
+					//console.log('NEXUS: Delete Successful', pid8);
 				});
 			});
 		}
@@ -306,7 +306,7 @@
 
 		function parent(err, data) {
 			if (err) {
-				err = '** ERR-Entity not in cache:' + err;
+				err = ' ** ERR-Entity not in cache:' + err;
 				fun(err);
 				return;
 			}
@@ -853,142 +853,154 @@
 	// later when modules are added to a running xGraph.
 	// TBD: Deal with addition of new package.json here
 	function addModule(mod, fun)  {
-	//	console.log('--addModule', mod.Module);
+		//console.log('--addModule', mod.Module);
 		var ents = {};
 		var lbls = {};
-		var path = genPath(mod.Module) + '/schema.json';
-	//	console.log('path', path);
 		var pidapx;
-		fs.exists(path, compile);
 
-		function compile(yes) {
-			if(!yes) {
-				console.log(' ** ERR:No schema **');
-				if(fun)
-					fun();
-				return;
-			}
-			fs.readFile(path, parse);
+		if (mod.Module in ModuleCache){
+			//console.log("No need to read schema from file");
+			let schema = ModuleCache[mod.Module];
+			processSchema(schema, fun);
+		}else {
+			var path = genPath(mod.Module) + '/schema.json';
+			//	console.log('path', path);
+			fs.exists(path, compile);
 
-			function parse(err, data) {
-				if (err) {
-					console.log('File err:' + err);
-					if(fun)
-						fun(err);
+			function compile(yes) {
+				if (!yes) {
+					console.log(' ** ERR:No schema **');
+					if (fun)
+						fun();
 					return;
 				}
-				var schema = JSON.parse(data.toString());
-				for (let lbl in schema) {
-					var obj = schema[lbl];
-					if('Par' in mod) {
-						for(key in mod.Par) {
-							obj[key] = mod.Par[key];
-						}
-					}
-					obj.Module = mod.Module;
-					if(lbl == 'Apex') {
-						if(CurrentModule)
-							obj.Pid = Root.Apex[CurrentModule];
-						else
-							obj.Pid = genPid();
-						pidapx = obj.Pid;
-					} else {
-						obj.Pid = genPid();
-					}
-					lbls[lbl] = obj.Pid;
-					ents[lbl] = obj;
-				}
-				for (let lbl in ents) {
-					var obj = ents[lbl];
-					for(let key in obj) {
-						val = obj[key];
-						if (key == '$Setup') {
-							Root.Setup[obj.Pid.substr(24)] = obj[key];
-							Initializers.Setup = obj[key];
-							continue;
-						}
-						if (key == '$Start') {
-							Root.Start[obj.Pid.substr(24)] = obj[key];
-							Initializers.Start = obj[key];
-							continue;
-						}	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
-						if(typeof val == 'string') {
-							obj[key] = symbol(val);
-							continue;
-						}
-						if(Array.isArray(val)) {
-							for(var i=0; i<val.length; i++) {
-								if(typeof val[i] == 'string')
-									val[i] = symbol(val[i]);
-							}
-							continue;
-						}
-						if(typeof val === 'object') {
-							for(let sym in val) {
-								var tmp = val[sym];
-								if(typeof tmp === 'string')
-									val[sym] = symbol(tmp);
-							}
-							continue;
-						}
-					}
-				}
-				var keys = Object.keys(ents);
-				Async.eachSeries(keys, cache, pau);
+				fs.readFile(path, parse);
 
-				function cache(key, func) {
-					var obj = ents[key];
-					var pid = obj.Pid;
-					var path = CacheDir + '/' + pid.substr(24) + '.json';
-					//console.log("NEXUS: Writing to Cache ",pid.substr(24));
-					var str = JSON.stringify(obj, null, 2);
-					fs.writeFile(path, str, done);
-
-					function done(err) {
-						if (err)
-							throw err;
-						else{
-							//console.log("NEXUS: Write Successful ",pid.substr(24));
-						}
-						func();
-					}
-				}
-
-				function pau(err) {
-					if(err) {
-						console.log(' ** ERR:' + err);
-						if(fun)
+				function parse(err, data) {
+					if (err) {
+						console.log('File err:' + err);
+						if (fun)
 							fun(err);
 						return;
 					}
-					fun(null, pidapx);
+					let schema = JSON.parse(data.toString());
+					ModuleCache[mod.Module] = schema;
+					processSchema(schema, fun);
+				}
+			}
+		}
+
+		function processSchema(schema, func) {
+			for (let lbl in schema) {
+				var obj = schema[lbl];
+				if ('Par' in mod) {
+					for (key in mod.Par) {
+						obj[key] = mod.Par[key];
+					}
+				}
+				obj.Module = mod.Module;
+				if (lbl == 'Apex') {
+					if (CurrentModule)
+						obj.Pid = Root.Apex[CurrentModule];
+					else
+						obj.Pid = genPid();
+					pidapx = obj.Pid;
+				} else {
+					obj.Pid = genPid();
+				}
+				lbls[lbl] = obj.Pid;
+				ents[lbl] = obj;
+			}
+			for (let lbl in ents) {
+				var obj = ents[lbl];
+				for (let key in obj) {
+					val = obj[key];
+					if (key == '$Setup') {
+						Root.Setup[obj.Pid.substr(24)] = obj[key];
+						Initializers.Setup = obj[key];
+						continue;
+					}
+					if (key == '$Start') {
+						Root.Start[obj.Pid.substr(24)] = obj[key];
+						Initializers.Start = obj[key];
+						continue;
+					}
+					if (typeof val == 'string') {
+						obj[key] = symbol(val);
+						continue;
+					}
+					if (Array.isArray(val)) {
+						for (var i = 0; i < val.length; i++) {
+							if (typeof val[i] == 'string')
+								val[i] = symbol(val[i]);
+						}
+						continue;
+					}
+					if (typeof val === 'object') {
+						for (let sym in val) {
+							var tmp = val[sym];
+							if (typeof tmp === 'string')
+								val[sym] = symbol(tmp);
+						}
+						continue;
+					}
+				}
+			}
+			var keys = Object.keys(ents);
+			Async.eachSeries(keys, cache, pau);
+
+			function cache(key, nextEnt) {
+				var obj = ents[key];
+				var pid = obj.Pid;
+				var path = CacheDir + '/' + pid.substr(24) + '.json';
+				//console.log("NEXUS: Writing to Cache ",pid.substr(24));
+				var str = JSON.stringify(obj, null, 2);
+				fs.writeFile(path, str, done);
+
+				function done(err) {
+					if (err)
+						throw err;
+					else {
+						//console.log("NEXUS: Write Successful ",pid.substr(24));
+					}
+					nextEnt();
 				}
 			}
 
-			function symbol(str) {
-				var esc = str.charAt(0);
-				if(esc == '#') {
-					var sym = str.substr(1);
-					if(sym in lbls) {
-						return lbls[sym];
-					} else {
-						var err = 'Invalide global symbol <' + sym + '>';
-						console.log(' ** ERR:' + err);
-						throw 'Invalid local sysmbol';
-					}
+			function pau(err) {
+				if (err) {
+					console.log(' ** ERR:' + err);
+					if (func)
+						func(err);
+					return;
 				}
-				if(esc == '$') {
-					var sym = str.substr(1);
-					if (sym in Root.Apex)
-						return Root.Apex[sym];
-					if(sym in Config)
-						return Config[sym];
+				func(null, pidapx);
+			}
+		}
+
+		function symbol(str) {
+			var esc = str.charAt(0);
+			if (esc == '#') {
+				var sym = str.substr(1);
+				if (sym in lbls) {
+					return lbls[sym];
+				} else {
 					var err = 'Invalide global symbol <' + sym + '>';
 					console.log(' ** ERR:' + err);
-					throw 'Invalid global symbol';
+					throw 'Invalid local sysmbol';
 				}
-				return str;
 			}
+			if (esc == '$') {
+				var sym = str.substr(1);
+				if (sym in Root.Apex)
+					return Root.Apex[sym];
+				if (sym in Config)
+					return Config[sym];
+				var err = 'Invalide global symbol <' + sym + '>';
+				console.log(' ** ERR:' + err);
+				throw 'Invalid global symbol';
+			}
+			return str;
 		}
 	}
 

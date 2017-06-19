@@ -146,6 +146,7 @@
 			// TODO: Pass args from Systems array instead of inherit from parent proccess
 			let args = process.argv.slice(2);
 
+			console.log("Process args",process.argv, args);
 			let child = proc.fork(process.argv[1], args,{cwd:workDir, silent:true});
 
 
