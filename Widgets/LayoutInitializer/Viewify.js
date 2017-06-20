@@ -22,7 +22,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			vlt.root.attr('viewPid', this.Par.Pid);
 			vlt.styletag = STYLE();
 			vlt.titleBar = DIV('.titlebar');
-			this.Vlt.disableTitleBar = this.Vlt.disableTitleBar || false;
+			this.Vlt.disableTitleBar = this.Vlt.disableTitleBar || true;
 			vlt.titleBar.text(this.titleBarText);
 
 			vlt.root.css('height', '100%');
