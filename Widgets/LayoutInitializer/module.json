@@ -1,0 +1,23 @@
+{
+	"input": {
+		"required": [],
+		"opts": []
+	},
+	"output": {
+		"required": [],
+		"opts": []
+	},
+	"par": {
+		"required": [
+			"Root"
+		],
+		"opts": []
+	},
+	"name": "Layout Initializer",
+	"info": {
+		"author": "Marcus Gosselin"
+	},
+	"icon": null,
+	"doc": null,
+	"src": "xSDE:LayoutInitializer"
+}

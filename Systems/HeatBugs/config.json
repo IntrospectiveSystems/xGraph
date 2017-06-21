@@ -13,10 +13,10 @@
 	  "Server":{
 		  "Module": "xGraph:Web/Server",
 		  "Par": {
-            "Nxs": "{xGraph}Web/Server/Nxs.js",
-            "Port": 8080,
-            "Url": "Heatbugs"
-          }
+			"Nxs": "{xGraph}Web/Server/Nxs.js",
+			"Port": 8080,
+			"Url": "Heatbugs"
+		  }
 	  }
 	}
   }
