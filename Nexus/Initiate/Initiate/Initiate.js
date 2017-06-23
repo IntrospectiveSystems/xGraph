@@ -30,9 +30,6 @@
 		var proc = require('child_process');
 
 
-
-
-
 		if ('System' in com) {
 			startSystem(com.System, (systemPid) => {
 				let child = that.Vlt.Systems[systemPid].Process;

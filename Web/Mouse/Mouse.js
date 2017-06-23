@@ -101,15 +101,14 @@
 
 		//-----------------------------------------------------mouseWheel
 		function mouseWheel(evt) {
-			var fac;
-		//	var direction  = (evt.detail<0 || evt.wheelDelta>0) ? 1: -1;
-			var delta = evt.originalEvent.wheelDelta;
-			if (delta != null) {
-				fac = delta / 120;
-			} else {
-				delta = evt.originalEvent.detail;
-				fac = -delta / 3;
-			}
+			var fac= (evt.originalEvent.detail<0 || evt.originalEvent.wheelDelta>0) ? 1: -1;
+			// var delta = evt.originalEvent.wheelDelta;
+			// if (delta != null) {
+			// 	fac = delta / 120;
+			// } else {
+			// 	delta = evt.originalEvent.detail;
+			// 	fac = -delta / 3;
+			// }
 			var info = {};
 			info.Action = 'Wheel';
 			info.Factor = fac;

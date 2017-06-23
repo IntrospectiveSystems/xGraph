@@ -1,7 +1,5 @@
 (function HeatField() {
 
-
-
 	var dispatch ={
 		Setup : Setup,
 		UpdateField: UpdateField,
