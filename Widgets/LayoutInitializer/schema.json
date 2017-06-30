@@ -1,0 +1,7 @@
+{
+	"Apex": {
+		"Entity": "LayoutInitializer.js",
+		"$Start": "Start",
+		"$Setup": "Setup"
+	}
+}

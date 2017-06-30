@@ -17,6 +17,20 @@
 			"env": {
 				"NODE_PATH": "node_modules"
 			}
+		},
+		{
+			"name": "Win | Plexus",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/Plexus",
+			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=C:/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
 		}
 	]
 }

@@ -32,6 +32,7 @@ __Nexus = (function() {
 	__Config = {};
 	__Config.TrackIO = false;
 	__Share = {};
+	let silent = true;
 
 	return {
 		start: start,
@@ -42,15 +43,15 @@ __Nexus = (function() {
 	};
 
 	function start(sockio, cfg) {
-		console.log('--Nxs/start');
-		console.log('cfg', JSON.stringify(cfg, null, 2));
+		if (!silent) console.log('--Nxs/start');
+		if (!silent) console.log('cfg', JSON.stringify(cfg, null, 2));
 		Pid24 = cfg.Pid24;
 		PidServer = cfg.PidServer;
 		SockIO = sockio;
 		SockIO.removeListener('message');
 		SockIO.on('message', function (data) {
 			var cmd = JSON.parse(data);
-			console.log(' << Msg:' + cmd.Cmd);
+			if (!silent) console.log(' << Msg:' + cmd.Cmd);
 			if ('Passport' in cmd && cmd.Passport.Reply) {
 				var pid = cmd.Passport.Pid;
 				var ixmsg = MsgFifo.indexOf(pid);
@@ -364,7 +365,7 @@ __Nexus = (function() {
 		var q = {};
 		q.Cmd = 'GetModule';
 		q.Module = mod.Module;
-		//	console.log(com);
+		console.log(q);
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
@@ -388,12 +389,14 @@ __Nexus = (function() {
 								Css.push(key);
 								var file = obj[key];
 								zip.file(file).async('string').then(function(css) {
-									var tag = document.createElement('link');
+									var tag = document.createElement('style');
 									tag.setAttribute("data-css-url", key);
 									tag.setAttribute("type", 'text/css');
-									var txt = document.createTextNode(css);
-									tag.appendChild(txt);
+									tag.innerHTML = css;
 									document.head.appendChild(tag);
+									// var txt = document.createTextNode(css);
+									// tag.appendChild(txt);
+									// document.head.appendChild(tag);
 
 									/*	var tag = document.createElement('script');
 									 tag.setAttribute("data-script-url", key);
@@ -455,7 +458,7 @@ __Nexus = (function() {
 								zip.file(file).async('string').then(function(str) {
 									var json = JSON.parse(str);
 									var font = new THREE.Font(json);
-									console.log('font', font);
+									if(!silent) console.log('font', font);
 									Fonts[key] = font;
 									func();
 								});
@@ -592,7 +595,7 @@ __Nexus = (function() {
 	// This is called only once when a new systems is
 	// first instantiated
 	function Genesis(cfg) {
-		console.log('--Nxs/Genesis');
+		if (!silent) console.log('--Nxs/Genesis');
 		Config = cfg;
 		Root = {};
 		Root.Global = {};
@@ -609,7 +612,7 @@ __Nexus = (function() {
 		} else {
 			nkeys = 0;
 		}
-		console.log('Scripts', nkeys, Config.Scripts);
+		if (!silent) console.log('Scripts', nkeys, Config.Scripts);
 		nextscript();
 
 		function nextscript() {
@@ -668,7 +671,7 @@ __Nexus = (function() {
 
 		//-------------------------------------------------Setup
 		function Setup(err) {
-			console.log('--Nexus/Setup');
+			// console.log('--Nexus/Setup');
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
 			var ipid = 0;

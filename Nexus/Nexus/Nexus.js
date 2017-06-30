@@ -795,7 +795,6 @@
 		// Create node_module folder
 		var strout = JSON.stringify(package, null, 2);
 		fs.writeFileSync('package.json', strout);
-
 		const proc = require('child_process');
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
