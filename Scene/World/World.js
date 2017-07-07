@@ -85,6 +85,7 @@
 
 	//-----------------------------------------------------GetGraph
 	function GetGraph(com, fun) {
+		// debugger;
 		console.log('--World/GetGraph');
 		var that = this;
 		var Par = this.Par;

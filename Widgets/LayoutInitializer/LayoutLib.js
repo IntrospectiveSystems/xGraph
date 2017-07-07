@@ -38,7 +38,6 @@ if (window.IMG == undefined) window.IMG = function IMG(width, height, src) {
 	return elem;
 }
 
-
 $.fn.extend({
 	cssVar: function (name) {
 		// debugger;

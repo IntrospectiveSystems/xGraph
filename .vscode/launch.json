@@ -31,6 +31,20 @@
 			"env": {
 				"NODE_PATH": "node_modules"
 			}
+		},
+		{
+			"name": "Win | 3D World Test",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/3DWorldTest",
+			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=C:/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
 		}
 	]
 }

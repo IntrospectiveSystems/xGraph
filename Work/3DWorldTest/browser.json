@@ -1,0 +1,16 @@
+{
+	"Modules": {
+		"LayoutInitializer": {
+			"Module": "xGraph:Widgets/LayoutInitializer",
+			"Par": {
+				"Layout": "$HoloView"
+			}
+		},
+		"HoloView": {
+			"Module":"xGraph:Widgets/HoloView",
+			"Par": {
+				"Scene": "$Scene"
+			}
+		}
+	}
+}
