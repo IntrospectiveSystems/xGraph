@@ -85,6 +85,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			fun(null, com);
 		}
 
+		GetViewDiv(com, fun) {
+			com.Div = this.Vlt.div;
+			fun(null, com);
+		}
+
 		/// used to add styles to this View & children
 		/// com format: 
 		/// com.Selector = The css selector to apply rules to

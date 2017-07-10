@@ -36,6 +36,12 @@
 				],
 				"Texture": "sand-12.jpg"
 			}
+		},
+		"Car": {
+			"Module": "xGraph:ModelTests/Car",
+			"Par": {
+				"Scene": "$World"
+			}
 		}
 	}
 }

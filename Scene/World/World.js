@@ -105,7 +105,7 @@
 		}
 
 		function instance(pidmod, func) {
-			debugger;
+			// debugger;
 			that.send(com, pidmod, func);
 		}
 

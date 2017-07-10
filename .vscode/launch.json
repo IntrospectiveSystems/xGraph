@@ -45,6 +45,20 @@
 			"env": {
 				"NODE_PATH": "node_modules"
 			}
+		},
+		{
+			"name": "Win | Forest",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/Forest",
+			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=C:/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
 		}
 	]
 }
