@@ -8,6 +8,7 @@ npm-debug.log*
 .idea/
 Work/*/package.json
 Systems/*/package.json
+Work/WobbleTest/Simulations/*/*.json
 
 # Runtime data
 pids

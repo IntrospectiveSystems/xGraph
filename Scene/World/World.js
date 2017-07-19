@@ -40,6 +40,7 @@
 
 	//-----------------------------------------------------AddModel
 	function AddModel(com, fun) {
+		debugger;
 		console.log('--World/AddModel');
 		var that = this;
 		var Par = this.Par;

@@ -1,0 +1,17 @@
+{
+	"Modules": {
+		"LayoutInitializer": {
+			"Module": "xGraph:Widgets/LayoutInitializer",
+			"Par": {
+				"Layout": "$Wobble"
+			}
+		},
+		"Wobble": {
+			"Module":"xGraph:Widgets/WobblerView",
+			"Par": {
+				"Controller": "$Thing",
+				"Wireframe": true
+			}
+		}
+	}
+}

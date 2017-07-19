@@ -330,7 +330,7 @@
 					let iLF = str.indexOf('\n');
 					let firstLine = str.substr(0, iLF);
 					if(firstLine.startsWith('//#'))
-						firstline = '//# sourceURL=' + path;
+						firstLine = '//# sourceURL=' + path;
 					str = firstLine + str.substr(iLF);
 					mod = eval(str);
 					Mod[type] = mod;

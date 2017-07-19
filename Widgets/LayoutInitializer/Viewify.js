@@ -33,6 +33,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 			vlt.div.css('height', 'calc(100% - ' + (vlt.titleBarHeight + 1) + 'px)');
 			vlt.div.css('display', 'block');
+			vlt.div.css('position', 'relative');
 			vlt.div.css('box-sizing', 'border-box');
 			vlt.div.css('overflow', 'hidden');
 

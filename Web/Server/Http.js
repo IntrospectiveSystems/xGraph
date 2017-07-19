@@ -1,3 +1,4 @@
+//#
 (function Http() {
 	var fs = require('fs');
 	var async = require('async');
@@ -137,9 +138,11 @@
 						return;
 					}
 
+					// debugger;
 				//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
-						that.send(com, com.Passport.To);
+						// debugger;
+						that.Vlt.messages[com.Passport.Pid](null, com)
 						return;
 					}
 					that.send(com, com.Passport.To, reply);
@@ -220,7 +223,9 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
+		// debugger;
 	//	console.log('--Publish', com.Cmd);
+		fun = fun || (() => {});
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
 		var keys = Object.keys(socks);
@@ -230,8 +235,16 @@
 			var user = obj.User;
 			if('Publish' in user) {
 				com.Passport.To = user.Publish;
-				if(fun)
+				if(fun) {
 					com.Passport.Disp = 'Query';
+				}
+				if ('Forward' in com) {
+					com.Passport.To = com.Forward;
+					if(fun) {
+						if (!('messages' in this.Vlt)) this.Vlt.messages = {};
+						this.Vlt.messages[com.Passport.Pid] = fun;
+					}
+				}
 				var str = JSON.stringify(com);
 				sock.send(str);
 			}
