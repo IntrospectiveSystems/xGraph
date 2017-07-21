@@ -296,7 +296,7 @@
 							if(Vlt.Fun[com.Passport.Pid])
 								Vlt.Fun[com.Passport.Pid](null, com);
 						} else {
-							console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
+							//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
 							that.send(com, Par.Link);
 						}
 						break;
@@ -311,7 +311,7 @@
 	function Proxy(com, fun) {
 		console.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
-		console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
+		//console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
 		var Vlt = this.Vlt;
 		if('Role' in Par) {
 			switch(Par.Role) {
