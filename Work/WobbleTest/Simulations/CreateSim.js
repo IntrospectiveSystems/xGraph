@@ -60,7 +60,8 @@ for(let t = 0; t < time; t ++) {
 			// console.log(i, j, k);
 			let distance = Math.sqrt(Math.pow(waves[w][0] - i, 2) + Math.pow(waves[w][1] - j, 2));
 			if (w == 0) dat[k] = 0;
-			dat[k] += Math.sin((distance - ((time / 100) * (waves[w][3] * waves[w][4]))) / (5 * waves[w][4])) * (1 - (distance / size)) * waves[w][2];
+			dat[k] += Math.sin((distance - ((t / 100) * (waves[w][3] * waves[w][4]))) / (5 * waves[w][4])) * (1 - (distance / size)) * waves[w][2];
+			// time ++;
 		}
 	}
 	let cmd = {Cmd: "SetArray", Data: dat, Size: size};

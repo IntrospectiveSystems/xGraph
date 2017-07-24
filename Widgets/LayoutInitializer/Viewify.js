@@ -281,7 +281,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 	}
 
 	function Command(com, fun) {
-		console.log(' >> ', com.Cmd);
+		// console.log(' >> ', com.Cmd);
 		if (com.Cmd == 'Setup' || !('super' in this)) {
 			let that = this;
 			this.super = function (com, fun) {

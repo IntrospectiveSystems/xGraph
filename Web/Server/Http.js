@@ -90,7 +90,7 @@
 			var Sockets = Vlt.Sockets;
 
 			listener.sockets.on('connection', function (socket) {
-				console.log('sock/connection');
+				// console.log('sock/connection');
 				var pidsock = '';
 				for(var i=0; i<3; i++)
 					pidsock += that.genPid().substr(24);
@@ -109,18 +109,18 @@
 				socket.send(str);
 
 				socket.on('disconnect', function () {
-					console.log(' >> Socket', pidsock, 'disconnected');
+					// console.log(' >> Socket', pidsock, 'disconnected');
 					delete Sockets[pidsock];
 				});
 
 				socket.on('error', function (err) {
-					console.log(' >> Socket', pidsock, '**ERR:' + err);
+					// console.log(' >> Socket', pidsock, '**ERR:' + err);
 					delete Sockets[pidsock];
 				});
 
 				socket.on('message', function (msg) {
 					var com = JSON.parse(msg);
-					console.log('>>Msg:' + com.Cmd);
+					// console.log('>>Msg:' + com.Cmd);
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
 						return;
@@ -318,7 +318,7 @@
 		}
 
 		function ship() {
-			console.log('Manifest', JSON.stringify(man, null, 2));
+			// console.log('Manifest', JSON.stringify(man, null, 2));
 			zip.file('manifest.json', JSON.stringify(man));
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;
