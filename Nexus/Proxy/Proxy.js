@@ -17,7 +17,7 @@
 		var Par = this.Par;
 		if(Par.Chan == 'Plexus') {
 			console.log('--Proxy/Setup', this.Par.Pid);
-			console.log("--     Proxy-Name", (Par.Name || "Nemo"));
+			console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
@@ -37,7 +37,7 @@
 		var Par = this.Par;
 		if(Par.Chan != 'Plexus') {
 			console.log('--Proxy/Start', this.Par.Pid);
-			console.log("--     Proxy-Name", (Par.Name || "Nemo"));
+			console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
