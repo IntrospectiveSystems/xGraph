@@ -43,6 +43,8 @@
 
 					this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
 
+					this.send({ Cmd: "Render" }, apexPid, () => { });
+
 					$(window).resize(() => {
 						this.send({ Cmd: "Resize" }, apexPid, () => { });
 					});

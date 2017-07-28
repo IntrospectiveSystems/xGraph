@@ -9,6 +9,7 @@
 		Start(com, fun) {
 			// debugger;
 			this.Vlt.selected = "";
+			let emptyImage;
 			emptyImage = IMG('http://placehold.it/1x1');
 			emptyImage.css('position', 'fixed');
 			emptyImage.css('left', '-100px');
