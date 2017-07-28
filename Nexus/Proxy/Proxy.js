@@ -14,10 +14,11 @@
 
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
-		console.log('--Proxy/Setup', this.Par.Pid);
 		var Par = this.Par;
-		console.log('Par', JSON.stringify(Par, null, 2));
 		if(Par.Chan == 'Plexus') {
+			console.log('--Proxy/Setup', this.Par.Pid);
+			console.log("--     Proxy-Chan", (Par.Chan));
+			//console.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -33,10 +34,11 @@
 
 	//-----------------------------------------------------Start
 	function Start(com, fun) {
-		console.log('--Proxy/Start', this.Par.Pid);
 		var Par = this.Par;
-		console.log('Par', JSON.stringify(Par, null, 2));
 		if(Par.Chan != 'Plexus') {
+			console.log('--Proxy/Start', this.Par.Pid);
+			console.log("--     Proxy-Chan", (Par.Chan));
+			//console.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -52,11 +54,11 @@
 
 	//-----------------------------------------------------genServer
 	function genServer(fun) {
-		console.log('--genServer');
+		//console.log('--genServer');
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		console.log('Par', JSON.stringify(Par, null, 2));
+		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
 		if(!('Chan' in Par))
 			err = 'No Chan in Par';
@@ -81,7 +83,8 @@
 		function connect(err, r) {
 			if(err) {
 				console.log(' ** ERR:' + err);
-				fun(err);
+				if (fun)
+					fun(err);
 				return;
 			}
 			console.log('..connect', r);
@@ -184,17 +187,18 @@
 
 	//-----------------------------------------------------genClient
 	function genClient(fun) {
-		console.log('--genClient');
+		//console.log('--genClient');
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		console.log('Par', JSON.stringify(Par, null, 2));
+		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
 		if(!('Chan' in Par))
 			err = 'No Chan in Par';
 		if(!('Plexus' in Par))
 			err = 'No Plexus in Par';
 		if(err) {
+			console.log("ERROR in PROXY genClient"+err);
 			if(fun)
 				fun(err);
 			return;
@@ -241,11 +245,11 @@
 			var sock = new net.Socket();
 			Vlt.Server = false;
 			sock.connect(port, host, function () {
-				console.log('..Connection established');
+				//console.log('..Connection established');
 			});
 
 			sock.on('connect', function () {
-				console.log('Proxy - Connected on host:' + host + ', port:' + port);
+				console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				if(fun)
 					fun(null);
@@ -296,7 +300,7 @@
 							if(Vlt.Fun[com.Passport.Pid])
 								Vlt.Fun[com.Passport.Pid](null, com);
 						} else {
-							console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
+							//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
 							that.send(com, Par.Link);
 						}
 						break;
@@ -309,9 +313,9 @@
 
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
-		console.log('--Proxy/Proxy', com.Cmd);
+		//console.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
-		console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
+		//console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
 		var Vlt = this.Vlt;
 		if('Role' in Par) {
 			switch(Par.Role) {
