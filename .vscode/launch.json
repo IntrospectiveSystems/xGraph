@@ -9,10 +9,10 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Work/ModuleServer",
-			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=C:/xGraph"
+				"xGraph=/home/trevor/xGraph"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
