@@ -1,20 +1,17 @@
 {
-	"Mouse": {
-		"$Setup": "Setup",
-		"$Start": "Start",
-		"Entity": "Mouse.js",
-
-		"View": "#Apex",
-		"Div": "Grok"
-	},
 	"Apex": {
 		"$Setup": "Setup",
 		"$Start": "Start",
 		"Entity": "View3D.js",
-		"Div": "Grok",
 		"Gen": {
 			"X3D": "#X3D"
 		}
+	},
+	"Mouse": {
+		"$Setup": "Setup",
+		"$Start": "Start",
+		"Entity": "Mouse.js",
+		"View": "#Apex"
 	},
 	"X3D": {
 		"$Setup": "Setup",

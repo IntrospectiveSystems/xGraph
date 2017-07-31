@@ -36,14 +36,14 @@
 			if (that.Par.bTest) {
 				that.send({Cmd:'StartTests', ModuleServer:that.Par.Pid}, that.Par.Test, (err, com) => {
 					console.log('Tests Finished');
-				})
+				});
 			}
 			fun();
 			return;
 		}
+
 		var async = require('async');
 		var JSZip = require('jszip');
-
 
 		// Read Module import directory
 		fs.readdir(Nxs.genPath(that.Par.Modules), function(err, files) {
@@ -160,7 +160,7 @@
 	// Returns:
 	//	Nothing
 	function DownloadModule(com, fun) {
-
+		console.log('DDDDDDDDOOOOOOOOOOOOWWWWWWWWWNNNNNNNLLLLLLLLOOOOOOOOOAAAAAAAAAAADDDDDDDDDDDD');
 		let otherModuleServer = com.From;
 		let name = com.Module;
 		let that = this;
@@ -184,6 +184,7 @@
 	//	com.Name,
 	// Returns zipped module in base64 in com.Module
 	function GetModule(com, fun) {
+		debugger;
 		console.log('ModuleServer:GetModule');
 		var async = require('async');
 		var that = this;
@@ -222,13 +223,16 @@
 	// Inspect module files for required pars, create module entity, add zipped module to module location
 	// Requires:
 	// 	com.Module as zipped module file
-	//	com.Name as named in module.json
+	// 	com.Name as named in module.json
 	function AddModule(com, fun) {
 		console.log('ModuleServer:AddModule');
+		debugger;
 		var that = this;
 		if ('Module' in com) {
+			console.log(com.Module);
 			let buf = Buffer.from(com.Module, 'base64');
 			com.Module = buf;
+			console.log('asdf');
 
 			that.send(com, that.Par.ModuleData, function(err, com) {
 				if (err) {

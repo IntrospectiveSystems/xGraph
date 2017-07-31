@@ -12,6 +12,12 @@
 	};
 
 	function Setup(com, fun) {
+		// debugger;
+		this.send({
+			Cmd: "GetViewDiv"
+		}, this.Par.View, (err, cmd) => {
+			this.Vlt.div = cmd.Div;
+		});
 		console.log('--Mouse/Setup');
 		if(fun)
 			fun();
@@ -21,14 +27,14 @@
 		console.log('--Mouse/Start');
 		var that = this;
 		var Par = this.Par;
-		var Vew = $('#'+Par.Div).data('View');
+		var Vew = this.Vlt.div.data('View');
 //		var Vew = __Share[Par.Div];
 		Vew.Mouse = {};
 		Vew.Mouse.Mode = 'Idle';
 		Vew.Mouse.inPanel = true;
 		Vew.Ray = new THREE.Raycaster();
-		var Grok = $('#Grok');
-//		var Grok = document.getElementById(Par.Div);
+		var Grok = this.Vlt.div;
+		// var Grok = document.getElementById(Par.Div);
 		Grok.mouseenter(function (evt) {
 			mouseEnter(evt);
 		});
@@ -177,7 +183,7 @@
 		//	console.log('--mouseRay');
 			var info = {};
 			Vew.Ray.precision = 0.00001;
-			container = document.getElementById("Grok");
+			container = that.Vlt.div[0];
 			var w = container.clientWidth;
 			var h = container.clientHeight - 2 * container.clientTop;
 			var vec = new THREE.Vector2();
@@ -273,7 +279,7 @@
 			}
 
 			function move() {
-				//	console.log('..Translate/move', info.Key);
+					// console.log('..Translate/move', info.Key);
 				var mouse = Vew.Mouse;
 				var vcam = new THREE.Vector3();
 				vcam.fromArray(getCamera());

@@ -75,9 +75,10 @@
 
 	//---------------------------------------------------------start
 	function Setup() {
-		console.log('--Nexus/Setup');
-		console.log('Root', Root);
+		console.log('\n--Nexus/Setup');
+		//console.log('Root', Root);
 		var pids = Object.keys(Root.Setup);
+		console.log(pids);
 		if(!Async)
 			Async = require('async');
 		Async.eachSeries(pids, setup, Start);
@@ -108,13 +109,13 @@
 
 	//---------------------------------------------------------Start
 	function Start() {
-		console.log('--Nexus/Start');
+		console.log('\n--Nexus/Start');
 		var pids = Object.keys(Root.Start);
 		console.log(pids);
 		Async.eachSeries(pids, start, Run);
 
 		function start(pid8, func) {
-			console.log('..start', pid8);
+			//console.log('..start', pid8);
 
 			var q = {};
 			q.Cmd = Root.Start[pid8];
@@ -140,7 +141,7 @@
 
 	//-----------------------------------------------------Run
 	function Run() {
-		console.log('--Nexus/Run');
+		console.log('\n--Nexus/Run');
 		if ('send' in process) {
 			process.send('{"Cmd":"Finished"}');
 		}
@@ -327,6 +328,11 @@
 						return;
 					}
 					var str = data.toString();
+					let iLF = str.indexOf('\n');
+					let firstLine = str.substr(0, iLF);
+					if(firstLine.startsWith('//#'))
+						firstLine = '//# sourceURL=' + path;
+					str = firstLine + str.substr(iLF);
 					mod = eval(str);
 					Mod[type] = mod;
 					finish();
@@ -1005,7 +1011,7 @@
 
 	//-----------------------------------------------------Initialize
 	function Initialiate(fun) {
-		console.log('--Nexus/Initialiate');
+		console.log('\n--Nexus/Initialiate');
 		var path = CacheDir + '/00000000.json';
 		fs.readFile(path, root);
 		return;

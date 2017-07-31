@@ -3,7 +3,6 @@
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Setup,
-		Start: Start,
 		Publish: Publish,
 		Subscribe: Subscribe
 	};
@@ -27,12 +26,6 @@
 			fun(null, com);
 	}
 
-	//.....................................................Start
-	function Start(com, fun) {
-		console.log('--Plexus/Start');
-		if(fun)
-			fun(null, com);
-	}
 
 	//-----------------------------------------------------Publish
 	function Publish(com, fun) {
@@ -101,6 +94,7 @@
 			com.Port = srv.Port;
 			if(fun)
 				fun(null, com);
+			return;
 		}
 		if(fun)
 			fun(null, com);

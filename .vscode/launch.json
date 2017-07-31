@@ -9,10 +9,10 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Work/ModuleServer",
-			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=C:/xGraph"
+				"xGraph=/home/trevor/xGraph"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
@@ -23,6 +23,61 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Work/Plexus",
+			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=C:/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
+		},
+		{
+			"name": "Win | 3D World Test",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/3DWorldTest",
+			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=C:/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
+		},
+		{
+			"name": "Win | Wobbler Test",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/WobbleTest",
+			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=C:/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
+		},
+		{
+			"name": "Win | cvtBin",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/WobbleTest/Simulations",
+			"program": "${workspaceRoot}/Work/WobbleTest/Simulations/cvtBin.js",
+			"args": [
+				"Marcus.bin"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
+		},
+		{
+			"name": "Win | Forest",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/Forest",
 			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",

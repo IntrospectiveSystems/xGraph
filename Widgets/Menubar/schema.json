@@ -1,14 +1,6 @@
 {
-	"Menubar": {
-		"Entity": "Menubar.js"
-	},
-	"View": {
-		"Entity": "View.js"
-	},
 	"Apex": {
-		"Entity": "Proxy.js",
-		"Base": "#View",
-		"Child": "#Menubar",
+		"Entity": "Menubar.js",
 		"$Setup": "Setup",
 		"$Start": "Start"
 	}

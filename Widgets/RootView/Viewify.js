@@ -1,5 +1,83 @@
 //# sourceURL=Viewify.js
 // debugger;
+
+// DIV, IMG, and STYLE are shorthand for making elements, wrapped in jquery
+if (window.DIV == undefined) window.DIV = function DIV(selectorish) {
+	let elem = $(document.createElement('div'));
+	// debugger;
+	if (selectorish) {
+		if (selectorish.search(/[#\.]/) == -1) {
+			elem.addClass(selectorish);
+			return elem;
+		}
+		let params = selectorish.split(/(?=\.)/g);
+		for (let i in params) {
+			if (params[i].startsWith('#')) elem.attr('id', params[i].substr(1));
+			else if (params[i].startsWith('.')) elem.addClass(params[i].substr(1));
+		}
+	}
+	return elem;
+};
+
+if (window.STYLE == undefined) window.STYLE = function STYLE() {
+	return $(document.createElement('style'));
+};
+
+if (window.emptyImage == undefined) window.emptyImage = function emptyImage() {
+	let emptyImage;
+	emptyImage = $('#THISISANEMPTYIMAGEANDAUNIQUEIDPLSNOREUSE');
+	if (emptyImage.length == 1) return emptyImage[0];
+	emptyImage = IMG('http://placehold.it/1x1');
+	emptyImage.css('position', 'fixed');
+	emptyImage.css('left', '-100px');
+	emptyImage.css('top', '-100px');
+	emptyImage.attr('id', 'THISISANEMPTYIMAGEANDAUNIQUEIDPLSNOREUSE');
+	$(document.body).append(emptyImage);
+	return emptyImage[0];
+};
+
+
+
+if (window.IMG == undefined) window.IMG = function IMG(width, height, src) {
+
+	let elem = $(document.createElement('img'));
+
+	if (!height && !src) {
+		src = width;
+	} else if (!src) {
+		elem.css('width', width);
+		elem.css('height', height);
+		src = `http://placehold.it/${width}x${height}`;
+	}
+
+	elem.attr('src', src);
+
+
+	return elem;
+};
+
+// get root level cssVars
+$.fn.extend({
+	cssVar: function (name) {
+		// debugger;
+
+		let color = com.Vlt.div.css('--text').trim().replace('#', '');
+		// color = 'C0FFEE';
+		if (color.length == 3) color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
+		color = color.split("").reverse().join("");
+		let valueTable = "0123456789ABCDEF"
+		let result = 0;
+		for (let i = 0, digitValue = 1; i < color.length; i++ , digitValue *= 16) {
+			let onesValue = valueTable.indexOf(color[i]); // find the hex digits decimal value, using the above string.
+			let value = onesValue * digitValue; // find the value of this digit in its place.
+			result |= value; // value is effectively digit masked, and adding would involve sign errors...
+		}
+
+		return result;
+	}
+});
+
+//Viewify
 if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 	// will scan either a prototype of dispatch table
@@ -15,7 +93,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			vlt.type = "view";
 			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
-			vlt.div = DIV("#" + this.Par.Pid.substr(24));
+			vlt.div = DIV("#Z" + this.Par.Pid.substr(24));
 			// debugger;
 			vlt.root = DIV(vlt.rootID);
 			vlt.root.data('ent', this);
@@ -33,6 +111,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 			vlt.div.css('height', 'calc(100% - ' + (vlt.titleBarHeight + 1) + 'px)');
 			vlt.div.css('display', 'block');
+			vlt.div.css('position', 'relative');
 			vlt.div.css('box-sizing', 'border-box');
 			vlt.div.css('overflow', 'hidden');
 
@@ -85,6 +164,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			fun(null, com);
 		}
 
+		GetViewDiv(com, fun) {
+			com.Div = this.Vlt.div;
+			fun(null, com);
+		}
+
 		/// used to add styles to this View & children
 		/// com format: 
 		/// com.Selector = The css selector to apply rules to
@@ -98,9 +182,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			let vlt = this.Vlt
 			let selector = com.Selector;
 			if (selector == "" || selector == ":root") {
-				selector = this.Vlt.rootID;
+				selector = '#' + this.Vlt.div.attr('id');
 			} else {
-				selector = this.Vlt.rootID + " " + selector;
+				selector = '#' + this.Vlt.div.attr('id') + " " + selector;
 			}
 			if ('Rules' in com) {
 				let rules = com.Rules;
@@ -153,7 +237,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				that.Vlt.viewDivs = [cmd.Div];
 				// debugger;
-				com.dispatch({ Cmd: 'UpdateUI' }, (err, cmd) => { fun(null, com) });
+				com.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
 		// test change
@@ -167,7 +251,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
 				// debugger;
-				this.dispatch({ Cmd: 'UpdateUI' }, (err, cmd) => { fun(null, com) });
+				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
 		/// com.View = PID of view
@@ -181,7 +265,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 				// that.Vlt.viewDivs.push(com.View);
 				vlt.viewDivs.splice(com.Index, 0, cmd.Div);
 				// debugger;
-				this.dispatch({ Cmd: 'UpdateUI' }, (err, cmd) => { fun(null, com) });
+				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
 		SetviewDivs(com, fun) {
@@ -196,17 +280,19 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 					next();
 				}, () => {
 					// debugger;
-					this.dispatch({ Cmd: 'UpdateUI' }, (err, cmd) => { fun(null, com) });
+					this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 				});
 			});
 		}
-		UpdateUI(com, fun) {
-			let vlt = this.Vlt;
-			for (let index in this.Vlt.viewDivs) {
-				let view = this.Vlt.viewDivs[index];
-				this.Vlt.div.append(view);
-			}
-			fun(null, com);
+		Render(com, fun) {
+			let that = this;
+			async.each(this.Vlt.views, function(pid, next) {
+				that.send({Cmd: 'Render'}, pid, () => {
+					next();
+				});
+			}, function() {
+				fun(null, com);
+			})
 		}
 
 		GetType(com, fun) {
@@ -270,12 +356,76 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		}
 
 		Drop(com, fun) {
-			debugger;
+			console.log('DROPPED', com);
+		}
+
+		AttachDragListener(com, fun) {
+			let that = this;
+			let root = com.To;
+			let data = com.Data;
+			let datatype = com.Datatype;
+			// debugger;
+			$(root).attr('draggable', 'true');
+			let createDragDom = com.CreateDragDom || function () {
+				div = $(document.createElement('div'));
+				div.css('width', '200px');
+				div.css('height', '200px');
+				div.css('background-color', 'teal');
+				return div;
+			};
+
+			let div;
+			root.addEventListener('dragstart', function (evt) {
+				// debugger;
+				console.log(evt.dataTransfer.setDragImage(emptyImage(), 0, 0));
+				event = evt;
+				// debugger;
+				div = createDragDom();
+
+				div.css('pointer-events', 'none');
+				div.css('opacity', '.6');
+				div.css('position', 'fixed');
+				div.css('top', (evt.pageY + 20) + 'px');
+				div.css('left', (evt.pageX - (div.width() / 2)) + 'px');
+				$(document.body).append(div);
+
+			});
+			root.addEventListener('drag', function (evt) {
+				console.log("DRAG!");
+				let pivotX = (div.width() / 2);
+				let pivotY = 20;
+				div.css('top', (evt.pageY + pivotY) + 'px');
+				div.css('left', (evt.pageX - pivotX) + 'px');
+			});
+			root.addEventListener('dragend', function (evt) {
+				div.remove();
+				console.log('LOOKING FOR ');
+
+				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
+				while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+					elem = elem.parent();
+				}
+
+				if (elem.attr('viewpid') == undefined) return;
+				let viewpid = elem.attr('viewpid');
+
+				that.send({
+					Cmd: "Drop",
+					Data: data,
+					Datatype: datatype,
+					PageX: evt.pageX,
+					PageY: evt.pageY,
+					DivX: evt.pageX - elem.position().left,
+					DivY: evt.pageY - elem.position().top
+				}, viewpid, () => { });
+
+			});
+
 		}
 	}
 
 	function Command(com, fun) {
-		console.log(' >> ', com.Cmd);
+		// console.log(' >> ', com.Cmd);
 		if (com.Cmd == 'Setup' || !('super' in this)) {
 			let that = this;
 			this.super = function (com, fun) {
@@ -301,4 +451,4 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			'*': Command
 		}
 	}
-}
+};

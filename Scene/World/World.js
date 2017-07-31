@@ -40,6 +40,7 @@
 
 	//-----------------------------------------------------AddModel
 	function AddModel(com, fun) {
+		debugger;
 		console.log('--World/AddModel');
 		var that = this;
 		var Par = this.Par;
@@ -85,6 +86,7 @@
 
 	//-----------------------------------------------------GetGraph
 	function GetGraph(com, fun) {
+		// debugger;
 		console.log('--World/GetGraph');
 		var that = this;
 		var Par = this.Par;
@@ -104,7 +106,7 @@
 		}
 
 		function instance(pidmod, func) {
-			debugger;
+			// debugger;
 			that.send(com, pidmod, func);
 		}
 
