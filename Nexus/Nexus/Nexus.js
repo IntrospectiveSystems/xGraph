@@ -874,7 +874,7 @@
 
 			function compile(yes) {
 				if (!yes) {
-					console.log(' ** ERR:No schema **');
+					console.log(' ** ERR:No schema <' + path + '> **');
 					if (fun)
 						fun();
 					return;
