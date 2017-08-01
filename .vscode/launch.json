@@ -23,7 +23,7 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Work/Plexus",
-			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
 				"xGraph=C:/xGraph"
@@ -78,7 +78,7 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Work/Forest",
-			"program": "C:/xGraph/Nexus/Nexus/Nexus.js",
+			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
 				"xGraph=/home/trevor/xGraph"

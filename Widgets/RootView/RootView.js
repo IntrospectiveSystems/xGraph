@@ -1,9 +1,9 @@
-//# sourceURL=LayoutInitializer.js
+//# sourceURL=RootView.js
 //jshint esversion: 6
 //test change
-(function LayoutInitializer() {
+(function RootView() {
 
-	class LayoutInitializer {
+	class RootView {
 		Setup(com, fun) {
 			// debugger;
 			fun(null, com);
@@ -58,7 +58,7 @@
 	}
 
 	return {
-		dispatch: LayoutInitializer.prototype
+		dispatch: Viewify(RootView.prototype)
 	};
 
 })();
