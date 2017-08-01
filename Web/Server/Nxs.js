@@ -50,6 +50,7 @@ __Nexus = (function() {
 		SockIO = sockio;
 		SockIO.removeListener('message');
 		SockIO.on('message', function (data) {
+			// debugger;
 			var cmd = JSON.parse(data);
 			if (!silent) console.log(' << Msg:' + cmd.Cmd);
 			if ('Passport' in cmd && cmd.Passport.Reply) {
@@ -71,10 +72,12 @@ __Nexus = (function() {
 			if (pid24 == Pid24) {
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
-					if('Disp' in cmd && cmd.Disp == 'Query')
+					if('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
 						ent.dispatch(cmd, reply);
 					else
-						ent.dispatch(cmd);
+						ent.dispatch(cmd, () => {
+
+						});
 				} else {
 					console.log(' ** ERR:Local', pid, 'not in Cache');
 				}

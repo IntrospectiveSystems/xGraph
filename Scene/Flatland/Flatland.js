@@ -134,7 +134,7 @@
 			var err = 'Model not available';
 			console.log(' ** ERR:' + err);
 			if(fun)
-				fun(err);
+				fun(err, com);
 			return;
 		}
 		com.Model = {};

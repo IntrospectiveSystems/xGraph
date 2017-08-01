@@ -3,16 +3,12 @@
 (function Menubar() {
 	class MenuBar {
 		Setup(com, fun) {
-			com.Vlt.groups = [];
-			com.Vlt.hotkeys = {};
-			//console.time("MenuBar");
-			window.MenubarVlt = com.Vlt;
 			// we use super here as opposed to bubble because
 			// the only difference between bubble and super,
 			// is that super can be passed params in its com.
 			// bubble simply blindly bubbles the command up
 			// the mod chain
-			// ************************************************
+			// * * * * * * * * * * * * * * * * * * * * * * * *
 			// future Marcus here, Past marcus was dumb. really
 			// dumb. see, none of this works like that anymore.
 			// bubble and super were basically the same thing,
@@ -24,41 +20,51 @@
 			// this system work.
 			//
 			// Have fun,
-			//                         A N D   G O O D   L U C K
-			com.disableTitleBar = true;
+			//                        A N D   G O O D   L U C K
+			// * * * * * * * * * * * * * * * * * * * * * * * *
+			// Super future marcus here.
+			// okay, seriously, every time I change this thing,
+			// past me is always exceptionally more stupid than
+			// I currently am. Viewify works now, super's the same.
 
-			if('Buttons' in com.Par) {
-				for(let i =0; i < com.Par.Buttons.length; i ++) {
-					let obj = com.Par.Buttons[i];
-					com.dispatch({
-						Cmd: "AddMenuItem",
-						To: obj.To,
-						Group: obj.Group,
-						Option: obj.Option,
-						OnClick: obj.Command
-					}, () => {});
-				}
-			}
-
+			this.Vlt.disableTitleBar = true;
+			// debugger;
 			// console.log('HEY JUST SO YOU KNOW, MENUBAR START IS A THING');
-			com.super(com, (err, cmd) => {
+			this.super(com, (err, cmd) => {
+				this.Vlt.groups = [];
+				this.Vlt.hotkeys = {};
+				//console.time("MenuBar");
+				window.MenubarVlt = this.Vlt;
+
+				if ('Buttons' in this.Par) {
+					for (let i = 0; i < this.Par.Buttons.length; i++) {
+						let obj = this.Par.Buttons[i];
+						this.dispatch({
+							Cmd: "AddMenuItem",
+							To: obj.To,
+							Group: obj.Group,
+							Option: obj.Option,
+							OnClick: obj.Command
+						}, () => { });
+					}
+				}
 				// console.log('AND WE CALLED ITS SUPER');
 				// console.log('DO WE HAVE A VIEWDIVS? ' + ('viewDivs' in com.Vlt));
-				if (!('viewDivs' in com.Vlt)) debugger;
+				if (!('viewDivs' in this.Vlt)) debugger;
 				let that = this;
-				com.Vlt.menubarHeight = 30;
-				com.Vlt.bar = DIV();
+				this.Vlt.menubarHeight = 30;
+				this.Vlt.bar = DIV();
 				// com.Vlt.bar.css('border-bottom', '2px solid rgb(156, 156, 142)');
 				// com.Vlt.bar.css('padding-top', '2px');
-				com.Vlt.bar.addClass('menubar');
+				this.Vlt.bar.addClass('menubar');
 
 				{ // superstyles
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.menubar',
 						Rules: {
 							//'font-family': 'monospace',
-							'height': '' + (com.Vlt.menubarHeight) + 'px',
+							'height': '' + (that.Vlt.menubarHeight) + 'px',
 							// 'line-height': '' + (com.Vlt.menubarHeight) + 'px',
 							'border-bottom': '1px solid var(--view-border-color-light)',
 							'padding-left': '5px',
@@ -67,7 +73,7 @@
 							'box-sizing': 'border-box'
 						}
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.groupButton',
 						Rules: {
@@ -80,11 +86,11 @@
 							'display': 'inline-block',
 							'padding': '0px 8px',
 							'height': '100%',
-							'line-height': '' + com.Vlt.menubarHeight + 'px'
+							'line-height': '' + that.Vlt.menubarHeight + 'px'
 							// 'padding-left': '4px'
 						}
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.groupButton:hover',
 						Rules: {
@@ -92,7 +98,7 @@
 							// 'border': '1px solid var(--view-border-color)'
 						}
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.groupButton.focus',
 						Rules: {
@@ -101,7 +107,7 @@
 							// 'border': '1px solid var(--accent-color)'
 						}
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.optionsPanel',
 						Rules: {
@@ -117,7 +123,7 @@
 							'color': 'var(--text)'
 						}
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.optionButton',
 						Rules: {
@@ -126,7 +132,7 @@
 							'transition': 'padding-left 300ms'
 						}
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.groupButton.focus > .optionsPanel',
 						Rules: {
@@ -134,7 +140,7 @@
 							'margin-left': '-9px'
                         }
 					}, () => { });
-					com.super({
+					this.super({
 						Cmd: "Style",
 						Selector: '.optionButton:hover, .optionButton.focus',
 						Rules: {
@@ -145,8 +151,8 @@
 					}, () => { });
 				}
 
-				com.Vlt.keys = "";
-				let keys = com.Vlt.keys;
+				this.Vlt.keys = "";
+				let keys = that.Vlt.keys;
 				window.onkeydown = (e) => {
 					if (!e) e = window.event;
 					if (e.shiftKey) {if (keys.indexOf('^') == -1) keys += '^';}
@@ -164,8 +170,8 @@
 					if (char.match(/[A-Za-z0-9]/) !== null) if (keys.indexOf(char) == -1) keys += char;
 					keys = keys.split('').sort().join('');
 					//console.log(keys);
-					if (keys in com.Vlt.hotkeys) {
-						com.Vlt.hotkeys[keys]();
+					if (keys in that.Vlt.hotkeys) {
+						that.Vlt.hotkeys[keys]();
 					}
 
 				};
@@ -178,9 +184,9 @@
 					//console.log(keys);
 				};
 
-				com.Vlt.contentHolder = DIV();
-				com.Vlt.contentHolder.css('height', 'calc(100% - ' + (com.Vlt.menubarHeight) + 'px)');
-				com.Vlt.contentHolder.css('box-sizing', 'border-box');
+				that.Vlt.contentHolder = DIV();
+				that.Vlt.contentHolder.css('height', 'calc(100% - ' + (that.Vlt.menubarHeight) + 'px)');
+				that.Vlt.contentHolder.css('box-sizing', 'border-box');
 				// this.super({
 				// 	Cmd: "Append",
 				// 	Divs: [
@@ -190,42 +196,42 @@
 				// 	]
 				// }, () => { });
 
-				com.dispatch({ Cmd: 'Reconstruct' });
+				that.dispatch({ Cmd: 'Reconstruct' });
 
-				com.Vlt.currentFocus = null;
+				that.Vlt.currentFocus = null;
 
-				com.Vlt.div.on('click', '.groupButton', function () {
+				that.Vlt.div.on('click', '.groupButton', function () {
 					//console.log('');
 					//console.log('Menu Button Clicked');
 
-					let clickedFocus = (com.Vlt.currentFocus != null && '0' in com.Vlt.currentFocus ? this == com.Vlt.currentFocus[0] : false);
+					let clickedFocus = (that.Vlt.currentFocus != null && '0' in that.Vlt.currentFocus ? this == that.Vlt.currentFocus[0] : false);
 
 					//console.log('Current Focus: ' + com.Vlt.currentFocus);
 					//console.log('Clicked Focused? ' + clickedFocus);
 
 					if (clickedFocus) {
-						com.Vlt.currentFocus.removeClass('focus');
-						com.Vlt.currentFocus = null;
+						that.Vlt.currentFocus.removeClass('focus');
+						that.Vlt.currentFocus = null;
 						return;
 					}
 
-					if (com.Vlt.currentFocus != null)
-						com.Vlt.currentFocus.removeClass('focus');
+					if (that.Vlt.currentFocus != null)
+						that.Vlt.currentFocus.removeClass('focus');
 
 					$(this).addClass('focus');
-					com.Vlt.currentFocus = $(this);
+					that.Vlt.currentFocus = $(this);
 
 					// } else {
 					// 	com.Vlt.currentFocus = null;
 					// 	$(this).removeClass('focus');
 					// }
 				});
-				com.Vlt.div.on('mouseover', '.groupButton', function () {
-					if (com.Vlt.currentFocus != null) {
+				that.Vlt.div.on('mouseover', '.groupButton', function () {
+					if (that.Vlt.currentFocus != null) {
 						//console.log('Moved');
-						com.Vlt.currentFocus.removeClass('focus');
+						that.Vlt.currentFocus.removeClass('focus');
 						$(this).addClass('focus');
-						com.Vlt.currentFocus = $(this);
+						that.Vlt.currentFocus = $(this);
 					}
 				});
 
@@ -234,12 +240,17 @@
 
 			});
 		}
+		Start(com, fun) {
+			this.super(com, (err, cmd) => {
+				fun(null, com);
+			});
+		}
 		/// add menu item will not iteself reconstruct the menu bar,
 		/// however, if you do not continue to add more items or signal
 		/// you are finished, a timeout will be called after 2 seconds
 		/// and automatically reconstruct the bar.
 		AddMenuItem(com, fun) {
-			let vlt = com.Vlt;
+			let vlt = this.Vlt;
 			let group = com.Group;
 			let option = com.Option;
 			let onclick;
@@ -261,11 +272,11 @@
 				optionobj = createOption(groupobj, option);
 			}
 			optionobj.onclick = onclick;
-			if('Hotkey' in com) com.Vlt.hotkeys[com.Hotkey] = onclick;
+			if ('Hotkey' in com) this.Vlt.hotkeys[com.Hotkey] = onclick;
 
 			if (!!vlt.updateCallback && vlt.updateCallback !== null) clearTimeout(vlt.updateCallback);
 			vlt.updateCallback = setTimeout(() => {
-				com.dispatch({
+				this.dispatch({
 					Cmd: "Reconstruct"
 				}, () => { });
 			}, 2000);
@@ -296,11 +307,11 @@
 			}
 		}
 		Reconstruct(com, fun) {
-			if (!!com.Vlt.updateCallback && com.Vlt.updateCallback !== null) clearTimeout(com.Vlt.updateCallback);
-			com.Vlt.bar.html('');
+			if (!!this.Vlt.updateCallback && this.Vlt.updateCallback !== null) clearTimeout(this.Vlt.updateCallback);
+			this.Vlt.bar.html('');
 			let groupButtons = $();
-			for (let i = 0; i < com.Vlt.groups.length; i++) {
-				let group = com.Vlt.groups[i];
+			for (let i = 0; i < this.Vlt.groups.length; i++) {
+				let group = this.Vlt.groups[i];
 				let groupButton = DIV('groupButton');
 				groupButton.html(group.name);
 				groupButtons = groupButtons.add(groupButton);
@@ -314,18 +325,21 @@
 					panel.append(button);
 				}
 				groupButton.append(panel);
-				com.Vlt.bar.append(groupButton);
+				this.Vlt.bar.append(groupButton);
 			}
 
 		}
-		UpdateUI(com, fun) {
-			com.Vlt.div.append(com.Vlt.bar);
-			if (com.Vlt.viewDivs.length > 0) {
-				com.Vlt.contentHolder.children().detach();
-				com.Vlt.contentHolder.append(com.Vlt.viewDivs[0])
-				com.Vlt.div.append(com.Vlt.contentHolder);
+		Render(com, fun) {
+			this.Vlt.div.append(this.Vlt.bar);
+			// debugger;
+			if (this.Vlt.viewDivs.length > 0) {
+				this.Vlt.contentHolder.children().detach();
+				this.Vlt.contentHolder.append(this.Vlt.viewDivs[0])
+				this.Vlt.div.append(this.Vlt.contentHolder);
 			}
-			fun(null, com);
+			this.super(com, (err, cmd) => {
+				fun(null, com);
+			});
 		}
 		Blur(com, fun) {
 			com.super(com, (err, cmd) => {
@@ -339,9 +353,6 @@
 		}
 	}
 
-	return {
-		extends: "Home:Views/View",
-		dispatch: MenuBar.prototype
-	};
+	return Viewify(MenuBar);
 
 })();

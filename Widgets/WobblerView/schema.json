@@ -1,6 +1,6 @@
 {
 	"Apex": {
-		"Entity": "LayoutInitializer.js",
+		"Entity": "Wobbler.js",
 		"$Start": "Start",
 		"$Setup": "Setup"
 	}

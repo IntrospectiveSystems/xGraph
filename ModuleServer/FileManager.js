@@ -74,6 +74,7 @@
 	}
 
 	function GetModule(com, fun) {
+		debugger;
 		var that = this;
 		var path = Nxs.genPath(that.Par.ModuleStorage + '/' + com.Name + '/' + com.Name + '.zip');
 		if (fs.existsSync(path)) {

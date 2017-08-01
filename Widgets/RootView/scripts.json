@@ -1,5 +1,4 @@
 {
 	"jquery": "jquery.min.js",
-	"LayoutLib": "LayoutLib.js",
 	"Viewify": "Viewify.js"
 }

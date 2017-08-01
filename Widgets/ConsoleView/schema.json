@@ -1,6 +1,6 @@
 {
 	"Apex": {
-		"Entity": "Menubar.js",
+		"Entity": "ConsoleView.js",
 		"$Setup": "Setup",
 		"$Start": "Start"
 	}
