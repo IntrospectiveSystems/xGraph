@@ -216,7 +216,7 @@
 		function reply(err, q) {
 		//	console.log('..Nexus/send/reply', com.Cmd, com.Passport);
 			if(fun)
-				fun(null, q);
+				fun(err, q);
 		}
 	}
 
