@@ -33,7 +33,7 @@
 			}
 		},
 		{
-			"name": "Win | 3D World Test",
+			"name": "Lnx | 3D World Test",
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Work/3DWorldTest",
@@ -41,6 +41,20 @@
 			"args": [
 				"Config=config.json",
 				"xGraph=/home/trevor/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
+		},
+		{
+			"name": "Mac | 3D World Test",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/3DWorldTest",
+			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=/Users/Marcus-Macbook/xGraph"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
