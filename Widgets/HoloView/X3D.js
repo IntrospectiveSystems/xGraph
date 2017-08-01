@@ -1,4 +1,4 @@
-//# sourceURL=X3D
+//# sourceURL=HoloView/X3D
 (function X3D() {
 
 	//-----------------------------------------------------dispatch
@@ -32,7 +32,7 @@
 
 	//-----------------------------------------------------GenModel
 	function GenModel(com, fun) {
-		console.log('--GenModel');
+		console.log('--X3D/GenModel');
 		var modx3d = com.Model;
 		var zipx3d = new JSZip();
 		var Zip;
@@ -43,7 +43,9 @@
 		});
 
 		function textures() {
-		//	console.log('..textures');
+			//debugger;
+
+			console.log('..textures');
 			var dir = Zip.file(/.*./);
 			async.eachSeries(dir, texture, genmod);
 
@@ -92,7 +94,8 @@
 		}
 
 		function genmod() {
-		//	console.log('..genmod');
+			//debugger;
+			console.log('..genmod');
 			Zip.file('X3D').async('string').then(function(str){
 				var x3d = JSON.parse(str);
 				dump(x3d);

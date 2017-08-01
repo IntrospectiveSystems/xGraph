@@ -1,7 +1,7 @@
 {
 	"Modules": {
 		"LayoutInitializer": {
-			"Module": "xGraph:Widgets/LayoutInitializer",
+			"Module": "xGraph:Widgets/RootView",
 			"Par": {
 				"Layout": "$Wobble"
 			}

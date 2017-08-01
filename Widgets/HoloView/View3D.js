@@ -1,4 +1,4 @@
-//# sourceURL=View3D
+//# sourceURL=HoloView/View3D
 (function View3D() {
 
 	//-----------------------------------------------------dispatch
@@ -109,6 +109,7 @@
 					var q = {};
 					q.Cmd = 'GetModel';
 					q.Instance = inst.Instance;
+					debugger;
 					that.send(q, Par.Scene, rply);
 
 					function rply(err, r) {
