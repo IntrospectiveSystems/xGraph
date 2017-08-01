@@ -32,8 +32,8 @@
 			this.genModule(par, (err, pid) => {
 				let popup = DIV();
 				popup.draggable();
-				popup.css('width', (com.Width || 800) + 'px');
-				popup.css('height', (com.Height || 600) + 'px');
+				popup.css('width', (this.Par.Width || 800) + 'px');
+				popup.css('height', (this.Par.Height || 600) + 'px');
 				popup.css('background-color', 'white');
 				popup.css('position', 'fixed');
 				popup.css('border-radius', '3px');

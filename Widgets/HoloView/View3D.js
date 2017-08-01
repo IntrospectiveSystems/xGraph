@@ -20,6 +20,24 @@
 			var Par = this.Par;
 			// var div = document.getElementById(Par.Div);
 			var div = this.Vlt.div[0];
+			//this.Vlt.div.attr('tab-index', '1');
+			//console.log("Window is ", window);
+			window.onkeydown= (function(evt) {
+				console.log("Keydown event", evt.code)
+				switch(evt.code) {
+					case 'F2':
+						console.log("Popup");
+						that.genModule({
+							"Module": "xGraph:Widgets/Popup",
+							"Par": {
+								"View": "xGraph:Widgets/ConsoleView",
+								"Width": 400,
+								"Height" : 300
+							}
+						}, ()=>{})
+					default:
+				}
+			});
 			// div.id = Par.Div;
 			// div.style.height = '100%';
 			// document.getElementsByTagName('body')[0].appendChild(div);
@@ -109,7 +127,7 @@
 					var q = {};
 					q.Cmd = 'GetModel';
 					q.Instance = inst.Instance;
-					debugger;
+					//debugger;
 					that.send(q, Par.Scene, rply);
 
 					function rply(err, r) {
@@ -188,6 +206,22 @@
 				loop();
 
 				function loop() {
+					window.onkeydown= (function(evt) {
+				console.log("Keydown event", evt.code)
+				switch(evt.code) {
+					case 'F2':
+						console.log("Popup");
+						that.genModule({
+							"Module": "xGraph:Widgets/Popup",
+							"Par": {
+								"View": "xGraph:Widgets/ConsoleView",
+								"Width": 400,
+								"Height" : 300
+							}
+						}, ()=>{})
+					default:
+				}
+			});
 					Vew.Render.render(Vew.Scene, Vew.Camera);
 					requestAnimationFrame(loop);
 				}

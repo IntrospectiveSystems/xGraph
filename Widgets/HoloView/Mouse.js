@@ -54,6 +54,24 @@
 		Grok.mouseup(function (evt) {
 			mouseUp(evt);
 		});
+		Grok.on("keydown", function (evt) {
+				console.log("Keydown event", evt.code);
+				switch(evt.code) {
+					case 'F2':
+						console.log("Popup");
+						this.genMod({
+							"Module": "xGraph:Widgets/Popup",
+							"Par": {
+								"Module": "xGraph:Widgets/HoloView",
+								"Par": {
+									"Scene": "$Scene"
+								}
+							}
+						}, ()=>{})
+					default:
+				}
+			});
+			
 		if(fun)
 			fun(null, com);
 
