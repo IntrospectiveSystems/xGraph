@@ -4,7 +4,7 @@
 
 	class Popup {
 		Setup(com, fun) {
-
+			console.log("Viewify/Setup");
 			if(!('View' in this.Par)) {
 				fun('Par.View not set', com);
 				this.deleteEntity(this.Par.Pid)
@@ -27,8 +27,7 @@
 				}
 			}
 
-			// alert(JSON.stringify(par, null, 2));
-
+			//alert(JSON.stringify(par, null, 2));
 			this.genModule(par, (err, pid) => {
 				let popup = DIV();
 				popup.draggable();
@@ -45,7 +44,7 @@
 					//make it Resizable somehow idk
 					// TODO - - - - - - - - - - - - -
 				}
-
+				
 				document.body.appendChild(popup[0]);
 
 				this.send({

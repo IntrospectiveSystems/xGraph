@@ -22,7 +22,7 @@
 			var div = this.Vlt.div[0];
 			//this.Vlt.div.attr('tab-index', '1');
 			//console.log("Window is ", window);
-			window.onkeydown= (function(evt) {
+			/* window.onkeydown= (function(evt) {
 				console.log("Keydown event", evt.code)
 				switch(evt.code) {
 					case 'F2':
@@ -30,14 +30,14 @@
 						that.genModule({
 							"Module": "xGraph:Widgets/Popup",
 							"Par": {
-								"View": "xGraph:Widgets/ConsoleView",
+								"View": "xGraph:HeatBugsModule",
 								"Width": 400,
 								"Height" : 300
 							}
 						}, ()=>{})
 					default:
 				}
-			});
+			}); */
 			// div.id = Par.Div;
 			// div.style.height = '100%';
 			// document.getElementsByTagName('body')[0].appendChild(div);
@@ -214,7 +214,7 @@
 						that.genModule({
 							"Module": "xGraph:Widgets/Popup",
 							"Par": {
-								"View": "xGraph:Widgets/ConsoleView",
+								"View": "xGraph:Widgets/PixiView",
 								"Width": 400,
 								"Height" : 300
 							}

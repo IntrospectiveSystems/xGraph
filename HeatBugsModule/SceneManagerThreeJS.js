@@ -7,7 +7,7 @@
 
 	return {
 		dispatch: dispatch
-	};
+		};
 
 	//-----------------------------------------------------rgbToHex
 	function rgbToHex(r, g, b) {
@@ -16,6 +16,7 @@
 
 	//-----------------------------------------------------Start
 	function Setup(com, fun) {
+		//this.super(com, (err, cmd) => {
 		console.log('--SceneManager/Setup');
 
 		var Vlt = this.Vlt;
@@ -141,10 +142,12 @@
 				requestAnimationFrame(loop);
 			}
 		}
+	//});
 	}
 
 
 	function Start (com, fun){
+		//this.super(com, (err, cmd) => {
 		console.log("--SceneManager/Start");
 		let Vlt = this.Vlt;
 		let Par = this.Par;
@@ -221,6 +224,7 @@
 
 		if (fun)
 			fun(null,com);
+	//});
 	}
 
 
