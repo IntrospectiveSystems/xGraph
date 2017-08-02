@@ -17,6 +17,19 @@
 			"env": {
 				"NODE_PATH": "node_modules"
 			}
+		},{
+			"name": "HeatBugs",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Work/HeatBugs",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=/home/trevor/xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
 		},
 		{
 			"name": "Win | Plexus",
@@ -47,14 +60,14 @@
 			}
 		},
 		{
-			"name": "Mac | 3D World Test",
+			"name": "UBU | 3D World Test 2",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/3DWorldTest",
+			"cwd": "${workspaceRoot}/Work/3DWorldTest2",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=/Users/Marcus-Macbook/xGraph"
+				"xGraph=/home/trevor/xGraph"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"

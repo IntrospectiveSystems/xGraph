@@ -1,0 +1,7 @@
+{
+	"Apex": {
+		"Entity": "PixiView.js",
+		"$Setup": "Setup",
+		"$Start": "Start"
+	}
+}

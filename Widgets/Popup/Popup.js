@@ -4,7 +4,7 @@
 
 	class Popup {
 		Setup(com, fun) {
-
+			console.log("Viewify/Setup");
 			if(!('View' in this.Par)) {
 				fun('Par.View not set', com);
 				this.deleteEntity(this.Par.Pid)
@@ -27,13 +27,12 @@
 				}
 			}
 
-			// alert(JSON.stringify(par, null, 2));
-
+			//alert(JSON.stringify(par, null, 2));
 			this.genModule(par, (err, pid) => {
 				let popup = DIV();
 				popup.draggable();
-				popup.css('width', (com.Width || 800) + 'px');
-				popup.css('height', (com.Height || 600) + 'px');
+				popup.css('width', (this.Par.Width || 800) + 'px');
+				popup.css('height', (this.Par.Height || 600) + 'px');
 				popup.css('background-color', 'white');
 				popup.css('position', 'fixed');
 				popup.css('border-radius', '3px');
@@ -45,7 +44,7 @@
 					//make it Resizable somehow idk
 					// TODO - - - - - - - - - - - - -
 				}
-
+				
 				document.body.appendChild(popup[0]);
 
 				this.send({

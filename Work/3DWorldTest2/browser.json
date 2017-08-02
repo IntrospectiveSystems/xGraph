@@ -1,0 +1,16 @@
+{
+	"Modules": {
+		"RootView": {
+			"Module": "xGraph:Widgets/RootView",
+			"Par": {
+				"Layout": "$HoloView"
+			}
+		},
+		"HoloView": {
+			"Module":"xGraph:Widgets/HoloView",
+			"Par": {
+				"Scene": "$Scene"
+			}
+		}
+	}
+}
