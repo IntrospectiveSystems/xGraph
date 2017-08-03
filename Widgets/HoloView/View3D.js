@@ -207,21 +207,21 @@
 
 				function loop() {
 					window.onkeydown= (function(evt) {
-				console.log("Keydown event", evt.code)
-				switch(evt.code) {
-					case 'F2':
-						console.log("Popup");
-						that.genModule({
-							"Module": "xGraph:Widgets/Popup",
-							"Par": {
-								"View": "xGraph:Widgets/PixiView",
-								"Width": 400,
-								"Height" : 300
-							}
-						}, ()=>{})
-					default:
-				}
-			});
+						console.log("Keydown event", evt.code)
+						switch(evt.code) {
+							case 'F2':
+								console.log("Popup");
+								that.genModule({
+									"Module": "xGraph:Widgets/Popup",
+									"Par": {
+										"View": "xGraph:Widgets/PixiView",
+										"Width": 400,
+										"Height" : 300
+									}
+								}, ()=>{})
+							default:
+						}
+					});
 					Vew.Render.render(Vew.Scene, Vew.Camera);
 					requestAnimationFrame(loop);
 				}

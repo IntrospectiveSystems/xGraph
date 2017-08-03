@@ -15,9 +15,10 @@
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
 		var Par = this.Par;
-		if(Par.Chan == 'Plexus') {
-			console.log('--Proxy/Setup', this.Par.Pid);
-			console.log("--     Proxy-Chan", (Par.Chan));
+		if((Par.Chan == 'Plexus')||(!("Plexus" in Par))) {
+			this.log('--Proxy/Setup '+ this.Par.Pid);
+			if ("Plexus" in Par)
+				console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
@@ -25,6 +26,11 @@
 				return;
 			case 'Client':
 				genClient.call(this, fun);
+				return;
+			default: 
+				let err= ""+Par.Role+ " is not an acceptible Role"
+				if(fun)
+					fun(err, com);
 				return;
 			}
 		}
@@ -35,7 +41,7 @@
 	//-----------------------------------------------------Start
 	function Start(com, fun) {
 		var Par = this.Par;
-		if(Par.Chan != 'Plexus') {
+		if(Par.Chan != 'Plexus'&& "Plexus" in Par) {
 			console.log('--Proxy/Start', this.Par.Pid);
 			console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
@@ -45,6 +51,11 @@
 				return;
 			case 'Client':
 				genClient.call(this, fun);
+				return;
+			default: 
+				let err= ""+Par.Role+ " is not an acceptible Role"
+				if(fun)
+					fun(err, com);
 				return;
 			}
 		}
@@ -60,25 +71,43 @@
 		var Vlt = this.Vlt;
 		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
-		if(!('Chan' in Par))
-			err = 'No Chan in Par';
-		if(!('Plexus' in Par))
-			err = 'No Plexus in Par';
-		if(err) {
-			if(fun)
-				fun(err);
-			return;
+
+		if ("Plexus" in Par){
+			if(!('Chan' in Par))
+				err = 'No Chan in Par';
+			// if(!('Plexus' in Par))
+			// 	err = 'No Plexus in Par';
+			if(!('Link' in Par))
+				err = 'No Link in Par';
+			if(err) {
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Cmd = 'Publish';
+			if('Name' in Par)
+				q.Name = Par.Name;
+			else
+				q.Name = 'Nemo';
+			q.Chan = Par.Chan;
+			q.Host = '127.0.0.1';
+			console.log('q', JSON.stringify(q));
+			that.send(q, Par.Plexus, connect);
+		}else{
+			if(!('Port' in Par))
+				err = 'No Port in Par';
+			if(err) {
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Port = Par.Port;
+			
+			console.log('q', JSON.stringify(q));
+			connect(null, q);
 		}
-		var q = {};
-		q.Cmd = 'Publish';
-		if('Name' in Par)
-			q.Name = Par.Name;
-		else
-			q.Name = 'Nemo';
-		q.Chan = Par.Chan;
-		q.Host = '127.0.0.1';
-		console.log('q', JSON.stringify(q));
-		that.send(q, Par.Plexus, connect);
 
 		function connect(err, r) {
 			if(err) {
@@ -193,29 +222,45 @@
 		var Vlt = this.Vlt;
 		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
-		if(!('Chan' in Par))
-			err = 'No Chan in Par';
-		if(!('Plexus' in Par))
-			err = 'No Plexus in Par';
-		if(err) {
-			console.log("ERROR in PROXY genClient"+err);
-			if(fun)
-				fun(err);
-			return;
-		}
-		var q = {};
-		q.Cmd = 'Subscribe';
-		if('Name' in Par)
-			q.Name = Par.Name;
-		else
-			q.Name = 'Nemo';
-		q.Chan = Par.Chan;
-		q.Host = '127.0.0.1';
-		if(Par.Chan == 'Plexus') {
-			q.Port = 27000;
+		if ("Plexus" in Par){
+			if(!('Chan' in Par))
+				err = 'No Chan in Par';
+			if(err) {
+				console.log("ERROR in PROXY genClient"+err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Cmd = 'Subscribe';
+			if('Name' in Par)
+				q.Name = Par.Name;
+			else
+				q.Name = 'Nemo';
+			q.Chan = Par.Chan;
+			q.Host = '127.0.0.1';
+			if(Par.Chan == 'Plexus') {
+				q.Port = 27000;
+				connect(null, q);
+			} else {
+				that.send(q, Par.Plexus, connect);
+			}
+		}else{
+			if(!('Port' in Par))
+				err = 'No Port in Par';
+			if(!('Host' in Par))
+				err = 'No Host in Par';
+			if(err) {
+				console.log("ERROR in PROXY genClient"+err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Host = Par.Host;
+			q.Port = Par.Port;
+
 			connect(null, q);
-		} else {
-			that.send(q, Par.Plexus, connect);
 		}
 
 		function connect(err, r) {
@@ -301,6 +346,9 @@
 								Vlt.Fun[com.Passport.Pid](null, com);
 						} else {
 							//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
+
+
+							//do we really want links in clients?
 							that.send(com, Par.Link);
 						}
 						break;
@@ -326,7 +374,13 @@
 					server();
 					break;
 				default:
-					break;
+					console.log('Par', JSON.stringify(Par, null, 2));
+					var err = 'Proxy role is unknown';
+					console.log(' ** ERR:' + err);
+					console.log('    Proxy:' + Par.Chan);
+					if(fun)
+						fun(err);
+					return;
 			}
 		} else {
 			console.log('Par', JSON.stringify(Par, null, 2));
