@@ -6,6 +6,7 @@ npm-debug.log*
 # xGraph
 [c]ache
 .idea/
+EventLog.txt
 Work/*/package.json
 Systems/*/package.json
 Work/WobbleTest/Simulations/*
