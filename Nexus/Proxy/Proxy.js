@@ -15,9 +15,10 @@
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
 		var Par = this.Par;
-		if(Par.Chan == 'Plexus') {
-			console.log('--Proxy/Setup', this.Par.Pid);
-			console.log("--     Proxy-Chan", (Par.Chan));
+		if((Par.Chan == 'Plexus')||(!("Plexus" in Par))) {
+			console.log('--Proxy/Setup ', this.Par.Pid);
+			if ("Plexus" in Par)
+				console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
@@ -25,6 +26,11 @@
 				return;
 			case 'Client':
 				genClient.call(this, fun);
+				return;
+			default: 
+				let err= ""+Par.Role+ " is not an acceptible Role"
+				if(fun)
+					fun(err, com);
 				return;
 			}
 		}
@@ -35,7 +41,7 @@
 	//-----------------------------------------------------Start
 	function Start(com, fun) {
 		var Par = this.Par;
-		if(Par.Chan != 'Plexus') {
+		if(Par.Chan != 'Plexus'&& "Plexus" in Par) {
 			console.log('--Proxy/Start', this.Par.Pid);
 			console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
@@ -45,6 +51,11 @@
 				return;
 			case 'Client':
 				genClient.call(this, fun);
+				return;
+			default: 
+				let err= ""+Par.Role+ " is not an acceptible Role"
+				if(fun)
+					fun(err, com);
 				return;
 			}
 		}
@@ -60,25 +71,41 @@
 		var Vlt = this.Vlt;
 		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
-		if(!('Chan' in Par))
-			err = 'No Chan in Par';
-		if(!('Plexus' in Par))
-			err = 'No Plexus in Par';
-		if(err) {
-			if(fun)
-				fun(err);
-			return;
+
+		if ("Plexus" in Par){
+			if(!('Chan' in Par))
+				err = 'No Chan in Par';
+			// if(!('Plexus' in Par))
+			// 	err = 'No Plexus in Par';
+			if(!('Link' in Par))
+				err = 'No Link in Par';
+			if(err) {
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Cmd = 'Publish';
+			if('Name' in Par)
+				q.Name = Par.Name;
+			else
+				q.Name = 'Nemo';
+			q.Chan = Par.Chan;
+			q.Host = '127.0.0.1';
+			this.send(q, Par.Plexus, connect);
+		}else{
+			if(!('Port' in Par))
+				err = 'No Port in Par';
+			if(err) {
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Port = Par.Port;
+			
+			connect(null, q);
 		}
-		var q = {};
-		q.Cmd = 'Publish';
-		if('Name' in Par)
-			q.Name = Par.Name;
-		else
-			q.Name = 'Nemo';
-		q.Chan = Par.Chan;
-		q.Host = '127.0.0.1';
-		console.log('q', JSON.stringify(q));
-		that.send(q, Par.Plexus, connect);
 
 		function connect(err, r) {
 			if(err) {
@@ -118,7 +145,8 @@
 
 				sock.on('error', (err) => {
 					console.log(' ** ERR2:' + err);
-					console.log('    Proxy:' + Par.Chan);
+					if ("Chan" in Par)
+						console.log('    Proxy:' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -193,29 +221,45 @@
 		var Vlt = this.Vlt;
 		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
-		if(!('Chan' in Par))
-			err = 'No Chan in Par';
-		if(!('Plexus' in Par))
-			err = 'No Plexus in Par';
-		if(err) {
-			console.log("ERROR in PROXY genClient"+err);
-			if(fun)
-				fun(err);
-			return;
-		}
-		var q = {};
-		q.Cmd = 'Subscribe';
-		if('Name' in Par)
-			q.Name = Par.Name;
-		else
-			q.Name = 'Nemo';
-		q.Chan = Par.Chan;
-		q.Host = '127.0.0.1';
-		if(Par.Chan == 'Plexus') {
-			q.Port = 27000;
+		if ("Plexus" in Par){
+			if(!('Chan' in Par))
+				err = 'No Chan in Par';
+			if(err) {
+				console.log("ERROR in PROXY genClient"+err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Cmd = 'Subscribe';
+			if('Name' in Par)
+				q.Name = Par.Name;
+			else
+				q.Name = 'Nemo';
+			q.Chan = Par.Chan;
+			q.Host = '127.0.0.1';
+			if(Par.Chan == 'Plexus') {
+				q.Port = 27000;
+				connect(null, q);
+			} else {
+				this.send(q, Par.Plexus, connect);
+			}
+		}else{
+			if(!('Port' in Par))
+				err = 'No Port in Par';
+			if(!('Host' in Par))
+				err = 'No Host in Par';
+			if(err) {
+				console.log("ERROR in PROXY genClient"+err);
+				if(fun)
+					fun(err);
+				return;
+			}
+			var q = {};
+			q.Host = Par.Host;
+			q.Port = Par.Port;
+
 			connect(null, q);
-		} else {
-			that.send(q, Par.Plexus, connect);
 		}
 
 		function connect(err, r) {
@@ -244,23 +288,66 @@
 			var host = r.Host;
 			var sock = new net.Socket();
 			Vlt.Server = false;
-			sock.connect(port, host, function () {
-				//console.log('..Connection established');
-			});
+			sock.connect(port, host, function () {console.log("trying to connect")});
 
 			sock.on('connect', function () {
-				console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+				if ("Chan" in Par){
+					console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+				}else{
+					console.log('Proxy - Connected to server on host:' + host + ', port:' + port);
+				}
 				Vlt.Sock = sock;
-				if(fun)
-					fun(null);
+				if (!("Replied" in Vlt)||Vlt.Replied ==false){
+					Vlt.Replied = true;
+					if(fun)
+						fun(null);
+				}
 			});
 
 			sock.on('error', (err) => {
 				console.log(' ** ERR3:' + err);
-				console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
-				if(fun)
-					fun('Connection declined');
+				if ("Chan" in Par)
+					console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+				if (Par.Poll){
+					that.log("Proxy "+Par.Pid+ " is Polling");
+					if ("Sock" in Vlt)
+						delete Vlt["Sock"];
+					setTimeout(	()=>{sock.connect(port, host, function () {})},3000);
+					//Vlt.Polling = true;
+					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+						Vlt.Replied = true;
+						if(fun)
+							fun(null);
+					}
+				}else{
+					//Return a hard fail. Should be only called once.
+					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+					Vlt.Replied = true;
+					if(fun)
+						fun("Connection Declined");
+				}
+				}
 			});
+
+			sock.on('disconnect', (err) => {
+				console.log(' ** Socket disconnected:' + err);
+				
+				if (Par.Poll){
+					//that.log("Proxy "+Par.Pid+ " is Polling");
+					if ("Sock" in Vlt)
+						delete Vlt[Sock];
+					setTimeout(	()=>{sock.connect(port, host, function () {})},3000);
+					
+				}else{
+					//Return a hard fail. Should be only called once.
+					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+						Vlt.Replied = true;
+						if(fun)
+							fun("Connection Declined");
+					}
+				}
+			});
+
 
 			sock.on('data', function (data) {
 				var nd = data.length;
@@ -301,6 +388,9 @@
 								Vlt.Fun[com.Passport.Pid](null, com);
 						} else {
 							//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
+
+
+							//do we really want links in clients?
 							that.send(com, Par.Link);
 						}
 						break;
@@ -313,6 +403,7 @@
 
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
+		let that = this;
 		//console.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
 		//console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
@@ -326,13 +417,21 @@
 					server();
 					break;
 				default:
-					break;
+					console.log('Par', JSON.stringify(Par, null, 2));
+					var err = 'Proxy role is unknown';
+					console.log(' ** ERR:' + err);
+					if ("Chan" in Par)
+						console.log('    Proxy:' + Par.Chan);
+					if(fun)
+						fun(err);
+					return;
 			}
 		} else {
 			console.log('Par', JSON.stringify(Par, null, 2));
 			var err = 'Proxy has no role';
 			console.log(' ** ERR:' + err);
-			console.log('    Proxy:' + Par.Chan);
+			if ("Chan" in Par)
+				console.log('    Proxy:' + Par.Chan);
 			if(fun)
 				fun(err);
 		}
@@ -361,12 +460,12 @@
 		function client() {
 			var STX = 2;
 			var ETX = 3;
-			var sock = Vlt.Sock;
+			var sock = Vlt.Sock;2
 			if(!sock) {
-				console.log(' ** ERR:Proxy not connected to server');
-				console.log('    Proxy:' + Par.Chan);
-				if(fun)
-					fun('Proxy not connected');
+				that.log('No Socket');
+				//we are purposely withholding the callback we should call it back once the socket is formed but we need an event listener for this
+				// if(fun)
+				// 	fun('Proxy not connected');
 				return;
 			}
 			if (!(Vlt.Fun))

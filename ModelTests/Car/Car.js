@@ -4,7 +4,7 @@
 
 	class Car {
 		Start(com, fun) {
-			this.send({
+   			this.send({
 				Cmd: 'AddModel',
 				Name: "Geo.101Plants.Cactus3"
 			}, this.Par.Scene, (err, com) => {
@@ -12,6 +12,7 @@
 			});
 			fun(null, com);
 		}
+		
 		Setup(com, fun) {
 			fun(null, com);
 		}

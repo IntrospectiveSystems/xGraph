@@ -1,3 +1,4 @@
+//# sourceURL=World
 (function World() {
 	var async = require('async');
 	var fs = require('fs');
@@ -40,7 +41,7 @@
 
 	//-----------------------------------------------------AddModel
 	function AddModel(com, fun) {
-		debugger;
+		//debugger;
 		console.log('--World/AddModel');
 		var that = this;
 		var Par = this.Par;
@@ -117,10 +118,12 @@
 					fun(err);
 				return;
 			}
+			//debugger;
 			fun(null, com);
 		}
 	}
 
+/* 
 	//-----------------------------------------------------GetModel
 	// Retrieeve mode from instance module
 	function GetModel(com, fun) {
@@ -138,7 +141,7 @@
 				fun('Model not available', com);
 			}
 		}
-	}
+	} */
 
 	//-----------------------------------------------------SetPostion
 	// Update scene graph from commands sent from models
@@ -162,7 +165,7 @@
 				fun(null, com);
 			return;
 		}
-//		console.log('--World/Relay\n', JSON.stringify(com, null, 2));
+		console.log('--World/Relay\n', JSON.stringify(com, null, 2));
 		var pass = com.Passport;
 		this.send(com, com.Instance, reply);
 

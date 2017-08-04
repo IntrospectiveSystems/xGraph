@@ -37,11 +37,10 @@
 				"Texture": "sand-12.jpg"
 			}
 		},
-		"Palette": {
-			"Module":"xGraph:Scene/Palette",
+		"Car": {
+			"Module": "xGraph:ModelTests/Car",
 			"Par": {
-				"Scene":"$World",
-				"Spacing":10
+				"Scene": "$World"
 			}
 		}
 	}

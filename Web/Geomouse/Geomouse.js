@@ -1,4 +1,4 @@
-//# sourceURL=HoloView/Mouse
+//# sourceURL=Mouse
 (function Mouse() {
 
 	//-----------------------------------------------------dispatch
@@ -12,12 +12,6 @@
 	};
 
 	function Setup(com, fun) {
-		// debugger;
-		this.send({
-			Cmd: "GetViewDiv"
-		}, this.Par.View, (err, cmd) => {
-			this.Vlt.div = cmd.Div;
-		});
 		console.log('--Mouse/Setup');
 		if(fun)
 			fun();
@@ -27,15 +21,14 @@
 		console.log('--Mouse/Start');
 		var that = this;
 		var Par = this.Par;
-		//debugger;
-		var Vew = this.Vlt.div.data('View');
+		var Vew = $('#'+Par.Div).data('View');
 //		var Vew = __Share[Par.Div];
 		Vew.Mouse = {};
 		Vew.Mouse.Mode = 'Idle';
 		Vew.Mouse.inPanel = true;
 		Vew.Ray = new THREE.Raycaster();
-		var Grok = this.Vlt.div;
-		// var Grok = document.getElementById(Par.Div);
+		var Grok = $('#Grok');
+//		var Grok = document.getElementById(Par.Div);
 		Grok.mouseenter(function (evt) {
 			mouseEnter(evt);
 		});
@@ -54,24 +47,6 @@
 		Grok.mouseup(function (evt) {
 			mouseUp(evt);
 		});
-		Grok.on("keydown", function (evt) {
-				console.log("Keydown event", evt.code);
-				switch(evt.code) {
-					case 'F2':
-						console.log("Popup");
-						this.genMod({
-							"Module": "xGraph:Widgets/Popup",
-							"Par": {
-								"Module": "xGraph:Widgets/HoloView",
-								"Par": {
-									"Scene": "$Scene"
-								}
-							}
-						}, ()=>{})
-					default:
-				}
-			});
-			
 		if(fun)
 			fun(null, com);
 
@@ -202,7 +177,7 @@
 		//	console.log('--mouseRay');
 			var info = {};
 			Vew.Ray.precision = 0.00001;
-			container = that.Vlt.div[0];
+			container = document.getElementById("Grok");
 			var w = container.clientWidth;
 			var h = container.clientHeight - 2 * container.clientTop;
 			var vec = new THREE.Vector2();
@@ -298,7 +273,7 @@
 			}
 
 			function move() {
-					// console.log('..Translate/move', info.Key);
+				//	console.log('..Translate/move', info.Key);
 				var mouse = Vew.Mouse;
 				var vcam = new THREE.Vector3();
 				vcam.fromArray(getCamera());
@@ -312,11 +287,11 @@
 				v3.crossVectors(v1, v2);
 				var v4 = new THREE.Vector3();
 				v4.crossVectors(v1, v3);
-				var fac = 0.1 * (mouse.x - info.Mouse.x);
+				var fac = 0.2 * (mouse.x - info.Mouse.x);
 				v3.multiplyScalar(fac);
 				vcam.add(v3);
 				vfoc.add(v3);
-				var fac = .1 * (mouse.y - info.Mouse.y);
+				var fac = 1.0 * (mouse.y - info.Mouse.y);
 				v4.multiplyScalar(-fac);
 				vcam.add(v4);
 				vfoc.add(v4);

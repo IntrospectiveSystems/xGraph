@@ -1,6 +1,8 @@
 //Load the required modules
 (function() {
 	var fs = require('fs');
+	let log= fs.createWriteStream(process.cwd()+"/EventLog.txt");
+
 //	var async = require('async');
 	var Uuid;
 	var Async;
@@ -17,6 +19,7 @@
 	var css = {};
 	var Mod = {};
 	var Nxs = {
+		EventLog:EventLog,
 		genPid: genPid,
 		genPath: genPath,
 		getGlobal: getGlobal,
@@ -26,7 +29,7 @@
 		getParameter: getParameter,
 		sendMessage: sendMessage
 	}
-	console.log('=================================================');
+	EventLog('=================================================');
 
 	// Process input arguments and define macro parameters
 	var args = process.argv;
@@ -34,8 +37,8 @@
 	let parts;
 	let Params = {};
 	for (var iarg = 0; iarg < args.length; iarg++) {
-		console.log(args);
 		arg = args[iarg];
+		EventLog(arg);
 		parts = arg.split('=');
 		if (parts.length == 2) {
 			Params[parts[0]] = parts[1];
@@ -59,10 +62,10 @@
 			}
 		}
 	} else {
-		console.log(' ** No configuration file provided');
+		EventLog(' ** No configuration file provided');
 		process.exit(1);
 	}
-	console.log(JSON.stringify(Config, null, 2));
+	EventLog(JSON.stringify(Config, null, 2));
 
 	CacheDir = 'cache';
 	if('Cache' in Params)
@@ -73,18 +76,26 @@
 		Initialiate(Setup);
 	}
 
+	function EventLog(string){
+		//event log only built to handle strings
+		//write them out
+		log.write(string+"\n");
+		//currently we also write it to the console,this will not always exist
+		console.log(string);
+	}
+
 	//---------------------------------------------------------start
 	function Setup() {
-		console.log('\n--Nexus/Setup');
-		//console.log('Root', Root);
+		EventLog('\n--Nexus/Setup');
+		//EventLog('Root', Root);
 		var pids = Object.keys(Root.Setup);
-		console.log(pids);
+		//EventLog(pids);
 		if(!Async)
 			Async = require('async');
 		Async.eachSeries(pids, setup, Start);
 
 		function setup(pid8, func) {
-		//	console.log('..setup', pid8);
+		//	EventLog('..setup', pid8);
 			var q = {};
 			q.Cmd = Root.Setup[pid8];
 			var pid = Pid24 + pid8;
@@ -92,7 +103,7 @@
 
 			function done(err, ent) {
 				if(err) {
-					console.log(' ** ERR:' + err);
+					EventLog(' ** ERR:' + err);
 					func(err);
 					return;
 				}
@@ -101,7 +112,7 @@
 
 			function reply(err) {
 				if (err)
-					console.log(" ** Error passed to Nexus' async Setup"+err);
+					EventLog(" ** Error passed to Nexus' async Setup"+err);
 				func(err);
 			}
 		}
@@ -109,13 +120,13 @@
 
 	//---------------------------------------------------------Start
 	function Start() {
-		console.log('\n--Nexus/Start');
+		EventLog('\n--Nexus/Start');
 		var pids = Object.keys(Root.Start);
-		console.log(pids);
+		//EventLog(pids);
 		Async.eachSeries(pids, start, Run);
 
 		function start(pid8, func) {
-			//console.log('..start', pid8);
+			//EventLog('..start', pid8);
 
 			var q = {};
 			q.Cmd = Root.Start[pid8];
@@ -124,7 +135,7 @@
 
 			function done(err, ent) {
 				if(err) {
-					console.log(' ** ERR:' + err);
+					EventLog(' ** ERR:' + err);
 					func(err);
 					return;
 				}
@@ -133,7 +144,7 @@
 
 			function reply(err) {
 				if (err)
-					console.log(" ** Error passed to Nexus' async Setup"+err);
+					EventLog(" ** Error passed to Nexus' async Setup"+err);
 				func(err);
 			}
 		}
@@ -141,7 +152,7 @@
 
 	//-----------------------------------------------------Run
 	function Run() {
-		console.log('\n--Nexus/Run');
+		EventLog('\n--Nexus/Run');
 		if ('send' in process) {
 			process.send('{"Cmd":"Finished"}');
 		}
@@ -151,25 +162,25 @@
 	// Send message to an entity in the current systems (bag)
 	// If call back provided, return to sender
 	function sendMessage(com, fun) {
-		//console.log('--sendMessage', com.Cmd, com.Passport);
+		//EventLog('--sendMessage', com.Cmd, com.Passport);
 		if(!('Passport' in com)) {
-			console.log(' ** ERR:Message has no Passport, ignored');
+			EventLog(' ** ERR:Message has no Passport, ignored');
 			console.trace();
 			if(fun)
 				fun('No Passport');
 			return;
 		}
 		if (!('To' in com.Passport) || !com.Passport.To) {
-			console.log(' ** ERR:Message has no destination entity, ignored');
-			console.log('    ' + JSON.stringify(com));
+			EventLog(' ** ERR:Message has no destination entity, ignored');
+			EventLog('    ' + JSON.stringify(com));
 			console.trace();
 			if(fun)
 				fun('No recipient in message', com);
 			return;
 		}
 		if (!('Pid' in com.Passport)) {
-			console.log(' ** ERR:Message has no message id, ignored');
-			console.log('    ' + JSON.stringify(com));
+			EventLog(' ** ERR:Message has no message id, ignored');
+			EventLog('    ' + JSON.stringify(com));
 			if(fun)
 				fun('No message id', com);
 			return;
@@ -187,8 +198,8 @@
 		var pid = com.Passport.To;
 		var pid24 = pid.substr(0, 24);
 		if(pid24 != Pid24) {
-			console.log(' ** ERR:Misdirected message, pid:' + pid);
-			console.log('    ', JSON.stringify(com));
+			EventLog(' ** ERR:Misdirected message, pid:' + pid);
+			EventLog('    ', JSON.stringify(com));
 			console.trace();
 			if(fun)
 				fun('Message not local');
@@ -204,7 +215,7 @@
 
 		function done(err, ent) {
 			if (err) {
-				console.log(' ** ERR:' + err);
+				EventLog(' ** ERR:' + err);
 				if (fun)
 					fun(err, com);
 				return;
@@ -214,16 +225,16 @@
 		}
 
 		function reply(err, q) {
-		//	console.log('..Nexus/send/reply', com.Cmd, com.Passport);
+		//	EventLog('..Nexus/send/reply', com.Cmd, com.Passport);
 			if(fun)
-				fun(null, q);
+				fun(err, q);
 		}
 	}
 
 	//-----------------------------------------------------getGlobal
 	// Get Pid associated with a global symbol
 	function getGlobal(sym) {
-		console.log('--Nexus/getGlobal');
+		EventLog('--Nexus/getGlobal');
 		if(sym in Root.Apex)
 			return Root.Apex[sym];
 	}
@@ -231,8 +242,8 @@
 	//-----------------------------------------------------getParameter
 	// Retrieve command line parameter
 	function getParameter(name) {
-		console.log('--Nexus/GetParameter');
-		console.log('Params', JSON.stringify(Params, null, 2));
+		EventLog('--Nexus/GetParameter');
+		EventLog('Params', JSON.stringify(Params, null, 2));
 		if(name in Params)
 			return Params[name];
 	}
@@ -240,30 +251,30 @@
 	function deleteEntity(pid, fun){
 		let pid24 = pid.substr(0, 24);
 		if (pid24 != Pid24) {
-			console.log(' ** Not in my back yard');
-			console.log(pid24, Pid24);
+			EventLog(' ** Not in my back yard');
+			EventLog(pid24, Pid24);
 			fun(' ** Pid not in bag');
 			return;
 		}
 
 		let pid8 = pid.substr(24);
-		//console.log("NEXUS: Deleting         ", pid8);
+		//EventLog("NEXUS: Deleting         ", pid8);
 		if(pid8 in EntCache) {
 			delete EntCache[pid8];
 			var path = CacheDir + '/' + pid8 + '.json';
-			//console.log("Path is ", path);
+			//EventLog("Path is ", path);
 			fs.stat(path, function (err, stats) {
-				//console.log("DELETING", stats);//here we got all information of file in stats variable
+				//EventLog("DELETING", stats);//here we got all information of file in stats variable
 				if (err) {
-					console.log(err,path);
+					EventLog(err,path);
 					return;
 				}
 				fs.unlink(path ,function(err){
 					if(err) {
-						console.log(err, path);
+						EventLog(err, path);
 						return;
 					}
-					//console.log('NEXUS: Delete Successful', pid8);
+					//EventLog('NEXUS: Delete Successful', pid8);
 				});
 			});
 		}
@@ -275,8 +286,8 @@
 	function getEntity(pid, fun) {
 		let pid24 = pid.substr(0, 24);
 		if (pid24 != Pid24) {
-			console.log(' ** Not in my back yard');
-			console.log(pid24, Pid24);
+			EventLog(' ** Not in my back yard');
+			EventLog(pid24, Pid24);
 			fun(' ** Pid not in bag');
 			return;
 		}
@@ -323,7 +334,7 @@
 
 				function done(err, data) {
 					if (err) {
-						console.log(' ** ERR:Cannot read code file', path);
+						EventLog(' ** ERR:Cannot read code file', path);
 						fun(err);
 						return;
 					}
@@ -372,14 +383,26 @@
 			genPath:genPath,
 			send: send,
 			save: save,
-			getPid: getPid
+			getPid: getPid,
+			log: log
 		};
+
+		//log data to EventLog.txt in the current working directory
+		//this log only works with a single string 
+		function log(string){
+			//we will write to the eventlog if this.log was misused
+			if (arguments.length>1){
+				nxs.EventLog("Error: Message may be incomplete\n"+
+					"more than one argument was passed to this.log()");
+			}
+			nxs.EventLog(string);
+		}
 
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
-			//	console.log(Mod);
-			//	console.log('||dispatch', com.Cmd);
+			//	EventLog(Mod);
+			//	EventLog('||dispatch', com.Cmd);
 			var disp = Mod.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -389,20 +412,20 @@
 				disp['*'].call(this, com, fun);
 				return;
 			}
-			console.log(' ** ERR:Nada Cmd:' + com.Cmd);
+			EventLog(' ** ERR:Nada Cmd:' + com.Cmd);
 			fun('Nada', com);
 		}
 
 		//-------------------------------------------------genModule
 		// Generate module and return (err, pidapx);
 		function genModule(mod, fun) {
-		//	console.log('--Entity/genModule');
+		//	EventLog('--Entity/genModule');
 			nxs.genModule(mod, done);
 
 			function done(err, pidapx, init) {
-			//	console.log('..done', pidapx, init);
+			//	EventLog('..done', pidapx, init);
 				if(err) {
-					console.log(' ** Entity/genModule:' + err);
+					EventLog(' ** Entity/genModule:' + err);
 					fun();
 					return;
 				}
@@ -427,7 +450,7 @@
 
 				function pau(err, r) {
 					if(err) {
-						console.log(' ** Entity/genmodule:' + err);
+						EventLog(' ** Entity/genmodule:' + err);
 						fun(err);
 					}
 					if(fun)
@@ -439,7 +462,7 @@
 
 
 		function deleteEntity(fun){
-			//console.log("DElElTingASDF")
+			//EventLog("DElElTingASDF")
 			nxs.deleteEntity(Par.Pid,fun);
 		}
 
@@ -500,14 +523,14 @@
 	// TBD: If modules saved, Initializers will need to be
 	//      added to the Start and Setup lists in Root
 	function genModule(mod, fun) {
-	//	console.log('--genModule', mod);
+	//	EventLog('--genModule', mod);
 		var pidapx;
 		Initializers = {};
 		addModule(mod, done);
 
 		function done(err, pid) {
 			if(err) {
-				console.log(' ** genModule/done:' + err);
+				EventLog(' ** genModule/done:' + err);
 				if(fun)
 					fun(err);
 				return;
@@ -516,12 +539,12 @@
 		}
 
 		function setup(err, pid) {
-		//	console.log('..genModule/setup');
-		//	console.log('pid', pid);
-		//	console.log('Initializers', Initializers);
+		//	EventLog('..genModule/setup');
+		//	EventLog('pid', pid);
+		//	EventLog('Initializers', Initializers);
 			pidapx = pid;
 			if(err) {
-				console.log(' ** genModule:' + err);
+				EventLog(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
@@ -535,9 +558,9 @@
 		}
 
 		function start(err, r ) {
-		//	console.log('..genModeul.start');
+		//	EventLog('..genModeul.start');
 			if(err) {
-				console.log(' ** genModule:' + err);
+				EventLog(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
@@ -552,7 +575,7 @@
 
 		function pau(err, r) {
 			if(err) {
-				console.log(' ** genModule:' + err);
+				EventLog(' ** genModule:' + err);
 			}
 			fun(err, pidapx);
 		}
@@ -565,7 +588,7 @@
 		// If user pid, make sure they know what they are doing!
 		if ('Pid' in par) {
 			if (par.Pid.substr(0, 24) != Pid24) {
-				console.log(' ** ERR:Invalid Pid assignment');
+				EventLog(' ** ERR:Invalid Pid assignment');
 				console.trace();
 				if (fun)
 					fun('Invalid Pid assignment');
@@ -582,12 +605,12 @@
 			finish();
 		} else {
 			var path = genPath(module+"/"+type);
-			console.log("Path is ", path);
+			EventLog("Path is ", path);
 			fs.readFile(path, done);
 
 			function done(err, data) {
 				if (err) {
-					console.log(' ** ERR:Cannot read code file', path);
+					EventLog(' ** ERR:Cannot read code file', path);
 					fun(err);
 					return;
 				}
@@ -620,9 +643,9 @@
 
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
-	//	console.log('!!genPath', filein);
+	//	EventLog('!!genPath', filein);
 		if(!filein) {
-			console.log(' ** ERR:Invalid file name');
+			EventLog(' ** ERR:Invalid file name');
 			return '';
 		}
 		var cfg = Config;
@@ -645,7 +668,7 @@
 				path = cfg[name] + '/' + parts[1];
 				return path;
 			} else {
-				console.log(' ** ERR:File <' + file + '> {' + name + '} not found');
+				EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
 				return;
 			}
 		}
@@ -654,7 +677,7 @@
 			if (parts[0] in cfg) {
 				path = cfg[parts[0]] + '/' + parts[1];
 			} else {
-				console.log(' ** ERR:File <' + file + '> prefix not defined');
+				EventLog(' ** ERR:File <' + file + '> prefix not defined');
 				return;
 			}
 		} else {
@@ -702,7 +725,7 @@
 	// This is called only once when a new systems is
 	// first instantiated
 	function Genesis(fun) {
-		console.log('--Nexus/Genesis');
+		EventLog('--Nexus/Genesis');
 		var path;
 		var obj;
 		// var package;
@@ -727,8 +750,7 @@
 						package = obj;
 						continue;
 					}
-					console.log('obj', JSON.stringify(obj, null, 2));
-
+					EventLog(JSON.stringify(obj, null, 2));
 
 					if (obj.dependencies) {
 						if (!package.dependencies) package.dependencies = {};
@@ -764,7 +786,7 @@
 							css[key] = file;
 						}
 					} else {
-						console.log(' ** ERR:Css <' + file + '> not available');
+						EventLog(' ** ERR:Css <' + file + '> not available');
 					}
 				}
 			}
@@ -785,7 +807,7 @@
 							scripts[key] = script;
 						}
 					} else {
-						console.log(' ** ERR:Script <' + script + '> not available');
+						EventLog(' ** ERR:Script <' + script + '> not available');
 					}
 				}
 			}
@@ -806,13 +828,13 @@
 		var ps = proc.spawn(npm, ['install']);
 
 		ps.on('error', (err) => {
-			console.log('Failed to start child process.');
-			console.log('err:' + err);
+			EventLog('Failed to start child process.');
+			EventLog('err:' + err);
 		});
 
 		ps.on('exit', (code) => {
-			console.log(`npm process exited with code:` + code);
-			console.log('Current working directory: ' + process.cwd());
+			EventLog(`npm process exited with code:` + code);
+			EventLog('Current working directory: ' + process.cwd());
 			if(!Async)
 				Async = require('async');
 			genPid();	// Generate Pid24 for this Nexus
@@ -838,7 +860,7 @@
 
 		//------------------------------------------------saveroot
 		function saveRoot(fun) {
-			console.log('..saveRoot');
+			EventLog('..saveRoot');
 			Root.Pid24 = Pid24;
 			var path = CacheDir + '/00000000.json';
 			var str = JSON.stringify(Root, null, 2);
@@ -858,23 +880,23 @@
 	// later when modules are added to a running xGraph.
 	// TBD: Deal with addition of new package.json here
 	function addModule(mod, fun)  {
-		//console.log('--addModule', mod.Module);
+		//EventLog('--addModule', mod.Module);
 		var ents = {};
 		var lbls = {};
 		var pidapx;
 
 		if (mod.Module in ModuleCache){
-			//console.log("No need to read schema from file");
+			//EventLog("No need to read schema from file");
 			let schema = ModuleCache[mod.Module];
 			processSchema(schema, fun);
 		}else {
 			var path = genPath(mod.Module) + '/schema.json';
-			//	console.log('path', path);
+			//	EventLog('path', path);
 			fs.exists(path, compile);
 
 			function compile(yes) {
 				if (!yes) {
-					console.log(' ** ERR:No schema **');
+					EventLog(' ** ERR:No schema <' + path + '> **');
 					if (fun)
 						fun();
 					return;
@@ -883,7 +905,7 @@
 
 				function parse(err, data) {
 					if (err) {
-						console.log('File err:' + err);
+						EventLog('File err:' + err);
 						if (fun)
 							fun(err);
 						return;
@@ -958,7 +980,7 @@
 				var obj = ents[key];
 				var pid = obj.Pid;
 				var path = CacheDir + '/' + pid.substr(24) + '.json';
-				//console.log("NEXUS: Writing to Cache ",pid.substr(24));
+				//EventLog("NEXUS: Writing to Cache ",pid.substr(24));
 				var str = JSON.stringify(obj, null, 2);
 				fs.writeFile(path, str, done);
 
@@ -966,7 +988,7 @@
 					if (err)
 						throw err;
 					else {
-						//console.log("NEXUS: Write Successful ",pid.substr(24));
+						//EventLog("NEXUS: Write Successful ",pid.substr(24));
 					}
 					nextEnt();
 				}
@@ -974,7 +996,7 @@
 
 			function pau(err) {
 				if (err) {
-					console.log(' ** ERR:' + err);
+					EventLog(' ** ERR:' + err);
 					if (func)
 						func(err);
 					return;
@@ -991,7 +1013,7 @@
 					return lbls[sym];
 				} else {
 					var err = 'Invalide global symbol <' + sym + '>';
-					console.log(' ** ERR:' + err);
+					EventLog(' ** ERR:' + err);
 					throw 'Invalid local sysmbol';
 				}
 			}
@@ -1002,7 +1024,7 @@
 				if (sym in Config)
 					return Config[sym];
 				var err = 'Invalide global symbol <' + sym + '>';
-				console.log(' ** ERR:' + err);
+				EventLog(' ** ERR:' + err);
 				throw 'Invalid global symbol';
 			}
 			return str;
@@ -1011,20 +1033,19 @@
 
 	//-----------------------------------------------------Initialize
 	function Initialiate(fun) {
-		console.log('\n--Nexus/Initialiate');
+		EventLog('\n--Nexus/Initialiate');
 		var path = CacheDir + '/00000000.json';
 		fs.readFile(path, root);
 		return;
 
 		function root(err, data) {
 			if (err) {
-				console.log(' ** ERR:' + err);
+				EventLog(' ** ERR:' + err);
 				fun(err);
 				return;
 			}
 			var str = data.toString();
 			Root = JSON.parse(str);
-			console.log(Root);
 			Pid24 = Root.Pid24;
 			fun();
 		}

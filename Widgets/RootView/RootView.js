@@ -1,65 +1,71 @@
-//# sourceURL=LayoutInitializer.js
+//# sourceURL=RootView.js
 //jshint esversion: 6
 //test change
-(function LayoutInitializer() {
+(function RootView() {
 
-	class LayoutInitializer {
+	class RootView {
 		Setup(com, fun) {
-			// debugger;
-			fun(null, com);
+			this.super(com, (err, cmd) => {
+				// debugger;
+				fun(null, com);
+			});
 		}
 		Start(com, fun) {
-			let that = this;
-			// debugger;
-			function parseView(view, fun) {
-				if (typeof view == 'string') {
-					console.log('PID ' + view);
-					fun(view);
-				} else {
-					let basePid = view.View;
-					async.each(view.Children, function(item, next) {
-						parseView(item, (pid) => {
-							that.send({
-								Cmd: "AddView",
-								View: pid
-							}, basePid, () => {
-								next();
-							});
-						});
-					}, function() {
-						//done adding children
-						console.log('PID ' + basePid);
-						console.log('DAT WAY');
-						fun(basePid);
-					});
-				}
-			}
 
-			parseView(this.Par.Layout, (apexPid) => {
+			this.super(com, (err, cmd) => {
+
+				let that = this;
 				// debugger;
-				this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
+				function parseView(view, fun) {
+					if (typeof view == 'string') {
+						console.log('PID ' + view);
+						fun(view);
+					} else {
+						let basePid = view.View;
+						async.each(view.Children, function(item, next) {
+							parseView(item, (pid) => {
+								that.send({
+									Cmd: "AddView",
+									View: pid
+								}, basePid, () => {
+									next();
+								});
+							});
+						}, function() {
+							//done adding children
+							console.log('PID ' + basePid);
+							console.log('DAT WAY');
+							fun(basePid);
+						});
+					}
+				}
+
+				parseView(this.Par.Layout, (apexPid) => {
 					// debugger;
-					$(document.body).append(com.Div);
+					this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
+						// debugger;
+						$(document.body).append(com.Div);
 
-					this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
+						this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
 
-					this.send({ Cmd: "Render" }, apexPid, () => { });
+						this.send({ Cmd: "Render" }, apexPid, () => { });
 
-					$(window).resize(() => {
-						this.send({ Cmd: "Resize" }, apexPid, () => { });
-					});
+						$(window).resize(() => {
+							this.send({ Cmd: "Resize" }, apexPid, () => { });
+						});
 
-					this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
-						fun(null, com);
+						this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
+							fun(null, com);
+						});
 					});
 				});
 			});
+
+
 		}
 	}
 
-	return {
-		dispatch: LayoutInitializer.prototype
-	};
+	return Viewify(RootView);
 
 })();
 
