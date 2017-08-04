@@ -145,7 +145,8 @@
 
 				sock.on('error', (err) => {
 					console.log(' ** ERR2:' + err);
-					console.log('    Proxy:' + Par.Chan);
+					if ("Chan" in Par)
+						console.log('    Proxy:' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -287,23 +288,66 @@
 			var host = r.Host;
 			var sock = new net.Socket();
 			Vlt.Server = false;
-			sock.connect(port, host, function () {
-				//console.log('..Connection established');
-			});
+			sock.connect(port, host, function () {console.log("trying to connect")});
 
 			sock.on('connect', function () {
-				console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+				if ("Chan" in Par){
+					console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+				}else{
+					console.log('Proxy - Connected to server on host:' + host + ', port:' + port);
+				}
 				Vlt.Sock = sock;
-				if(fun)
-					fun(null);
+				if (!("Replied" in Vlt)||Vlt.Replied ==false){
+					Vlt.Replied = true;
+					if(fun)
+						fun(null);
+				}
 			});
 
 			sock.on('error', (err) => {
 				console.log(' ** ERR3:' + err);
-				console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
-				if(fun)
-					fun('Connection declined');
+				if ("Chan" in Par)
+					console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+				if (Par.Poll){
+					that.log("Proxy "+Par.Pid+ " is Polling");
+					if ("Sock" in Vlt)
+						delete Vlt["Sock"];
+					setTimeout(	()=>{sock.connect(port, host, function () {})},3000);
+					//Vlt.Polling = true;
+					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+						Vlt.Replied = true;
+						if(fun)
+							fun(null);
+					}
+				}else{
+					//Return a hard fail. Should be only called once.
+					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+					Vlt.Replied = true;
+					if(fun)
+						fun("Connection Declined");
+				}
+				}
 			});
+
+			sock.on('disconnect', (err) => {
+				console.log(' ** Socket disconnected:' + err);
+				
+				if (Par.Poll){
+					//that.log("Proxy "+Par.Pid+ " is Polling");
+					if ("Sock" in Vlt)
+						delete Vlt[Sock];
+					setTimeout(	()=>{sock.connect(port, host, function () {})},3000);
+					
+				}else{
+					//Return a hard fail. Should be only called once.
+					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+						Vlt.Replied = true;
+						if(fun)
+							fun("Connection Declined");
+					}
+				}
+			});
+
 
 			sock.on('data', function (data) {
 				var nd = data.length;
@@ -359,10 +403,11 @@
 
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
+		let that = this;
 		//console.log('--Proxy/Proxy', com.Cmd);
-		var Par = that.Par;
+		var Par = this.Par;
 		//console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
-		var Vlt = that.Vlt;
+		var Vlt = this.Vlt;
 		if('Role' in Par) {
 			switch(Par.Role) {
 				case 'Client':
@@ -375,7 +420,8 @@
 					console.log('Par', JSON.stringify(Par, null, 2));
 					var err = 'Proxy role is unknown';
 					console.log(' ** ERR:' + err);
-					console.log('    Proxy:' + Par.Chan);
+					if ("Chan" in Par)
+						console.log('    Proxy:' + Par.Chan);
 					if(fun)
 						fun(err);
 					return;
@@ -384,7 +430,8 @@
 			console.log('Par', JSON.stringify(Par, null, 2));
 			var err = 'Proxy has no role';
 			console.log(' ** ERR:' + err);
-			console.log('    Proxy:' + Par.Chan);
+			if ("Chan" in Par)
+				console.log('    Proxy:' + Par.Chan);
 			if(fun)
 				fun(err);
 		}
@@ -413,12 +460,12 @@
 		function client() {
 			var STX = 2;
 			var ETX = 3;
-			var sock = Vlt.Sock;
+			var sock = Vlt.Sock;2
 			if(!sock) {
-				console.log(' ** ERR:Proxy not connected to server');
-				console.log('    Proxy:' + Par.Chan);
-				if(fun)
-					fun('Proxy not connected');
+				that.log('No Socket');
+				//we are purposely withholding the callback we should call it back once the socket is formed but we need an event listener for this
+				// if(fun)
+				// 	fun('Proxy not connected');
 				return;
 			}
 			if (!(Vlt.Fun))

@@ -750,8 +750,7 @@
 						package = obj;
 						continue;
 					}
-					EventLog('obj', JSON.stringify(obj, null, 2));
-
+					EventLog(JSON.stringify(obj, null, 2));
 
 					if (obj.dependencies) {
 						if (!package.dependencies) package.dependencies = {};
