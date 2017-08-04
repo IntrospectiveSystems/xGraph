@@ -76,20 +76,12 @@
 		Initialiate(Setup);
 	}
 
-
-	function EventLog(){
-		console.log(Array.from(arguments));
-
-
-		//we need to be sure to only pass strings here
-		if (arguments.length<=1){
-			log.write(arguments[0]);
-			console.log(arguments[0]);
-		}else{
-			log.write(Array.from(arguments).join(" ")+"\n");
-			//currently we also write it to the console,this will not always exist
-			console.log(Array.from(arguments).join(" "));
-		}
+	function EventLog(string){
+		//event log only built to handle strings
+		//write them out
+		log.write(string+"\n");
+		//currently we also write it to the console,this will not always exist
+		console.log(string);
 	}
 
 	//---------------------------------------------------------start
@@ -97,7 +89,7 @@
 		EventLog('\n--Nexus/Setup');
 		//EventLog('Root', Root);
 		var pids = Object.keys(Root.Setup);
-		EventLog(pids);
+		//EventLog(pids);
 		if(!Async)
 			Async = require('async');
 		Async.eachSeries(pids, setup, Start);
@@ -130,7 +122,7 @@
 	function Start() {
 		EventLog('\n--Nexus/Start');
 		var pids = Object.keys(Root.Start);
-		EventLog(pids);
+		//EventLog(pids);
 		Async.eachSeries(pids, start, Run);
 
 		function start(pid8, func) {
@@ -396,8 +388,14 @@
 		};
 
 		//log data to EventLog.txt in the current working directory
-		function log(data){
-			nxs.EventLog(data);
+		//this log only works with a single string 
+		function log(string){
+			//we will write to the eventlog if this.log was misused
+			if (arguments.length>1){
+				nxs.EventLog("Error: Message may be incomplete\n"+
+					"more than one argument was passed to this.log()");
+			}
+			nxs.EventLog(string);
 		}
 
 		//-------------------------------------------------dispatch
@@ -1049,7 +1047,6 @@
 			}
 			var str = data.toString();
 			Root = JSON.parse(str);
-			EventLog(Root);
 			Pid24 = Root.Pid24;
 			fun();
 		}
