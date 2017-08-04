@@ -77,12 +77,19 @@
 	}
 
 
-	function EventLog(data){
-		//we need to be sure to only pass strings here
+	function EventLog(){
+		console.log(Array.from(arguments));
 
-		log.write(data+"\n");
-		//currently we also write it to the console,this will not always exist
-		console.log(data);
+
+		//we need to be sure to only pass strings here
+		if (arguments.length<=1){
+			log.write(arguments[0]);
+			console.log(arguments[0]);
+		}else{
+			log.write(Array.from(arguments).join(" ")+"\n");
+			//currently we also write it to the console,this will not always exist
+			console.log(Array.from(arguments).join(" "));
+		}
 	}
 
 	//---------------------------------------------------------start

@@ -16,10 +16,10 @@
 	function Setup(com, fun) {
 		var Par = this.Par;
 		if((Par.Chan == 'Plexus')||(!("Plexus" in Par))) {
-			this.log('--Proxy/Setup '+ this.Par.Pid);
+			this.log('--Proxy/Setup ', this.Par.Pid);
 			if ("Plexus" in Par)
-				console.log("--     Proxy-Chan", (Par.Chan));
-			//console.log('Par', JSON.stringify(Par, null, 2));
+				this.log("--     Proxy-Chan", (Par.Chan));
+			//this.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -42,9 +42,9 @@
 	function Start(com, fun) {
 		var Par = this.Par;
 		if(Par.Chan != 'Plexus'&& "Plexus" in Par) {
-			console.log('--Proxy/Start', this.Par.Pid);
-			console.log("--     Proxy-Chan", (Par.Chan));
-			//console.log('Par', JSON.stringify(Par, null, 2));
+			this.log('--Proxy/Start', this.Par.Pid);
+			this.log("--     Proxy-Chan", (Par.Chan));
+			//this.log('Par', JSON.stringify(Par, null, 2));
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -65,11 +65,11 @@
 
 	//-----------------------------------------------------genServer
 	function genServer(fun) {
-		//console.log('--genServer');
+		//this.log('--genServer');
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		//console.log('Par', JSON.stringify(Par, null, 2));
+		//this.log('Par', JSON.stringify(Par, null, 2));
 		var err;
 
 		if ("Plexus" in Par){
@@ -92,7 +92,7 @@
 				q.Name = 'Nemo';
 			q.Chan = Par.Chan;
 			q.Host = '127.0.0.1';
-			console.log('q', JSON.stringify(q));
+			this.log('q', JSON.stringify(q));
 			that.send(q, Par.Plexus, connect);
 		}else{
 			if(!('Port' in Par))
@@ -105,18 +105,18 @@
 			var q = {};
 			q.Port = Par.Port;
 			
-			console.log('q', JSON.stringify(q));
+			this.log('q', JSON.stringify(q));
 			connect(null, q);
 		}
 
 		function connect(err, r) {
 			if(err) {
-				console.log(' ** ERR:' + err);
+				this.log(' ** ERR:' + err);
 				if (fun)
 					fun(err);
 				return;
 			}
-			console.log('..connect', r);
+			this.log('..connect', r);
 			var net = require('net');
 			var err;
 			var tmp = new Buffer(2);
@@ -135,7 +135,7 @@
 			Vlt.Server = true;
 			Vlt.Socks = [];
 			net.createServer(function(sock) {
-				console.log('#### Portal connection from',
+				this.log('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
 				Vlt.Socks.push(sock);
 				sock._userData = {};
@@ -146,8 +146,8 @@
 				// sock.write(msg);
 
 				sock.on('error', (err) => {
-					console.log(' ** ERR2:' + err);
-					console.log('    Proxy:' + Par.Chan);
+					this.log(' ** ERR2:' + err);
+					this.log('    Proxy:' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -208,7 +208,7 @@
 					}
 				});
 			}).listen(port);
-			console.log('Portal listening on port', port);
+			this.log('Portal listening on port', port);
 			if(fun)
 				fun();
 		}
@@ -216,17 +216,17 @@
 
 	//-----------------------------------------------------genClient
 	function genClient(fun) {
-		//console.log('--genClient');
+		//this.log('--genClient');
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		//console.log('Par', JSON.stringify(Par, null, 2));
+		//this.log('Par', JSON.stringify(Par, null, 2));
 		var err;
 		if ("Plexus" in Par){
 			if(!('Chan' in Par))
 				err = 'No Chan in Par';
 			if(err) {
-				console.log("ERROR in PROXY genClient"+err);
+				this.log("ERROR in PROXY genClient"+err);
 				if(fun)
 					fun(err);
 				return;
@@ -251,7 +251,7 @@
 			if(!('Host' in Par))
 				err = 'No Host in Par';
 			if(err) {
-				console.log("ERROR in PROXY genClient"+err);
+				this.log("ERROR in PROXY genClient"+err);
 				if(fun)
 					fun(err);
 				return;
@@ -265,8 +265,8 @@
 
 		function connect(err, r) {
 			if(err) {
-				console.log(' ** ERR:' + err);
-				console.log('    Proxy:' + Par.Chan);
+				this.log(' ** ERR:' + err);
+				this.log('    Proxy:' + Par.Chan);
 				if(fun)
 					fun(err);
 				return;
@@ -290,19 +290,19 @@
 			var sock = new net.Socket();
 			Vlt.Server = false;
 			sock.connect(port, host, function () {
-				//console.log('..Connection established');
+				//this.log('..Connection established');
 			});
 
 			sock.on('connect', function () {
-				console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+				this.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
 				Vlt.Sock = sock;
 				if(fun)
 					fun(null);
 			});
 
 			sock.on('error', (err) => {
-				console.log(' ** ERR3:' + err);
-				console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+				this.log(' ** ERR3:' + err);
+				this.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
 				if(fun)
 					fun('Connection declined');
 			});
@@ -345,7 +345,7 @@
 							if(Vlt.Fun[com.Passport.Pid])
 								Vlt.Fun[com.Passport.Pid](null, com);
 						} else {
-							//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
+							//this.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
 
 
 							//do we really want links in clients?
@@ -361,9 +361,9 @@
 
 	//-----------------------------------------------------Proxy
 	function Proxy(com, fun) {
-		//console.log('--Proxy/Proxy', com.Cmd);
+		//this.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
-		//console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
+		//this.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
 		var Vlt = this.Vlt;
 		if('Role' in Par) {
 			switch(Par.Role) {
@@ -374,19 +374,19 @@
 					server();
 					break;
 				default:
-					console.log('Par', JSON.stringify(Par, null, 2));
+					this.log('Par', JSON.stringify(Par, null, 2));
 					var err = 'Proxy role is unknown';
-					console.log(' ** ERR:' + err);
-					console.log('    Proxy:' + Par.Chan);
+					this.log(' ** ERR:' + err);
+					this.log('    Proxy:' + Par.Chan);
 					if(fun)
 						fun(err);
 					return;
 			}
 		} else {
-			console.log('Par', JSON.stringify(Par, null, 2));
+			this.log('Par', JSON.stringify(Par, null, 2));
 			var err = 'Proxy has no role';
-			console.log(' ** ERR:' + err);
-			console.log('    Proxy:' + Par.Chan);
+			this.log(' ** ERR:' + err);
+			this.log('    Proxy:' + Par.Chan);
 			if(fun)
 				fun(err);
 		}
@@ -417,8 +417,8 @@
 			var ETX = 3;
 			var sock = Vlt.Sock;
 			if(!sock) {
-				console.log(' ** ERR:Proxy not connected to server');
-				console.log('    Proxy:' + Par.Chan);
+				this.log(' ** ERR:Proxy not connected to server');
+				this.log('    Proxy:' + Par.Chan);
 				if(fun)
 					fun('Proxy not connected');
 				return;
