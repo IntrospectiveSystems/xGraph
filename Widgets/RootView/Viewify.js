@@ -1,6 +1,5 @@
 //# sourceURL=Viewify.js
 // debugger;
-
 // DIV, IMG, and STYLE are shorthand for making elements, wrapped in jquery
 if (window.DIV == undefined) window.DIV = function DIV(selectorish) {
 	let elem = $(document.createElement('div'));

@@ -3,19 +3,26 @@
 //test change
 (function RootView() {
 
+	/*
+		The RootView class is the most basic Root Container View.
+		RootView is a view that attaches itself to the DOM.
+	 */
 	class RootView {
+
+        //-----------------------------------------------------Setup
 		Setup(com, fun) {
 			this.super(com, (err, cmd) => {
-				// debugger;
 				fun(null, com);
 			});
 		}
+
+        //-----------------------------------------------------Start
 		Start(com, fun) {
 
 			this.super(com, (err, cmd) => {
 
 				let that = this;
-				// debugger;
+
 				function parseView(view, fun) {
 					if (typeof view == 'string') {
 						console.log('PID ' + view);

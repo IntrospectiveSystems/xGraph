@@ -2,6 +2,10 @@
 //jshint esversion: 6
 (function Popup() {
 
+	/*
+        The PopupView class is the most basic view that attaches itself to the DOM.
+
+     */
 	class Popup {
 		Setup(com, fun) {
 			console.log("Viewify/Setup");
