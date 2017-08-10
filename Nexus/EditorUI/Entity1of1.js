@@ -1,5 +1,20 @@
-//# sourceURL='Proxy.js'
-(function Proxy() {
+//# sourceURL='EditorUI/Entity1of1.js'
+
+/*
+Notes during development:
+	Note on the assumption that a pid that doesn't exist in an NXS system
+exists on the server system that spun it up. It could have come from another 
+system all together should it be forwarded to all connected systems?
+
+	The evo hook module could either be required to exist in the Module json 
+object when the system is started or there could be a EVO enabled tag that exists 
+at the topmost level fo the config.json (xgraph definition level) that when true 
+adds the module to the module obj during genesis. 
+
+
+
+*/
+(function Entity1of1() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
