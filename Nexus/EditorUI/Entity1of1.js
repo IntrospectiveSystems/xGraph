@@ -2,25 +2,24 @@
 
 /*
 Notes during development:
+***
 	Note on the assumption that a pid that doesn't exist in an NXS system
 exists on the server system that spun it up. It could have come from another 
 system all together should it be forwarded to all connected systems?
+***
 
-	The evo hook module could either be required to exist in the Module json 
-object when the system is started or there could be a EVO enabled tag that exists 
-at the topmost level fo the config.json (xgraph definition level) that when true 
-adds the module to the module obj during genesis. 
+	The evo hook module is required to exist in the Module json 
+object of file config.json when the system is started.
 
-
+	If a system is EVO enabled (has this module), it could either be connected 
+	to a Plexus system  or it could be a direct/hardwired connection?
 
 */
 (function Entity1of1() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
-		Setup: Setup,
-		Start: Start,
-		"*":Proxy
+		Setup: Setup
 	};
 
 	return {
@@ -35,45 +34,17 @@ adds the module to the module obj during genesis.
 			if ("Plexus" in Par)
 				console.log("--     Proxy-Chan", (Par.Chan));
 			//console.log('Par', JSON.stringify(Par, null, 2));
-			switch(Par.Role) {
-			case 'Server':
-				genServer.call(this, fun);
-				return;
-			case 'Client':
-				genClient.call(this, fun);
-				return;
-			default: 
-				let err= ""+Par.Role+ " is not an acceptible Role"
-				if(fun)
-					fun(err, com);
-				return;
-			}
+		
 		}
-		if(fun)
-			fun(null, com);
-	}
 
-	//-----------------------------------------------------Start
-	function Start(com, fun) {
-		var Par = this.Par;
-		if(Par.Chan != 'Plexus'&& "Plexus" in Par) {
-			console.log('--Proxy/Start', this.Par.Pid);
-			console.log("--     Proxy-Chan", (Par.Chan));
-			//console.log('Par', JSON.stringify(Par, null, 2));
-			switch(Par.Role) {
-			case 'Server':
-				genServer.call(this, fun);
-				return;
-			case 'Client':
-				genClient.call(this, fun);
-				return;
-			default: 
-				let err= ""+Par.Role+ " is not an acceptible Role"
-				if(fun)
-					fun(err, com);
-				return;
-			}
-		}
+
+
+
+
+
+
+
+
 		if(fun)
 			fun(null, com);
 	}

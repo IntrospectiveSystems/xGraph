@@ -255,14 +255,24 @@
 	// Process GET request including authentication and
 	// validation if required. If anything looks fishy, simply
 	// ignore the request to confuse the hackers.
+
+	//any HTTP Get accessible files should be stored in a ./static/ directory
 	function Get(that, req, res) {
 		console.log('--Get', req.url);
 		var fs = require('fs');
 		var Par = that.Par;
 		var url = req.url;
-		if (url.charAt(0) == '/')
-			url = url.substr(1);
-		var path = './' + url + '.html';
+		let path = null;
+
+		if (url.split(".").length>1){
+			//console.log("Split by '.'");
+			path = './static'+url;
+		}else{
+			if (url.charAt(0) == '/')
+				url = url.substr(1);
+			path = './' + url + '.html';
+		}
+		//console.log("Path of Get file is ", path);
 		fs.exists(path, html);
 
 		function html(yes) {
@@ -307,6 +317,7 @@
 
 		function build(file, func) {
 			var path = dir + '/' + file;
+			console.log("Path is ", path);
 			fs.readFile(path, add);
 
 			function add(err, data) {

@@ -214,7 +214,7 @@
 								that.genModule({
 									"Module": "xGraph:Widgets/Popup",
 									"Par": {
-										"View": "xGraph:Widgets/PixiView",
+										"View": "xGraph:Widgets/AceEditorView",
 										"Width": 400,
 										"Height" : 300
 									}
