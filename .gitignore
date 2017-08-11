@@ -4,7 +4,8 @@ logs
 npm-debug.log*
 
 # xGraph
-[c]ache
+cache
+.vscode/
 .idea/
 EventLog.txt
 Work/*/package.json
