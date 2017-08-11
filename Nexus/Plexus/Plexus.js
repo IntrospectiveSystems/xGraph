@@ -15,8 +15,6 @@
 	function Setup(com, fun) {
 		console.log('--Plexus/Setup');
 		var that = this;
-		var net = require('net');
-		var err;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		Vlt.Ports = [];
@@ -28,6 +26,7 @@
 
 
 	//-----------------------------------------------------Publish
+	//post address to plexus
 	function Publish(com, fun) {
 		console.log('--Plexus/Publish');
 		var Par = this.Par;
@@ -83,7 +82,8 @@
 			fun(null, com);
 	}
 
-	//-----------------------------------------------------Publish
+	//-----------------------------------------------------Subscribe
+	//get address from plexus
 	function Subscribe(com, fun) {
 		console.log('--Plexus/Subscribe');
 		var Par = this.Par;

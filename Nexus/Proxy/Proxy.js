@@ -288,114 +288,118 @@
 			var host = r.Host;
 			var sock = new net.Socket();
 			Vlt.Server = false;
-			sock.connect(port, host, function () {console.log("trying to connect")});
+			connectLoop();
+			function connectLoop(){
+				sock.removeAllListeners();
+				sock.connect(port, host, function () {console.log("trying to connect")});
 
-			sock.on('connect', function () {
-				if ("Chan" in Par){
-					console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
-				}else{
-					console.log('Proxy - Connected to server on host:' + host + ', port:' + port);
-				}
-				Vlt.Sock = sock;
-				if (!("Replied" in Vlt)||Vlt.Replied ==false){
-					Vlt.Replied = true;
-					if(fun)
-						fun(null);
-				}
-			});
-
-			sock.on('error', (err) => {
-				console.log(' ** ERR3:' + err);
-				if ("Chan" in Par)
-					console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
-				if (Par.Poll){
-					that.log("Proxy "+Par.Pid+ " is Polling");
-					if ("Sock" in Vlt)
-						delete Vlt["Sock"];
-					setTimeout(	()=>{sock.connect(port, host, function () {})},3000);
-					//Vlt.Polling = true;
+				sock.on('connect', function () {
+					if ("Chan" in Par){
+						console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+					}else{
+						console.log('Proxy - Connected to server on host:' + host + ', port:' + port);
+					}
+					Vlt.Sock = sock;
 					if (!("Replied" in Vlt)||Vlt.Replied ==false){
 						Vlt.Replied = true;
 						if(fun)
 							fun(null);
 					}
-				}else{
-					//Return a hard fail. Should be only called once.
-					if (!("Replied" in Vlt)||Vlt.Replied ==false){
-					Vlt.Replied = true;
-					if(fun)
-						fun("Connection Declined");
-				}
-				}
-			});
+				});
 
-			sock.on('disconnect', (err) => {
-				console.log(' ** Socket disconnected:' + err);
-				
-				if (Par.Poll){
-					//that.log("Proxy "+Par.Pid+ " is Polling");
-					if ("Sock" in Vlt)
-						delete Vlt[Sock];
-					setTimeout(	()=>{sock.connect(port, host, function () {})},3000);
-					
-				}else{
-					//Return a hard fail. Should be only called once.
-					if (!("Replied" in Vlt)||Vlt.Replied ==false){
+				sock.on('error', (err) => {
+					console.log(' ** ERR3:' + err);
+					if ("Chan" in Par)
+						console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+					if (Par.Poll){
+						that.log("Proxy "+Par.Pid+ " is Polling");
+						if ("Sock" in Vlt)
+							delete Vlt["Sock"];
+						setTimeout(connectLoop,3000);
+						//Vlt.Polling = true;
+						if (!("Replied" in Vlt)||Vlt.Replied ==false){
+							Vlt.Replied = true;
+							if(fun)
+								fun(null);
+						}
+					}else{
+						//Return a hard fail. Should be only called once.
+						if (!("Replied" in Vlt)||Vlt.Replied ==false){
 						Vlt.Replied = true;
 						if(fun)
 							fun("Connection Declined");
 					}
-				}
-			});
+					}
+				});
+
+				sock.on('disconnect', (err) => {
+					console.log(' ** Socket disconnected:' + err);
+					
+					if (Par.Poll){
+						//that.log("Proxy "+Par.Pid+ " is Polling");
+						if ("Sock" in Vlt)
+							delete Vlt[Sock];
+						setTimeout(connectLoop,3000);
+						
+					}else{
+						//Return a hard fail. Should be only called once.
+						if (!("Replied" in Vlt)||Vlt.Replied ==false){
+							Vlt.Replied = true;
+							if(fun)
+								fun("Connection Declined");
+						}
+					}
+				});
 
 
-			sock.on('data', function (data) {
-				var nd = data.length;
-				var i1= 0;
-				var i2;
-				var STX = 2;
-				var ETX = 3;
-				if(Vlt.State == 0)
-					Vlt.Buf = '';
-				for(let i=0; i<nd; i++) {
+				sock.on('data', function (data) {
+					var nd = data.length;
+					var i1= 0;
+					var i2;
+					var STX = 2;
+					var ETX = 3;
+					if(Vlt.State == 0)
+						Vlt.Buf = '';
+					for(let i=0; i<nd; i++) {
+						switch(Vlt.State) {
+							case 0:
+								if(data[i] == STX) {
+									Vlt.Buf = '';
+									Vlt.State = 1;
+									i1 = i+1;
+								}
+								break;
+							case 1:
+								i2 = i;
+								if(data[i] == ETX)
+									Vlt.State = 2;
+								break;
+						}
+					}
 					switch(Vlt.State) {
 						case 0:
-							if(data[i] == STX) {
-								Vlt.Buf = '';
-								Vlt.State = 1;
-								i1 = i+1;
-							}
 							break;
 						case 1:
-							i2 = i;
-							if(data[i] == ETX)
-								Vlt.State = 2;
+							Vlt.Buf += data.toString('utf8', i1, i2+1);
+							break;
+						default:
+							Vlt.Buf += data.toString('utf8', i1, i2);
+							Vlt.State = 0;
+							var com = JSON.parse(Vlt.Buf);
+							if('Reply' in com.Passport) {
+								if(Vlt.Fun[com.Passport.Pid])
+									Vlt.Fun[com.Passport.Pid](null, com);
+							} else {
+								//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
+
+
+								//do we really want links in clients?
+								that.send(com, Par.Link);
+							}
 							break;
 					}
-				}
-				switch(Vlt.State) {
-					case 0:
-						break;
-					case 1:
-						Vlt.Buf += data.toString('utf8', i1, i2+1);
-						break;
-					default:
-						Vlt.Buf += data.toString('utf8', i1, i2);
-						Vlt.State = 0;
-						var com = JSON.parse(Vlt.Buf);
-						if('Reply' in com.Passport) {
-							if(Vlt.Fun[com.Passport.Pid])
-								Vlt.Fun[com.Passport.Pid](null, com);
-						} else {
-							//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
-
-
-							//do we really want links in clients?
-							that.send(com, Par.Link);
-						}
-						break;
-				}
-			});
+				});
+			}
 		}
 	}
 
