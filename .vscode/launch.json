@@ -17,7 +17,8 @@
 			"env": {
 				"NODE_PATH": "node_modules"
 			}
-		},{
+		},
+		{
 			"name": "HeatBugs",
 			"type": "node",
 			"request": "launch",
@@ -53,7 +54,7 @@
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=/home/trevor/xGraph"
+				"xGraph=${workspaceRoot}"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
@@ -67,7 +68,7 @@
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=/home/trevor/xGraph"
+				"xGraph=${workspaceRoot}"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
@@ -81,7 +82,7 @@
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=/home/trevor/xGraph"
+				"xGraph=${workspaceRoot}"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
@@ -108,7 +109,7 @@
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
-				"xGraph=/home/trevor/xGraph"
+				"xGraph=${workspaceRoot}"
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
