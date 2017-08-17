@@ -3,10 +3,13 @@
 (function Popup() {
 
 	/*
-        The PopupView class is the most basic view that attaches itself to the DOM.
+        The PopupView class is a Root Container View.
+        PopupView attaches itself to the DOM, rendering on top of the existing page.
 
      */
 	class Popup {
+
+        //-----------------------------------------------------Setup
 		Setup(com, fun) {
 			console.log("Viewify/Setup");
 			if(!('View' in this.Par)) {

@@ -23,30 +23,8 @@
 
 				let that = this;
 
-				function parseView(view, fun) {
-					if (typeof view == 'string') {
-						console.log('PID ' + view);
-						fun(view);
-					} else {
-						let basePid = view.View;
-						async.each(view.Children, function(item, next) {
-							parseView(item, (pid) => {
-								that.send({
-									Cmd: "AddView",
-									View: pid
-								}, basePid, () => {
-									next();
-								});
-							});
-						}, function() {
-							//done adding children
-							console.log('PID ' + basePid);
-							console.log('DAT WAY');
-							fun(basePid);
-						});
-					}
-				}
-
+				// on start, parse the view found in this.Par.Layout
+				// then send
 				parseView(this.Par.Layout, (apexPid) => {
 					// debugger;
 					this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
@@ -66,9 +44,35 @@
 						});
 					});
 				});
+
+
+                function parseView(view, fun) {
+                    if (typeof view == 'string') {
+                        console.log('PID ' + view);
+                        fun(view);
+                    } else {
+                        let basePid = view.View;
+                        async.each(view.Children,
+                            function(item, next) {
+                                parseView(item, (pid) => {
+                                    that.send({
+                                        Cmd: "AddView",
+                                        View: pid
+                                    }, basePid, () => {
+                                        next();
+                                    });
+                                });
+                            },
+                            function() {
+                                //done adding children
+                                console.log('PID ' + basePid);
+                                console.log('DAT WAY');
+                                fun(basePid);
+                            });
+                    }
+                }
+
 			});
-
-
 		}
 	}
 
