@@ -10,6 +10,10 @@
 	class RootView {
 
         //-----------------------------------------------------Setup
+		/*
+			On Setup, Viewify builds the base class and shares it's context
+			 with the sub-class, through this.super().
+		 */
 		Setup(com, fun) {
 			this.super(com, (err, cmd) => {
 				fun(null, com);
@@ -17,6 +21,13 @@
 		}
 
         //-----------------------------------------------------Start
+		/*
+			On Start, RootView expects a child View found in this.Par.Layout.
+			this.Par.Layout should be an Object representation of a View,
+			loaded from the page.json file.
+			Start takes the object found in this.Par.Layout and builds the
+			 View and it's children.
+		 */
 		Start(com, fun) {
 
 			this.super(com, (err, cmd) => {
@@ -45,7 +56,11 @@
 					});
 				});
 
-
+				/*
+					parseView takes an object, 'view', which expects the properties
+					 view.View as the View that attaches to the root view and view.Children
+					 as an array of Views to be attached to the view.View.
+				 */
                 function parseView(view, fun) {
                     if (typeof view == 'string') {
                         console.log('PID ' + view);

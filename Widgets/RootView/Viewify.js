@@ -22,7 +22,7 @@ if (window.DIV == undefined) window.DIV = function DIV(selector) {
 	let elem = $(document.createElement('div'));
 
 	if (selector) {
-		if (selectorish.search(/[#\.]/) == -1) {
+		if (selector.search(/[#\.]/) == -1) {
 			elem.addClass(selector);
 			return elem;
 		}
