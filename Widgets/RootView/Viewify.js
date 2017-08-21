@@ -426,7 +426,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 	function Command(com, fun) {
 		// console.log(' >> ', com.Cmd);
-		let fun = fun || (()=>{});
+		fun = fun || (()=>{});
 		if (com.Cmd == 'Setup' || !('super' in this)) {
 			let that = this;
 			this.super = function (com, fun) {
