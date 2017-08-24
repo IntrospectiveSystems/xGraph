@@ -179,9 +179,7 @@
 		Render(com, fun) {
 			var that = this;
 
-
 			// // debugger;
-
 			// this.dispatch({Cmd: "Clear"}, (err, cmd) => {
 
 			let view1 = this.Vlt.viewDivs[0];
@@ -207,8 +205,11 @@
 			elems.addClass(this.Vlt.horizontal ? 'horizontal' : 'vertical');
 			elems.removeClass(this.Vlt.horizontal ? 'vertical' : 'horizontal');
 
+			this.super(com, (err, cmd) => {
+				fun(null, com)
+			});
 
-			fun(null, com)
+
 
 			// });
 		}
