@@ -312,6 +312,13 @@
 					if ("Chan" in Par)
 						console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
 					if (Par.Poll){
+						if (!("Timer" in Vlt) && "Timeout" in Par){
+							//console.log("\n\n setting timer for timeout \n\n");
+							Vlt.Timer = setTimeout(()=>{
+								that.log("Error: Proxy "+Par.Pid+ " connection timeout. Last Attempt.");
+								Par.Poll = false;
+							},Par.Timeout);
+						}
 						that.log("Proxy "+Par.Pid+ " is Polling");
 						if ("Sock" in Vlt)
 							delete Vlt["Sock"];
@@ -325,10 +332,10 @@
 					}else{
 						//Return a hard fail. Should be only called once.
 						if (!("Replied" in Vlt)||Vlt.Replied ==false){
-						Vlt.Replied = true;
-						if(fun)
-							fun("Connection Declined");
-					}
+							Vlt.Replied = true;
+							if(fun)
+								fun("Connection Declined");
+						}
 					}
 				});
 
@@ -342,6 +349,14 @@
 						setTimeout(connectLoop,3000);
 						
 					}else{
+
+
+						//this code needs to be worked on notsure it will work if 
+						//we get disconnected
+
+
+
+
 						//Return a hard fail. Should be only called once.
 						if (!("Replied" in Vlt)||Vlt.Replied ==false){
 							Vlt.Replied = true;

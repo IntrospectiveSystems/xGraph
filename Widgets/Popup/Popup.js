@@ -13,7 +13,6 @@
 			let par = {
 				Module: this.Par.View
 			};
-
 			// aight, lemme 'splain
 			// this.par is the par that you gen'd
 			// this module with. this.Par.Par is the
