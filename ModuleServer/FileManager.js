@@ -30,7 +30,7 @@
 
 	// Receives module data and writes module to designated storage
 	function AddModule(com, fun) {
-		console.log('FileManager::AddModule');
+		//console.log('FileManager::AddModule');
 		//var JSZip = require('jszip');
 		var that = this;
 		// debugger;
@@ -64,7 +64,7 @@
 			com.Module.generateNodeStream({type:'nodebuffer',streamFiles:true})
 				.pipe(fs.createWriteStream(path + '/' + com.Info.name + '.zip'))
 				.on('finish', function () {
-					console.log("out.zip written.");
+					//console.log("out.zip written.");
 					if(fun) fun(null, com);
 				});
 		} else {

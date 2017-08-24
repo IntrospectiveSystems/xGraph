@@ -71,14 +71,14 @@
 			var zip = new JSZip();
 			var ModuleInfo = {};
 			scanModule(dir, function() {
-				console.log('Finished scanning module');
+				//console.log('Finished scanning module');
 				fs.readdir(dir, (err, files) => {
 					async.eachSeries(files, (file, func) => {
 						zipModule(file, '', func);
 					}, function() {
 						//console.log(zip);
 						that.send({Cmd:'AddModule', Module:zip, ModuleStorage:that.Par.ModuleStorage, Info: ModuleInfo}, that.Par.FileManager, function(err, com) {
-							console.log('Module Saved');
+							//console.log('Module Saved');
 							callback();
 						})
 					})
@@ -95,6 +95,7 @@
 					}
 					async.eachSeries(files, (file, func) => {
 						if (file === 'module.json') {
+							//console.log("Path is ", dir+"/"+file);
 							fs.readFile(dir + '/' + file, (err, data) => {
 								if (err) {
 									console.log(' ** ERR:' + err);
@@ -160,7 +161,7 @@
 	// Returns:
 	//	Nothing
 	function DownloadModule(com, fun) {
-		console.log('DDDDDDDDOOOOOOOOOOOOWWWWWWWWWNNNNNNNLLLLLLLLOOOOOOOOOAAAAAAAAAAADDDDDDDDDDDD');
+		//console.log('DDDDDDDDOOOOOOOOOOOOWWWWWWWWWNNNNNNNLLLLLLLLOOOOOOOOOAAAAAAAAAAADDDDDDDDDDDD');
 		let otherModuleServer = com.From;
 		let name = com.Module;
 		let that = this;
@@ -184,7 +185,7 @@
 	//	com.Name,
 	// Returns zipped module in base64 in com.Module
 	function GetModule(com, fun) {
-		debugger;
+		//debugger;
 		console.log('ModuleServer:GetModule');
 		var async = require('async');
 		var that = this;
@@ -226,13 +227,13 @@
 	// 	com.Name as named in module.json
 	function AddModule(com, fun) {
 		console.log('ModuleServer:AddModule');
-		debugger;
+		//debugger;
 		var that = this;
 		if ('Module' in com) {
-			console.log(com.Module);
+			//console.log(com.Module);
 			let buf = Buffer.from(com.Module, 'base64');
 			com.Module = buf;
-			console.log('asdf');
+			//console.log('asdf');
 
 			that.send(com, that.Par.ModuleData, function(err, com) {
 				if (err) {
@@ -273,6 +274,7 @@
 
 			// Async through moduleCache and check filter properties
 			async.forEach(Object.keys(that.Par.ModuleCache), (module, func) => {
+				//debugger;
 				CheckFilters(that.Par.ModuleCache[module], com.Filters, (err, bMatch) => {
 					if(bMatch) {
 						let modInfo = JSON.parse(JSON.stringify(that.Par.ModuleCache[module]));
@@ -300,7 +302,7 @@
 
 		function CheckFilters(Mod, Filters, callback) {
 			let bMatch = true;
-			console.log('CheckFilters');
+			//console.log('CheckFilters');
 			//console.log(Filters);
 			// Iterate through filters
 			// Check against each property in module

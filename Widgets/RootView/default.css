@@ -1,8 +1,4 @@
 :root {
-
-	font-family: Verdana, Geneva, Tahoma, sans-serif;
-	color: var(--text);
-
 	/*--view-color: rgba(60, 190, 69, 0.3);*/
 	/* GENERAL STUFF */
 	--introspective-green: #66BC45;
@@ -68,4 +64,13 @@
 	--error-background: #280000;
 	--accent-text: #111;
 	--view-border-divider: #2A2A2A;
+}
+
+p, h1, h2, h3, h4, h5, div, span {
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	color: var(--text);
+}
+
+h1, h2, h3 {
+	font-weight: 100;
 }
