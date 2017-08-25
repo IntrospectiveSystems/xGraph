@@ -317,7 +317,7 @@
 
 		function build(file, func) {
 			var path = dir + '/' + file;
-			//console.log("Path is ", path);
+			console.log("Path is ", path);
 			fs.readFile(path, add);
 
 			function add(err, data) {
