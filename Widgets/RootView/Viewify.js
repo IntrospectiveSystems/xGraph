@@ -276,7 +276,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			let vlt = this.Vlt;
 			vlt.views = com.viewDivs;
 			this.dispatch({ Cmd: 'Clear' }, (err, cmd) => {
-				async.eachSeries(com.viewDivs, function (item, next) {
+				async.eachSeries(com.viewDivs,  (item, next)=> {
 					this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 						vlt.viewDivs.push(cmd.Div);
 					});
@@ -289,7 +289,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		}
 		Render(com, fun) {
 			let that = this;
-			async.each(this.Vlt.views, function(pid, next) {
+			async.each(this.Vlt.views, (pid, next)=> {
 				that.send({Cmd: 'Render'}, pid, () => {
 					next();
 				});
@@ -319,7 +319,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			// debugger;
 			//console.log('DOMLoaded - ' + this.Vlt.type);
 			let that = this;
-			async.eachSeries(this.Vlt.views, function (item, next) {
+			async.eachSeries(this.Vlt.views,  (item, next)=> {
 				that.send({ Cmd: 'DOMLoaded' }, item, () => {
 					next();
 				});
@@ -333,7 +333,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			com.height = this.Vlt.div.height();
 			com.aspect = 1 / (this.Vlt.div.height() / this.Vlt.div.width());
 			var that = this;
-			async.each(this.Vlt.views, function (item, next) {
+			async.each(this.Vlt.views,  (item, next)=>{
 				that.send({
 					Cmd: 'Resize'
 				}, item, (err, cmd) => {
@@ -348,7 +348,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		ShowHierarchy(com, fun) {
 			var that = this;
 			console.group(this.Vlt.rootID);
-			async.forEach(this.Vlt.views, function (item, next) {
+			async.forEach(this.Vlt.views,  (item, next)=>{
 				that.send({ Cmd: "ShowHierarchy" }, item, (err, cmd) => {
 					next();
 				});
@@ -427,13 +427,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		}
 
 		Destroy(com, fun) {
-
-			async.eachSeries(this.Vlt.views, function (item, next) {
-				that.send({ Cmd: 'Destroy' }, item, () => {
+			debugger;
+			async.eachSeries(this.Vlt.views, (item, next) =>{
+				this.send({ Cmd: 'Destroy' }, item, () => {
 					next();
 				});
 			}, () => {
-				that.send({ Cmd: 'Cleanup' }, this.Par.Pid, () => {
+				this.send({ Cmd: 'Cleanup' }, this.Par.Pid, () => {
 					this.deleteEntity((err) => {
 						if(err) console.error(err);
 						setTimeout(() => {
