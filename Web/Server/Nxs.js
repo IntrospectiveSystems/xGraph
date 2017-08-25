@@ -182,6 +182,7 @@ __Nexus = (function() {
 	//		Nxs: Nxs,
 			dispatch: dispatch,
 			send: send,
+			deleteEntity: deleteEntity,
 			getPid: getPid,
 			genModule :genModule
 		};
@@ -203,6 +204,10 @@ __Nexus = (function() {
 			//console.log(com.Cmd + ' unknown');
 			if(fun)
 				fun(com.Cmd + ' unknown');
+		}
+
+		function deleteEntity(fun){
+			nxs.delEntity(Par.Pid, fun);
 		}
 
 		//-------------------------------------------------getPid
@@ -294,6 +299,9 @@ __Nexus = (function() {
 			}
 		} else {
 			console.log('Entity not found: ', pid);
+			if (fun) {
+				fun(("Entity not found: "+ pid));
+			}
 		}
     }
 
@@ -361,8 +369,8 @@ __Nexus = (function() {
 
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
-	//	console.log('..addModule');
-	//	console.log(JSON.stringify(mod, null, 2));
+		//console.log('..addModule');
+		//console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
 		var q = {};
@@ -372,7 +380,7 @@ __Nexus = (function() {
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
-		//	console.log('..addmod');
+		console.log('..addmod');
 			var module = com.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
@@ -385,13 +393,18 @@ __Nexus = (function() {
 							var obj = JSON.parse(str);
 							var keys = Object.keys(obj);
 							async.eachSeries(keys, function(key, func) {
-								if(Css.indexOf(key) >= 0) {
-									func();
-									return;
-								}
+								//debugger;
+								
+								//this needs to be reworked duplicate names are not loaded
+								// if(Css.indexOf(key) >= 0) {
+								// 	func();
+								// 	return;
+								// }
+								
 								Css.push(key);
 								var file = obj[key];
 								zip.file(file).async('string').then(function(css) {
+									console.log("Css is ", css);
 									var tag = document.createElement('style');
 									tag.setAttribute("data-css-url", key);
 									tag.setAttribute("type", 'text/css');
@@ -417,7 +430,7 @@ __Nexus = (function() {
 				}
 
 				function scripts() {
-				//	console.log('..scripts');
+					//console.log('..scripts');
 					if(zipmod.file('scripts.json')) {
 						zip.file('scripts.json').async('string').then(function(str) {
 							var obj = JSON.parse(str);
@@ -430,6 +443,8 @@ __Nexus = (function() {
 								Scripts.push(key);
 								var file = obj[key];
 								zip.file(file).async('string').then(function(scr) {
+									//console.log("loading module from ", module, scr);
+									
 									// var tag = document.createElement('script');
 									// tag.setAttribute("data-script-url", key);
 									// tag.setAttribute("type", 'text/javascript');
