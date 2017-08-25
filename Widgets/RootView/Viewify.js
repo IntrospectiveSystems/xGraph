@@ -140,7 +140,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			// debugger;
 			vlt.viewDivs = [];
 
-			onsole.time('View');		if (vlt.disableTitleBar) {
+			console.time('View');
+			
+			if (vlt.disableTitleBar) {
 				//oh okay, thats cool. i guess.
 				vlt.div.css('height', '100%');
 				vlt.titleBar.detach();
@@ -158,7 +160,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		}
 
 		GetViewRoot(com, fun) {
-			// debugger;
+			//debugger;
 			com.Div = this.Vlt.root;
 			// debugger;
 			fun(null, com);
@@ -234,10 +236,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		SetView(com, fun) {
 			let that = this;
 			this.Vlt.views = [com.View];
+			//debugger;
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				that.Vlt.viewDivs = [cmd.Div];
-				// debugger;
-				com.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
+				//debugger;
+				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
 		// test change
