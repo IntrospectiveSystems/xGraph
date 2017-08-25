@@ -86,7 +86,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 	class View {
 		Setup(com, fun) {
 			// debugger;
-			console.time('View');
+			// console.time('View');
 			let vlt = this.Vlt;
 			vlt.titleBarHeight = 20;
 			// vlt.type = this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1).replace(".js", "");
@@ -140,7 +140,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			// debugger;
 			vlt.viewDivs = [];
 
-			if (vlt.disableTitleBar) {
+			onsole.time('View');		if (vlt.disableTitleBar) {
 				//oh okay, thats cool. i guess.
 				vlt.div.css('height', '100%');
 				vlt.titleBar.detach();
@@ -152,7 +152,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 			// com.dispatch({ Cmd: 'Style', Selector: '#' });
 
-			console.timeEnd('View');
+			// console.timeEnd('View');
 			// debugger;
 			fun(null, com);
 		}
@@ -421,6 +421,29 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 			});
 
+		}
+
+		Destroy(com, fun) {
+
+			async.eachSeries(this.Vlt.views, function (item, next) {
+				that.send({ Cmd: 'Destroy' }, item, () => {
+					next();
+				});
+			}, () => {
+				that.send({ Cmd: 'Cleanup' }, this.Par.Pid, () => {
+					this.deleteEntity((err) => {
+						if(err) console.error(err);
+						setTimeout(() => {
+							fun(null, com);
+						}, 0)
+					});
+				});
+			});
+
+		}
+
+		Cleanup(com, fun) {
+			fun(null, com);
 		}
 	}
 
