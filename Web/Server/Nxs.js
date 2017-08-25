@@ -723,6 +723,7 @@ __Nexus = (function() {
 
 			function start() {
 				if(ipid >= npid) {
+					Run();
 					return;
 				}
 				var pid8 = pids[ipid];
