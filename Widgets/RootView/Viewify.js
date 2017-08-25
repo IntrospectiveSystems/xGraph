@@ -86,7 +86,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 	class View {
 		Setup(com, fun) {
 			// debugger;
-			console.time('View');
+			// console.time('View');
 			let vlt = this.Vlt;
 			vlt.titleBarHeight = 20;
 			// vlt.type = this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1).replace(".js", "");
@@ -152,7 +152,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 
 			// com.dispatch({ Cmd: 'Style', Selector: '#' });
 
-			console.timeEnd('View');
+			// console.timeEnd('View');
 			// debugger;
 			fun(null, com);
 		}
