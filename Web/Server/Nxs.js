@@ -731,9 +731,11 @@ __Nexus = (function() {
 				var q = {};
 				q.Cmd = Root.Start[pid8];
 				var pid = Pid24 + pid8;
+				console.log("start ", pid);
 				send(q, pid, done);
 
 				function done(err, r) {
+					console.log("Return start ", pid);
 					start();
 				}
 			}
