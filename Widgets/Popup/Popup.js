@@ -44,10 +44,10 @@
 					}
 				}
 
-				debugger;
+				//debugger;
 				//alert(JSON.stringify(par, null, 2));
 				this.genModule(par, (err, pid) => {
-					debugger;
+					//debugger;
 					this.send({Cmd:"SetView", View: pid}, this.Par.Pid, (err, cmd)=>{
 						// debugger;
 						this.send({Cmd: 'DOMLoaded'}, pid, (err, cmd) => {
@@ -60,7 +60,9 @@
 		}
 
 		Render(com,fun){
-			// debugger;
+			
+			let that = this;
+
 			if (this.Vlt.viewDivs.length>0)
 				this.Vlt.viewDivs[0].detach();
 			
@@ -85,7 +87,8 @@
 			closeButton.css('background-color', 'var(--accent-error)');
 
 			closeButton.on("click",(function () {
-				this.send({Cmd:"Destroy"}, this.Par.Pid, (err, cmd)=>{});
+				debugger;
+				that.send({Cmd:"Destroy"}, that.Par.Pid, (err, cmd)=>{});
 			}));
 
 			topBarDiv.append(closeButton);
@@ -93,7 +96,7 @@
 			this.Vlt.div.append(topBarDiv);
 			this.Vlt.div.append(contentDiv);
 			
-			this.super(com, (err,fun)=>{
+			this.super(com, (err,cmd)=>{
 				fun(err, com);
 			});
 		}
