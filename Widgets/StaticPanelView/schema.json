@@ -1,0 +1,7 @@
+{
+	"Apex": {
+		"Entity": "PanelView.js",
+		"$Start": "Start",
+		"$Setup": "Setup"
+	}
+}
