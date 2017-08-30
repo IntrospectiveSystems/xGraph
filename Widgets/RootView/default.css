@@ -80,4 +80,10 @@ hr {
 	border-left: none;
 	border-right: none;
 	border-bottom: 1px solid var(--view-border-color-light);
+	margin: 0px;
+}
+
+h1 {
+	margin-bottom: 12px;
+	padding-left: 27px;
 }
