@@ -74,3 +74,8 @@ p, h1, h2, h3, h4, h5, div, span {
 h1, h2, h3 {
 	font-weight: 100;
 }
+
+hr {
+	border-top: none;
+	border-bottom: 1px solid var(--view-border-color-light);
+}
