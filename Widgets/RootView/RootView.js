@@ -44,9 +44,9 @@
 					// debugger;
 					this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
 						// debugger;
-						let apexDiv = com.Div;
 
-						apexDiv.css('opacity', '0.0');
+						let apexDiv = com.Div;
+						// apexDiv.css('opacity', '0.0');
 						$(document.body).append(apexDiv);
 						
 						this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
@@ -60,7 +60,7 @@
 
 						this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
 							$(document.body).find('.removeOnLoad').remove();
-							apexDiv.css('opacity', '1.0');
+							// apexDiv.css('opacity', '1.0');
 							fun(null, com);
 						});
 					});
