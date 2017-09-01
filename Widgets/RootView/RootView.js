@@ -44,7 +44,6 @@
 					// debugger;
 					this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
 						// debugger;
-						$(document.body).append(com.Div);
 
 						this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
 
@@ -53,6 +52,9 @@
 						$(window).resize(() => {
 							this.send({ Cmd: "Resize" }, apexPid, () => { });
 						});
+
+						$(document.body).find('.removeOnLoad').remove();
+						$(document.body).append(com.Div);
 
 						this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
 							fun(null, com);
