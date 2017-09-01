@@ -45,6 +45,9 @@
 					this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
 						// debugger;
 
+						com.Div.css('opacity', '0.0');
+						$(document.body).append(com.Div);
+						
 						this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
 
 						this.send({ Cmd: "Render" }, apexPid, () => { });
@@ -54,7 +57,6 @@
 						});
 
 						$(document.body).find('.removeOnLoad').remove();
-						$(document.body).append(com.Div);
 
 						this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
 							fun(null, com);
