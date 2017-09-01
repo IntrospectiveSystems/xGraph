@@ -56,9 +56,10 @@
 							this.send({ Cmd: "Resize" }, apexPid, () => { });
 						});
 
-						$(document.body).find('.removeOnLoad').remove();
 
 						this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
+							$(document.body).find('.removeOnLoad').remove();
+							com.Div.css('opacity', '1.0');
 							fun(null, com);
 						});
 					});
