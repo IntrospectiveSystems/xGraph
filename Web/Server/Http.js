@@ -60,7 +60,7 @@
 		});
 
 		function getscripts() {
-			fs.readFile('scripts.json', function(err, data) {
+			that.getFile('scripts.json', function(err, data) {
 				if(err) {
 					console.log(' ** ERR:Cannot read script.json');
 					fun(err);
@@ -72,8 +72,8 @@
 		}
 
 		function getnxs() {
-			var path = genPath(Par.Module + '/Nxs.js');
-			fs.readFile(path, function(err, data) {
+			
+			that.getFile('Nxs.js', function(err, data) {
 				if(err) {
 					console.log(' ** ERR:Cannot read Nxs file');
 					return;
@@ -160,7 +160,7 @@
 					/// Read file from local directory
 					function getfile() {
 						var path = com.File;
-						fs.readFile(path, function(err, data) {
+						that.getFile(path, function(err, data) {
 							if(err) {
 								console.log(' ** ERR', err);
 								return;
@@ -303,39 +303,26 @@
 		console.log('--Http/getModule', com.Module);
 		var that = this;
 		var zip = new jszip();
-		var dir = that.genPath(com.Module);
+		//var dir = that.genPath(com.Module);
 		var man = [];
-		fs.readdir(dir, function(err, files) {
+		this.getModule(com.Module, function(err, mod) {
 			if(err) {
 				console.log(' ** ERR:Cannot read module directory');
 				if(fun)
 					fun('Cannot read module directlry');
 				return;
 			}
-			async.eachSeries(files, build, ship);
-		});
-
-		function build(file, func) {
-			var path = dir + '/' + file;
-			console.log("Path is ", path);
-			fs.readFile(path, add);
-
-			function add(err, data) {
-				var str = data.toString();
-				zip.file(file, str);
-				man.push(file);
-				func();
-			}
-		}
-
-		function ship() {
-			// console.log('Manifest', JSON.stringify(man, null, 2));
+			
+			var str = mod.toString();
+			zip.file('module', str);
+			man.push('module');
 			zip.file('manifest.json', JSON.stringify(man));
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;
+				console.log("called cb");
 				fun(null, com);
 			});
-		}
+		});
 	}
 
 })();

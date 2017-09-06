@@ -32,7 +32,7 @@ __Nexus = (function() {
 	__Config = {};
 	__Config.TrackIO = false;
 	__Share = {};
-	let silent = true;
+	let silent = false;
 
 	return {
 		start: start,
@@ -381,7 +381,7 @@ __Nexus = (function() {
 
 		function addmod(err, r) {
 		console.log('..addmod');
-			var module = com.Module;
+			var module = r.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
 				var dir = zipmod.file(/.*./);
@@ -404,7 +404,7 @@ __Nexus = (function() {
 								Css.push(key);
 								var file = obj[key];
 								zip.file(file).async('string').then(function(css) {
-									console.log("Css is ", css);
+									//console.log("Css is ", css);
 									var tag = document.createElement('style');
 									tag.setAttribute("data-css-url", key);
 									tag.setAttribute("type", 'text/css');
@@ -488,7 +488,7 @@ __Nexus = (function() {
 				}
 
 				function schema() {
-				//	console.log('..schema');
+					//console.log('..schema');
 					zip.file('schema.json').async('string').then(function(str){
 						compile(str);
 					});
@@ -497,6 +497,7 @@ __Nexus = (function() {
 
 			function compile(str) {
 			//	console.log('..compile');
+			
 				var pidapx;
 				var schema = JSON.parse(str);
 				ZipCache[module] = zipmod;
@@ -690,6 +691,8 @@ __Nexus = (function() {
 		//-------------------------------------------------Setup
 		function Setup(err) {
 			// console.log('--Nexus/Setup');
+			
+			CurrentModule = null;
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
 			var ipid = 0;
@@ -731,11 +734,11 @@ __Nexus = (function() {
 				var q = {};
 				q.Cmd = Root.Start[pid8];
 				var pid = Pid24 + pid8;
-				console.log("start ", pid);
+				//console.log("start ", pid);
 				send(q, pid, done);
 
 				function done(err, r) {
-					console.log("Return start ", pid);
+					//console.log("Return start ", pid);
 					start();
 				}
 			}
@@ -744,7 +747,6 @@ __Nexus = (function() {
 		//-------------------------------------------------Run
 		function Run() {
 			console.log('--Nxs/Run');
-			CurrentModule = null;
 		}
 	}
 
