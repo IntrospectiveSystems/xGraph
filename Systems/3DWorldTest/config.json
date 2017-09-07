@@ -8,7 +8,7 @@
 		"Server": {
 			"Module": "xGraph:Web/Server",
 			"Par": {
-				"Apex": {
+				"ApexList": {
 					"Scene": "$World"
 				},
 				"Port": 8080,

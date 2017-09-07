@@ -122,7 +122,7 @@
 				socket.on('message', function (msg) {
 					//debugger;
 					var com = JSON.parse(msg);
-					console.log('>>Msg:' + JSON.stringify(com));
+					//console.log('>>Msg:' + JSON.stringify(com));
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
 						return;
@@ -141,13 +141,13 @@
 					}
 
 					// debugger;
-				//	com.Passport.User = obj.User;
+					//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
 						// debugger;
 						that.Vlt.messages[com.Passport.Pid](null, com)
 						return;
 					}
-					debugger;
+					//debugger;
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
@@ -307,8 +307,8 @@
 	// Retrieve module from module server
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
-		console.log('--Http/getModule', com.Module);
-		console.log(JSON.stringify(com));
+		console.log('--Http/GetModule', com.Module);
+		//console.log(JSON.stringify(com));
 		var that = this;
 		var zip = new jszip();
 		//var dir = that.genPath(com.Module);
@@ -322,7 +322,7 @@
 			}
 			
 			var str = JSON.stringify(mod);
-			console.log("mod is ", Object.keys(mod));
+			//console.log("mod is ", Object.keys(mod));
 			zip.file('module.json', str);
 			man.push('module.json');
 			zip.file('manifest.json', JSON.stringify(man));
