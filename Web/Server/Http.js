@@ -103,8 +103,9 @@
 				var cfg = Vlt.Browser;
 				cfg.Pid24 = pidsock;
 				cfg.PidServer = Par.Pid;
-				if('Apex' in Par)
-					cfg.Apex = Par.Apex;
+				if('ApexList' in Par)
+					cfg.ApexList = Par.ApexList;
+				//debugger;
 				var str = JSON.stringify(cfg);
 				socket.send(str);
 
@@ -119,8 +120,9 @@
 				});
 
 				socket.on('message', function (msg) {
+					//debugger;
 					var com = JSON.parse(msg);
-					// console.log('>>Msg:' + com.Cmd);
+					console.log('>>Msg:' + JSON.stringify(com));
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
 						return;
@@ -145,9 +147,13 @@
 						that.Vlt.messages[com.Passport.Pid](null, com)
 						return;
 					}
+					debugger;
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
+						// console.log("--HttpReply");
+						// console.log(JSON.stringify(cmd));
+						// console.log(JSON.stringify(com));
 						if (cmd) {
 							com = cmd;
 						}
@@ -159,6 +165,7 @@
 					//.....................................getfile
 					/// Read file from local directory
 					function getfile() {
+						//debugger;
 						var path = com.File;
 						that.getFile(path, function(err, data) {
 							if(err) {
@@ -174,45 +181,45 @@
 						});
 					}
 
-					//-----------------------------------------------------getModule
-					// Retrieve module from module server
-					// For now is retrieved from local file system
-					function getmodule(com, fun) {
-						console.log('--Page/getModule');
-						var that = this;
-						var zip = new jszip();
-						var dir = that.genPath(com.Module);
-						var man = [];
-						fs.readdir(dir, function(err, files) {
-							if(err) {
-								console.log(' ** ERR:Cannot read module directory');
-								if(fun)
-									fun('Cannot read module directlry');
-								return;
-							}
-							async.eachSeries(files, build, ship);
-						})
+					// //-----------------------------------------------------getModule
+					// // Retrieve module from module server
+					// // For now is retrieved from local file system
+					// function getmodule(com, fun) {
+					// 	console.log('--Page/getModule');
+					// 	var that = this;
+					// 	var zip = new jszip();
+					// 	var dir = that.genPath(com.Module);
+					// 	var man = [];
+					// 	fs.readdir(dir, function(err, files) {
+					// 		if(err) {
+					// 			console.log(' ** ERR:Cannot read module directory');
+					// 			if(fun)
+					// 				fun('Cannot read module directlry');
+					// 			return;
+					// 		}
+					// 		async.eachSeries(files, build, ship);
+					// 	})
 
-						function build(file, func) {
-							var path = dir + '/' + file;
-							fs.readFile(path, add);
+					// 	function build(file, func) {
+					// 		var path = dir + '/' + file;
+					// 		fs.readFile(path, add);
 
-							function add(err, data) {
-								var str = data.toString();
-								zip.file(file, str);
-								man.push(file);
-								func();
-							}
-						}
+					// 		function add(err, data) {
+					// 			var str = data.toString();
+					// 			zip.file(file, str);
+					// 			man.push(file);
+					// 			func();
+					// 		}
+					// 	}
 
-						function ship() {
-							zip.file('manifest.json', JSON.stringify(man));
-							zip.generateAsync({type:'base64'}).then(function(data) {
-								com.Zip = data;
-								fun(null, com);
-							});
-						}
-					}
+					// 	function ship() {
+					// 		zip.file('manifest.json', JSON.stringify(man));
+					// 		zip.generateAsync({type:'base64'}).then(function(data) {
+					// 			com.Zip = data;
+					// 			fun(null, com);
+					// 		});
+					// 	}
+					// }
 
 				});
 			});
@@ -301,6 +308,7 @@
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
 		console.log('--Http/getModule', com.Module);
+		console.log(JSON.stringify(com));
 		var that = this;
 		var zip = new jszip();
 		//var dir = that.genPath(com.Module);
@@ -313,13 +321,13 @@
 				return;
 			}
 			
-			var str = mod.toString();
-			zip.file('module', str);
-			man.push('module');
+			var str = JSON.stringify(mod);
+			console.log("mod is ", Object.keys(mod));
+			zip.file('module.json', str);
+			man.push('module.json');
 			zip.file('manifest.json', JSON.stringify(man));
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;
-				console.log("called cb");
 				fun(null, com);
 			});
 		});

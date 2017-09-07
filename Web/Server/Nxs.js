@@ -50,11 +50,12 @@ __Nexus = (function() {
 		SockIO = sockio;
 		SockIO.removeListener('message');
 		SockIO.on('message', function (data) {
-			// debugger;
+			//debugger;
 			var cmd = JSON.parse(data);
 			if (!silent) console.log(' << Msg:' + cmd.Cmd);
 			if ('Passport' in cmd && cmd.Passport.Reply) {
 				var pid = cmd.Passport.Pid;
+				//debugger;
 				var ixmsg = MsgFifo.indexOf(pid);
 				if (ixmsg >= 0) {
 					var func = MsgPool[pid];
@@ -139,6 +140,7 @@ __Nexus = (function() {
 			}
         }
         if (fun) {
+			//debugger;
             MsgPool[pidmsg] = fun;
             MsgFifo.push(pidmsg);
             if (MsgFifo.length > 100) {
@@ -148,17 +150,18 @@ __Nexus = (function() {
         }
         var str = JSON.stringify(com);
         if(__Config.TrackIO)
-            console.log(' >> Msg:' + com.Cmd);
+			console.log(' >> Msg:' + com.Cmd);
+		console.log(str)
         SockIO.send(str);
 
-		function sendLocal() {
-            if (pid in EntCache) {
-                var ent = EntCache[pid];
-                ent.dispatch(com, fun);
-            } else {
-                console.log(' ** ERR:Local', pid, 'not in Cache');
-            }
-		}
+		// function sendLocal() {
+        //     if (pid in EntCache) {
+        //         var ent = EntCache[pid];
+        //         ent.dispatch(com, fun);
+        //     } else {
+        //         console.log(' ** ERR:Local', pid, 'not in Cache');
+        //     }
+		// }
 	}
 
 	//--------------------------------------------------------getFont
@@ -369,61 +372,68 @@ __Nexus = (function() {
 
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
-		//console.log('..addModule');
-		//console.log(JSON.stringify(mod, null, 2));
+		console.log('..addModule');
+		console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
 		var q = {};
+		let modjson = null
 		q.Cmd = 'GetModule';
 		q.Module = mod.Module;
 		console.log(q);
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
-		console.log('..addmod');
+			console.log('..addmod');
 			var module = r.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
 				var dir = zipmod.file(/.*./);
-				styles();
+				
+				zip.file('module.json').async('string').then(function(str) {
+					modjson = JSON.parse(str);
+					var keys = Object.keys(mod);
+					//debugger;
+					styles();
+				});
+
 
 				function styles() {
-					if(zipmod.file('styles.json')) {
-						zip.file('styles.json').async('string').then(function(str) {
-							var obj = JSON.parse(str);
-							var keys = Object.keys(obj);
-							async.eachSeries(keys, function(key, func) {
-								//debugger;
-								
-								//this needs to be reworked duplicate names are not loaded
-								// if(Css.indexOf(key) >= 0) {
-								// 	func();
-								// 	return;
-								// }
-								
-								Css.push(key);
-								var file = obj[key];
-								zip.file(file).async('string').then(function(css) {
-									//console.log("Css is ", css);
-									var tag = document.createElement('style');
-									tag.setAttribute("data-css-url", key);
-									tag.setAttribute("type", 'text/css');
-									tag.innerHTML = css;
-									document.head.appendChild(tag);
-									// var txt = document.createTextNode(css);
-									// tag.appendChild(txt);
-									// document.head.appendChild(tag);
+					if('styles.json' in modjson) {
+						var obj = JSON.parse(modjson["styles.json"]);
+						var keys = Object.keys(obj);
+						//debugger;
+						async.eachSeries(keys, function(key, func) {
+							//debugger;
+							
+							//this needs to be reworked duplicate names are not loaded
+							// if(Css.indexOf(key) >= 0) {
+							// 	func();
+							// 	return;
+							// }
+							
+							Css.push(key);
+							var file = obj[key];
 
-									/*	var tag = document.createElement('script');
-									 tag.setAttribute("data-script-url", key);
-									 tag.setAttribute("type", 'text/javascript');
-									 var txt = document.createTextNode(scr);
-									 tag.appendChild(txt);
-									 document.head.appendChild(tag); */
-									func();
-								});
-							}, scripts);
-						});
+							let css = modjson[file];
+							//console.log("Css is ", css);
+							var tag = document.createElement('style');
+							tag.setAttribute("data-css-url", key);
+							tag.setAttribute("type", 'text/css');
+							tag.innerHTML = css;
+							document.head.appendChild(tag);
+							// var txt = document.createTextNode(css);
+							// tag.appendChild(txt);
+							// document.head.appendChild(tag);
+
+							/*	var tag = document.createElement('script');
+								tag.setAttribute("data-script-url", key);
+								tag.setAttribute("type", 'text/javascript');
+								var txt = document.createTextNode(scr);
+								tag.appendChild(txt);
+								document.head.appendChild(tag); */
+							func();
+						}, scripts);
 					} else {
 						scripts();
 					}
@@ -431,31 +441,29 @@ __Nexus = (function() {
 
 				function scripts() {
 					//console.log('..scripts');
-					if(zipmod.file('scripts.json')) {
-						zip.file('scripts.json').async('string').then(function(str) {
-							var obj = JSON.parse(str);
-							var keys = Object.keys(obj);
-							async.eachSeries(keys, function(key, func) {
-								if(Scripts.indexOf(key) >= 0) {
-									func();
-									return;
-								}
-								Scripts.push(key);
-								var file = obj[key];
-								zip.file(file).async('string').then(function(scr) {
-									//console.log("loading module from ", module, scr);
-									
-									// var tag = document.createElement('script');
-									// tag.setAttribute("data-script-url", key);
-									// tag.setAttribute("type", 'text/javascript');
-									// var txt = document.createTextNode(scr);
-									// tag.appendChild(txt);
-									// document.head.appendChild(tag);
-									eval(scr);
-									func();
-								});
-							}, fonts);
-						});
+					if('scripts.json' in modjson) {
+						var obj = JSON.parse(modjson["scripts.json"]);
+						var keys = Object.keys(obj);
+						async.eachSeries(keys, function(key, func) {
+							if(Scripts.indexOf(key) >= 0) {
+								func();
+								return;
+							}
+							Scripts.push(key);
+							var file = obj[key];
+							let scr = modjson[file];
+							//console.log("loading module from ", module, scr);
+							
+							// var tag = document.createElement('script');
+							// tag.setAttribute("data-script-url", key);
+							// tag.setAttribute("type", 'text/javascript');
+							// var txt = document.createTextNode(scr);
+							// tag.appendChild(txt);
+							// document.head.appendChild(tag);
+							eval(scr);
+							console.log("Evaled scr", file);
+							func();
+						}, fonts);
 					} else {
 						fonts();
 					}
@@ -463,25 +471,22 @@ __Nexus = (function() {
 
 				function fonts() {
 				//	console.log('..fonts');
-					if(zipmod.file('fonts.json')) {
-						zip.file('fonts.json').async('string').then(function(str) {
-							var obj = JSON.parse(str);
-							var keys = Object.keys(obj);
-							async.eachSeries(keys, function(key, func) {
-								if(key in Fonts) {
-									func();
-									return;
-								}
-								var file = obj[key];
-								zip.file(file).async('string').then(function(str) {
-									var json = JSON.parse(str);
-									var font = new THREE.Font(json);
-									if(!silent) console.log('font', font);
-									Fonts[key] = font;
-									func();
-								});
-							}, schema);
-						});
+					if('fonts.json' in modjson) {
+						var obj = JSON.parse(modjson["fonts.json"]);
+						var keys = Object.keys(obj);
+						async.eachSeries(keys, function(key, func) {
+							if(key in Fonts) {
+								func();
+								return;
+							}
+							var file = obj[key];
+							let str = modjson[file];
+							var json = JSON.parse(str);
+							var font = new THREE.Font(json);
+							if(!silent) console.log('font', font);
+							Fonts[key] = font;
+							func();
+						}, schema);
 					} else {
 						schema();
 					}
@@ -489,18 +494,17 @@ __Nexus = (function() {
 
 				function schema() {
 					//console.log('..schema');
-					zip.file('schema.json').async('string').then(function(str){
-						compile(str);
-					});
+					let str = JSON.parse(modjson["schema.json"]);
+					compile(str);
 				}
 			});
 
 			function compile(str) {
 			//	console.log('..compile');
-			
 				var pidapx;
-				var schema = JSON.parse(str);
+				var schema = str;
 				ZipCache[module] = zipmod;
+				//debugger;
 				for (let lbl in schema) {
 					var ent = schema[lbl];
 					if('Par' in mod) {
@@ -513,7 +517,7 @@ __Nexus = (function() {
 					//      of browser.json
 					if(lbl == 'Apex') {
 						if(CurrentModule)
-							ent.Pid = Root.Apex[CurrentModule];
+							ent.Pid = Root.ApexList[CurrentModule];
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
@@ -577,12 +581,11 @@ __Nexus = (function() {
 					//seems to be duplicate from line 481
 
 					//ZipCache[mod] = zipmod;
-					zipmod.file(ent.Entity).async('string').then(function(str){
-						var mod = eval(str);
-						ModCache[modkey] = mod;
-						EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
-						nextent();
-					});
+					let str = modjson[ent.Entity]						
+					var mod = eval(str);
+					ModCache[modkey] = mod;
+					EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
+					nextent();
 				}
 
 				function symbol(str) {
@@ -597,11 +600,11 @@ __Nexus = (function() {
 					}
 					if(esc == '$') {
 						var sym = str.substr(1);
-						if(!(sym in Root.Apex)) {
+						if(!(sym in Root.ApexList)) {
 							var err = ' ** Symbol ' + sym + ' not defined';
 							throw err;
 						}
-						return Root.Apex[sym];
+						return Root.ApexList[sym];
 					}
 					return str;
 				}
@@ -620,10 +623,11 @@ __Nexus = (function() {
 		Root.Global = {};
 		Root.Setup = {};
 		Root.Start = {};
-		if('Apex' in cfg)
-			Root.Apex = cfg.Apex;
+		//debugger;
+		if('ApexList' in cfg)
+			Root.ApexList = cfg.ApexList;
 		else
-			Root.Apex = {};
+			Root.ApexList = {};
 		var ikey = 0;
 		if('Scripts' in Config) {
 			var keys = Object.keys(Config.Scripts);
@@ -667,9 +671,10 @@ __Nexus = (function() {
 		//.................................................modules
 		function modules() {
 			var keys = Object.keys(Config.Modules);
+			//debugger;
 			for(var i=0; i<keys.length; i++) {
 				key = keys[i];
-				Root.Apex[key] = genPid();
+				Root.ApexList[key] = genPid();
 			}
 			async.eachSeries(keys, function(key, func) {
 				let mod = Config.Modules[key];
