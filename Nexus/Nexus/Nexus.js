@@ -1027,6 +1027,9 @@
 				EventLog(' ** ERR:' + err);
 				throw 'Invalid global symbol';
 			}
+			if (esc == '\\') {
+				return str.substr(1);
+			}
 			return str;
 		}
 	}
