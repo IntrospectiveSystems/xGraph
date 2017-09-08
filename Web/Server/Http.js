@@ -18,6 +18,7 @@
 
 	function Setup(com, fun) {
 		console.log('--Http/Setup');
+		debugger;
 		if(fun)
 			fun();
 	}
@@ -103,9 +104,7 @@
 				var cfg = Vlt.Browser;
 				cfg.Pid24 = pidsock;
 				cfg.PidServer = Par.Pid;
-				if('ApexList' in Par)
-					cfg.ApexList = Par.ApexList;
-				//debugger;
+				cfg.ApexList = Par.ApexList||{};
 				var str = JSON.stringify(cfg);
 				socket.send(str);
 
@@ -180,47 +179,6 @@
 							socket.send(str);
 						});
 					}
-
-					// //-----------------------------------------------------getModule
-					// // Retrieve module from module server
-					// // For now is retrieved from local file system
-					// function getmodule(com, fun) {
-					// 	console.log('--Page/getModule');
-					// 	var that = this;
-					// 	var zip = new jszip();
-					// 	var dir = that.genPath(com.Module);
-					// 	var man = [];
-					// 	fs.readdir(dir, function(err, files) {
-					// 		if(err) {
-					// 			console.log(' ** ERR:Cannot read module directory');
-					// 			if(fun)
-					// 				fun('Cannot read module directlry');
-					// 			return;
-					// 		}
-					// 		async.eachSeries(files, build, ship);
-					// 	})
-
-					// 	function build(file, func) {
-					// 		var path = dir + '/' + file;
-					// 		fs.readFile(path, add);
-
-					// 		function add(err, data) {
-					// 			var str = data.toString();
-					// 			zip.file(file, str);
-					// 			man.push(file);
-					// 			func();
-					// 		}
-					// 	}
-
-					// 	function ship() {
-					// 		zip.file('manifest.json', JSON.stringify(man));
-					// 		zip.generateAsync({type:'base64'}).then(function(data) {
-					// 			com.Zip = data;
-					// 			fun(null, com);
-					// 		});
-					// 	}
-					// }
-
 				});
 			});
 		}

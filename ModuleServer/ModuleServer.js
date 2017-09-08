@@ -45,6 +45,7 @@
 		var async = require('async');
 		var JSZip = require('jszip');
 
+		debugger;
 		// Read Module import directory
 		fs.readdir(Nxs.genPath(that.Par.Modules), function(err, files) {
 			if (err) {

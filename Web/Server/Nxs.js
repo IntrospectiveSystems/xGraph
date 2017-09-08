@@ -623,10 +623,7 @@ __Nexus = (function() {
 		Root.Global = {};
 		Root.Setup = {};
 		Root.Start = {};
-		//debugger;
-
-		Root.ApexList = cfg.ApexList || cfg.Apex ||{};
-		debugger;
+		Root.ApexList = cfg.ApexList||{};
 		var ikey = 0;
 		if('Scripts' in Config) {
 			var keys = Object.keys(Config.Scripts);

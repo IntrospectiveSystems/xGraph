@@ -289,6 +289,7 @@
 	// This is the entity base class that is used to create
 	// new entities.
 	function Entity(nxs, imp, par) {
+		debugger;
 		var Par = par;
 		var Imp = imp;
 		var Vlt = {};
@@ -322,18 +323,22 @@
 		}
 
 		function getFile(filename, fun) {
-			EventLog(`Entity - Getting file ${filename} from ${Par.Module}`);
+			nxs.EventLog(`Entity - Getting file ${filename} from ${Par.Module}`);
 			nxs.getFile(Par.Module, filename, fun);
 		}
 
 		function getModule(modulename, fun) {
-			EventLog(`Entity - Getting module ${modulename}`);
+			debugger;
+			
+			nxs.EventLog(`Entity - Getting module ${modulename}`);
 			nxs.GetModule(modulename, fun);
 		}
 
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
+			debugger;
+			
 			//	EventLog(Mod);
 			//  EventLog('||dispatch', com.Cmd);
 			var disp = Imp.dispatch;
@@ -345,7 +350,7 @@
 				disp['*'].call(this, com, fun);
 				return;
 			}
-			EventLog(' ** ERR:Nada Cmd:' + com.Cmd);
+			nxs.EventLog(' ** ERR:Nada Cmd:' + com.Cmd);
 			fun('Nada', com);
 		}
 
@@ -367,17 +372,23 @@
 		}
 
 		function genPid() {
-			return nxs.genPid();
+			debugger;
+			let pid = nxs.genPid();
+			return pid;
 		}
 
 		function genPath(mod) {
-			return nxs.genPath(mod);
+			debugger;
+			let path = nxs.genPath(mod);
+			return path;
 		}
 
 		//-------------------------------------------------send
 		// Send message to another entity which can be in another
 		// bag or browser. Callback when message is returned
 		function send(com, pid, fun) {
+			debugger;
+			
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -411,6 +422,7 @@
 		//-------------------------------------------------getPid
 		// Return Pid of entity
 		function getPid() {
+			debugger;
 			return Par.Pid;
 		}
 
@@ -929,7 +941,6 @@
 			if (!fs.lstatSync(dir).isDirectory())
 				continue;
 			var path = dir + '/Module.json';
-			//debugger;
 			
 			if (!fs.existsSync(path) || development) {
 				let mod = await new Promise((resolve, reject) => {
