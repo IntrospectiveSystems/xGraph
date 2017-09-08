@@ -1,4 +1,4 @@
-//Load the required modules
+
 (function () {
 	var fs = require('fs');
 	var Path = require('path');
@@ -35,7 +35,7 @@
 	let arg;
 	let parts;
 	let development = false;
-	if (process.env.XGRAPH_ENV && process.env.XGRAPH_ENV.toLowerCase() === "development"){
+	if (process.env.XGRAPH_ENV && process.env.XGRAPH_ENV.toLowerCase() === "development") {
 		development = true;
 	}
 	let Params = {};
@@ -289,7 +289,6 @@
 	// This is the entity base class that is used to create
 	// new entities.
 	function Entity(nxs, imp, par) {
-		debugger;
 		var Par = par;
 		var Imp = imp;
 		var Vlt = {};
@@ -308,7 +307,8 @@
 			save: save,
 			getPid: getPid,
 			getFile,
-			log: log
+			log: log,
+			require
 		};
 
 		//log data to EventLog.txt in the current working directory
@@ -328,8 +328,7 @@
 		}
 
 		function getModule(modulename, fun) {
-			debugger;
-			
+
 			nxs.EventLog(`Entity - Getting module ${modulename}`);
 			nxs.GetModule(modulename, fun);
 		}
@@ -337,8 +336,7 @@
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
-			debugger;
-			
+
 			//	EventLog(Mod);
 			//  EventLog('||dispatch', com.Cmd);
 			var disp = Imp.dispatch;
@@ -372,13 +370,11 @@
 		}
 
 		function genPid() {
-			debugger;
 			let pid = nxs.genPid();
 			return pid;
 		}
 
 		function genPath(mod) {
-			debugger;
 			let path = nxs.genPath(mod);
 			return path;
 		}
@@ -387,8 +383,7 @@
 		// Send message to another entity which can be in another
 		// bag or browser. Callback when message is returned
 		function send(com, pid, fun) {
-			debugger;
-			
+
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -422,7 +417,6 @@
 		//-------------------------------------------------getPid
 		// Return Pid of entity
 		function getPid() {
-			debugger;
 			return Par.Pid;
 		}
 
@@ -503,7 +497,7 @@
 						fun('Null entity');
 					return;
 				}
-				var imp = eval(mod[par.Entity]);
+				var imp = (1, eval)(mod[par.Entity]);
 				ImpCache[impkey] = imp;
 				var ent = new Entity(Nxs, imp, par);
 				EntCache[pid] = ent;
@@ -537,7 +531,7 @@
 				if (impkey in ImpCache) {
 					imp = ImpCache[impkey];
 				} else {
-					imp = eval(mod[par.Entity]);
+					imp =  (1, eval)(mod[par.Entity]);
 					ImpCache[impkey] = imp;
 				}
 				var ent = new Entity(Nxs, imp, par);
@@ -717,7 +711,7 @@
 
 						function parseObject(val) {
 							if (Array.isArray(val)) {
-								for (let ival = 0; ival<val.length; ival++) {
+								for (let ival = 0; ival < val.length; ival++) {
 									if (typeof val[ival] === 'object')
 										parseObject(val[key]);
 									else {
@@ -744,7 +738,7 @@
 		function symbol(val) {
 			//console.log(typeof val);
 			if ((typeof val) !== 'string')
-				return val;			
+				return val;
 			var sym = val.substr(1);
 			if (val.charAt(0) === '$' && sym in Apex)
 				return Apex[sym];
@@ -941,7 +935,7 @@
 			if (!fs.lstatSync(dir).isDirectory())
 				continue;
 			var path = dir + '/Module.json';
-			
+
 			if (!fs.existsSync(path) || development) {
 				let mod = await new Promise((resolve, reject) => {
 					GetModule(folder, (err, mod) => {
@@ -963,9 +957,9 @@
 					}
 				}
 				refresh = true;
-				if (!fs.existsSync(path) && !development){
+				if (!fs.existsSync(path) && !development) {
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
-					EventLog('WARNING: Replaced Missing Module.json at '+path);
+					EventLog('WARNING: Replaced Missing Module.json at ' + path);
 				}
 				parseMod(mod, dir, folder);
 

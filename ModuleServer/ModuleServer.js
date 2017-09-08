@@ -42,19 +42,20 @@
 			return;
 		}
 
-		var async = require('async');
-		var JSZip = require('jszip');
 
-		debugger;
+		var async = this.require('async');
+		var fs = this.require('fs');
+		var JSZip = this.require('jszip');
+
 		// Read Module import directory
-		fs.readdir(Nxs.genPath(that.Par.Modules), function(err, files) {
+		fs.readdir(this.genPath(that.Par.Modules), function(err, files) {
 			if (err) {
 				console.log(' ** ERR:Project file err:' + err);
 				return;
 			}
 			// Iterate through modules in module import directory and read each
 			async.eachSeries(files, (file, func) => {
-				readModule(Nxs.genPath(that.Par.Modules + '/' + file), func);
+				readModule(that.genPath(that.Par.Modules + '/' + file), func);
 			}, function(err) {
 				console.log('Finished scanning module folder');
 				that.Par.bInitialized = true;

@@ -1,8 +1,6 @@
 //#
 (function Http() {
-	var fs = require('fs');
-	var async = require('async');
-	var jszip = require("jszip");
+	let fs, async, jszip;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -18,7 +16,11 @@
 
 	function Setup(com, fun) {
 		console.log('--Http/Setup');
-		debugger;
+
+		fs = this.require('fs');
+		async = this.require('async');
+		jszip = this.require("jszip");
+		
 		if(fun)
 			fun();
 	}
@@ -26,9 +28,8 @@
 	function Start(com, fun) {
 		console.log('--Http/Start');
 		var that = this;
-		var fs = require('fs');
-		var http = require('http');
-		var sockio = require('socket.io');
+		var http = this.require('http');
+		var sockio = this.require('socket.io');
 		var port;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
@@ -224,7 +225,6 @@
 	//any HTTP Get accessible files should be stored in a ./static/ directory
 	function Get(that, req, res) {
 		console.log('--Get', req.url);
-		var fs = require('fs');
 		var Par = that.Par;
 		var url = req.url;
 		let path = null;

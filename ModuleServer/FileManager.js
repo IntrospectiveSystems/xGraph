@@ -1,4 +1,5 @@
 (function FileManager() {
+	let fs;
 
 	var dispatch = {
 		Setup: Setup,
@@ -14,8 +15,9 @@
 
 	function Setup(com, fun) {
 		console.log('FileManager::Setup');
+		fs = this.require('fs');
 		var that = this;
-		let path = Nxs.genPath(that.Par.ModuleStorage);
+		let path = this.genPath(that.Par.ModuleStorage);
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
@@ -30,13 +32,15 @@
 
 	// Receives module data and writes module to designated storage
 	function AddModule(com, fun) {
+		fs = this.require('fs');
+		
 		//console.log('FileManager::AddModule');
 		//var JSZip = require('jszip');
 		var that = this;
 		// debugger;
 
 		if ('Module' in com) {
-			var path = Nxs.genPath(that.Par.ModuleStorage + '/' + com.Info.name);
+			var path = this.genPath(that.Par.ModuleStorage + '/' + com.Info.name);
 			// TODO: Check if file exists and overwrite (sanity check should take place in ModuleServer)
 			// Create Module Folder
 			if (!fs.existsSync(path)) {
@@ -76,7 +80,7 @@
 	function GetModule(com, fun) {
 		debugger;
 		var that = this;
-		var path = Nxs.genPath(that.Par.ModuleStorage + '/' + com.Name + '/' + com.Name + '.zip');
+		var path = this.genPath(that.Par.ModuleStorage + '/' + com.Name + '/' + com.Name + '.zip');
 		if (fs.existsSync(path)) {
 			fs.readFile(path, done);
 		} else {
@@ -105,7 +109,7 @@
 	function GetFile(com, fun) {
 		var that = this;
 
-		var path = Nxs.genPath(that.Par.ModuleStorage + '/' + com.Name + '/' + com.Filename);
+		var path = this.genPath(that.Par.ModuleStorage + '/' + com.Name + '/' + com.Filename);
 		if (fs.existsSync(path)) {
 			fs.readFile(path, done);
 		} else {

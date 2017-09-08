@@ -115,7 +115,7 @@
 				return;
 			}
 			console.log('..connect', r);
-			var net = require('net');
+			var net = this.require('net');
 			var err;
 			var tmp = new Buffer(2);
 			var STX = 2;
@@ -270,7 +270,7 @@
 					fun(err);
 				return;
 			}
-			var net = require('net');
+			var net = that.require('net');
 			var err;
 			var tmp = new Buffer(2);
 			var STX = 2;
