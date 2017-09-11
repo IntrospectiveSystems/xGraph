@@ -5,10 +5,10 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Win | RunModuleServer",
+			"name": "RunModuleServer",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/ModuleServer",
+			"cwd": "${workspaceRoot}/Systems/ModuleServer",
 			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -19,24 +19,10 @@
 			}
 		},
 		{
-			"name": "HeatBugs",
+			"name": "Plexus",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/HeatBugs",
-			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
-			"args": [
-				"Config=config.json",
-				"xGraph=${workspaceRoot}/../xGraph"
-			],
-			"env": {
-				"NODE_PATH": "node_modules"
-			}
-		},
-		{
-			"name": "Win | Plexus",
-			"type": "node",
-			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/Plexus",
+			"cwd": "${workspaceRoot}/Systems/Plexus",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -47,7 +33,7 @@
 			}
 		},
 		{
-			"name": "Lnx | 3D World Test",
+			"name": "3D World Test",
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Systems/3DWorldTest",
@@ -62,10 +48,10 @@
 			}
 		},
 		{
-			"name": "UBU | 3D World Test 2",
+			"name": "3D World Test 2",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/3DWorldTest2",
+			"cwd": "${workspaceRoot}/Systems/3DWorldTest2",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -76,10 +62,10 @@
 			}
 		},
 		{
-			"name": "Win | Wobbler Test",
+			"name": "Wobbler Test",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/WobbleTest",
+			"cwd": "${workspaceRoot}/Systems/WobbleTest",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -90,11 +76,11 @@
 			}
 		},
 		{
-			"name": "Win | cvtBin",
+			"name": "cvtBin",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/WobbleTest/Simulations",
-			"program": "${workspaceRoot}/Work/WobbleTest/Simulations/cvtBin.js",
+			"cwd": "${workspaceRoot}/Systems/WobbleTest/Simulations",
+			"program": "${workspaceRoot}/Systems/WobbleTest/Simulations/cvtBin.js",
 			"args": [
 				"Marcus.bin"
 			],
@@ -103,10 +89,10 @@
 			}
 		},
 		{
-			"name": "Win | Forest",
+			"name": "Forest",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Work/Forest",
+			"cwd": "${workspaceRoot}/Systems/Forest",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",

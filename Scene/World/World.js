@@ -1,7 +1,7 @@
-//# sourceURL=World
+// #sourceURL=World.js
 (function World() {
-	var async = require('async');
-	var fs = require('fs');
+	var async;
+	var fs;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -20,6 +20,8 @@
 
 	function Setup(com, fun) {
 		console.log('--World/Setup');
+		async = this.require('async');
+		fs = this.require('fs');
 		this.Vlt.Graph = [];
 		if(fun)
 			fun();

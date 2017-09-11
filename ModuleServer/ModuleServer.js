@@ -22,10 +22,10 @@
 		console.log('ModuleServer:Setup');
 		var that = this;
 		if ('ModuleCache' in that.Par) {
-			fun();
+			this.send({Cmd:"Setup", ModuleStorage: this.Par.ModuleStorage}, this.Par.FileManager, fun);
 		} else {
 			that.Par.ModuleCache = {};
-			fun();
+			this.send({Cmd:"Setup", ModuleStorage: this.Par.ModuleStorage}, this.Par.FileManager, fun);
 		}
 	}
 
@@ -38,7 +38,7 @@
 					console.log('Tests Finished');
 				});
 			}
-			fun();
+			this.send({Cmd:"Start"}, this.Par.FileManager, fun);
 			return;
 		}
 
@@ -150,10 +150,10 @@
 							callback();
 						});
 					}
-				})
+				});
 			}
 		}
-		fun();
+		this.send({Cmd:"Start"}, this.Par.FileManager, fun);
 	}
 
 	// Pull a module from another ModuleServer into this one.
@@ -189,7 +189,7 @@
 	function GetModule(com, fun) {
 		//debugger;
 		console.log('ModuleServer:GetModule');
-		var async = require('async');
+		var async = this.require('async');
 		var that = this;
 		if (!'Name' in com) {
 			fun(null, com);
@@ -270,7 +270,7 @@
 	function Query(com, fun) {
 		console.log('ModuleServer:Query');
 		var that = this;
-		var async = require('async');
+		var async = this.require('async');
 		com.Info = [];
 		if ('Filters' in com) {
 

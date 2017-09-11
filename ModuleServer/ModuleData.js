@@ -12,8 +12,8 @@
 	function AddModule(com, fun) {
 		console.log('ModuleData::AddModule');
 		var that = this;
-		var JSZip = require('jszip');
-		var async = require('async');
+		var JSZip = this.require('jszip');
+		var async = this.require('async');
 		// TODO: Load from external template
 		com.Checklist = {
 			input: {

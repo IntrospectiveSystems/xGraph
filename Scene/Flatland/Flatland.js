@@ -1,4 +1,3 @@
-//# sourceURL=Flatland
 (function FlatLand() {
 
 	//-----------------------------------------------------dispatch
@@ -16,7 +15,8 @@
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
 		console.log('--Flatland/Setup');
-		var jszip = require("jszip");
+		var jszip = this.require("jszip");
+		var fs = this.require("fs");
 		var text;
 		var that = this;
 		var Par = this.Par;
@@ -72,7 +72,7 @@
 		parts.push(part);
 		node.Parts = parts;
 		x3d.Root.push(node);
-		var jszip = require("jszip");
+		var jszip = this.require("jszip");
 		var zip = new jszip();
 		zip.file('Type', 'X3D');
 		zip.file('X3D', JSON.stringify(x3d));

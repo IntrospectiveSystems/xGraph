@@ -1,6 +1,6 @@
+// #sourcsURL='Model.js'
 (function Model() {
-	var async = require('async');
-	var fs = require('fs');
+	var async, fs;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -20,6 +20,8 @@
 
 	function Setup(com, fun) {
 		console.log('--Model/Setup');
+		async = this.require('async');
+		fs = this.require('fs')
 		this.Vlt.Graph = [];
 		if(fun)
 			fun();

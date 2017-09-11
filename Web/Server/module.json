@@ -4,11 +4,11 @@
     "opts":[]
   },
   "output":{
-    "required":[{"par":"Apex"}],
+    "required":[{"par":"ApexList"}],
     "opts":[{"par":"Login","cmd":["GenPage"]}]
   },
   "par": {
-    "required":["Apex","Url"],
+    "required":["ApexList","Url"],
     "opts":["Port","Login"]
   },
   "name": "Server",

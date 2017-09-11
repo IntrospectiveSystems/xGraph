@@ -15,6 +15,7 @@
 
 	function Setup(com, fun) {
 		console.log('FileManager::Setup');
+		this.Par.ModuleStorage = com.ModuleStorage;
 		fs = this.require('fs');
 		var that = this;
 		let path = this.genPath(that.Par.ModuleStorage);
