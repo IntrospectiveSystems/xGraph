@@ -44,8 +44,11 @@
 					// debugger;
 					this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
 						// debugger;
-						$(document.body).append(com.Div);
 
+						let apexDiv = com.Div;
+						// apexDiv.css('opacity', '0.0');
+						$(document.body).append(apexDiv);
+						
 						this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
 
 						this.send({ Cmd: "Render" }, apexPid, () => { });
@@ -54,7 +57,13 @@
 							this.send({ Cmd: "Resize" }, apexPid, () => { });
 						});
 
+						$(document.body).find('.removeOnLoad').remove();
+
 						this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
+							$(window).resize(() => {
+								this.send({ Cmd: "Resize" }, apexPid, () => { });
+							});
+							// apexDiv.css('opacity', '1.0');
 							fun(null, com);
 						});
 					});
