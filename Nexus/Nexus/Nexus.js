@@ -24,6 +24,7 @@
 		genModule: genModule,
 		genEntity: genEntity,
 		deleteEntity: deleteEntity,
+		saveEntity,
 		getParameter: getParameter,
 		getFile,
 		sendMessage: sendMessage
@@ -399,19 +400,7 @@
 		//-------------------------------------------------save
 		// Save entity in Cache
 		function save(fun) {
-			console.log('--Nexus/save');
-			var path = CacheDir + '/';
-			path += Par.Module + '/';
-			path += Par.Apex + '/';
-			path += Par.Pid + '.json';
-			var str = JSON.stringify(Par, null, 2);
-			console.log(str);
-			fs.writeFile(path, str, done);
-
-			function done(err) {
-				if (fun)
-					fun(err);
-			}
+			nxs.saveEntity(Par.Apex,Par.Pid,fun);
 		}
 
 		//-------------------------------------------------getPid
@@ -429,9 +418,50 @@
 		fun('genEntity not implmeneted');
 	}
 
-	function deleteEntity(pid, fun) {
+	function deleteEntity(apx, pid, fun) {
 		EventLog(' ** ERR:deleteEntity not implemented');
 		fun('deleteEntity not implmeneted');
+	}
+
+	function saveEntity(apx, pid, fun){
+		var modpath = CacheDir + '/';
+		modpath += ApexIndex[apx] + '/';
+		let apxpath = modpath + apx + '/';
+		let entpath = apxpath + pid + '.json';
+
+		console.log('--Nexus/save', entpath);
+
+		var str = JSON.stringify(Par, null, 2);
+		console.log(str);
+		fs.writeFile(path, str, done);
+
+		function done(err) {
+			if (fun)
+				fun(err);
+		}
+
+
+
+		fs.lstat(modpath, function (err, stat) {
+			if (stat) {
+				saveApex();
+			} else{
+				saveModule();
+			}
+		});
+
+		let saveModule = (()=>{
+
+		});
+
+		saveApex = (()=>{
+
+		});
+
+
+		
+		if (fun)
+			fun();
 	}
 
 	function getFile(module, filename, fun) {
@@ -537,8 +567,41 @@
 				var ent = new Entity(Nxs, imp, par);
 				EntCache[par.Pid] = ent;
 			});
-			if (fun) {
-				fun(null, pidapx);
+			
+			setup();
+				
+			function setup() {
+				if (!("Setup" in mod)) {
+					start();
+					return;
+				}
+				var com = {};
+				com.Cmd = mod["Setup"];
+				com.Passport = {};
+				com.Passport.To = pidapx;
+				com.Passport.Pid = genPid();
+				sendMessage(com, start);
+			}
+	
+			// Start
+			function start() {
+				if (!("Start" in mod)) {
+					if (fun)
+						fun(null, pidapx);
+					return;
+				}
+				var pid = pids[ipid];
+
+				var com = {};
+				com.Cmd = mod["Start"];
+				com.Passport = {};
+				com.Passport.To = pidapx;
+				com.Passport.Pid = genPid();
+				sendMessage(com, ()=>{
+					if (fun) {
+						fun(null, pidapx);
+					}
+				});
 			}
 		});
 	}
@@ -599,17 +662,6 @@
 			for (let folder in ModCache) {
 				console.log(folder);
 				var mod = ModCache[folder];
-				if ('schema.json' in mod) {
-					var schema = JSON.parse(mod['schema.json']);
-					console.log('schema', JSON.stringify(schema, null, 2));
-					if ('Apex' in schema) {
-						var apx = schema.Apex;
-						if ('$Setup' in apx)
-							mod.Setup = apx['$Setup'];
-						if ('$Start' in apx)
-							mod.Start = apx['$Start'];
-					}
-				}
 				var dir = CacheDir + '/' + folder;
 				fs.mkdirSync(dir);
 				path = dir + '/Module.json';
@@ -625,7 +677,7 @@
 				//debugger;
 				Apex[instname] = genPid();
 			}
-			//console.log('Apex', Apex);
+			console.log('Apex', Apex);
 
 			// Now populate all of the modules from config.json
 			for (let instname in Config.Modules) {
@@ -889,6 +941,20 @@
 						ifile++;
 						if (ifile >= nfile) {
 							mod.ModName = ModName;
+							
+							if ('schema.json' in mod) {
+								var schema = JSON.parse(mod['schema.json']);
+								console.log('schema', JSON.stringify(schema, null, 2));
+								if ('Apex' in schema) {
+									var apx = schema.Apex;
+									if ('$Setup' in apx)
+										mod.Setup = apx['$Setup'];
+									if ('$Start' in apx)
+										mod.Start = apx['$Start'];
+								}
+								//debugger;
+							}
+							
 							ModCache[ModName] = mod;
 							fun(null, ModCache[ModName]);
 							return;
@@ -945,17 +1011,6 @@
 							resolve(mod);
 					});
 				});
-				if ('schema.json' in mod) {
-					var schema = JSON.parse(mod['schema.json']);
-					console.log('schema', JSON.stringify(schema, null, 2));
-					if ('Apex' in schema) {
-						var apx = schema.Apex;
-						if ('$Setup' in apx)
-							mod.Setup = apx['$Setup'];
-						if ('$Start' in apx)
-							mod.Start = apx['$Start'];
-					}
-				}
 				refresh = true;
 				if (!fs.existsSync(path) && !development) {
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
