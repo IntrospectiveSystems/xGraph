@@ -64,13 +64,29 @@
 	--error-background: #280000;
 	--accent-text: #111;
 	--view-border-divider: #2A2A2A;
+
+	/* Font family should be here so it can be overwritten. */
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 p, h1, h2, h3, h4, h5, div, span {
-	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	/* however, this declaring of text should be super specific, so you can overwrite --text before this gets baked in */
 	color: var(--text);
 }
 
 h1, h2, h3 {
 	font-weight: 100;
+}
+
+hr {
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	border-bottom: 1px solid var(--view-border-color-light);
+	margin: 0px;
+}
+
+h1 {
+	margin-bottom: 12px;
+	padding-left: 27px;
 }
