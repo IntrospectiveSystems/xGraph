@@ -413,13 +413,7 @@
 	function genEntity(apx, par, fun) {
 
 		var impkey = ApexIndex[apx] + '/' + par.Entity;
-		if (impkey in ImpCache) {
-			var imp = ImpCache[impkey];
-			var ent = new Entity(Nxs, imp, par);
-			EntCache[pid] = ent;
-			fun(null, ent);
-			return;
-		}
+		
 
 		let mod = ModCache[ApexIndex[apx]];
 		if (!("Entity" in par)) {
