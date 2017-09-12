@@ -329,7 +329,6 @@
 		}
 
 		function getModule(modulename, fun) {
-
 			nxs.EventLog(`Entity - Getting module ${modulename}`);
 			nxs.GetModule(modulename, fun);
 		}
@@ -337,7 +336,6 @@
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
-
 			//	EventLog(Mod);
 			//  EventLog('||dispatch', com.Cmd);
 			var disp = Imp.dispatch;
@@ -360,14 +358,13 @@
 			nxs.genModule(mod, fun);
 		}
 
-
 		function deleteEntity(fun) {
 			//EventLog("DElElTingASDF")
 			nxs.deleteEntity(Par.Pid, fun);
 		}
 
 		function genEntity(par, fun) {
-			nxs.genEntity(par, fun);
+			nxs.genEntity(Par.Apex, par, fun);
 		}
 
 		function genPid() {
@@ -413,8 +410,64 @@
 
 	//-----------------------------------------------------genEntity
 	// Create entity from parameter object in current module
-	function genEntity(par, fun) {
-		EventLog(' ** ERR:genEntity not implemented');
+	function genEntity(apx, par, fun) {
+		let mod =ModCache[ApexIndex[apx]];
+		if (!("Entity" in  par)){
+			fun("No Entity defined in Par");
+			return;
+		}
+		let ent = par["Entity"];
+		if (!(ent in mod)){
+			fun("Entity is not avalable in module "+ ApexIndex[apx]);
+			return;
+		}
+
+		
+		
+			// ent.Pid = Local[entkey];
+			// if (entkey == 'Apex' && 'Par' in inst) {
+			// 	var pars = Object.keys(inst.Par);
+			// 	for (var ipar = 0; ipar < pars.length; ipar++) {
+			// 		var par = pars[ipar];
+			// 		ent[par] = inst.Par[par];
+			// 	}
+			// }
+			// ent.Module = mod.;
+			// ent.Apex = apx;
+			// var pars = Object.keys(ent);
+			// for (ipar = 0; ipar < pars.length; ipar++) {
+			// 	var par = pars[ipar];
+			// 	var val = ent[par];
+			// 	switch (typeof val) {
+			// 		case 'string':
+			// 			ent[par] = symbol(val);
+			// 			break;
+			// 		case 'object':
+			// 			parseObject(val);
+
+			// 			function parseObject(val) {
+			// 				if (Array.isArray(val)) {
+			// 					for (let ival = 0; ival < val.length; ival++) {
+			// 						if (typeof val[ival] === 'object')
+			// 							parseObject(val[key]);
+			// 						else {
+			// 							val[ival] = symbol(val[ival]);
+			// 						}
+			// 					}
+			// 				} else {
+			// 					for (let key in val) {
+			// 						if (typeof val[key] === 'object')
+			// 							parseObject(val[key]);
+			// 						else {
+			// 							val[key] = symbol(val[key]);
+			// 						}
+			// 					}
+			// 				}
+			// 			}
+			// 			break;
+			// 	}
+			// }
+
 		fun('genEntity not implmeneted');
 	}
 
