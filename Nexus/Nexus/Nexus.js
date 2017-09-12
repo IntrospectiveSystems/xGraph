@@ -425,43 +425,82 @@
 
 	function saveEntity(apx, pid, fun){
 		var modpath = CacheDir + '/';
-		modpath += ApexIndex[apx] + '/';
-		let apxpath = modpath + apx + '/';
-		let entpath = apxpath + pid + '.json';
-
+		modpath += ApexIndex[apx];
+		let apxpath = modpath  + '/'+ apx;
+		let entpath = apxpath  + '/'+ pid + '.json';
 		console.log('--Nexus/save', entpath);
 
-		var str = JSON.stringify(Par, null, 2);
-		console.log(str);
-		fs.writeFile(path, str, done);
 
-		function done(err) {
-			if (fun)
-				fun(err);
-		}
-
-
-
-		fs.lstat(modpath, function (err, stat) {
+		let checkModule = (()=>{
+			//this function checks to make sure the entities Module.json 
+			// file pre-exists or writes it if the entity is the module apex. 
+			fs.lstat(modpath, function (err, stat) {
 			if (stat) {
-				saveApex();
+				checkApex();
 			} else{
-				saveModule();
+				let mod =ModCache[ApexIndex[apx]];
+				if (pid == apx){
+					fs.mkdirSync(modpath);
+					let path = modpath + '/Module.json';
+					EventLog("Saved Module.json at "+ path);
+					var str = JSON.stringify(mod, null, 2);
+					fs.writeFileSync(path, str);
+					checkApex();
+				} else {
+					if (!("Save" in mod)) {
+						fun("Save Not Implemented in Module's Apex", modpath);
+						return;
+					}
+					var com = {};
+					com.Cmd = mod["Save"];
+					com.Passport = {};
+					com.Passport.To = pidapx;
+					com.Passport.Pid = genPid();
+					sendMessage(com, checkApex);				
+				}
 			}
+		})});
+
+		let checkApex = (()=>{
+			//this function checks to make sure the entities Apex directory
+			//pre-exists or writes it if the entity is the module apex. 
+			fs.lstat(apxpath, function (err, stat) {
+				if (stat) {
+					checkEntity();
+				} else{
+					if (pid == apx){
+						fs.mkdirSync(apxpath);
+						EventLog("Made directory "+ apxpath);
+						checkEntity();
+					}else{
+						if (!("Save" in mod)) {
+							fun("Apex has not been saved", apx);
+							return;
+						}
+						var com = {};
+						com.Cmd = mod["Save"];
+						com.Passport = {};
+						com.Passport.To = pidapx;
+						com.Passport.Pid = genPid();
+						sendMessage(com, checkEntity);
+					}
+				}
+			});
 		});
 
-		let saveModule = (()=>{
-
+		let checkEntity =(()=>{
+			
+			if (!(pid in EntCache)) {
+				fun('pid has not been loaded to EntCache...'+ pid);
+				return;
+			}						
+			ent = EntCache[pid];
+			fs.writeFileSync(entpath, JSON.stringify(ent, null, 2));
+			//debugger;
+			EventLog("Saved ent.json at "+ entpath);
 		});
 
-		saveApex = (()=>{
-
-		});
-
-
-		
-		if (fun)
-			fun();
+		checkModule();
 	}
 
 	function getFile(module, filename, fun) {
@@ -554,6 +593,7 @@
 				return;
 			}
 			var pidapx = genPid();
+			ApexIndex[pidapx]= mod.ModName;
 			var ents = compileInstance(pidapx, inst);
 			ents.forEach(function (par) {
 				let impkey = modnam + par.Entity;
@@ -951,6 +991,8 @@
 										mod.Setup = apx['$Setup'];
 									if ('$Start' in apx)
 										mod.Start = apx['$Start'];
+									if ('$Save' in apx)
+										mod.Save = apx['$Save'];
 								}
 								//debugger;
 							}
