@@ -397,7 +397,7 @@
 		//-------------------------------------------------save
 		// Save entity in Cache
 		function save(fun) {
-			nxs.saveEntity(Par.Apex,Par.Pid,fun);
+			nxs.saveEntity(Par.Apex, Par.Pid, fun);
 		}
 
 		//-------------------------------------------------getPid
@@ -411,62 +411,59 @@
 	//-----------------------------------------------------genEntity
 	// Create entity from parameter object in current module
 	function genEntity(apx, par, fun) {
-		let mod =ModCache[ApexIndex[apx]];
-		if (!("Entity" in  par)){
+		let mod = ModCache[ApexIndex[apx]];
+		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
 		}
-		let ent = par["Entity"];
-		if (!(ent in mod)){
-			fun("Entity is not avalable in module "+ ApexIndex[apx]);
+		let ent={};
+		ent.Entity = par["Entity"];
+		if (!(ent in mod)) {
+			fun("Entity is not avalable in module " + ApexIndex[apx]);
 			return;
 		}
 
+		ent.Pid = par.Pid || genPid();
+		
+		for (key in par)
+			ent[key] = par[key];
 		
 		
-			// ent.Pid = Local[entkey];
-			// if (entkey == 'Apex' && 'Par' in inst) {
-			// 	var pars = Object.keys(inst.Par);
-			// 	for (var ipar = 0; ipar < pars.length; ipar++) {
-			// 		var par = pars[ipar];
-			// 		ent[par] = inst.Par[par];
-			// 	}
-			// }
-			// ent.Module = mod.;
-			// ent.Apex = apx;
-			// var pars = Object.keys(ent);
-			// for (ipar = 0; ipar < pars.length; ipar++) {
-			// 	var par = pars[ipar];
-			// 	var val = ent[par];
-			// 	switch (typeof val) {
-			// 		case 'string':
-			// 			ent[par] = symbol(val);
-			// 			break;
-			// 		case 'object':
-			// 			parseObject(val);
+		ent.Module = mod.ModName;
+		ent.Apex = apx;
+		// var pars = Object.keys(ent);
+		// for (ipar = 0; ipar < pars.length; ipar++) {
+		// 	var par = pars[ipar];
+		// 	var val = ent[par];
+		// 	switch (typeof val) {
+		// 		case 'string':
+		// 			ent[par] = symbol(val);
+		// 			break;
+		// 		case 'object':
+		// 			parseObject(val);
 
-			// 			function parseObject(val) {
-			// 				if (Array.isArray(val)) {
-			// 					for (let ival = 0; ival < val.length; ival++) {
-			// 						if (typeof val[ival] === 'object')
-			// 							parseObject(val[key]);
-			// 						else {
-			// 							val[ival] = symbol(val[ival]);
-			// 						}
-			// 					}
-			// 				} else {
-			// 					for (let key in val) {
-			// 						if (typeof val[key] === 'object')
-			// 							parseObject(val[key]);
-			// 						else {
-			// 							val[key] = symbol(val[key]);
-			// 						}
-			// 					}
-			// 				}
-			// 			}
-			// 			break;
-			// 	}
-			// }
+		// 			function parseObject(val) {
+		// 				if (Array.isArray(val)) {
+		// 					for (let ival = 0; ival < val.length; ival++) {
+		// 						if (typeof val[ival] === 'object')
+		// 							parseObject(val[key]);
+		// 						else {
+		// 							val[ival] = symbol(val[ival]);
+		// 						}
+		// 					}
+		// 				} else {
+		// 					for (let key in val) {
+		// 						if (typeof val[key] === 'object')
+		// 							parseObject(val[key]);
+		// 						else {
+		// 							val[key] = symbol(val[key]);
+		// 						}
+		// 					}
+		// 				}
+		// 			}
+		// 			break;
+		// 	}
+		// }
 
 		fun('genEntity not implmeneted');
 	}
@@ -476,56 +473,57 @@
 		fun('deleteEntity not implmeneted');
 	}
 
-	function saveEntity(apx, pid, fun){
+	function saveEntity(apx, pid, fun) {
 		var modpath = CacheDir + '/';
 		modpath += ApexIndex[apx];
-		let apxpath = modpath  + '/'+ apx;
-		let entpath = apxpath  + '/'+ pid + '.json';
+		let apxpath = modpath + '/' + apx;
+		let entpath = apxpath + '/' + pid + '.json';
 		console.log('--Nexus/save', entpath);
 
 
-		let checkModule = (()=>{
+		let checkModule = (() => {
 			//this function checks to make sure the entities Module.json 
 			// file pre-exists or writes it if the entity is the module apex. 
 			fs.lstat(modpath, function (err, stat) {
-			if (stat) {
-				checkApex();
-			} else{
-				let mod =ModCache[ApexIndex[apx]];
-				if (pid == apx){
-					fs.mkdirSync(modpath);
-					let path = modpath + '/Module.json';
-					EventLog("Saved Module.json at "+ path);
-					var str = JSON.stringify(mod, null, 2);
-					fs.writeFileSync(path, str);
+				if (stat) {
 					checkApex();
 				} else {
-					if (!("Save" in mod)) {
-						fun("Save Not Implemented in Module's Apex", modpath);
-						return;
+					let mod = ModCache[ApexIndex[apx]];
+					if (pid == apx) {
+						fs.mkdirSync(modpath);
+						let path = modpath + '/Module.json';
+						EventLog("Saved Module.json at " + path);
+						var str = JSON.stringify(mod, null, 2);
+						fs.writeFileSync(path, str);
+						checkApex();
+					} else {
+						if (!("Save" in mod)) {
+							fun("Save Not Implemented in Module's Apex", modpath);
+							return;
+						}
+						var com = {};
+						com.Cmd = mod["Save"];
+						com.Passport = {};
+						com.Passport.To = pidapx;
+						com.Passport.Pid = genPid();
+						sendMessage(com, checkApex);
 					}
-					var com = {};
-					com.Cmd = mod["Save"];
-					com.Passport = {};
-					com.Passport.To = pidapx;
-					com.Passport.Pid = genPid();
-					sendMessage(com, checkApex);				
 				}
-			}
-		})});
+			})
+		});
 
-		let checkApex = (()=>{
+		let checkApex = (() => {
 			//this function checks to make sure the entities Apex directory
 			//pre-exists or writes it if the entity is the module apex. 
 			fs.lstat(apxpath, function (err, stat) {
 				if (stat) {
 					checkEntity();
-				} else{
-					if (pid == apx){
+				} else {
+					if (pid == apx) {
 						fs.mkdirSync(apxpath);
-						EventLog("Made directory "+ apxpath);
+						EventLog("Made directory " + apxpath);
 						checkEntity();
-					}else{
+					} else {
 						if (!("Save" in mod)) {
 							fun("Apex has not been saved", apx);
 							return;
@@ -541,16 +539,16 @@
 			});
 		});
 
-		let checkEntity =(()=>{
-			
+		let checkEntity = (() => {
+
 			if (!(pid in EntCache)) {
-				fun('pid has not been loaded to EntCache...'+ pid);
+				fun('pid has not been loaded to EntCache...' + pid);
 				return;
-			}						
+			}
 			ent = EntCache[pid];
-			fs.writeFileSync(entpath, JSON.stringify(ent, null, 2));
+			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
 			//debugger;
-			EventLog("Saved ent.json at "+ entpath);
+			EventLog("Saved ent.json at " + entpath);
 		});
 
 		checkModule();
@@ -646,7 +644,7 @@
 				return;
 			}
 			var pidapx = genPid();
-			ApexIndex[pidapx]= mod.ModName;
+			ApexIndex[pidapx] = mod.ModName;
 			var ents = compileInstance(pidapx, inst);
 			ents.forEach(function (par) {
 				let impkey = modnam + par.Entity;
@@ -654,15 +652,15 @@
 				if (impkey in ImpCache) {
 					imp = ImpCache[impkey];
 				} else {
-					imp =  (1, eval)(mod[par.Entity]);
+					imp = (1, eval)(mod[par.Entity]);
 					ImpCache[impkey] = imp;
 				}
 				var ent = new Entity(Nxs, imp, par);
 				EntCache[par.Pid] = ent;
 			});
-			
+
 			setup();
-				
+
 			function setup() {
 				if (!("Setup" in mod)) {
 					start();
@@ -675,7 +673,7 @@
 				com.Passport.Pid = genPid();
 				sendMessage(com, start);
 			}
-	
+
 			// Start
 			function start() {
 				if (!("Start" in mod)) {
@@ -690,7 +688,7 @@
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
-				sendMessage(com, ()=>{
+				sendMessage(com, () => {
 					if (fun) {
 						fun(null, pidapx);
 					}
@@ -1034,7 +1032,7 @@
 						ifile++;
 						if (ifile >= nfile) {
 							mod.ModName = ModName;
-							
+
 							if ('schema.json' in mod) {
 								var schema = JSON.parse(mod['schema.json']);
 								console.log('schema', JSON.stringify(schema, null, 2));
@@ -1049,7 +1047,7 @@
 								}
 								//debugger;
 							}
-							
+
 							ModCache[ModName] = mod;
 							fun(null, ModCache[ModName]);
 							return;
