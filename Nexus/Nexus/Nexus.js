@@ -411,61 +411,40 @@
 	//-----------------------------------------------------genEntity
 	// Create entity from parameter object in current module
 	function genEntity(apx, par, fun) {
+
+		var impkey = ApexIndex[apx] + '/' + par.Entity;
+		if (impkey in ImpCache) {
+			var imp = ImpCache[impkey];
+			var ent = new Entity(Nxs, imp, par);
+			EntCache[pid] = ent;
+			fun(null, ent);
+			return;
+		}
+
 		let mod = ModCache[ApexIndex[apx]];
 		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
 		}
-		let ent={};
-		ent.Entity = par["Entity"];
-		if (!(ent in mod)) {
-			fun("Entity is not avalable in module " + ApexIndex[apx]);
+		
+		if (!(par.Entity in mod)) {
+			console.log(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
+			if (fun)
+				fun('Null entity');
 			return;
 		}
 
-		ent.Pid = par.Pid || genPid();
-		
-		for (key in par)
-			ent[key] = par[key];
-		
-		
-		ent.Module = mod.ModName;
-		ent.Apex = apx;
-		// var pars = Object.keys(ent);
-		// for (ipar = 0; ipar < pars.length; ipar++) {
-		// 	var par = pars[ipar];
-		// 	var val = ent[par];
-		// 	switch (typeof val) {
-		// 		case 'string':
-		// 			ent[par] = symbol(val);
-		// 			break;
-		// 		case 'object':
-		// 			parseObject(val);
+		par.Pid = par.Pid || genPid();
+		par.Module = mod.ModName;
+		par.Apex = apx;
 
-		// 			function parseObject(val) {
-		// 				if (Array.isArray(val)) {
-		// 					for (let ival = 0; ival < val.length; ival++) {
-		// 						if (typeof val[ival] === 'object')
-		// 							parseObject(val[key]);
-		// 						else {
-		// 							val[ival] = symbol(val[ival]);
-		// 						}
-		// 					}
-		// 				} else {
-		// 					for (let key in val) {
-		// 						if (typeof val[key] === 'object')
-		// 							parseObject(val[key]);
-		// 						else {
-		// 							val[key] = symbol(val[key]);
-		// 						}
-		// 					}
-		// 				}
-		// 			}
-		// 			break;
-		// 	}
-		// }
+		
+		var imp = (1, eval)(mod[par.Entity]);
+		ImpCache[impkey] = imp;
+		var ent = new Entity(Nxs, imp, par);
+		EntCache[pid] = ent;
 
-		fun('genEntity not implmeneted');
+		fun(null, par.Pid);
 	}
 
 	function deleteEntity(apx, pid, fun) {
@@ -887,6 +866,8 @@
 				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
+			if (val.charAt(0) === '\\')
+				return sym;
 			return val;
 		}
 	}
