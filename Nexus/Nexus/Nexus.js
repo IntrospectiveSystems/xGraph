@@ -435,7 +435,7 @@
 		if (impkey in ImpCache) {
 			var imp = ImpCache[impkey];
 			var ent = new Entity(Nxs, imp, par);
-			EntCache[pid] = ent;
+			EntCache[par.Pid] = ent;
 			fun(null, par.Pid);
 			return;
 		}
@@ -443,7 +443,7 @@
 		var imp = (1, eval)(mod[par.Entity]);
 		ImpCache[impkey] = imp;
 		var ent = new Entity(Nxs, imp, par);
-		EntCache[pid] = ent;
+		EntCache[par.Pid] = ent;
 
 		fun(null, par.Pid);
 	}
