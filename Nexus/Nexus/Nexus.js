@@ -301,7 +301,7 @@
 			genModule: genModule,
 			getModule,
 			genEntity: genEntity,
-			deleteEntity: deleteEntity,
+			deleteEntity,
 			genPid: genPid,
 			genPath: genPath,
 			send: send,
@@ -360,7 +360,7 @@
 
 		function deleteEntity(fun) {
 			//EventLog("DElElTingASDF")
-			nxs.deleteEntity(Par.Pid, fun);
+			nxs.deleteEntity(Par.Apex, Par.Pid, fun);
 		}
 
 		function genEntity(par, fun) {
@@ -411,66 +411,73 @@
 	//-----------------------------------------------------genEntity
 	// Create entity from parameter object in current module
 	function genEntity(apx, par, fun) {
+
+		var impkey = ApexIndex[apx] + '/' + par.Entity;
+
+
 		let mod = ModCache[ApexIndex[apx]];
 		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
 		}
-		let ent={};
-		ent.Entity = par["Entity"];
-		if (!(ent in mod)) {
-			fun("Entity is not avalable in module " + ApexIndex[apx]);
+
+		if (!(par.Entity in mod)) {
+			console.log(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
+			if (fun)
+				fun('Null entity');
 			return;
 		}
 
-		ent.Pid = par.Pid || genPid();
-		
-		for (key in par)
-			ent[key] = par[key];
-		
-		
-		ent.Module = mod.ModName;
-		ent.Apex = apx;
-		// var pars = Object.keys(ent);
-		// for (ipar = 0; ipar < pars.length; ipar++) {
-		// 	var par = pars[ipar];
-		// 	var val = ent[par];
-		// 	switch (typeof val) {
-		// 		case 'string':
-		// 			ent[par] = symbol(val);
-		// 			break;
-		// 		case 'object':
-		// 			parseObject(val);
+		par.Pid = par.Pid || genPid();
+		par.Module = mod.ModName;
+		par.Apex = apx;
 
-		// 			function parseObject(val) {
-		// 				if (Array.isArray(val)) {
-		// 					for (let ival = 0; ival < val.length; ival++) {
-		// 						if (typeof val[ival] === 'object')
-		// 							parseObject(val[key]);
-		// 						else {
-		// 							val[ival] = symbol(val[ival]);
-		// 						}
-		// 					}
-		// 				} else {
-		// 					for (let key in val) {
-		// 						if (typeof val[key] === 'object')
-		// 							parseObject(val[key]);
-		// 						else {
-		// 							val[key] = symbol(val[key]);
-		// 						}
-		// 					}
-		// 				}
-		// 			}
-		// 			break;
-		// 	}
-		// }
+		if (impkey in ImpCache) {
+			var imp = ImpCache[impkey];
+			var ent = new Entity(Nxs, imp, par);
+			EntCache[par.Pid] = ent;
+			fun(null, par.Pid);
+			return;
+		}
 
-		fun('genEntity not implmeneted');
+		var imp = (1, eval)(mod[par.Entity]);
+		ImpCache[impkey] = imp;
+		var ent = new Entity(Nxs, imp, par);
+		EntCache[par.Pid] = ent;
+
+		fun(null, par.Pid);
 	}
 
 	function deleteEntity(apx, pid, fun) {
-		EventLog(' ** ERR:deleteEntity not implemented');
-		fun('deleteEntity not implmeneted');
+		var modpath = CacheDir + '/';
+		modpath += ApexIndex[apx];
+		let apxpath = modpath + '/' + apx+'/';
+
+		let rmList = [];
+		//we first check to see if it's an apex
+		//if so we will read the directory that is the instance of 
+		//the module and then delete all of the entity files found therein.
+		if (apx == pid) {
+			files = fs.readdirSync(apxpath);
+			for( let i =0;i<files.length;i++){
+				rmList.push(files[i].split('.')[0]);
+			}
+			remDir(apxpath);
+		} else {
+			rmList.push(pid);
+			console.log('Deleting file:' + apxpath + '/' + pid + '.json');
+			fs.unlinkSync(apxpath + '/' + pid + '.json');
+		}
+
+		for (let i = 0; i < rmList.length; i++) {
+			let subpid = rmList[i];
+			if (subpid in EntCache) {
+				delete EntCache[subpid];
+			}
+		}
+
+		if (fun)
+			fun(null, pid);
 	}
 
 	function saveEntity(apx, pid, fun) {
@@ -887,6 +894,8 @@
 				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
+			if (val.charAt(0) === '\\')
+				return sym;
 			return val;
 		}
 	}
