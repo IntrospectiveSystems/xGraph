@@ -796,7 +796,7 @@
 					//console.log('entity path', path);
 					//console.log('ent', ent);
 					fs.writeFileSync(path, JSON.stringify(ent, null, 2));
-				});-lock.json
+				});
 			}
 			//	process.exit(0);
 			Initiate(Run);
