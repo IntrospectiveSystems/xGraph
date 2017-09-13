@@ -981,6 +981,10 @@
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
 
+		
+		ps.stdout.on('data', _ => console.log(_.toString()));
+		ps.stderr.on('data', _ => console.error(_.toString()));
+
 		ps.on('err', function (err) {
 			EventLog('Failed to start child process.');
 			EventLog('err:' + err);
