@@ -796,7 +796,7 @@
 					//console.log('entity path', path);
 					//console.log('ent', ent);
 					fs.writeFileSync(path, JSON.stringify(ent, null, 2));
-				});
+				});-lock.json
 			}
 			//	process.exit(0);
 			Initiate(Run);
@@ -933,6 +933,8 @@
 		catch (err){
 			stat = undefined
 		}
+		try { fs.unlinkSync(WorkDir+'/package-lock.json'); } catch(e) {console.warn('Error deleting package lock: ' + e)}
+		try { remDir(WorkDir+'/node_modules'); } catch(e) {console.warn('Error deleting package lock: ' + e)}
 		// debugger;
 		if (stat) {
 			if (stat.isDirectory()) {
