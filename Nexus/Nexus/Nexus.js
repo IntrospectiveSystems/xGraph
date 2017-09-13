@@ -301,7 +301,7 @@
 			genModule: genModule,
 			getModule,
 			genEntity: genEntity,
-			deleteEntity: deleteEntity,
+			deleteEntity,
 			genPid: genPid,
 			genPath: genPath,
 			send: send,
@@ -360,7 +360,7 @@
 
 		function deleteEntity(fun) {
 			//EventLog("DElElTingASDF")
-			nxs.deleteEntity(Par.Pid, fun);
+			nxs.deleteEntity(Par.Apex, Par.Pid, fun);
 		}
 
 		function genEntity(par, fun) {
@@ -413,14 +413,14 @@
 	function genEntity(apx, par, fun) {
 
 		var impkey = ApexIndex[apx] + '/' + par.Entity;
-		
+
 
 		let mod = ModCache[ApexIndex[apx]];
 		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
 		}
-		
+
 		if (!(par.Entity in mod)) {
 			console.log(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
 			if (fun)
@@ -439,7 +439,7 @@
 			fun(null, par.Pid);
 			return;
 		}
-		
+
 		var imp = (1, eval)(mod[par.Entity]);
 		ImpCache[impkey] = imp;
 		var ent = new Entity(Nxs, imp, par);
@@ -449,8 +449,35 @@
 	}
 
 	function deleteEntity(apx, pid, fun) {
-		EventLog(' ** ERR:deleteEntity not implemented');
-		fun('deleteEntity not implmeneted');
+		var modpath = CacheDir + '/';
+		modpath += ApexIndex[apx];
+		let apxpath = modpath + '/' + apx+'/';
+
+		let rmList = [];
+		//we first check to see if it's an apex
+		//if so we will read the directory that is the instance of 
+		//the module and then delete all of the entity files found therein.
+		if (apx == pid) {
+			files = fs.readdirSync(apxpath);
+			for( let i =0;i<files.length;i++){
+				rmList.push(files[i].split('.')[0]);
+			}
+			remDir(apxpath);
+		} else {
+			rmList.push(pid);
+			console.log('Deleting file:' + apxpath + '/' + pid + '.json');
+			fs.unlinkSync(apxpath + '/' + pid + '.json');
+		}
+
+		for (let i = 0; i < rmList.length; i++) {
+			let subpid = rmList[i];
+			if (subpid in EntCache) {
+				delete EntCache[subpid];
+			}
+		}
+
+		if (fun)
+			fun(null, pid);
 	}
 
 	function saveEntity(apx, pid, fun) {
