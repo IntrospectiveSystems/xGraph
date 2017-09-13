@@ -933,7 +933,7 @@
 		catch (err){
 			stat = undefined
 		}
-		debugger;
+		// debugger;
 		if (stat) {
 			if (stat.isDirectory()) {
 				remDir(nodepath);
