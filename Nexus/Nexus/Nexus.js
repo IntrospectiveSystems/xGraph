@@ -111,14 +111,14 @@
 			files.forEach(function (file, index) {
 				var curPath = path + "/" + file;
 				if (fs.lstatSync(curPath).isDirectory()) { // recurse
-					console.log('Deleting folder:' + curPath);
+					//console.log('Deleting folder:' + curPath);
 					remDir(curPath);
 				} else { // delete file
-					console.log('Deleting file:' + curPath);
+					///console.log('Deleting file:' + curPath);
 					fs.unlinkSync(curPath);
 				}
 			});
-			console.log('Deleting folder:' + path);
+			//console.log('Deleting folder:' + path);
 			fs.rmdirSync(path);
 		}
 	}
@@ -688,7 +688,6 @@
 						fun(null, pidapx);
 					return;
 				}
-				var pid = pids[ipid];
 
 				var com = {};
 				com.Cmd = mod["Start"];
@@ -906,23 +905,38 @@
 		// for the package.json and node_modeuls dir
 		console.log('--refreshSystems');
 		//debugger;
-		var files = fs.readdirSync(WorkDir);
-		for (let i = 0; i < files.length; i++) {
-			let file = files[i];
-			var path = WorkDir + '/' + file;
-			switch (file) {
-				case 'cache':
-				case 'config.json':
-				case 'browser.json':
-					//	console.log('Keeping:' + path);
-					continue;
-			}
-			if (fs.lstatSync(path).isDirectory()) { // recurse
-				// remDir(path);
-				//	deleteFolderRecursive(curPath);
-			} else { // delete file
-				//	console.log('Deleting file:' + path);
-				//	fs.unlinkSync(path);
+		//var files = fs.readdirSync(WorkDir);
+		// for (let i = 0; i < files.length; i++) {
+		// 	let file = files[i];
+		// 	var path = WorkDir + '/' + file;
+		// 	switch (file) {
+		// 		case 'cache':
+		// 		case 'config.json':
+		// 		case 'browser.json':
+		// 			//	console.log('Keeping:' + path);
+		// 			continue;
+		// 	}
+		// 	if (fs.lstatSync(path).isDirectory()) { // recurse
+		// 		// remDir(path);
+		// 		//	deleteFolderRecursive(curPath);
+		// 	} else { // delete file
+		// 		//	console.log('Deleting file:' + path);
+		// 		//	fs.unlinkSync(path);
+		// 	}
+		// }
+
+		let nodepath= WorkDir+'/node_modules/';
+		let stat;
+		try{
+			stat = fs.lstatSync(nodepath);
+		}
+		catch (err){
+			stat = undefined
+		}
+		debugger;
+		if (stat) {
+			if (stat.isDirectory()) {
+				remDir(nodepath);
 			}
 		}
 

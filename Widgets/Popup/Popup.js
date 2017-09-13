@@ -40,7 +40,7 @@
 					par.Par = {};
 					for(key in this.Par.Par) {
 						let val = this.Par.Par[key];
-						par[key] = val;
+						par.Par[key] = val;
 					}
 				}
 
