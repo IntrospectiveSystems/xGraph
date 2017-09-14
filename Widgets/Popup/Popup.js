@@ -87,7 +87,7 @@
 			closeButton.css('background-color', 'var(--accent-error)');
 
 			closeButton.on("click",(function () {
-				debugger;
+				// debugger;
 				that.send({Cmd:"Destroy"}, that.Par.Pid, (err, cmd)=>{});
 			}));
 
