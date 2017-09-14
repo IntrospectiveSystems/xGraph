@@ -984,8 +984,8 @@
 		var ps = proc.spawn(npm, ['install']);
 
 		
-		ps.stdout.on('data', _ => console.log(_.toString()));
-		ps.stderr.on('data', _ => console.error(_.toString()));
+		ps.stdout.on('data', _ => process.stdout.write(_.toString()));
+		ps.stderr.on('data', _ => process.stdout.write(_.toString()));
 
 		ps.on('err', function (err) {
 			EventLog('Failed to start child process.');
