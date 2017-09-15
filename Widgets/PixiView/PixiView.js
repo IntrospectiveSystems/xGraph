@@ -5,6 +5,7 @@
 	let dispatch = {
 		Setup: Setup,
 		Start: Start,
+		GetCanvas
 	};
 
 	//Using views we must inject basic functionality via the viewify script.
@@ -21,10 +22,10 @@
 			let Vlt = this.Vlt;
 			
 			//add a location to store the Pixi Stage and Renderer
-			var Vew = {};
-			div.data('View', Vew);
+			this.Vlt.View = {};
+			let Vew = this.Vlt.View;
 		
-			Vew.Renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, { "antialias": true });
+			Vew.Renderer = PIXI.autoDetectRenderer(1024, 1024, { "antialias": true });
 			div.append($(Vew.Renderer.view));
 
 			Vew.Stage = new PIXI.Container();
@@ -40,7 +41,6 @@
 
 			//-----------------------------------------------------Render
 			function renderLoop() {
-				let Vew = Vlt.div.data('View');
 				Vew.Renderer.render(Vew.Stage);
 				requestAnimationFrame(renderLoop);
 			}
@@ -50,7 +50,7 @@
 
 	function Start(com, fun) {
 		console.log("--PixiView/Start");
-		let Vew = this.Vlt.div.data('View');
+		let Vew = this.Vlt.View;
 		let that = this;
 
 		let ob = new PIXI.Graphics();
@@ -66,6 +66,17 @@
 		if (fun)
 			fun(null, com);
 			
+	}
+
+
+	function GetCanvas(com, fun){
+		debugger;
+		this.Vlt.WorldPid=com.pid;
+		let View = this.Vlt.View;
+		let canvas = View.Renderer.view;
+		
+		if (fun)
+			fun(null, canvas);
 	}
 
 })();

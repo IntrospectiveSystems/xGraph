@@ -97,5 +97,8 @@
 			info.Key = evt.key;
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
 		});
+
+		if (fun)
+			fun(null, com);
 	}
 })();

@@ -6,7 +6,7 @@
 	class RootView {
 		Setup(com, fun) {
 			this.super(com, (err, cmd) => {
-				// debugger;
+				//debugger;
 				fun(null, com);
 			});
 		}
