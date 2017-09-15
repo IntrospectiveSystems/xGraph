@@ -556,6 +556,7 @@
 			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
 			//debugger;
 			EventLog("Saved ent.json at " + entpath);
+			fun(null);
 		});
 
 		checkModule();
