@@ -926,22 +926,20 @@
 		// 	}
 		// }
 
-		let nodepath= WorkDir+'/node_modules/';
-		let stat;
-		try{
-			stat = fs.lstatSync(nodepath);
-		}
-		catch (err){
-			stat = undefined
-		}
-		try { fs.unlinkSync(WorkDir+'/package-lock.json'); } catch(e) {console.warn('Error deleting package lock: ' + e)}
-		try { remDir(WorkDir+'/node_modules'); } catch(e) {console.warn('Error deleting package lock: ' + e)}
-		// debugger;
-		if (stat) {
-			if (stat.isDirectory()) {
-				remDir(nodepath);
-			}
-		}
+		// let nodepath= WorkDir+'/node_modules/';
+		// let stat;
+		// try{
+		// 	stat = fs.lstatSync(nodepath);
+		// }
+		// catch (err){
+		// 	stat = undefined
+		// }
+		// //debugger;
+		// if (stat) {
+		// 	if (stat.isDirectory()) {
+		// 		remDir(nodepath);
+		// 	}
+		// }
 
 		// Reconstruct package.json and nod_modules
 		// directory by merging package.json of the

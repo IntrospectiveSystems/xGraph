@@ -224,6 +224,7 @@
 
 	//any HTTP Get accessible files should be stored in a ./static/ directory
 	function Get(that, req, res) {
+		//debugger;
 		console.log('--Get', req.url);
 		var Par = that.Par;
 		var url = req.url;
