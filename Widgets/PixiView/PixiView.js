@@ -25,12 +25,31 @@
 			this.Vlt.View = {};
 			let Vew = this.Vlt.View;
 		
-			Vew.Renderer = PIXI.autoDetectRenderer(1024, 1024, { "antialias": true });
+			Vew.Renderer = PIXI.autoDetectRenderer(64, 64, { "antialias": true });
 			div.append($(Vew.Renderer.view));
 
 			Vew.Stage = new PIXI.Container();
 
 			Vew.Renderer.backgroundColor = 0xA2A2A2;
+
+
+
+
+			let ob = new PIXI.Graphics();
+			ob.position.set(50,50);
+			// set a fill and line style
+			ob.beginFill(0xFF0000);
+			// set a fill and a line style again and draw a rectangle
+			ob.drawCircle(0, 0, 30);
+			ob.endFill();
+		
+			Vew.Stage.addChild(ob);
+			Vew.Renderer.render(Vew.Stage);
+			
+
+
+
+
 
 			renderLoop();
 
@@ -63,6 +82,10 @@
 	
 		Vew.Stage.addChild(ob);
 
+debugger;
+		if ("WorldPid" in that.Vlt)
+			that.send({ Cmd: "UpdateCanvas", canvas: Vew.Renderer.view}, that.Vlt.WorldPid, ()=>{});
+
 		if (fun)
 			fun(null, com);
 			
@@ -70,7 +93,7 @@
 
 
 	function GetCanvas(com, fun){
-		debugger;
+		//debugger;
 		this.Vlt.WorldPid=com.pid;
 		let View = this.Vlt.View;
 		let canvas = View.Renderer.view;

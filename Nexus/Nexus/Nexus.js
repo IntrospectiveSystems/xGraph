@@ -549,14 +549,14 @@
 		let checkEntity = (() => {
 
 			if (!(pid in EntCache)) {
-				fun('pid has not been loaded to EntCache...' + pid);
+				if (fun) fun('pid has not been loaded to EntCache...' + pid);
 				return;
 			}
 			ent = EntCache[pid];
 			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
 			//debugger;
 			EventLog("Saved ent.json at " + entpath);
-			fun(null);
+			if (fun) fun(null);
 		});
 
 		checkModule();

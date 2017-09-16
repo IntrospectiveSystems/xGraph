@@ -17,9 +17,9 @@
 
 	function UpdateCanvas(com,fun){
 		console.log("Canvas Update\n\n\n\n");
-		//debugger;
-		let width = com.width || com.canvas.clientWidth;
-		let height = com.height || com.canvas.clientHeight;
+		debugger;
+		let width = com.width || com.canvas.width;
+		let height = com.height || com.canvas.height;
 
 		let canvas = com.canvas;
 
@@ -166,11 +166,11 @@
 			}
 
 			function getCanvas(){
-				let dest = that.Vlt.PlaneViewPid || that.Vlt.Terain;
+				let dest = that.Vlt.PlaneViewPid || that.Par.Terrain;
 				that.send({ Cmd: "GetCanvas", pid: that.Par.Pid }, dest, (err, canvas) => {
 					if (err)
 						console.log("Error getting Canvas ", err);
-					debugger;
+					//debugger;
 					// //let ctx = canvas.getContext('2d');
 
 					// console.log(canvas.width, canvas.height);
@@ -275,7 +275,7 @@
 
 	//-----------------------------------------------------Dispatch
 	function DispatchEvent(com, fun) {
-		console.log("--ThreeJsView/DispatchEvent", com.info.Action);
+		// console.log("--ThreeJsView/DispatchEvent", com.info.Action);
 		let info = com.info;
 		let Vlt = this.Vlt;
 		Vlt.Mouse = com.mouse;
@@ -300,7 +300,7 @@
 		if ('Key' in info)
 			key += '.' + info.Key;
 		info.Key = key;
-		console.log('Dispatch', key);
+		console.log(this.Par.View, 'Dispatch', key);
 		if (key in dispatch) {
 			var proc = dispatch[key];
 			proc(info, Vlt);
