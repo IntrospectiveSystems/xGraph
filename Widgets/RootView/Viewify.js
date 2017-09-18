@@ -99,7 +99,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			}
 
 			[this.major, this.minor, this.patch] = version;
-			debugger;
+			// debugger;
 			
 		}
 	}
