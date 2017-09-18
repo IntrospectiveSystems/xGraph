@@ -115,6 +115,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let vlt = this.Vlt;
 			vlt.titleBarHeight = 20;
 			// vlt.type = this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1).replace(".js", "");
+			// debugger;
 			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
 			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
@@ -139,7 +140,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.div.css('position', 'relative');
 			vlt.div.css('box-sizing', 'border-box');
 			vlt.div.css('overflow', 'hidden');
-			vlt.div.addClass(this.type);
+			vlt.div.addClass(vlt.type);
 			if('ID' in this.Par) vlt.ID = this.Par.ID;
 			else vlt.ID = `Z${this.Par.Pid}`;
 			vlt.div.attr('id', this.Vlt.ID);
