@@ -78,8 +78,33 @@ $.fn.extend({
 });
 
 //Viewify
-if (!window.Viewify) window.Viewify = function Viewify(_class) {
+if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
+	class SemVer {
+		constructor(str) {
+			if(!str) {
+				console.warning('View version not specified, assuming 3.0 for compatibility.');
+				str = '3.0.0';
+			}
+			let parts = str.split('.');
+			let version = [];
+			if(parts.length > 0 && parts.length < 4);
+			for(let i = 0; i < parts.length; i ++) {
+				let thing = parseInt(parts[i]);
+				if(thing === thing) {
+					version.push(thing);
+				}
+			}
+			while(version.length < 3) {
+				version.push(0);
+			}
 
+			[this.major, this.minor, this.patch] = version;
+			debugger;
+			
+		}
+	}
+	
+	const version = new SemVer(versionString);
 	// will scan either a prototype of dispatch table
 	let child = typeof _class == 'function' ? _class.prototype : _class;
 
