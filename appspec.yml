@@ -24,7 +24,7 @@ os: linux
 #   may cause associated deployments to fail.
 files:
   - source: /
-    destination: ~/xGraph
+    destination: /home/ec2-user/xGraph
 # For deployments to Amazon Linux, Ubuntu Server, or RHEL instances,
 #   you can specify a "permissions" 
 #   section here that describes special permissions to apply to the files 
@@ -36,7 +36,7 @@ files:
 #   "permissions" section altogether. A blank or incomplete "permissions"
 #   section may cause associated deployments to fail.
 permissions:
-  - object: ~/xGraph
+  - object: /home/ec2-user/xGraph
     owner: ec2-user
     mode: 754
 # If you are not running any commands on the Amazon EC2 instance, then remove 
