@@ -427,7 +427,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 		}
 
 		Destroy(com, fun) {
-			debugger;
+			// debugger;
 			async.eachSeries(this.Vlt.views, (item, next) =>{
 				this.send({ Cmd: 'Destroy' }, item, () => {
 					next();

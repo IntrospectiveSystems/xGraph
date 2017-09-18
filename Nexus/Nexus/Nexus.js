@@ -111,14 +111,14 @@
 			files.forEach(function (file, index) {
 				var curPath = path + "/" + file;
 				if (fs.lstatSync(curPath).isDirectory()) { // recurse
-					console.log('Deleting folder:' + curPath);
+					//console.log('Deleting folder:' + curPath);
 					remDir(curPath);
 				} else { // delete file
-					console.log('Deleting file:' + curPath);
+					///console.log('Deleting file:' + curPath);
 					fs.unlinkSync(curPath);
 				}
 			});
-			console.log('Deleting folder:' + path);
+			//console.log('Deleting folder:' + path);
 			fs.rmdirSync(path);
 		}
 	}
@@ -549,13 +549,14 @@
 		let checkEntity = (() => {
 
 			if (!(pid in EntCache)) {
-				fun('pid has not been loaded to EntCache...' + pid);
+				if (fun) fun('pid has not been loaded to EntCache...' + pid);
 				return;
 			}
 			ent = EntCache[pid];
 			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
 			//debugger;
 			EventLog("Saved ent.json at " + entpath);
+			if (fun) fun(null);
 		});
 
 		checkModule();
@@ -688,7 +689,6 @@
 						fun(null, pidapx);
 					return;
 				}
-				var pid = pids[ipid];
 
 				var com = {};
 				com.Cmd = mod["Start"];
@@ -906,25 +906,40 @@
 		// for the package.json and node_modeuls dir
 		console.log('--refreshSystems');
 		//debugger;
-		var files = fs.readdirSync(WorkDir);
-		for (let i = 0; i < files.length; i++) {
-			let file = files[i];
-			var path = WorkDir + '/' + file;
-			switch (file) {
-				case 'cache':
-				case 'config.json':
-				case 'browser.json':
-					//	console.log('Keeping:' + path);
-					continue;
-			}
-			if (fs.lstatSync(path).isDirectory()) { // recurse
-				// remDir(path);
-				//	deleteFolderRecursive(curPath);
-			} else { // delete file
-				//	console.log('Deleting file:' + path);
-				//	fs.unlinkSync(path);
-			}
-		}
+		//var files = fs.readdirSync(WorkDir);
+		// for (let i = 0; i < files.length; i++) {
+		// 	let file = files[i];
+		// 	var path = WorkDir + '/' + file;
+		// 	switch (file) {
+		// 		case 'cache':
+		// 		case 'config.json':
+		// 		case 'browser.json':
+		// 			//	console.log('Keeping:' + path);
+		// 			continue;
+		// 	}
+		// 	if (fs.lstatSync(path).isDirectory()) { // recurse
+		// 		// remDir(path);
+		// 		//	deleteFolderRecursive(curPath);
+		// 	} else { // delete file
+		// 		//	console.log('Deleting file:' + path);
+		// 		//	fs.unlinkSync(path);
+		// 	}
+		// }
+
+		// let nodepath= WorkDir+'/node_modules/';
+		// let stat;
+		// try{
+		// 	stat = fs.lstatSync(nodepath);
+		// }
+		// catch (err){
+		// 	stat = undefined
+		// }
+		// //debugger;
+		// if (stat) {
+		// 	if (stat.isDirectory()) {
+		// 		remDir(nodepath);
+		// 	}
+		// }
 
 		// Reconstruct package.json and nod_modules
 		// directory by merging package.json of the
@@ -966,6 +981,10 @@
 		const proc = require('child_process');
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
+
+		
+		ps.stdout.on('data', _ => process.stdout.write(_.toString()));
+		ps.stderr.on('data', _ => process.stdout.write(_.toString()));
 
 		ps.on('err', function (err) {
 			EventLog('Failed to start child process.');

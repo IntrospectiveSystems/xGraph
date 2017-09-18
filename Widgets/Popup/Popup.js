@@ -40,7 +40,7 @@
 					par.Par = {};
 					for(key in this.Par.Par) {
 						let val = this.Par.Par[key];
-						par[key] = val;
+						par.Par[key] = val;
 					}
 				}
 
@@ -87,7 +87,7 @@
 			closeButton.css('background-color', 'var(--accent-error)');
 
 			closeButton.on("click",(function () {
-				debugger;
+				// debugger;
 				that.send({Cmd:"Destroy"}, that.Par.Pid, (err, cmd)=>{});
 			}));
 
