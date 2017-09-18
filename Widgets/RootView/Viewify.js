@@ -78,8 +78,33 @@ $.fn.extend({
 });
 
 //Viewify
-if (!window.Viewify) window.Viewify = function Viewify(_class) {
+if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
+	class SemVer {
+		constructor(str) {
+			if(!str) {
+				console.warn('View version not specified, assuming 3.0 for compatibility.');
+				str = '3.0.0';
+			}
+			let parts = str.split('.');
+			let version = [];
+			if(parts.length > 0 && parts.length < 4);
+			for(let i = 0; i < parts.length; i ++) {
+				let thing = parseInt(parts[i]);
+				if(thing === thing) {
+					version.push(thing);
+				}
+			}
+			while(version.length < 3) {
+				version.push(0);
+			}
 
+			[this.major, this.minor, this.patch] = version;
+			// debugger;
+			
+		}
+	}
+
+	const version = new SemVer(versionString);
 	// will scan either a prototype of dispatch table
 	let child = typeof _class == 'function' ? _class.prototype : _class;
 
@@ -90,10 +115,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			let vlt = this.Vlt;
 			vlt.titleBarHeight = 20;
 			// vlt.type = this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1).replace(".js", "");
-			vlt.type = "view";
+			// debugger;
+			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
 			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
-			vlt.div = DIV("#Z" + this.Par.Pid.substr(24));
+			vlt.div = DIV();
 			// debugger;
 			vlt.root = DIV(vlt.rootID);
 			vlt.root.data('ent', this);
@@ -114,6 +140,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			vlt.div.css('position', 'relative');
 			vlt.div.css('box-sizing', 'border-box');
 			vlt.div.css('overflow', 'hidden');
+			vlt.div.addClass(vlt.type);
+			if('ID' in this.Par) vlt.ID = this.Par.ID;
+			else vlt.ID = `Z${this.Par.Pid}`;
+			vlt.div.attr('id', this.Vlt.ID);
+			// debugger;
 
 			vlt.titleBar.css('display', 'inline-block');
 			vlt.titleBar.css('width', '100%');
@@ -463,6 +494,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 				}
 
 			}
+			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => { this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => { if(err) reject(err); else resolve(cmd); }); });
 		}
 		if (com.Cmd in child) {
 			child[com.Cmd].call(this, com, fun);
