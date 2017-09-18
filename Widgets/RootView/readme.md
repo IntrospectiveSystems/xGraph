@@ -19,7 +19,7 @@ The normal Viewify we have right now, list features at some point.
 Example
 
 ``` javascript
-(function MyView(){
+(function MyView() {
 	class MyView {
 		//Contents
 	}
