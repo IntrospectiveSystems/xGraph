@@ -82,7 +82,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	class SemVer {
 		constructor(str) {
 			if(!str) {
-				console.warning('View version not specified, assuming 3.0 for compatibility.');
+				console.warn('View version not specified, assuming 3.0 for compatibility.');
 				str = '3.0.0';
 			}
 			let parts = str.split('.');
@@ -103,7 +103,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			
 		}
 	}
-	
+
 	const version = new SemVer(versionString);
 	// will scan either a prototype of dispatch table
 	let child = typeof _class == 'function' ? _class.prototype : _class;
