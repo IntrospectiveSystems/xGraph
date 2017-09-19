@@ -1063,7 +1063,7 @@
 
 							if ('schema.json' in mod) {
 								var schema = JSON.parse(mod['schema.json']);
-								console.log('schema', JSON.stringify(schema, null, 2));
+								//console.log('schema', JSON.stringify(schema, null, 2));
 								if ('Apex' in schema) {
 									var apx = schema.Apex;
 									if ('$Setup' in apx)
