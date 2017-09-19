@@ -96,10 +96,12 @@ debugger;
 		//debugger;
 		this.Vlt.WorldPid=com.pid;
 		let View = this.Vlt.View;
-		let canvas = View.Renderer.view;
+		com.canvas = View.Renderer.view;
+		if (this.Par.Hidden)
+			com.Div = this.Vlt.root;
 		
 		if (fun)
-			fun(null, canvas);
+			fun(null, com);
 	}
 
 })();

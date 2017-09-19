@@ -167,18 +167,16 @@
 
 			function getCanvas(){
 				let dest = that.Vlt.PlaneViewPid || that.Par.Terrain;
-				that.send({ Cmd: "GetCanvas", pid: that.Par.Pid }, dest, (err, canvas) => {
+				that.send({ Cmd: "GetCanvas", pid: that.Par.Pid }, dest, (err, com) => {
 					if (err)
 						console.log("Error getting Canvas ", err);
-					//debugger;
-					// //let ctx = canvas.getContext('2d');
-
-					// console.log(canvas.width, canvas.height);
-					// let newWidth = nextHighestPowerOfTwo(canvas.width);
-					// let newHeight = nextHighestPowerOfTwo(canvas.height);
-					// console.log(newWidth,newHeight);
-					// canvas.scale(newWidth/canvas.width, newHeight,canvas.height);
-					
+					if (com.Div){
+						that.Vlt.terrainDiv = com.Div;
+						that.Vlt.div.append(that.Vlt.terrainDiv);
+						that.Vlt.terrainDiv.css("position", "absolute");
+						that.Vlt.terrainDiv.css("left", `${2*($(window).width() + com.Div.width())}px`);
+					}	
+					let canvas = com.canvas;
 					that.Vlt.PlaneView = canvas;
 					console.log(canvas);
 
