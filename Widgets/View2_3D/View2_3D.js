@@ -33,7 +33,6 @@
 		
 		this.Vlt.PlaneView = canvas;
 		this.Vlt.vertices = new Float32Array([
-			
 			-width / 2, -height / 2, 0,
 			-width / 2, height / 2, 0,
 			width / 2, -height / 2, 0,
@@ -84,7 +83,7 @@
 
 			View.Camera.position.x = 0;
 			View.Camera.position.y = 0;
-			View.Camera.position.z = 1000;
+			View.Camera.position.z = 100;
 			View.Camera.up.set(0.0, 0.0, 1.0);
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
@@ -385,13 +384,13 @@
 			return;
 		}
 
-		let View = Vlt.div.data("View");
+		let View = Vlt.View;
 		if (info.Key in dispatch)
 			dispatch[info.Key]();
 
 		function start() {
 			console.log('..select/start', info);
-			var mouse = Vew.Mouse;
+			var mouse = View.Mouse;
 			mouse.Mode = 'Select1';
 			mouse.x = info.Mouse.x;
 			mouse.y = info.Mouse.y;
@@ -427,10 +426,10 @@
 		// }
 
 		function stop() {
-			Vew.Mouse.Mode = 'Idle';
+			View.Mouse.Mode = 'Idle';
 			var q = {};
 			q.Cmd = 'Save';
-			q.Instance = Vew.pidSelect;
+			q.Instance = View.pidSelect;
 			that.send(q, Par.View);
 		}
 	}
@@ -446,7 +445,7 @@
 			return;
 		}
 		//console.log("Zooooooming");
-		let View = Vlt.div.data('View');
+		let View = Vlt.View;
 
 		var v = new THREE.Vector3();
 		v.fromArray(View.Camera.position.toArray());
@@ -477,10 +476,7 @@
 			return;
 		}
 		//console.log("Zooooooming");
-		let View = Vlt.div.data('View');
-
-		Vlt.Recolor=true;
-
+		let View = VltView;
 	}
 
 
@@ -502,7 +498,7 @@
 			return;
 		}
 
-		let View = Vlt.div.data('View');
+		let View = Vlt.View;
 
 		if (info.Key in dispatch)
 			dispatch[info.Key]();
