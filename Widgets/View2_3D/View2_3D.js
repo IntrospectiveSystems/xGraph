@@ -136,16 +136,19 @@
 				this.Vlt.PlaneViewPid= this.Par.SystemView2D;
 				getMouse();
 			}else {
-				this.genModule({
-					"Module": "xSDE:3V/SystemView",
-					"Par": this.Par.ForPlaneView
-				}, (err, pidapx) => {
-					if (err)
-						console.log("Err GenMod-ing: ", err);
-					this.Vlt.PlaneViewPid = pidapx;
-					console.log("The pid is ", this.Vlt.PlaneViewPid);
+				// this.genModule({
+				// 	"Module": "xSDE:3V/SystemView",
+				// 	"Par": this.Par.ForPlaneView
+				// }, (err, pidapx) => {
+				// 	if (err)
+				// 		console.log("Err GenMod-ing: ", err);
+				// 	this.Vlt.PlaneViewPid = pidapx;
+				// 	console.log("The pid is ", this.Vlt.PlaneViewPid);
+				// });
+				this.send({Cmd: "GetMap"}, this.Par.Source, (err, com)=>{
+					Vlt.Map = com.Map;
+					getMouse();
 				});
-				getMouse();
 			}
 
 
