@@ -115,7 +115,7 @@
 				return;
 			}
 			console.log('..connect', r);
-			var net = this.require('net');
+			var net = that.require('net');
 			var err;
 			var tmp = new Buffer(2);
 			var STX = 2;
