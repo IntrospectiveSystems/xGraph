@@ -18,7 +18,7 @@
 				// debugger;
 				function parseView(view, fun) {
 					if (typeof view == 'string') {
-						console.log('PID ' + view);
+						// console.log('PID ' + view);
 						fun(view);
 					} else {
 						let basePid = view.View;
@@ -33,8 +33,8 @@
 							});
 						}, function() {
 							//done adding children
-							console.log('PID ' + basePid);
-							console.log('DAT WAY');
+							// console.log('PID ' + basePid);
+							// console.log('DAT WAY');
 							fun(basePid);
 						});
 					}
