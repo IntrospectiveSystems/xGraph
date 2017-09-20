@@ -311,6 +311,6 @@
 		}
 	}
 
-	return Viewify(Panel);
+	return Viewify(Panel, "3.1");
 
 })();

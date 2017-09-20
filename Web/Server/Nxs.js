@@ -32,7 +32,7 @@ __Nexus = (function() {
 	__Config = {};
 	__Config.TrackIO = false;
 	__Share = {};
-	let silent = false;
+	let silent = true;
 
 	return {
 		start: start,
@@ -151,7 +151,7 @@ __Nexus = (function() {
         var str = JSON.stringify(com);
         if(__Config.TrackIO)
 			console.log(' >> Msg:' + com.Cmd);
-		console.log(str)
+		if (!(silent)) console.log(str)
         SockIO.send(str);
 
 		// function sendLocal() {
@@ -372,19 +372,19 @@ __Nexus = (function() {
 
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
-		console.log('..addModule');
-		console.log(JSON.stringify(mod, null, 2));
+		if (!(silent)) console.log('..addModule');
+		if (!(silent))console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
 		var q = {};
 		let modjson = null
 		q.Cmd = 'GetModule';
 		q.Module = mod.Module;
-		console.log(q);
+		if (!(silent)) console.log(q);
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
-			console.log('..addmod');
+			//console.log('..addmod');
 			var module = r.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){

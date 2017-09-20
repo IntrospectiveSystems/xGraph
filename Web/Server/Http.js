@@ -190,7 +190,7 @@
 	// browsers that have subscribed
 	function Publish(com, fun) {
 		// debugger;
-	//	console.log('--Publish', com.Cmd);
+		// console.log('--Publish', com.Cmd);
 		fun = fun || (() => {});
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;

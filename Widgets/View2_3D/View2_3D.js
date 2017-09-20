@@ -13,11 +13,11 @@
 		DispatchEvent
 	};
 
-	return Viewify(dispatch);
+	return Viewify(dispatch, "3.1");
 
 	function UpdateCanvas(com,fun){
-		console.log("Canvas Update\n\n\n\n");
-		debugger;
+		//console.log("Canvas Update\n\n\n\n");
+		//debugger;
 		let width = com.width || com.canvas.width;
 		let height = com.height || com.canvas.height;
 
@@ -41,13 +41,12 @@
 			width / 2, -height / 2, 0,
 			width / 2, height / 2, 0
 		]);
-		console.log(this.Vlt.vertices)
+		//console.log(this.Vlt.vertices)
 		//this.Vlt.material.needsUpdate = true;
 		this.Vlt.geometry.attributes.position.needsUpdate = true;
 		this.Vlt.geometry.needsUpdate = true;
 
 		this.Vlt.texture.needsUpdate = true;
-
 	}
 
 	function Setup(com, fun) {
@@ -128,30 +127,20 @@
 	}
 
 	function Start(com, fun) {
-		//debugger;
 		this.super(com, (err, cmd) => {
+			console.log('--View2_3D/Start');			
 			let that= this;
+			var Par = that.Par;
+			var Vault = that.Vlt;
+			var View = that.Vlt.View;
 			if ("SystemView2D" in this.Par || "Terrain"in this.Par){
 				this.Vlt.PlaneViewPid= this.Par.SystemView2D;
-				getMouse();
+				getMouse(getCanvas, fun);
 			}else {
-				// this.genModule({
-				// 	"Module": "xSDE:3V/SystemView",
-				// 	"Par": this.Par.ForPlaneView
-				// }, (err, pidapx) => {
-				// 	if (err)
-				// 		console.log("Err GenMod-ing: ", err);
-				// 	this.Vlt.PlaneViewPid = pidapx;
-				// 	console.log("The pid is ", this.Vlt.PlaneViewPid);
-				// });
-				this.send({Cmd: "GetMap"}, this.Par.Source, (err, com)=>{
-					Vlt.Map = com.Map;
-					getMouse();
-				});
+				getMouse(getMap,fun);
 			}
 
-
-			function getMouse(){
+			function getMouse(next, done){
 				that.genModule({
 					"Module": 'xGraph:Widgets/Mouse',
 					"Par": {
@@ -162,12 +151,87 @@
 					that.Vlt.MousePid = pidApex;
 					that.send({ Cmd: "SetDomElement", "DomElement": that.Vlt.View.Renderer.domElement }, that.Vlt.MousePid, (err, cmd) => {
 						console.log("GenModed the Mouse and set the DomElement");
-						getCanvas();
+						if (next) 
+							next(done);
+						else 
+							done(null, com);
 					});
 				});
 			}
 
-			function getCanvas(){
+			function getMap(func){
+				that.send({Cmd: "GetMap"}, that.Par.Source, (err, com)=>{
+					var zipmod = new JSZip();
+					zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){						
+						zip.file('map').async('string').then(function(str) {
+							Vault.PNG = str;
+							Vault.Map = com.Map;
+							debugger;
+
+							let width = 48;
+							let height = 48;
+		
+							Vault.geometry = new THREE.BufferGeometry();
+		
+							Vault.vertices = new Float32Array([
+								-width / 2, -height / 2, 0,
+								-width / 2, height / 2, 0,
+								width / 2, -height / 2, 0,
+					
+								-width / 2, height / 2, 0,
+								width / 2, -height / 2, 0,
+								width / 2, height / 2, 0
+							]);
+		
+							var uvs = new Float32Array([
+								0,0,
+								0,1,
+								1,0,
+								
+								0,1,
+								1,0,
+								1,1
+							]);
+		
+							Vault.geometry.addAttribute('position', new THREE.BufferAttribute(Vault.vertices, 3));
+							Vault.geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+							Vault.geometry.dynamic=true;
+							Vault.geometry.needsUpdate = true;
+
+							
+							var image = document.createElement('img');
+							image.height = 4096;
+							image.width = 4096;
+							image.src = `data:image/png;base64,${Vault.PNG}`;
+							document.body.appendChild(image);
+							Vault.texture = new THREE.Texture();
+							Vault.texture.image = image;
+							image.onload = function() {
+								Vault.texture.needsUpdate = true;
+							};
+
+							Vault.material = new THREE.MeshBasicMaterial({map: Vault.texture, side:THREE.DoubleSide});
+							Vault.material.transparent=true;
+							Vault.material.needsUpdate=true;
+
+							var plane = new THREE.Mesh(Vault.geometry, Vault.material);
+							View.Scene.add(plane);
+
+							renderLoop();
+							if (func)
+								func(null, com);
+							
+							//-----------------------------------------------------Render
+							function renderLoop() {
+								View.Renderer.render(View.Scene, View.Camera);
+								requestAnimationFrame(renderLoop);
+							}
+						});
+					});
+				});
+			}
+
+			function getCanvas(func){
 				let dest = that.Vlt.PlaneViewPid || that.Par.Terrain;
 				that.send({ Cmd: "GetCanvas", pid: that.Par.Pid }, dest, (err, com) => {
 					if (err)
@@ -176,27 +240,24 @@
 						that.Vlt.terrainDiv = com.Div;
 						that.Vlt.div.append(that.Vlt.terrainDiv);
 						that.Vlt.terrainDiv.css("position", "absolute");
-						that.Vlt.terrainDiv.css("left", `${2*($(window).width() + com.Div.width())}px`);
-					}	
+						that.Vlt.terrainDiv.css("left", `-${2*($(window).width() + com.Div.width())}px`);
+					}
 					let canvas = com.canvas;
 					that.Vlt.PlaneView = canvas;
-					console.log(canvas);
 
-					console.log('--View2_3D/Start');
-					var Par = that.Par;
-					var Vault = that.Vlt;
-					var View = that.Vlt.View;
+					let width = com.width || com.canvas.width;
+					let height = com.height || com.canvas.height;
 
 					Vault.geometry = new THREE.BufferGeometry();
 
 					Vault.vertices = new Float32Array([
-						-canvas.clientWidth / 2, -canvas.clientHeight / 2, 0,
-						-canvas.clientWidth / 2, canvas.clientHeight / 2, 0,
-						canvas.clientWidth / 2, -canvas.clientHeight / 2, 0,
-
-						-canvas.clientWidth / 2, canvas.clientHeight / 2, 0,
-						canvas.clientWidth / 2, -canvas.clientHeight / 2, 0,
-						canvas.clientWidth / 2, canvas.clientHeight / 2, 0
+						-width / 2, -height / 2, 0,
+						-width / 2, height / 2, 0,
+						width / 2, -height / 2, 0,
+			
+						-width / 2, height / 2, 0,
+						width / 2, -height / 2, 0,
+						width / 2, height / 2, 0
 					]);
 
 					var uvs = new Float32Array([
@@ -226,8 +287,8 @@
 
 					
 					renderLoop();
-					if (fun)
-						fun(null, com);
+					if (func)
+						func(null, com);
 					
 					//-----------------------------------------------------Render
 					function renderLoop() {
