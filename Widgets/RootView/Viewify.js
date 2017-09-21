@@ -102,6 +102,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			// debugger;
 			
 		}
+
+		valueOf() {
+			return (this.major * 1e6) + (this.minor * 1e3) + (this.patch);
+		}
 	}
 
 	const version = new SemVer(versionString);
@@ -395,12 +399,15 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		AttachDragListener(com, fun) {
 			let that = this;
-			let root = com.To;
-			let data = com.Data;
-			let datatype = com.Datatype;
+			let root = com.To || (console.log('com.To: <Native HTMLElement> is required!'));
+			if(!com.To) return fun('com.To: <Native HTMLElement> is required!', com);
+			let data = com.Data || {};
+			let datatype = com.Datatype || "HTMLElement";
 			// debugger;
 			$(root).attr('draggable', 'true');
-			let createDragDom = com.CreateDragDom || function () {
+			let createDragDom;
+			if(version > new SemVer('3.1')) createDragDom = com.CreateDragDom || null;
+			else createDragDom = com.CreateDragDom || function () {
 				div = $(document.createElement('div'));
 				div.css('width', '200px');
 				div.css('height', '200px');
@@ -411,49 +418,86 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let div;
 			root.addEventListener('dragstart', function (evt) {
 				// debugger;
-				console.log(evt.dataTransfer.setDragImage(emptyImage(), 0, 0));
-				event = evt;
-				// debugger;
-				div = createDragDom();
+				if(createDragDom) {
+					console.log(evt.dataTransfer.setDragImage(emptyImage(), 0, 0));
+					div = createDragDom();
 
-				div.css('pointer-events', 'none');
-				div.css('opacity', '.6');
-				div.css('position', 'fixed');
-				div.css('top', (evt.pageY + 20) + 'px');
-				div.css('left', (evt.pageX - (div.width() / 2)) + 'px');
-				$(document.body).append(div);
-
+					event = evt;
+					// debugger;
+					div.css('pointer-events', 'none');
+					div.css('opacity', '.6');
+					div.css('position', 'fixed');
+					div.css('top', (evt.pageY + 20) + 'px');
+					div.css('left', (evt.pageX - (div.width() / 2)) + 'px');
+					$(document.body).append(div);
+				}
 			});
 			root.addEventListener('drag', function (evt) {
-				console.log("DRAG!");
-				let pivotX = (div.width() / 2);
-				let pivotY = 20;
-				div.css('top', (evt.pageY + pivotY) + 'px');
-				div.css('left', (evt.pageX - pivotX) + 'px');
+				console.log("DRAG!", evt.pageX, evt.pageY);
+				if(evt.pageX == 0 && evt.pageY == 0) {
+					// console.log('RIDICULOUS');
+					return;
+				}
+				if(div) {
+					let pivotX = (div.width() / 2);
+					let pivotY = 20;
+					div.css('top', (evt.pageY + pivotY) + 'px');
+					div.css('left', (evt.pageX - pivotX) + 'px');
+				}
 			});
 			root.addEventListener('dragend', function (evt) {
-				div.remove();
-				console.log('LOOKING FOR ');
+				if(div)
+					div.remove();
+				// console.log('LOOKING FOR ');
 
 				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
-				while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
-					elem = elem.parent();
+				if(version > new SemVer('3.1')) {
+					// console.log('new thing');
+					while(elem.hasClass('dropArea') == null) {
+						elem = elem.parent();
+					}
+
+					let dropArea = elem;
+
+					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+						elem = elem.parent();
+					}
+					if (elem.attr('viewpid') == undefined) return;
+					let viewpid = elem.attr('viewpid');
+					that.send({
+						Cmd: "Drop",
+						Data: data,
+						Datatype: datatype,
+						PageX: evt.pageX,
+						PageY: evt.pageY,
+						DropArea: dropArea,
+						DivX: evt.pageX - elem.position().left,
+						DivY: evt.pageY - elem.position().top
+					}, viewpid, () => { });
+
+				} else {
+					// console.log('old thing');
+					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+						elem = elem.parent();
+					}
+					if (elem.attr('viewpid') == undefined) return;
+					let viewpid = elem.attr('viewpid');
+					that.send({
+						Cmd: "Drop",
+						Data: data,
+						Datatype: datatype,
+						PageX: evt.pageX,
+						PageY: evt.pageY,
+						DivX: evt.pageX - elem.position().left,
+						DivY: evt.pageY - elem.position().top
+					}, viewpid, () => { });
 				}
+				
 
-				if (elem.attr('viewpid') == undefined) return;
-				let viewpid = elem.attr('viewpid');
-
-				that.send({
-					Cmd: "Drop",
-					Data: data,
-					Datatype: datatype,
-					PageX: evt.pageX,
-					PageY: evt.pageY,
-					DivX: evt.pageX - elem.position().left,
-					DivY: evt.pageY - elem.position().top
-				}, viewpid, () => { });
 
 			});
+
+			fun(null, com);
 
 		}
 
