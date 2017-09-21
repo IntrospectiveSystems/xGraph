@@ -5,7 +5,8 @@
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
-		SetPosition: SetPosition,
+		SetCamera,
+		SetUnit,
 		DOMLoaded: DOMLoaded,
 		Resize:Resize,
 		Render,
@@ -22,31 +23,29 @@
 		let height = com.height || com.canvas.height;
 
 		let canvas = com.canvas;
-
-		// //let ctx = canvas.getContext('2d');
-		
-		// console.log(canvas.width, canvas.height);
-		// let newWidth = nextHighestPowerOfTwo(canvas.width);
-		// let newHeight = nextHighestPowerOfTwo(canvas.height);
-		// console.log(newWidth,newHeight);
-		// canvas.scale(newWidth/canvas.width, newHeight,canvas.height);
 		
 		this.Vlt.PlaneView = canvas;
 		this.Vlt.vertices = new Float32Array([
-			-width / 2, -height / 2, 0,
-			-width / 2, height / 2, 0,
-			width / 2, -height / 2, 0,
+			0, 0, 0,
+			0, height, 0,
+			width,0, 0,
 
-			-width / 2, height / 2, 0,
-			width / 2, -height / 2, 0,
-			width / 2, height / 2, 0
+			0, height, 0,
+			width, 0, 0,
+			width, height, 0
 		]);
-		//console.log(this.Vlt.vertices)
-		//this.Vlt.material.needsUpdate = true;
 		this.Vlt.geometry.attributes.position.needsUpdate = true;
 		this.Vlt.geometry.needsUpdate = true;
 
 		this.Vlt.texture.needsUpdate = true;
+	}
+
+	function SetCamera(com, fun){
+		console.log(this.Par.View, "SetCamera");
+		this.Vlt.SharedCamera = true;
+		this.Vlt.View.Camera = com.Camera;
+		this.Vlt.View.Focus = com.Focus;
+		fun(null, com);
 	}
 
 	function Setup(com, fun) {
@@ -80,6 +79,10 @@
 			View.Ambient = new THREE.AmbientLight(0x808080);
 			View.Scene.add(View.Ambient);
 
+			let axes = new THREE.AxisHelper(100);
+			axes.position.z = 0.01;
+			View.Scene.add(axes);
+
 			View.Camera.position.x = 0;
 			View.Camera.position.y = 0;
 			View.Camera.position.z = 100;
@@ -105,10 +108,11 @@
 
 	function Render(com, fun){
 		if (this.Vlt.MousePid){
-			//debugger;
-			this.send({ Cmd: "SetDomElement", "DomElement": this.Vlt.View.Renderer.domElement }, this.Vlt.MousePid, (err, cmd) => {
+			this.send({ 
+				Cmd: "SetDomElement", "DomElement": 
+				this.Vlt.View.Renderer.domElement 
+			}, this.Vlt.MousePid, (err, cmd) => {
 				console.log("Reappended listeners");
-			
 				this.super(com, fun);
 			});
 		}else{
@@ -133,11 +137,41 @@
 			var Par = that.Par;
 			var Vault = that.Vlt;
 			var View = that.Vlt.View;
-			if ("SystemView2D" in this.Par || "Terrain"in this.Par){
-				this.Vlt.PlaneViewPid= this.Par.SystemView2D;
-				getMouse(getCanvas, fun);
-			}else {
-				getMouse(getMap,fun);
+
+			if ("ShareDispatch" in Par && (!("SharedCamera" in Vault))){
+				for (let i = 0;i< Par.ShareDispatch.length;i++){
+					this.send({
+						Cmd:"SetCamera", 
+						"Camera": View.Camera,
+						"Focus": View.Focus
+					}, Par.ShareDispatch[i],(err, com) =>{
+						if ("SystemView2D" in this.Par || "Terrain"in this.Par){
+							this.Vlt.PlaneViewPid= this.Par.SystemView2D;
+							getMouse(getCanvas, fun);
+						}else {
+							getMouse(getMap,fun);
+						}
+						
+						renderLoop();
+					});
+				}
+			}else{
+				if ("SystemView2D" in this.Par || "Terrain"in this.Par){
+					this.Vlt.PlaneViewPid= this.Par.SystemView2D;
+					getMouse(getCanvas, fun);
+				}else {
+					getMouse(getMap,fun);
+				}
+				
+				renderLoop();
+			}
+
+			
+			
+			//-----------------------------------------------------Render
+			function renderLoop() {
+				View.Renderer.render(View.Scene, View.Camera);
+				requestAnimationFrame(renderLoop);
 			}
 
 			function getMouse(next, done){
@@ -160,50 +194,39 @@
 			}
 
 			function getMap(func){
-				that.send({Cmd: "GetMap"}, that.Par.Source, (err, com)=>{
+				that.send({Cmd: "GetMap", "View":Par.View, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
 					var zipmod = new JSZip();
 					zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){						
 						zip.file('map').async('string').then(function(str) {
 							Vault.PNG = str;
 							Vault.Map = com.Map;
-							debugger;
+							//debugger;
+							Vault.width = com.Width;
+							Vault.height = com.Height;
+							Vault.Elevation = com.Elevation;
 
-							let width = 48;
-							let height = 48;
-		
-							Vault.geometry = new THREE.BufferGeometry();
-		
-							Vault.vertices = new Float32Array([
-								-width / 2, -height / 2, 0,
-								-width / 2, height / 2, 0,
-								width / 2, -height / 2, 0,
-					
-								-width / 2, height / 2, 0,
-								width / 2, -height / 2, 0,
-								width / 2, height / 2, 0
-							]);
-		
-							var uvs = new Float32Array([
-								0,0,
-								0,1,
-								1,0,
-								
-								0,1,
-								1,0,
-								1,1
-							]);
-		
-							Vault.geometry.addAttribute('position', new THREE.BufferAttribute(Vault.vertices, 3));
-							Vault.geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+							let width = com.Width;
+							let height = com.Height;
+							Vault.View.Focus = new THREE.Vector3(width/2, height/2, 0.0);
+
+							Vault.geometry = new THREE.PlaneGeometry(width, height, width-1, height-1);
+							
+							// add in the known elevations
+							for (var i = 0, l = Vault.geometry.vertices.length; i < l; i++) {
+								let row = Math.floor(i/com.Width);
+								let col = i - row*com.Width;
+								let idx = (com.Height - row)*com.Width+col;
+								Vault.geometry.vertices[i].z = com.Elevation[idx];
+							}
+
 							Vault.geometry.dynamic=true;
 							Vault.geometry.needsUpdate = true;
 
-							
 							var image = document.createElement('img');
-							image.height = 4096;
-							image.width = 4096;
+							image.height = 2048;
+							image.width = 2048;
 							image.src = `data:image/png;base64,${Vault.PNG}`;
-							document.body.appendChild(image);
+
 							Vault.texture = new THREE.Texture();
 							Vault.texture.image = image;
 							image.onload = function() {
@@ -215,17 +238,22 @@
 							Vault.material.needsUpdate=true;
 
 							var plane = new THREE.Mesh(Vault.geometry, Vault.material);
+							plane.position.x = width/2;
+							plane.position.y = height/2;
+
 							View.Scene.add(plane);
 
-							renderLoop();
+
+							//the ocean of abyss
+							let geo = new THREE.PlaneGeometry(2*width, 2*height, (2*width)-1, (2*height)-1);
+							let mat = new THREE.MeshBasicMaterial({color:0xBEDCF7,side:THREE.DoubleSide});
+							let ocean = new THREE.Mesh(geo, mat);
+							ocean.position.x = width/2;
+							ocean.position.y = height/2;
+							View.Scene.add(ocean);
+							
 							if (func)
 								func(null, com);
-							
-							//-----------------------------------------------------Render
-							function renderLoop() {
-								View.Renderer.render(View.Scene, View.Camera);
-								requestAnimationFrame(renderLoop);
-							}
 						});
 					});
 				});
@@ -248,16 +276,18 @@
 					let width = com.width || com.canvas.width;
 					let height = com.height || com.canvas.height;
 
+					Vault.View.Focus = new THREE.Vector3(width/2, height/2, 0.0);
+					
 					Vault.geometry = new THREE.BufferGeometry();
-
+							
 					Vault.vertices = new Float32Array([
-						-width / 2, -height / 2, 0,
-						-width / 2, height / 2, 0,
-						width / 2, -height / 2, 0,
+						0, 0, 0,
+						0, height, 0,
+						width,0, 0,
 			
-						-width / 2, height / 2, 0,
-						width / 2, -height / 2, 0,
-						width / 2, height / 2, 0
+						0, height, 0,
+						width, 0, 0,
+						width, height, 0
 					]);
 
 					var uvs = new Float32Array([
@@ -285,57 +315,68 @@
 					var plane = new THREE.Mesh(Vault.geometry, Vault.material);
 					View.Scene.add(plane);
 
-					
-					renderLoop();
 					if (func)
 						func(null, com);
 					
-					//-----------------------------------------------------Render
-					function renderLoop() {
-						View.Renderer.render(View.Scene, View.Camera);
-						requestAnimationFrame(renderLoop);
-					}
 				});
 			}
 		});
 	}
-	
-	function nextHighestPowerOfTwo(x) {
-		--x;
-		for (var i = 1; i < 32; i <<= 1) {
-			x = x | x >> i;
-		}
-		return x + 1;
-	}
 
-	//-------------------------------------------------SetPosition
-	function SetPosition(com, fun) {
-		//	console.log('--SetPositon');
-		var Par = this.Par;
-		var View = this.Vlt.div.data('View');
-		obj3d = View.Inst[com.Instance];
-		if ('Instance' in com) {
-			if (obj3d) {
-				if ('Position' in com) {
-					var pos = com.Position;
-					obj3d.position.x = pos[0];
-					obj3d.position.y = pos[1];
-					obj3d.position.z = pos[2];
+	function SetUnit(com, fun){
+		//debugger;
+		let unit = com.Unit;
+		let geom, mesh, obj;
+		obj = this.Vlt.View.Scene.getObjectByName( "unit.Pid" );
+
+		if (!obj){
+			switch(unit.ally){
+				
+				case -1:{
+					geom = new THREE.SphereGeometry(1, 64,64);
+					mesh = new THREE.MeshBasicMaterial({color:0xff0000});
+					break;
 				}
-				if ('Axis' in com && 'Angle' in com) {
-					var axis = new THREE.Vector3(...com.Axis);
-					var angle = Math.PI * com.Angle / 180.0;
-					obj3d.setRotationFromAxisAngle(axis, angle);
+
+				case 1:{
+					geom = new THREE.SphereGeometry(1, 64,64);
+					mesh = new THREE.MeshBasicMaterial({color:0x0000ff});
+					break;
+				}
+
+				case 0:{
+					geom = new THREE.TetrahedronGeometry();
+					mesh = new THREE.MeshBasicMaterial({color:0x00ff00});
+					break;
+				}
+
+				default: {
+					console.log("Unknown unit type");
 				}
 			}
+			obj = new THREE.Mesh(geom,mesh);
+			obj.name = unit.Pid;
 		}
-		if (fun)
-			fun(null, com);
+		//var object = scene.getObjectByName( "objectName" );
+		obj.position.y = Math.round(unit.y);
+		obj.position.x = Math.round(unit.x);
+		obj.position.z = this.Vlt.Elevation[Math.round(unit.y)*this.Vlt.height+Math.round(unit.x)];
+		this.Vlt.View.Scene.add(obj);
 	}
 
 
 	//-----------------------------------------------------Dispatch
-	function DispatchEvent(com, fun) {
+	function DispatchEvent(com) {
+		//debugger;
+		// if ((!com.Shared) && ("ShareDispatch" in this.Par)){
+			
+		// 	let q=JSON.parse(JSON.stringify(com));
+
+		// 	q.Shared = true;
+		// 	for (let i = 0;i< this.Par.ShareDispatch.length;i++){
+		// 		this.send(q, this.Par.ShareDispatch[i]);
+		// 	}
+		// }
 		// console.log("--ThreeJsView/DispatchEvent", com.info.Action);
 		let info = com.info;
 		let Vlt = this.Vlt;
@@ -358,8 +399,8 @@
 			info = mouseRay(info, Vlt);
 		if ('Type' in info)
 			key += '.' + info.Type;
-		if ('Key' in info)
-			key += '.' + info.Key;
+		if ('CharKey' in info)
+			key += '.' + info.CharKey;
 		info.Key = key;
 		console.log(this.Par.View, 'Dispatch', key);
 		if (key in dispatch) {
@@ -384,7 +425,7 @@
 	function mouseRay(info,Vlt) {
 		//var info = {};
 		console.log(info.Mouse)
-		let View=Vlt.div.data("View");
+		let View=Vlt.View;
 		View.Ray.precision = 0.00001;
 		container = Vlt.div[0];
 		var w = container.clientWidth;

@@ -1,4 +1,3 @@
-
 (function () {
 	var fs = require('fs');
 	var Path = require('path');

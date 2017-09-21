@@ -32,7 +32,7 @@
 			let info = {};			
 			info.Action = 'MouseLeave';
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
-			evt.stopPropagation();
+			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
 		domElement.on("wheel", (evt) =>{
@@ -42,7 +42,7 @@
 			info.Action = 'Wheel';
 			info.Factor = fac;
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
-			evt.stopPropagation();
+			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
 		domElement.on("mousedown", (evt) => {
@@ -62,7 +62,7 @@
 					return;
 			}
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
-			evt.stopPropagation();
+			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
 		domElement.on("mousemove", (evt) =>{
@@ -72,7 +72,7 @@
 			info.Mouse.x = evt.clientX;
 			info.Mouse.y = evt.clientY;
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
-			evt.stopPropagation();
+			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
 		domElement.on("mouseup", (evt) => {
@@ -88,13 +88,13 @@
 					return;
 			}
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
-			evt.stopPropagation();
+			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
 		domElement.on("keydown", (evt) =>{
 			let info = {};			
 			info.Action = 'keydown';
-			info.Key = evt.key;
+			info.CharKey = evt.key;
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
 		});
 

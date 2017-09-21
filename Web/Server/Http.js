@@ -143,7 +143,7 @@
 					// debugger;
 					//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
-						// debugger;
+						debugger;
 						that.Vlt.messages[com.Passport.Pid](null, com)
 						return;
 					}
@@ -189,7 +189,7 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
-		// debugger;
+		//debugger;
 		// console.log('--Publish', com.Cmd);
 		fun = fun || (() => {});
 		var Vlt = this.Vlt;
