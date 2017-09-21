@@ -325,43 +325,47 @@
 
 	function SetUnit(com, fun){
 		//debugger;
-		let unit = com.Unit;
-		let geom, mesh, obj;
-		obj = this.Vlt.View.Scene.getObjectByName( "unit.Pid" );
+		for (let i = 0;i<com.Unit.length;i++){
+			let unit = com.Unit[i][1];
+			//debugger;
+			let geom, mesh, obj;
+			obj = this.Vlt.View.Scene.getObjectByName( "unit.Pid" );
 
-		if (!obj){
-			switch(unit.ally){
-				
-				case -1:{
-					geom = new THREE.SphereGeometry(1, 64,64);
-					mesh = new THREE.MeshBasicMaterial({color:0xff0000});
-					break;
-				}
+			if (!obj){
+				switch(unit.ally){
+					
+					case -1:{
+						geom = new THREE.SphereGeometry(1, 64,64);
+						mesh = new THREE.MeshBasicMaterial({color:0xff0000});
+						break;
+					}
 
-				case 1:{
-					geom = new THREE.SphereGeometry(1, 64,64);
-					mesh = new THREE.MeshBasicMaterial({color:0x0000ff});
-					break;
-				}
+					case 1:{
+						geom = new THREE.SphereGeometry(1, 64,64);
+						mesh = new THREE.MeshBasicMaterial({color:0x0000ff});
+						break;
+					}
 
-				case 0:{
-					geom = new THREE.TetrahedronGeometry();
-					mesh = new THREE.MeshBasicMaterial({color:0x00ff00});
-					break;
-				}
+					case 0:{
+						geom = new THREE.TetrahedronGeometry();
+						mesh = new THREE.MeshBasicMaterial({color:0x00ff00});
+						break;
+					}
 
-				default: {
-					console.log("Unknown unit type");
+					default: {
+						console.log("Unknown unit type");
+					}
 				}
+				obj = new THREE.Mesh(geom,mesh);
+				obj.name = unit.Pid;
 			}
-			obj = new THREE.Mesh(geom,mesh);
-			obj.name = unit.Pid;
+			//var object = scene.getObjectByName( "objectName" );
+			obj.position.y = Math.round(unit.y);
+			obj.position.x = Math.round(unit.x);
+			if ("Elevation" in this.Vlt)
+				obj.position.z = this.Vlt.Elevation[Math.round(unit.y)*this.Vlt.height+Math.round(unit.x)];
+			this.Vlt.View.Scene.add(obj);
 		}
-		//var object = scene.getObjectByName( "objectName" );
-		obj.position.y = Math.round(unit.y);
-		obj.position.x = Math.round(unit.x);
-		obj.position.z = this.Vlt.Elevation[Math.round(unit.y)*this.Vlt.height+Math.round(unit.x)];
-		this.Vlt.View.Scene.add(obj);
 	}
 
 
@@ -402,7 +406,7 @@
 		if ('CharKey' in info)
 			key += '.' + info.CharKey;
 		info.Key = key;
-		console.log(this.Par.View, 'Dispatch', key);
+		//console.log(this.Par.View, 'Dispatch', key);
 		if (key in dispatch) {
 			var proc = dispatch[key];
 			proc(info, Vlt);
@@ -424,7 +428,7 @@
 	//-----------------------------------------------------mouseRay
 	function mouseRay(info,Vlt) {
 		//var info = {};
-		console.log(info.Mouse)
+		//console.log(info.Mouse)
 		let View=Vlt.View;
 		View.Ray.precision = 0.00001;
 		container = Vlt.div[0];
@@ -437,7 +441,7 @@
 		var hits = View.Ray.intersectObjects(View.Scene.children, true);
 		var hit;
 		var obj;
-		console.log('Hits length is', hits);
+		//console.log('Hits length is', hits);
 		for (var i = 0; i < hits.length; i++) {
 			hit = hits[i];
 			obj = hit.object;
@@ -491,7 +495,7 @@
 			dispatch[info.Key]();
 
 		function start() {
-			console.log('..select/start', info);
+			//console.log('..select/start', info);
 			var mouse = View.Mouse;
 			mouse.Mode = 'Select1';
 			mouse.x = info.Mouse.x;
@@ -639,7 +643,7 @@
 		}
 
 		function stop() {
-			console.log('..Rotate/stop', info.Key);
+			//console.log('..Rotate/stop', info.Key);
 			//var Vlt = View;
 			Vlt.Mouse.Mode = 'Idle';
 		}
