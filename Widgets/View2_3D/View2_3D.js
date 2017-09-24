@@ -51,7 +51,8 @@
 	function Setup(com, fun) {
 		this.super(com, (err, cmd) => {
 			console.log('--View2_3D/Setup');
-			
+			this.Vlt.testBool = false;
+
 			var that = this;
 			var Vlt = this.Vlt;
 			var Par = this.Par;
@@ -324,13 +325,18 @@
 	}
 
 	function SetUnit(com, fun){
-		//debugger;
+		//console.log("Set Unit length ", com.Unit.length);
+		// if (this.Vlt.testBool)
+		// debugger;
+		// else this.Vlt.testBool=true;
 		for (let i = 0;i<com.Unit.length;i++){
+			//console.log(`processing unit ${i}`);
 			let unit = com.Unit[i][1];
-			//debugger;
+			
 			let geom, mesh, obj;
-			obj = this.Vlt.View.Scene.getObjectByName( "unit.Pid" );
-
+			obj = this.Vlt.View.Scene.getObjectByName( unit.tag );
+			
+			
 			if (!obj){
 				switch(unit.ally){
 					
@@ -357,13 +363,21 @@
 					}
 				}
 				obj = new THREE.Mesh(geom,mesh);
-				obj.name = unit.Pid;
+				obj.name = unit.tag;
 			}
+			else if (unit.state =="destroyed"){
+				debugger;
+				this.Vlt.View.Scene.remove(obj);
+				continue;
+			}
+			
 			//var object = scene.getObjectByName( "objectName" );
 			obj.position.y = Math.round(unit.y);
 			obj.position.x = Math.round(unit.x);
-			if ("Elevation" in this.Vlt)
-				obj.position.z = this.Vlt.Elevation[Math.round(unit.y)*this.Vlt.height+Math.round(unit.x)];
+			// if (obj.position.z || "Elevation" in this.Vlt){
+			// 	obj.position.z = obj.position.z || this.Vlt.Elevation[Math.round(unit.y)*this.Vlt.height+Math.round(unit.x)];
+			// }
+			obj.position.z = 1;
 			this.Vlt.View.Scene.add(obj);
 		}
 	}
