@@ -25,32 +25,14 @@
 			this.Vlt.View = {};
 			let Vew = this.Vlt.View;
 		
-			Vew.Renderer = PIXI.autoDetectRenderer(64, 64, { "antialias": true });
+			Vew.Renderer = PIXI.autoDetectRenderer(128, 128, { "antialias": true });
 			div.append($(Vew.Renderer.view));
 
 			Vew.Stage = new PIXI.Container();
 
 			Vew.Renderer.backgroundColor = 0xA2A2A2;
 
-
-
-
-			let ob = new PIXI.Graphics();
-			ob.position.set(50,50);
-			// set a fill and line style
-			ob.beginFill(0xFF0000);
-			// set a fill and a line style again and draw a rectangle
-			ob.drawCircle(0, 0, 30);
-			ob.endFill();
-		
-			Vew.Stage.addChild(ob);
-			Vew.Renderer.render(Vew.Stage);
 			
-
-
-
-
-
 			renderLoop();
 
 			if (fun) {
@@ -70,24 +52,28 @@
 	function Start(com, fun) {
 		console.log("--PixiView/Start");
 		let Vew = this.Vlt.View;
+		let Par = this.Par;
 		let that = this;
 
-		let ob = new PIXI.Graphics();
-		ob.position.set(50,50);
-		// set a fill and line style
-		ob.beginFill(0xFF0000);
-		// set a fill and a line style again and draw a rectangle
-		ob.drawCircle(0, 0, 30);
-		ob.endFill();
-	
-		Vew.Stage.addChild(ob);
-
-		if ("WorldPid" in that.Vlt)
-			that.send({ Cmd: "UpdateCanvas", canvas: Vew.Renderer.view}, that.Vlt.WorldPid, ()=>{});
-
-		if (fun)
-			fun(null, com);
+		that.send({Cmd: "GetBotData", "View":Par.View, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
+			debugger;
 			
+			let ob = new PIXI.Graphics();
+			ob.position.set(50,50);
+			// set a fill and line style
+			ob.beginFill(0xFF0000);
+			// set a fill and a line style again and draw a rectangle
+			ob.drawCircle(0, 0, 30);
+			ob.endFill();
+		
+			Vew.Stage.addChild(ob);
+
+			if ("WorldPid" in that.Vlt)
+				that.send({ Cmd: "UpdateCanvas", canvas: Vew.Renderer.view}, that.Vlt.WorldPid, ()=>{});
+
+			if (fun)
+				fun(null, com);
+		});
 	}
 
 

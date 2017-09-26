@@ -195,7 +195,7 @@
 			}
 
 			function getMap(func){
-				that.send({Cmd: "GetMap", "View":Par.View, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
+				that.send({Cmd: "GetBaseData", "View":Par.View, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
 					var zipmod = new JSZip();
 					zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){						
 						zip.file('map').async('string').then(function(str) {
