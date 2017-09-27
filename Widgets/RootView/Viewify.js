@@ -1,6 +1,21 @@
 //# sourceURL=Viewify.js
 // debugger;
 
+md5 = function(){
+		var k = [], i = 0;
+		for(; i < 64; ) k[i] = 0|(Math.abs(Math.sin(++i)) * 4294967296);
+		function calcMD5(str){ var b, c, d, j, x = [], str2 = unescape(encodeURI(str)),
+			a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
+			for(; i <= a; ) x[i >> 2] |= (str2.charCodeAt(i)||128) << 8 * (i++ % 4);
+			x[str = (a + 8 >> 6) * 16 + 14] = a * 8; i = 0; for(; i < str; i += 16){
+				a = h; j = 0; for(; j < 64; ) a = [ d = a[3], ((b = a[1]|0) + ((d = ((a[0] +
+					[b & (c = a[2]) | ~b&d,d & b | ~d & c,b ^ c ^ d,c ^ (b | ~d)][a = j >> 4])
+					+ (k[j] + (x[[j, 5 * j + 1, 3 * j + 5, 7 * j][a] % 16 + i]|0)))) << (a = [
+					7, 12, 17, 22, 5,  9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
+					]) | d >>> 32 - a)), b, c]; for(j = 4; j; ) h[--j] = h[j] + a[j]; } str = '';
+			for(; j < 32; ) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
+			return str;} return calcMD5; }();
+
 // DIV, IMG, and STYLE are shorthand for making elements, wrapped in jquery
 if (window.DIV == undefined) window.DIV = function DIV(selectorish) {
 	let elem = $(document.createElement('div'));
@@ -76,6 +91,10 @@ $.fn.extend({
 		return result;
 	}
 });
+
+class ViewNotInitializedError extends Error {
+	
+}
 
 //Viewify
 if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
@@ -195,10 +214,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		GetViewRoot(com, fun) {
-			//debugger;
+			// debugger;
+			if(!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before its setup!`);
 			com.Div = this.Vlt.root;
 			// debugger;
-			fun(null, com);
+			fun(new ViewNotInitializedError(), com);
 		}
 
 		GetViewDiv(com, fun) {
@@ -383,6 +403,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		ShowHierarchy(com, fun) {
 			var that = this;
 			console.group(this.Vlt.rootID);
+		
 			async.forEach(this.Vlt.views,  (item, next)=>{
 				that.send({ Cmd: "ShowHierarchy" }, item, (err, cmd) => {
 					next();
@@ -523,6 +544,17 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		Cleanup(com, fun) {
 			fun(null, com);
 		}
+
+		PrepareBuffer(com, fun) {
+			if(!('onScreenBuffer' in this.Vlt) || this.Vlt.onScreenBuffer == undefined) this.Vlt.onScreenBuffer = this.Vlt.div;
+			
+			//either way, we should reset the div to our last saved on screen buffer
+			this.Vlt.div = this.Vlt.buffer.onScreenBuffer.clone();
+		}
+
+		SwapBuffer(com, fun) {
+
+		}
 	}
 
 	function Command(com, fun) {
@@ -540,11 +572,38 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			}
 			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => { this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => { if(err) reject(err); else resolve(cmd); }); });
 		}
+
+		// let timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
+		// let color = md5(timeTag).substr(0, 6);
+		// let color = 'C0FFEE';
+		// let id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
+
+
+		// console.group(id);
+		// console.log(`%c${timeTag} ${com.Cmd}`, `
+		// background-color: #${color};
+		// text-shadow: 
+		// 	rgba(0, 0, 0, 1) 0px 0px 1px, 
+		// 	rgba(0, 0, 0, 1) 0px 0px 1px, 
+		// 	rgba(0, 0, 0, 1) 0px 0px 4px,  
+		// 	rgba(0, 0, 0, 1) 0px 0px 4px; 
+		// padding: 2px 6px; color: white;`);
 		if (com.Cmd in child) {
-			child[com.Cmd].call(this, com, fun);
+			// console.time(timeTag);
+			child[com.Cmd].call(this, com, () => {
+				
+				// console.groupEnd(id);
+				fun(null, com);
+			});
 		} else if (com.Cmd in View.prototype) {
-			View.prototype[com.Cmd].call(this, com, fun);
+			View.prototype[com.Cmd].call(this, com, () => {
+				
+				// console.groupEnd(id);
+				fun(null, com);
+			});
 		} else {
+			console.warn('Command <' + com.Cmd + '> not Found');
+			console.groupEnd(id);
 			fun('Command <' + com.Cmd + '> not Found', com);
 		}
 	}

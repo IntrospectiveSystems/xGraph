@@ -852,42 +852,27 @@
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
 				var val = ent[par];
-				switch (typeof val) {
-					case 'string':
-						ent[par] = symbol(val);
-						break;
-					case 'object':
-						parseObject(val);
-
-						function parseObject(val) {
-							if (Array.isArray(val)) {
-								for (let ival = 0; ival < val.length; ival++) {
-									if (typeof val[ival] === 'object')
-										parseObject(val[key]);
-									else {
-										val[ival] = symbol(val[ival]);
-									}
-								}
-							} else {
-								for (let key in val) {
-									if (typeof val[key] === 'object')
-										parseObject(val[key]);
-									else {
-										val[key] = symbol(val[key]);
-									}
-								}
-							}
-						}
-						break;
-				}
+				ent[par] = symbol(val);
 			}
 			ents.push(ent);
 		}
 		return ents;
 
 		function symbol(val) {
+			// debugger;
 			//console.log(typeof val);
-			if ((typeof val) !== 'string')
+			if (typeof val === 'object') {
+				return (Array.isArray(val) ? 
+					val.map(v => symbol(v)) : 
+					Object.entries(val).map(([key, val]) => {
+						return [key, symbol(val)];
+					}).reduce((prev, curr) => {
+						prev[curr[0]]=curr[1];
+						return prev;
+					}, {})
+				);
+			}
+			if (typeof val !== 'string')
 				return val;
 			var sym = val.substr(1);
 			if (val.charAt(0) === '$' && sym in Apex)
