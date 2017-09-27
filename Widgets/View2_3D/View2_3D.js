@@ -6,7 +6,7 @@
 		Setup: Setup,
 		Start: Start,
 		SetCamera,
-		SetUnit,
+		SetObjects,
 		DOMLoaded: DOMLoaded,
 		Resize:Resize,
 		Render,
@@ -62,7 +62,7 @@
 			// __Share[Par.Div] = View;
 			View.Inst = {};
 
-			View.Renderer = new THREE.WebGLRenderer({ antialias: true });
+			View.Renderer = new THREE.WebGLRenderer(64,64, { antialias: true });
 			View.Renderer.setClearColor(0xBEDCF7, 1);
 			View.Renderer.setSize(div.scrollWidth, div.scrollHeight);
 			div.appendChild(View.Renderer.domElement);
@@ -108,6 +108,10 @@
 	}
 
 	function Render(com, fun){
+		let View = this.Vlt.View;
+		View.Renderer.setSize(this.Vlt.div[0].scrollWidth, this.Vlt.div[0].scrollHeight);
+		View.Camera.aspect = this.Vlt.div[0].scrollWidth / this.Vlt.div[0].scrollHeight;
+		View.Camera.updateProjectionMatrix();
 		if (this.Vlt.MousePid){
 			this.send({ 
 				Cmd: "SetDomElement", "DomElement": 
@@ -146,7 +150,7 @@
 						"Camera": View.Camera,
 						"Focus": View.Focus
 					}, Par.ShareDispatch[i],(err, com) =>{
-						if ("SystemView2D" in this.Par || "Terrain"in this.Par){
+						if ("SystemView2D" in this.Par || "Terrain" in this.Par){
 							this.Vlt.PlaneViewPid= this.Par.SystemView2D;
 							getMouse(getCanvas, fun);
 						}else {
@@ -161,7 +165,7 @@
 					this.Vlt.PlaneViewPid= this.Par.SystemView2D;
 					getMouse(getCanvas, fun);
 				}else {
-					getMouse(getMap,fun);
+					getMouse(getTerrain,fun);
 				}
 				
 				renderLoop();
@@ -194,30 +198,32 @@
 				});
 			}
 
-			function getMap(func){
-				that.send({Cmd: "GetBaseData", "View":Par.View, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
+			function getTerrain(func){
+				that.send({Cmd: "GetData", "DataChannels":that.Par.DataChannels, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
+					// debugger;
 					var zipmod = new JSZip();
-					zipmod.loadAsync(com.Zip, {base64: true}).then(function(zip){						
+					let Terrain = com.Data.Terrain;
+					zipmod.loadAsync(Terrain.Zip, {base64: true}).then(function(zip){						
 						zip.file('map').async('string').then(function(str) {
 							Vault.PNG = str;
-							Vault.Map = com.Map;
+							Vault.Map = Terrain.Name;
 							//debugger;
-							Vault.width = com.Width;
-							Vault.height = com.Height;
-							Vault.Elevation = com.Elevation;
+							Vault.width = Terrain.Width;
+							Vault.height = Terrain.Height;
+							Vault.Elevation = Terrain.Elevation;
 
-							let width = com.Width;
-							let height = com.Height;
+							let width = Terrain.Width;
+							let height = Terrain.Height;
 							Vault.View.Focus = new THREE.Vector3(width/2, height/2, 0.0);
 
 							Vault.geometry = new THREE.PlaneGeometry(width, height, width-1, height-1);
 							
 							// add in the known elevations
 							for (var i = 0, l = Vault.geometry.vertices.length; i < l; i++) {
-								let row = Math.floor(i/com.Width);
-								let col = i - row*com.Width;
-								let idx = (com.Height - row)*com.Width+col;
-								Vault.geometry.vertices[i].z = com.Elevation[idx];
+								let row = Math.floor(i/width);
+								let col = i - row*width;
+								let idx = (height - row)*width+col;
+								Vault.geometry.vertices[i].z = Terrain.Elevation[idx];
 							}
 
 							Vault.geometry.dynamic=true;
@@ -253,6 +259,9 @@
 							ocean.position.y = height/2;
 							View.Scene.add(ocean);
 							
+							View.Camera.lookAt(View.Focus);
+							View.Camera.updateProjectionMatrix();
+														
 							if (func)
 								func(null, com);
 						});
@@ -324,14 +333,14 @@
 		});
 	}
 
-	function SetUnit(com, fun){
-		//console.log("Set Unit length ", com.Unit.length);
+	function SetObjects(com, fun){
+		// console.log("Set Uniobjectst length ", com.Data.length);
 		// if (this.Vlt.testBool)
 		// debugger;
 		// else this.Vlt.testBool=true;
-		for (let i = 0;i<com.Unit.length;i++){
+		for (let i = 0;i<com.Data.length;i++){
 			//console.log(`processing unit ${i}`);
-			let unit = com.Unit[i][1];
+			let unit = com.Data[i][1];
 			
 			let geom, mesh, obj;
 			obj = this.Vlt.View.Scene.getObjectByName( unit.tag );

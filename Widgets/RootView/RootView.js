@@ -74,7 +74,7 @@
 		}
 	}
 
-	return Viewify(RootView);
+	return Viewify(RootView, "3.1");
 
 })();
 
