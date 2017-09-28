@@ -18,23 +18,14 @@
 
 	function UpdateCanvas(com,fun){
 		//console.log("Canvas Update\n\n\n\n");
-		//debugger;
-		let width = com.width || com.canvas.width;
-		let height = com.height || com.canvas.height;
+		debugger;
+		let width = com.Width || this.Vlt.PlaneWidth;
+		let height = com.Height || this.Vlt.PlaneHeight;
 
 		let canvas = com.canvas;
 		
 		this.Vlt.PlaneView = canvas;
-		this.Vlt.vertices = new Float32Array([
-			0, 0, 0,
-			0, height, 0,
-			width,0, 0,
 
-			0, height, 0,
-			width, 0, 0,
-			width, height, 0
-		]);
-		this.Vlt.geometry.attributes.position.needsUpdate = true;
 		this.Vlt.geometry.needsUpdate = true;
 
 		this.Vlt.texture.needsUpdate = true;
@@ -154,7 +145,7 @@
 							this.Vlt.PlaneViewPid= this.Par.SystemView2D;
 							getMouse(getCanvas, fun);
 						}else {
-							getMouse(getMap,fun);
+							getMouse(getTerrain,fun);
 						}
 						
 						renderLoop();
@@ -261,7 +252,7 @@
 							
 							View.Camera.lookAt(View.Focus);
 							View.Camera.updateProjectionMatrix();
-														
+
 							if (func)
 								func(null, com);
 						});
@@ -280,49 +271,38 @@
 						that.Vlt.terrainDiv.css("position", "absolute");
 						that.Vlt.terrainDiv.css("left", `-${2*($(window).width() + com.Div.width())}px`);
 					}
+
 					let canvas = com.canvas;
 					that.Vlt.PlaneView = canvas;
 
-					let width = com.width || com.canvas.width;
-					let height = com.height || com.canvas.height;
+					let width = com.Width;
+					let height = com.Height;
+
+					Vault.PlaneWidth = width;
+					Vault.PlaneHeight = height;
 
 					Vault.View.Focus = new THREE.Vector3(width/2, height/2, 0.0);
-					
-					Vault.geometry = new THREE.BufferGeometry();
-							
-					Vault.vertices = new Float32Array([
-						0, 0, 0,
-						0, height, 0,
-						width,0, 0,
-			
-						0, height, 0,
-						width, 0, 0,
-						width, height, 0
-					]);
 
-					var uvs = new Float32Array([
-						0,0,
-						0,1,
-						1,0,
-						
-						0,1,
-						1,0,
-						1,1
-					]);
+					// debugger;
+					Vault.geometry = new THREE.PlaneGeometry(width, height, (width-1), (height-1));
 
-					Vault.geometry.addAttribute('position', new THREE.BufferAttribute(Vault.vertices, 3));
-					Vault.geometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 					Vault.geometry.dynamic=true;
 					Vault.geometry.needsUpdate = true;
 
-					Vault.texture = new THREE.Texture(Vault.PlaneView)
+					Vault.texture = new THREE.Texture(Vault.PlaneView);
+					Vault.PlaneView.onload = function() {
+						Vault.texture.needsUpdate = true;
+					};
 					Vault.texture.needsUpdate = true;
+					
 
 					Vault.material = new THREE.MeshBasicMaterial({map: Vault.texture, side:THREE.DoubleSide});
 					Vault.material.transparent=true;
 					Vault.material.needsUpdate=true;
 
 					var plane = new THREE.Mesh(Vault.geometry, Vault.material);
+					plane.position.x = width/2;
+					plane.position.y = height/2;
 					View.Scene.add(plane);
 
 					if (func)

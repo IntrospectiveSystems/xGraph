@@ -24,58 +24,65 @@
 			
 			//add a location to store the Pixi Stage and Renderer
 			this.Vlt.View = {};
-			let Vew = this.Vlt.View;
-			Vew.Renderer = PIXI.autoDetectRenderer(128, 128, { "antialias": true });
-			div.append($(Vew.Renderer.view));
-			Vew.Stage = new PIXI.Container();
-			Vew.Renderer.backgroundColor = 0xA2A2A2;
-			renderLoop();
+			let View = this.Vlt.View;
 
+
+	
+			View.Renderer = PIXI.autoDetectRenderer(2048, 2048, { "antialias": true });
+			div.append($(View.Renderer.view));
+			View.Stage = new PIXI.Container();
+			View.Renderer.backgroundColor = 0xA2A2A2;
+			View.Renderer.render(View.Stage);
+			
 			if (fun) {
 				fun(null, com);
-			}
-
-			//-----------------------------------------------------Render
-			function renderLoop() {
-				Vew.Renderer.render(Vew.Stage);
-				requestAnimationFrame(renderLoop);
-			}
-			
+			}		
 		});
 	}
 
 	function Start(com, fun) {
 		console.log("--PixiView/Start");
-		let Vew = this.Vlt.View;
+		if (this.Vlt.Started == true){
+			fun(null, com);
+			return;
+		}
+		this.Vlt.Started =true;
+		let View = this.Vlt.View;
 		let Par = this.Par;
 		let that = this;
-		Vew.TileTable = {};
+		View.TileTable = {};
 
 		that.send({Cmd: "GetData", "DataChannels":Par.DataChannels, "Pid":Par.Pid}, that.Par.Source, (err, com)=>{
-			debugger;
-			
-			let Data = com.Data.Sar;
-			Vew.Renderer.resize((Data.Width+1) , (Data.Height+1));
-			let width = Data.Width, height = Data.Height;
+			// debugger;
 
-			for (var i = 0; i < (Data.Width*Data.Height); i++) {
-				let row = Math.floor(i/width);
-				let col = i - row*width;
-				let idx = (height - row)*width+col;
+			let Data = com.Data.Sar;
+			[View.Width,View.Height] = [Data.Width, Data.Height];
+			//View.Renderer.resize((Data.Width+1) , (Data.Height+1));
+			let width = 2048, height = 2048;
+			let widthUnit = width/(Data.Width+1), heightUnit = height/(Data.Height+1);
+
+			for (var i = 0; i < (Data.Width+1)*(Data.Height+1); i++) {
+				let row = Math.floor(i/Data.Width);
+				let col = i - row*Data.Width;
+				let idx = (Data.Height - row)*Data.Width+col;
 
 				let ob = new PIXI.Graphics();
-				ob.position.set(row,col);
+				ob.position.set(col*widthUnit,row*heightUnit);
+				// console.log([col,row], idx);
 				// set a fill and line style
 				ob.beginFill(0xFFFFFF);
 				// set a fill and a line style again and draw a rectangle
-				ob.drawRect(0, 0, 1, 1);
+				ob.drawRect(0, 0, widthUnit, heightUnit);
 				ob.endFill();
-			
-				Vew.Stage.addChild(ob);
-				Vew.TileTable[idx]=ob;
+				ob.tint = (Data.Data[idx] in Data.Dictionary)? Data.Dictionary[Data.Data[idx]]:Data.Dictionary["default"];
 
+				View.Stage.addChild(ob);
+				View.TileTable[idx]=ob;
 			}
+			View.Renderer.render(View.Stage);
+			
 
+			// debugger;
 			// let ob = new PIXI.Graphics();
 			// ob.position.set(50,50);
 			// // set a fill and line style
@@ -84,32 +91,72 @@
 			// ob.drawCircle(0, 0, 30);
 			// ob.endFill();
 		
-			// Vew.Stage.addChild(ob);
+			// View.Stage.addChild(ob);
 
-			if ("WorldPid" in that.Vlt)
-				that.send({ Cmd: "UpdateCanvas", canvas: Vew.Renderer.view}, that.Vlt.WorldPid, ()=>{});
-
+			if ("WorldPid" in that.Vlt){
+				// debugger;
+				that.send({ Cmd: "UpdateCanvas", canvas: View.Renderer.view, Width: View.Width, Height:View.Height}, that.Vlt.WorldPid, ()=>{});
+			}
 			if (fun)
 				fun(null, com);
 		});
 	}
 
 	function DrawObjects(com,fun){
+		console.log("--PixiView/DrawObjects");
+		let View = this.Vlt.View;
+		let Data = com.Data;
 
 
+		let width = 2048, height = 2048;
+		let widthUnit = width/(Data.Width+1), heightUnit = height/(Data.Height+1);
+debugger;
+
+		for (var i = 0; i < (View.Width+1)*(View.Height+1); i++) {
+			let row = Math.floor(i/Data.Width);
+			let col = i - row*Data.Width;
+			let idx = (Data.Height - row)*Data.Width+col;
+
+			let ob = new PIXI.Graphics();
+			ob.position.set(col*widthUnit,row*heightUnit);
+			// console.log([col,row], idx);
+			// set a fill and line style
+			ob.beginFill(0xFFFFFF);
+			// set a fill and a line style again and draw a rectangle
+			ob.drawRect(0, 0, widthUnit, heightUnit);
+			ob.endFill();
+			ob.tint = (Data.Data[idx] in Data.Dictionary)? Data.Dictionary[Data.Data[idx]]:Data.Dictionary["default"];
+
+			View.Stage.addChild(ob);
+			View.TileTable[idx]=ob;
+		}
+		View.Renderer.render(View.Stage);
+		
 		if (fun)
 			fun(null, com);
 	}
 
 	function GetCanvas(com, fun){
-		//debugger;
-		this.Vlt.WorldPid=com.pid;
-		com.canvas = this.Vlt.View.Renderer.view;
-		if (this.Par.Hidden)
-			com.Div = this.Vlt.root;
-		
-		if (fun)
-			fun(null, com);
+		console.log("PixiView/GetCanvas");
+		let that = this;
+		if (!this.Vlt.Started){
+			this.send({Cmd:"Start"}, this.Par.Pid, getCanvas);
+			return;
+		}
+		getCanvas()
+		function getCanvas(){
+
+			let View = that.Vlt.View;
+			that.Vlt.WorldPid=com.pid;
+			[com.Width, com.Height] = [View.Width+1,View.Height+1];
+			
+			com.canvas = View.Renderer.view;
+			if (that.Par.Hidden)
+				com.Div = that.Vlt.root;
+			
+			if (fun)
+				fun(null, com);
+		}
 	}
 
 })();
