@@ -81,6 +81,8 @@
 			}
 			View.Renderer.render(View.Stage);
 			
+			View.SarData =Data.Data;
+			
 
 			// debugger;
 			// let ob = new PIXI.Graphics();
@@ -103,35 +105,33 @@
 	}
 
 	function DrawObjects(com,fun){
-		console.log("--PixiView/DrawObjects");
+		//console.log("--PixiView/DrawObjects");
 		let View = this.Vlt.View;
 		let Data = com.Data;
-
+		
+		View.SarData =Data.Data;
 
 		let width = 2048, height = 2048;
 		let widthUnit = width/(Data.Width+1), heightUnit = height/(Data.Height+1);
-debugger;
+		let row, col, idx, ob, newtint;
 
 		for (var i = 0; i < (View.Width+1)*(View.Height+1); i++) {
-			let row = Math.floor(i/Data.Width);
-			let col = i - row*Data.Width;
-			let idx = (Data.Height - row)*Data.Width+col;
-
-			let ob = new PIXI.Graphics();
-			ob.position.set(col*widthUnit,row*heightUnit);
-			// console.log([col,row], idx);
-			// set a fill and line style
-			ob.beginFill(0xFFFFFF);
-			// set a fill and a line style again and draw a rectangle
-			ob.drawRect(0, 0, widthUnit, heightUnit);
-			ob.endFill();
-			ob.tint = (Data.Data[idx] in Data.Dictionary)? Data.Dictionary[Data.Data[idx]]:Data.Dictionary["default"];
-
-			View.Stage.addChild(ob);
-			View.TileTable[idx]=ob;
-		}
+			row = Math.floor(i/Data.Width);
+			col = i - row*Data.Width;
+			idx = (Data.Height - row)*Data.Width+col;
+			
+			ob = View.TileTable[idx];
+			newtint = (Data.Data[idx] in Data.Dictionary)? Data.Dictionary[Data.Data[idx]]:Data.Dictionary["default"];
+			if (ob.tint != newtint){
+				console.log("++");
+				ob.tint = newtint;
+			}
+		}	
 		View.Renderer.render(View.Stage);
-		
+		if ("WorldPid" in this.Vlt){
+			// debugger;
+			this.send({ Cmd: "UpdateCanvas", canvas: View.Renderer.view, Width: View.Width, Height:View.Height}, this.Vlt.WorldPid, ()=>{});
+		}
 		if (fun)
 			fun(null, com);
 	}

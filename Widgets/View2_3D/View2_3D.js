@@ -18,7 +18,7 @@
 
 	function UpdateCanvas(com,fun){
 		//console.log("Canvas Update\n\n\n\n");
-		debugger;
+		//debugger;
 		let width = com.Width || this.Vlt.PlaneWidth;
 		let height = com.Height || this.Vlt.PlaneHeight;
 
@@ -26,7 +26,7 @@
 		
 		this.Vlt.PlaneView = canvas;
 
-		this.Vlt.geometry.needsUpdate = true;
+		//this.Vlt.geometry.needsUpdate = true;
 
 		this.Vlt.texture.needsUpdate = true;
 	}
