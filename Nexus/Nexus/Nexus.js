@@ -1,4 +1,3 @@
-
 (function () {
 	var fs = require('fs');
 	var Path = require('path');
@@ -719,9 +718,11 @@
 		// eventually this should be some kind of
 		// alternate repository (TBD)
 		var keys = Object.keys(Config.Modules);
+		//debugger;
 		for (let i = 0; i < keys.length; i++) {
 			let key = keys[i];
 			if (key == 'Deferred') {
+				//debugger;
 				var arr = Config.Modules[key];
 				arr.forEach(function (folder) {
 					if (Folders.indexOf(folder) < 0)
@@ -996,7 +997,7 @@
 	//        separated by dots as desired
 	function GetModule(modnam, fun) {
 		console.log('##GetModule', modnam);
-		//debugger;
+		// debugger;
 		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		var dir = ModName.replace('.', ':').replace(/\./g, '/');
 		var ModPath = genPath(dir);

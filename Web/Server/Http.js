@@ -144,7 +144,10 @@
 					//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
 						// debugger;
-						that.Vlt.messages[com.Passport.Pid](null, com)
+						if (com.Passport.Pid in that.Vlt.messages){
+							that.Vlt.messages[com.Passport.Pid](null, com);
+							delete that.Vlt.messages[com.Passport.Pid];
+						}
 						return;
 					}
 					//debugger;
@@ -189,8 +192,8 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
-		// debugger;
-	//	console.log('--Publish', com.Cmd);
+		//debugger;
+		// console.log('--Publish', com.Cmd);
 		fun = fun || (() => {});
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
