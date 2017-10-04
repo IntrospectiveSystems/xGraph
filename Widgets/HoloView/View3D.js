@@ -18,32 +18,13 @@
 			var that = this;
 			var Vlt = this.Vlt;
 			var Par = this.Par;
-			// var div = document.getElementById(Par.Div);
+
 			var div = this.Vlt.div[0];
-			//this.Vlt.div.attr('tab-index', '1');
-			//console.log("Window is ", window);
-			/* window.onkeydown= (function(evt) {
-				console.log("Keydown event", evt.code)
-				switch(evt.code) {
-					case 'F2':
-						console.log("Popup");
-						that.genModule({
-							"Module": "xGraph:Widgets/Popup",
-							"Par": {
-								"View": "xGraph:HeatBugsModule",
-								"Width": 400,
-								"Height" : 300
-							}
-						}, ()=>{})
-					default:
-				}
-			}); */
-			// div.id = Par.Div;
-			// div.style.height = '100%';
-			// document.getElementsByTagName('body')[0].appendChild(div);
-			var Vew = {};
-			this.Vlt.div.data('View', Vew);
-			// __Share[Par.Div] = Vew;
+			
+			this.Vlt.View = {};
+
+			var Vew = this.Vlt.View;
+
 			Vew.Inst = {};
 			Vew.Render = new THREE.WebGLRenderer({ antialias: true });
 			Vew.Render.setClearColor(0xBEDCF7, 1);
@@ -67,7 +48,7 @@
 			Vew.Camera.up.set(0.0, 0.0, 1.0);
 			Vew.Camera.lookAt(Vew.Focus);
 			Vew.Camera.updateProjectionMatrix();
-			// TestFont(Vew, "Hello World");
+			TestFont(Vew, "Hello World");
 
 			if (fun)
 				fun();
@@ -75,13 +56,28 @@
 	}
 
 	function DOMLoaded(com, fun) {
-		this.super(com, (err, cmd) => {
-			let Vew = this.Vlt.div.data('View');
-			Vew.Render.setSize(this.Vlt.div[0].scrollWidth, this.Vlt.div[0].scrollHeight);
-			Vew.Camera.aspect = this.Vlt.div[0].scrollWidth / this.Vlt.div[0].scrollHeight
-			Vew.Camera.updateProjectionMatrix();
-			fun(null, com);
-		});
+		this.vlt.div.on("keydown", "canvas", (function(evt) {
+			console.log("Keydown event", evt.code)
+			switch(evt.code) {
+				case 'F2':
+					console.log("Popup");
+					that.genModule({
+						"Module": "xGraph:Widgets/Popup",
+						"Par": {
+							"View": "xGraph:Widgets/AceEditorView",
+							"Width": 400,
+							"Height" : 300
+						}
+					}, ()=>{})
+				default:
+			}
+		}));
+		let Vew = this.Vlt.View;
+		Vew.Render.setSize(this.Vlt.div[0].scrollWidth, this.Vlt.div[0].scrollHeight);
+		Vew.Camera.aspect = this.Vlt.div[0].scrollWidth / this.Vlt.div[0].scrollHeight
+		Vew.Camera.updateProjectionMatrix();
+
+		this.super(com, fun);
 	}
 
 	function Start(com, fun) {
@@ -90,7 +86,7 @@
 			console.log('--View3D/Start');
 			var that = this;
 			var Par = this.Par;
-			var Vew = this.Vlt.div.data('View');
+			var Vew = this.Vlt.View;
 			var Inst;
 			var Terrain;
 			var q = {};
@@ -206,22 +202,6 @@
 				loop();
 
 				function loop() {
-					window.onkeydown= (function(evt) {
-						console.log("Keydown event", evt.code)
-						switch(evt.code) {
-							case 'F2':
-								console.log("Popup");
-								that.genModule({
-									"Module": "xGraph:Widgets/Popup",
-									"Par": {
-										"View": "xGraph:Widgets/AceEditorView",
-										"Width": 400,
-										"Height" : 300
-									}
-								}, ()=>{})
-							default:
-						}
-					});
 					Vew.Render.render(Vew.Scene, Vew.Camera);
 					requestAnimationFrame(loop);
 				}
@@ -252,133 +232,133 @@
 		vew.Scene.add(mesh);
 	}
 
-	function Startx(com, fun) {
-		console.log('--View3D/Start');
-		var that = this;
-		var Par = this.Par;
-		var Vew = this.Vlt.div.data('View');
-		var q = {};
-		q.Cmd = 'GetGraph';
-		this.send(q, Par.Scene, scene);
+	// function Startx(com, fun) {
+	// 	console.log('--View3D/Start');
+	// 	var that = this;
+	// 	var Par = this.Par;
+	// 	var Vew = this.Vlt.div.data('View');
+	// 	var q = {};
+	// 	q.Cmd = 'GetGraph';
+	// 	this.send(q, Par.Scene, scene);
 
-		function scene(err, q) {
-			console.log('..View3D/scene');
-		//	console.log(JSON.stringify(q.Graph, null, 2));
-			console.log(JSON.stringify(q, null, 2));
-			if(err) {
-				console.log(' ** ERR:' + err);
-				if (fun)
-					fun(err);
-				return;
-			}
-			var root = new THREE.Object3D();
-			var tree = q.Graph; // Array of instances
-			async.eachSeries(tree, instance, subscribe);
+	// 	function scene(err, q) {
+	// 		console.log('..View3D/scene');
+	// 	//	console.log(JSON.stringify(q.Graph, null, 2));
+	// 		console.log(JSON.stringify(q, null, 2));
+	// 		if(err) {
+	// 			console.log(' ** ERR:' + err);
+	// 			if (fun)
+	// 				fun(err);
+	// 			return;
+	// 		}
+	// 		var root = new THREE.Object3D();
+	// 		var tree = q.Graph; // Array of instances
+	// 		async.eachSeries(tree, instance, subscribe);
 
-			function instance(inst, func) {
-				console.log('..instance', inst);
-				if(!('Model' in inst)) {
-					if(fun)
-						fun();
-					return;
-				}
-				var q = {};
-				q.Cmd = 'GetModel';
-				q.Instance = inst.Instance;
-				console.log('Sending', q);
-				// TBD: Need to change to route through Scene
-				that.send(q, Par.Scene, reply);
+	// 		function instance(inst, func) {
+	// 			console.log('..instance', inst);
+	// 			if(!('Model' in inst)) {
+	// 				if(fun)
+	// 					fun();
+	// 				return;
+	// 			}
+	// 			var q = {};
+	// 			q.Cmd = 'GetModel';
+	// 			q.Instance = inst.Instance;
+	// 			console.log('Sending', q);
+	// 			// TBD: Need to change to route through Scene
+	// 			that.send(q, Par.Scene, reply);
 
-				function reply(err, r) {
-				//	console.log('..reply', r);
-					var type = r.Model.Type;
-					if(!(type in Par.Gen)) {
-						var err = 'No translation for type ' + type;
-						console.log(' ** ERR:' + err);
-						func(err);
-						return;
-					}
-					var gen = {};
-					gen.Cmd = 'GenModel';
-					gen.Model = r.Model.X3D;
-					that.send(gen, Par.Gen[type], back);
+	// 			function reply(err, r) {
+	// 			//	console.log('..reply', r);
+	// 				var type = r.Model.Type;
+	// 				if(!(type in Par.Gen)) {
+	// 					var err = 'No translation for type ' + type;
+	// 					console.log(' ** ERR:' + err);
+	// 					func(err);
+	// 					return;
+	// 				}
+	// 				var gen = {};
+	// 				gen.Cmd = 'GenModel';
+	// 				gen.Model = r.Model.X3D;
+	// 				that.send(gen, Par.Gen[type], back);
 
-					function back(err, x) {
-						if(err) {
-							func(err);
-							return;
-						}
-						if(!('Obj3D' in x)) {
-							var err = 'No model returned';
-							console.log(' ** ERR:' + err);
-							func(err);
-							return;
-						}
-						var objinst = new THREE.Object3D();
-						if('Position' in inst) {
-							var pos = inst.Position;
-							objinst.position.x = pos[0];
-							objinst.position.y = pos[1];
-							objinst.position.z = pos[2];
-						}
-						if('Axis' in inst && 'Angle' in inst) {
-							var axis = inst.Axis;
-							var ang = inst.Angle*Math.PI/180.0;
-							var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
-							objinst.setRotationFromAxisAngle(vec, ang);
-						}
-						var data = {};
-						if('Role' in inst)
-							data.Role = inst.Role;
-						else
-							data.Role = 'Fixed';
-						data.Pid = inst.Instance;
-						objinst.userData = data;
-						objinst.add(x.Obj3D);
-						Vew.Scene.add(objinst);
-						Vew.Inst[inst.Instance] = objinst;
-						if('Inst' in inst) {
-							async.eachSeries(inst.Inst, instance, func);
-						} else {
-							func();
-						}
-					}
-				}
-			}
+	// 				function back(err, x) {
+	// 					if(err) {
+	// 						func(err);
+	// 						return;
+	// 					}
+	// 					if(!('Obj3D' in x)) {
+	// 						var err = 'No model returned';
+	// 						console.log(' ** ERR:' + err);
+	// 						func(err);
+	// 						return;
+	// 					}
+	// 					var objinst = new THREE.Object3D();
+	// 					if('Position' in inst) {
+	// 						var pos = inst.Position;
+	// 						objinst.position.x = pos[0];
+	// 						objinst.position.y = pos[1];
+	// 						objinst.position.z = pos[2];
+	// 					}
+	// 					if('Axis' in inst && 'Angle' in inst) {
+	// 						var axis = inst.Axis;
+	// 						var ang = inst.Angle*Math.PI/180.0;
+	// 						var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
+	// 						objinst.setRotationFromAxisAngle(vec, ang);
+	// 					}
+	// 					var data = {};
+	// 					if('Role' in inst)
+	// 						data.Role = inst.Role;
+	// 					else
+	// 						data.Role = 'Fixed';
+	// 					data.Pid = inst.Instance;
+	// 					objinst.userData = data;
+	// 					objinst.add(x.Obj3D);
+	// 					Vew.Scene.add(objinst);
+	// 					Vew.Inst[inst.Instance] = objinst;
+	// 					if('Inst' in inst) {
+	// 						async.eachSeries(inst.Inst, instance, func);
+	// 					} else {
+	// 						func();
+	// 					}
+	// 				}
+	// 			}
+	// 		}
 
-			// Request scen to stream commands
-			function subscribe() {
-				var q = {};
-				q.Cmd = 'Subscribe';
-				q.Pid = Par.Pid;
-				that.send(q, Par.Scene);
-				render();
-			}
+	// 		// Request scen to stream commands
+	// 		function subscribe() {
+	// 			var q = {};
+	// 			q.Cmd = 'Subscribe';
+	// 			q.Pid = Par.Pid;
+	// 			that.send(q, Par.Scene);
+	// 			render();
+	// 		}
 
-			function render() {
-				renderLoop();
-				if(fun)
-					fun();
-			}
-		}
+	// 		function render() {
+	// 			renderLoop();
+	// 			if(fun)
+	// 				fun();
+	// 		}
+	// 	}
 
-		//-----------------------------------------------------Render
-		function renderLoop() {
-			loop();
+	// 	//-----------------------------------------------------Render
+	// 	function renderLoop() {
+	// 		loop();
 
-			function loop() {
-				Vew.Render.render(Vew.Scene, Vew.Camera);
-				requestAnimationFrame(loop);
-			}
-		}
+	// 		function loop() {
+	// 			Vew.Render.render(Vew.Scene, Vew.Camera);
+	// 			requestAnimationFrame(loop);
+	// 		}
+	// 	}
 
-	}
+	// }
 
 	//-------------------------------------------------SetPosition
 	function SetPosition(com, fun) {
 	//	console.log('--SetPositon');
 		var Par = this.Par;
-		var Vew = this.Vlt.div.data('View');
+		var Vew = this.Vlt.View;
 		obj3d = Vew.Inst[com.Instance];
 		if('Instance' in com) {
 			if(obj3d) {

@@ -25,10 +25,10 @@
 		Vlt.Mouse.Mode = 'Idle';
 		Vlt.Mouse.inPanel = true;
 		domElement = Vlt.domElement
-
+debugger;
 		domElement.on("mouseenter",(evt) => {
 		});
-		domElement.on("mouseleave", (evt) => {
+		domElement.on("mouseleave",(evt) => {
 			let info = {};			
 			info.Action = 'MouseLeave';
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
@@ -45,7 +45,7 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("mousedown", (evt) => {
+		domElement.on("mousedown",(evt) => {
 			info = {};
 			info.Mouse = {};
 			info.Mouse.x = evt.clientX;
@@ -75,7 +75,7 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("mouseup", (evt) => {
+		domElement.on("mouseup",(evt) => {
 			let info = {};
 			switch (evt.which) {
 				case 1:	// Left mouse

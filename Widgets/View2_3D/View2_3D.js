@@ -17,17 +17,13 @@
 	return Viewify(dispatch, "3.1");
 
 	function UpdateCanvas(com,fun){
-		//console.log("Canvas Update\n\n\n\n");
-		//debugger;
+		
 		let width = com.Width || this.Vlt.PlaneWidth;
 		let height = com.Height || this.Vlt.PlaneHeight;
 
 		let canvas = com.canvas;
 		
 		this.Vlt.PlaneView = canvas;
-
-		//this.Vlt.geometry.needsUpdate = true;
-
 		this.Vlt.texture.needsUpdate = true;
 	}
 
@@ -50,7 +46,6 @@
 			var div = this.Vlt.div[0];
 			this.Vlt.View = {};
 			let View = this.Vlt.View;
-			// __Share[Par.Div] = View;
 			View.Inst = {};
 
 			View.Renderer = new THREE.WebGLRenderer(64,64, { antialias: true });
@@ -105,8 +100,8 @@
 		View.Camera.updateProjectionMatrix();
 		if (this.Vlt.MousePid){
 			this.send({ 
-				Cmd: "SetDomElement", "DomElement": 
-				this.Vlt.View.Renderer.domElement 
+				Cmd: "SetDomElement", 
+				"DomElement": this.Vlt.View.Renderer.domElement 
 			}, this.Vlt.MousePid, (err, cmd) => {
 				console.log("Reappended listeners");
 				this.super(com, fun);
@@ -119,8 +114,8 @@
 	function Resize(com, fun) {
 		this.super(com, (err, cmd) => {
 			let View = this.Vlt.View;
-			View.Renderer.setSize(com.width, com.height);
-			View.Camera.aspect = com.width / com.height;
+			View.Renderer.setSize(cmd.width, cmd.height);
+			View.Camera.aspect = cmd.width / cmd.height;
 			View.Camera.updateProjectionMatrix();
 			fun(null, com);
 		});
