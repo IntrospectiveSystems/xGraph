@@ -49,10 +49,10 @@
 			}
 		},
 		{
-			"name": "Forest",
+			"name": "WorldBuilder",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/Forest",
+			"cwd": "${workspaceRoot}/Systems/WorldBuilder",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
