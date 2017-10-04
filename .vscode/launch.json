@@ -19,20 +19,6 @@
 			}
 		},
 		{
-			"name": "Plexus",
-			"type": "node",
-			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/Plexus",
-			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
-			"args": [
-				"Config=config.json",
-				"xGraph=${workspaceRoot}/../xGraph"
-			],
-			"env": {
-				"NODE_PATH": "node_modules"
-			}
-		},
-		{
 			"name": "3D World Test",
 			"type": "node",
 			"request": "launch",
@@ -48,10 +34,10 @@
 			}
 		},
 		{
-			"name": "3D World Test 2",
+			"name": "Sandbox",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/3DWorldTest2",
+			"cwd": "${workspaceRoot}/Systems/Sandbox",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -59,33 +45,7 @@
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
-			}
-		},
-		{
-			"name": "Wobbler Test",
-			"type": "node",
-			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/WobbleTest",
-			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
-			"args": [
-				"Config=config.json",
-				"xGraph=${workspaceRoot}/../xGraph"
-			],
-			"env": {
-				"NODE_PATH": "node_modules"
-			}
-		},
-		{
-			"name": "cvtBin",
-			"type": "node",
-			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/WobbleTest/Simulations",
-			"program": "${workspaceRoot}/Systems/WobbleTest/Simulations/cvtBin.js",
-			"args": [
-				"Marcus.bin"
-			],
-			"env": {
-				"NODE_PATH": "node_modules"
+						
 			}
 		},
 		{
