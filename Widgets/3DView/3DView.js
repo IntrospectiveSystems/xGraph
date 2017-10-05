@@ -28,7 +28,7 @@
 			View.Renderer.setClearColor(0xBEDCF7, 1);
 			View.Renderer.setSize(div.width(), div.height());
 			View.Scene = new THREE.Scene();
-			View.Focus = new THREE.Vector3(20.0, 20.0, 0.0);
+			View.Focus = new THREE.Vector3(50.0, 50.0, 0.0);
 			View.Camera = new THREE.PerspectiveCamera(45,
 				div.width / div.height, 0.1, 40000);
 			div.append(View.Renderer.domElement);
@@ -40,9 +40,9 @@
 			var axes = new THREE.AxisHelper(100);
 			axes.position.z = 0.01;
 			View.Scene.add(axes);
-			View.Camera.position.x = 20;
-			View.Camera.position.y = 20;
-			View.Camera.position.z = 120;
+			View.Camera.position.x = 0;
+			View.Camera.position.y = 0;
+			View.Camera.position.z = 50;
 			View.Camera.up.set(0.0, 0.0, 1.0);
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
@@ -177,7 +177,7 @@
 
 
 	function Resize(com, fun) {
-		console.log("--3DView/Resize")
+		//console.log("--3DView/Resize")
 		this.super(com, (err, cmd) => {
 			let View = this.Vlt.View;
 			View.Renderer.setSize(cmd.width, cmd.height);
@@ -543,7 +543,7 @@
 		}
 
 		function rotate() {
-				console.log('..Rotate/move', info.Key);
+			console.log('..Rotate/move', info.Key);
 			var mouse = Vlt.Mouse;
 			var vcam = new THREE.Vector3();
 			vcam.fromArray(View.Camera.position.toArray());

@@ -25,7 +25,7 @@
 		Vlt.Mouse.Mode = 'Idle';
 		Vlt.Mouse.inPanel = true;
 		domElement = Vlt.domElement
-debugger;
+
 		domElement.on("mouseenter",(evt) => {
 		});
 		domElement.on("mouseleave",(evt) => {
