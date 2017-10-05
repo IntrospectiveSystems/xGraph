@@ -1,10 +1,10 @@
-(function Test() {
+(function Validate() {
 	//TODO: Add in functionality for multiple systems + initiate
 	//TODO: Add mode for automatically populating TestCases/Callbacks (Possibly load from the modules themselves)
 
 	var dispatch = {
-		Setup: Setup,
-		Start: Start
+		Start: Start,
+		"*": DummyCatch
 	};
 
 	return {
@@ -12,15 +12,10 @@
 	};
 
 
-	function Setup(com, fun) {
-		console.log('Test::Setup');
-		fun();
-	}
-
 	function Start(com, fun) {
 		console.log('Test::Start');
 		var that = this;
-		var fs = require('fs');
+		var fs = this.require('fs');
 		that.Vlt.TestCases = Nxs.genPath(that.Par.TestCases);
 		console.log(that.Vlt.TestCases);
 
@@ -30,10 +25,9 @@
 		});
 
 		function RunTests(Tests) {
-			var async = require('async');
+			var async = this.require('async');
 
 			let Results = [];
-
 
 			console.log(Tests.length);
 			async.eachSeries(Tests, (test, callback) => {
@@ -67,7 +61,14 @@
 				}
 			})
 		}
-
 		fun();
 	}
+
+	function DummyCatch(com, fun){
+		console.log(`Validate::DummyCatch ${com}`);
+
+		if (fun)
+			fun(null, com);
+	}
+
 })();

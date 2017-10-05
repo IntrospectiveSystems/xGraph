@@ -3,14 +3,14 @@
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
-		Setup: Setup,
-		"*":Send
+		Start: Start,
+		"*": Send
 	};
 
 	return {dispatch};
 
-	function Setup(com, fun) {
-		console.log("--Router/Setup");
+	function Start(com, fun) {
+		console.log("--Router/Start");
 		
 		this.send({Cmd:"Subscribe", Pid:this.Par.Pid}, this.Par.Server);
 		if (fun)

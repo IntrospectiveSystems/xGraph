@@ -1,0 +1,16 @@
+{
+	"xGraph": "{xGraph}",
+	"Cache": "cache",
+	"Modules": {
+		"Nexus": {
+			"Module": "xGraph.Nexus.Nexus"
+		},
+		"Server": {
+			"Module": "xGraph.ValidateModule",
+			"Par": {
+				"TestMod" : "xGraph.Web.Router"
+			}
+		},
+		"Deferred":[]
+	}
+}

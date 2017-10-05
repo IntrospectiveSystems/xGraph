@@ -1,0 +1,19 @@
+{
+  "input": {
+    "required":["Start"],
+    "opts":["*"]
+  },
+  "output":{
+    "required":[{"par":"Server","cmd":["Subscribe"]}],
+    "opts":[]
+  },
+  "par": {
+    "required":["Server","Table"],
+    "opts":[]
+  },
+  "name": "Router",
+  "icon": null,
+  "doc": null,
+  "info":{"author":"TrevrGionet"},
+  "src": "xGraph:Web/Router"
+}
