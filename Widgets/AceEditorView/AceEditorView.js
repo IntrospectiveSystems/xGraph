@@ -16,7 +16,7 @@ We will likely need to provide access to the other script files in the build
 	//Using views we must inject basic functionality via the viewify script.
 	//We no longer need to build divs in our view class just access the existing
 	//div from this.Vlt.div. The div is already appended to the body.
-	return Viewify(dispatch);
+	return Viewify(dispatch, "3.1");
 
 	function Setup(com, fun) {
 		console.log("-Ace-code-editor/Setup");

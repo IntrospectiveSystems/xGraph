@@ -9,7 +9,8 @@
 		Resize,
 		Render,
 		DOMLoaded,
-		DispatchEvent
+		DispatchEvent,
+		EvokeExample
 	};
 
 	return Viewify(dispatch, "3.1");
@@ -22,6 +23,7 @@
 			View = this.Vlt.View;
 			View.Geometries={};
 			View.Meshs = {};
+			View.ResponseHandlers = {};
 
 			View.Ray = new THREE.Raycaster();
 			View.Renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -107,6 +109,10 @@
 					x:10*Math.random(),
 					y:10*Math.random(),
 					z:10*Math.random()
+				},
+				responseHandler: {
+					Cmd:"EvokeExample",
+					Handler: this.Par.Pid
 				}
 			};
 			q.Objects.push(obj);
@@ -139,8 +145,45 @@
 			console.log("we sent the objects to be added to the scene")
 		);
 
+
+		/*
+
+
+
+
+
+
+		END EXAMPLE CODE
+
+
+
+
+
+
+
+
+		*/
 	}
 
+	function EvokeExample(com, fun){
+		console.log("EVOKE EXAMPLE", com.id);
+
+		console.log("Popup");
+		this.genModule({
+			"Module": "xGraph:Widgets/Popup",
+			"Par": {
+				Left: com.mouse.x,
+				Top: com.mouse.y,
+				"View": "xGraph:Widgets/AceEditorView",
+				"Width": 400,
+				"Height" : 300
+			}
+		}, ()=>{})
+
+
+		if (fun)
+			fun(null, com)
+	}
 
 	function DOMLoaded(com, fun) {
 		console.log("--3DView/DOMLoaded");
@@ -172,7 +215,6 @@
 	function Render(com, fun){
 		console.log("--3DView/Render")
 		this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
-
 	}
 
 
@@ -221,7 +263,11 @@
 						y:2.0,
 						z:3.0
 					},
-		 * 			removed: true
+		 * 			removed: true,
+		 * 			responseHandler: {
+						Cmd:"Evoke",
+						Handler: this.Par.Pid
+					}
 		 * 		}
 		 * ]
 		 */
@@ -286,6 +332,10 @@
 				obj.scale.set(unit.scale.x||1,unit.scale.y||1, unit.scale.z||1);
 			}
 
+			if (unit.responseHandler){
+				this.Vlt.View.ResponseHandlers[unit.id]=unit.responseHandler;
+			}
+
 			this.Vlt.View.Scene.add(obj);
 		}
 	}
@@ -317,14 +367,27 @@
 			//console.log('Harvesting for dispatch');
 			Vlt.Dispatch = {};
 			dispatch = Vlt.Dispatch;
-			//harvest(Translate);
+
+			//harvest(Select);
 			harvest(Rotate);
 			harvest(Zoom);
 			harvest(Keyed);
 		}
 		var key = Vlt.Mouse.Mode + '.' + info.Action;
-		if (info.Action == 'LeftMouseDown')
+		if (info.Action == 'LeftMouseDown'){
 			info = mouseRay(info, Vlt);
+			if (info.obj.responseHandler){
+				this.send({Cmd:info.obj.responseHandler.Cmd, id:info.obj.id, point:info.point, mouse:info.Mouse}, info.obj.responseHandler.Handler, _=>{
+					//
+					//
+					//may need to handle evoke callback here
+					//
+					//
+					console.log("Evoke example callback")
+				});
+			}
+			return;
+		}
 		if ('Type' in info)
 			key += '.' + info.Type;
 		if ('CharKey' in info)
@@ -370,99 +433,90 @@
 			hit = hits[i];
 			obj = hit.object;
 			var pt;
-			while (obj != null) {
+			if (obj != null) {
 				//console.log('hit', hit);
 				//console.log('mouseRay', data);
-				switch (obj.name) {
-					case 'heatField':
-						info.Type = 'heatField';
-						info.Point = hit.point;
-						break;
-					case 'bugSystem':
-						info.Type = 'bugSystem';
-						info.Point = hit.point;
-						break;
-					default: 
-						console.log(obj.name);
-				}
-				pt = hit.point;
-				obj = obj.parent;
+				info.obj = {};
+				info.obj.id = obj.name
+				info.obj.responseHandler = Vlt.View.ResponseHandlers[info.obj.id] || undefined;
+				info.point = hit.point;
+				return info
 			}
 		}
 		return info;
 	}
 
 
-	//-----------------------------------------------------Select
-	// Move/Rotate model object in construction phase
-	// TBD: Remove Three.js dependancy
-	function Select(info, Vlt) {
-		var dispatch = {
-			//'Idle.LeftMouseDown.Artifact': start,
-			'Select1.Move.Artifact': move,
-			'Select1.Move.Terrain': move,
-			'Select1.LeftMouseUp': mouseup,
-			'Select2.Move.Artifact': move,
-			'Select2.Move.Terrain': move,
-			'Select2.Wheel': spin,
-			'Select2.LeftMouseDown.Terrain': stop,
-			'Select2.LeftMouseDown.Artifact': stop
-		}
-		if (info.Action == 'Harvest') {
-			for (key in dispatch)
-				info.Keys.push(key);
-			return;
-		}
+	// //-----------------------------------------------------Select
+	// // Move/Rotate model object in construction phase
+	// // TBD: Remove Three.js dependancy
+	// function Select(info, Vlt) {
+	// 	var dispatch = {
+	// 		'Idle.LeftMouseDown.Artifact': start,
+	// 		'Select1.Move.Artifact': move,
+	// 		'Select1.Move.Terrain': move,
+	// 		'Select1.LeftMouseUp': mouseup,
+	// 		'Select2.Move.Artifact': move,
+	// 		'Select2.Move.Terrain': move,
+	// 		'Select2.Wheel': spin,
+	// 		'Select2.LeftMouseDown.Terrain': stop,
+	// 		'Select2.LeftMouseDown.Artifact': stop
+	// 	}
+	// 	if (info.Action == 'Harvest') {
+	// 		for (key in dispatch)
+	// 			info.Keys.push(key);
+	// 		return;
+	// 	}
 
-		let View = Vlt.View;
-		if (info.Key in dispatch)
-			dispatch[info.Key]();
+	// 	let View = Vlt.View;
+	// 	if (info.Key in dispatch)
+	// 		dispatch[info.Key]();
 
-		function start() {
-			//console.log('..select/start', info);
-			var mouse = View.Mouse;
-			mouse.Mode = 'Select1';
-			mouse.x = info.Mouse.x;
-			mouse.y = info.Mouse.y;
-			View.pidSelect = info.Pid;
-		}
+	// 	function start() {
+	// 		//console.log('..select/start', info);
+	// 		var mouse = View.Mouse;
+	// 		mouse.Mode = 'Select1';
+	// 		mouse.x = info.Mouse.x;
+	// 		mouse.y = info.Mouse.y;
+	// 		View.pidSelect = info.Pid;
+	// 	}
 
-		// function mouseup() {
-		// 	var mouse = Vew.Mouse;
-		// 	mouse.Mode = 'Select2';
-		// }
+	// 	function mouseup() {
+	// 		var mouse = Vew.Mouse;
+	// 		mouse.Mode = 'Select2';
+	// 	}
 
-		// function spin() {
-		// 	var q = {};
-		// 	q.Cmd = 'Move';
-		// 	q.Instance = Vew.pidSelect;
-		// 	q.Spin = 6.0*info.Factor;
-		// 	that.send(q, Par.View);
-		// }
+	// 	function spin() {
+	// 		var q = {};
+	// 		q.Cmd = 'Move';
+	// 		q.Instance = Vew.pidSelect;
+	// 		q.Spin = 6.0*info.Factor;
+	// 		that.send(q, Par.View);
+	// 	}
 
-		// function move() {
-		// //	console.log('..move', info);
-		// 	if (!('Point' in info))
-		// 		return;
-		// 	var q = {};
-		// 	q.Cmd = 'Move';
-		// 	q.Instance = Vew.pidSelect;
-		// 	var loc = [];
-		// 	loc.push(info.Point.x);
-		// 	loc.push(info.Point.y);
-		// 	loc.push(info.Point.z);
-		// 	q.Loc = loc;
-		// 	that.send(q, Par.View);
-		// }
+	// 	function move() {
+	// 	//	console.log('..move', info);
+	// 		if (!('Point' in info))
+	// 			return;
+	// 		var q = {};
+	// 		q.Cmd = 'Move';
+	// 		q.Instance = Vew.pidSelect;
+	// 		var loc = [];
+	// 		loc.push(info.Point.x);
+	// 		loc.push(info.Point.y);
+	// 		loc.push(info.Point.z);
+	// 		q.Loc = loc;
+	// 		that.send(q, Par.View);
+	// 	}
 
-		function stop() {
-			View.Mouse.Mode = 'Idle';
-			var q = {};
-			q.Cmd = 'Save';
-			q.Instance = View.pidSelect;
-			that.send(q, Par.View);
-		}
-	}
+	// 	function stop() {
+	// 		View.Mouse.Mode = 'Idle';
+	// 		var q = {};
+	// 		q.Cmd = 'Save';
+	// 		q.Instance = View.pidSelect;
+	// 		that.send(q, Par.View);
+	// 	}
+	// }
 
 
 	//-----------------------------------------------------Zoom
@@ -496,16 +550,15 @@
 	}
 
 
-	//-----------------------------------------------------Zoom
-	// Move camera towards or away from Focus point
+	//-----------------------------------------------------Keyed
+	// keydown event
 	// TBD: Remove Three.js dependancy
 	function Keyed(info, Vlt) {
 		if (info.Action == 'Harvest') {
-			console.log('Harvest-Zoom');
+			console.log('Harvest-Keyed');
 			info.Keys.push('Idle.keydown.n');
 			return;
 		}
-		//console.log("Zooooooming");
 		let View = VltView;
 	}
 
@@ -514,7 +567,7 @@
 	// Rotate view about current Focus
 	// TBD: Remove Three.js dependancy
 	function Rotate(info, Vlt) {
-		console.log("rotate");
+		
 		var dispatch = {
 			// "Idle.LeftMouseDown":start,
 			'Idle.RightMouseDown': start,
@@ -535,7 +588,7 @@
 			dispatch[info.Key]();
 
 		function start() {
-				console.log('..Rotate/start', info.Key);
+			// console.log('..Rotate/start', info.Key);
 			var mouse = Vlt.Mouse;
 			mouse.Mode = 'Rotate';
 			mouse.x = info.Mouse.x;
@@ -543,7 +596,7 @@
 		}
 
 		function rotate() {
-			console.log('..Rotate/move', info.Key);
+			// console.log('..Rotate/move', info.Key);
 			var mouse = Vlt.Mouse;
 			var vcam = new THREE.Vector3();
 			vcam.fromArray(View.Camera.position.toArray());
@@ -568,7 +621,7 @@
 		}
 
 		function stop() {
-			console.log('..Rotate/stop', info.Key);
+			// console.log('..Rotate/stop', info.Key);
 			//var Vlt = View;
 			Vlt.Mouse.Mode = 'Idle';
 		}
