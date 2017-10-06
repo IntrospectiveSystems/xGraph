@@ -996,11 +996,7 @@
 	//    module is the name withing that group which can be further
 	//        separated by dots as desired
 	function GetModule(modnam, fun) {
-<<<<<<< HEAD
 		// console.log('##GetModule', modnam);
-=======
-		console.log('##GetModule', modnam);
->>>>>>> e8f008a5cff67779efb83efcd75a82b444367c6b
 		// debugger;
 		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		var dir = ModName.replace('.', ':').replace(/\./g, '/');

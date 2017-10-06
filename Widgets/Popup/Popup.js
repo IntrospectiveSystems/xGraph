@@ -113,10 +113,6 @@
 		}
 	}
 
-<<<<<<< HEAD
 	return Viewify(Popup, '3.3');
-=======
-	return Viewify(Popup, "3.1");
->>>>>>> e8f008a5cff67779efb83efcd75a82b444367c6b
 
 })();
