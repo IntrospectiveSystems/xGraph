@@ -329,7 +329,7 @@
 		}
 
 		function getModule(modulename, fun) {
-			nxs.EventLog(`Entity - Getting module ${modulename}`);
+			// nxs.EventLog(`Entity - Getting module ${modulename}`);
 			nxs.GetModule(modulename, fun);
 		}
 
@@ -995,8 +995,8 @@
 	//    module is the name withing that group which can be further
 	//        separated by dots as desired
 	function GetModule(modnam, fun) {
-		console.log('##GetModule', modnam);
-		//debugger;
+		// console.log('##GetModule', modnam);
+		// debugger;
 		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		var dir = ModName.replace('.', ':').replace(/\./g, '/');
 		var ModPath = genPath(dir);

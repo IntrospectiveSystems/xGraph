@@ -59,8 +59,13 @@
 			});
 		}
 
-		Render(com,fun){
+		async Render(com,fun){
 			
+			if(this.Vlt.viewDivs.length == 0) {
+				await this.ascend('Destroy');
+				return fun(null, com);
+			}
+
 			let that = this;
 
 			if (this.Vlt.viewDivs.length>0)
@@ -108,6 +113,6 @@
 		}
 	}
 
-	return Viewify(Popup);
+	return Viewify(Popup, '3.3');
 
 })();

@@ -1,6 +1,7 @@
 //# sourceURL=Viewify.js
 // debugger;
-
+let debug = ((new URL(location.href)).searchParams.get('debug'))!=null
+if(debug) console.warn('Debug is turned on!!');
 md5 = function(){
 		var k = [], i = 0;
 		for(; i < 64; ) k[i] = 0|(Math.abs(Math.sin(++i)) * 4294967296);
@@ -15,6 +16,27 @@ md5 = function(){
 					]) | d >>> 32 - a)), b, c]; for(j = 4; j; ) h[--j] = h[j] + a[j]; } str = '';
 			for(; j < 32; ) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
 			return str;} return calcMD5; }();
+function hslToRgb([h, s, l]){
+	var r, g, b;
+	if(s == 0){
+		r = g = b = l; // achromatic
+	}else{
+		var hue2rgb = function hue2rgb(p, q, t){
+			if(t < 0) t += 1;
+			if(t > 1) t -= 1;
+			if(t < 1/6) return p + (q - p) * 6 * t;
+			if(t < 1/2) return q;
+			if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+			return p;
+		}
+		var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		var p = 2 * l - q;
+		r = hue2rgb(p, q, h + 1/3);
+		g = hue2rgb(p, q, h);
+		b = hue2rgb(p, q, h - 1/3);
+	}
+	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
 
 // DIV, IMG, and STYLE are shorthand for making elements, wrapped in jquery
 if (window.DIV == undefined) window.DIV = function DIV(selectorish) {
@@ -163,8 +185,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.div.css('position', 'relative');
 			vlt.div.css('box-sizing', 'border-box');
 			vlt.div.css('overflow', 'hidden');
-			vlt.div.addClass(vlt.type);
-			if('ID' in this.Par) vlt.ID = this.Par.ID;
+			if(version >= new SemVer("3.1"))
+				vlt.div.addClass(vlt.type);
+			if('ID' in this.Par && version >= new SemVer("3.1")) vlt.ID = this.Par.ID;
 			else vlt.ID = `Z${this.Par.Pid}`;
 			vlt.div.attr('id', this.Vlt.ID);
 			// debugger;
@@ -287,6 +310,20 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			// this.Vlt.root.css('border', '1px solid ' + border);
 			fun(null, com);
 		}
+		async ChildDestroyed(com, fun) {
+			this.Vlt.views.splice(this.Vlt.views.indexOf(com.Pid), 1);
+			let views = this.Vlt.views.slice(0);
+			
+			this.Vlt.viewDivs = [];
+			for(let pid of views)
+				await this.ascend('AddView', {View: pid}, this.Par.Pid);
+			
+			
+			await this.ascend('Render', {}, this.Par.Pid);
+
+			fun(null, com);
+			
+		}
 		/// com.View = View PID
 		SetView(com, fun) {
 			let that = this;
@@ -294,6 +331,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			//debugger;
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				that.Vlt.viewDivs = [cmd.Div];
+				if(version >= new SemVer("3.3")) // get ChildDestroyed on ... yknow, child destroyed.
+					this.send({ Cmd: "RegisterDestroyListener" }, com.View, (err, cmd) => {});
+					
 				//debugger;
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
@@ -454,7 +494,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 			});
 			root.addEventListener('drag', function (evt) {
-				console.log("DRAG!", evt.pageX, evt.pageY);
+				// console.log("DRAG!", evt.pageX, evt.pageY);
 				if(evt.pageX == 0 && evt.pageY == 0) {
 					// console.log('RIDICULOUS');
 					return;
@@ -523,6 +563,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		Destroy(com, fun) {
+			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
+			// debugger;
+			if(this.Par.Destroying) {
+				console.log('This is a duplicate destroy, no action made.');
+				return fun(null, com);
+			}
+			this.Par.Destroying = true;
 			// debugger;
 			async.eachSeries(this.Vlt.views, (item, next) =>{
 				this.send({ Cmd: 'Destroy' }, item, () => {
@@ -532,9 +579,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				this.send({ Cmd: 'Cleanup' }, this.Par.Pid, () => {
 					this.deleteEntity((err) => {
 						if(err) console.error(err);
-						setTimeout(() => {
-							fun(null, com);
-						}, 0)
+						fun(null, com);
 					});
 				});
 			});
@@ -542,6 +587,19 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		Cleanup(com, fun) {
+			// debugger;
+			console.log("SUPER CLEANUP");
+			if('DestroyListeners' in this.Par && version >= new SemVer('3.3'))
+				for(let pid of this.Par.DestroyListeners)
+					this.send({Cmd: 'ChildDestroyed', Pid: this.Par.Pid}, pid, _=>_);
+			this.Vlt.root.remove();
+			fun(null, com);
+		}
+
+		RegisterDestroyListener(com, fun) {
+			let pid = com.Passport.From;
+			if('DestroyListeners' in this.Par) this.Par.DestroyListeners.push(pid);
+			else this.Par.DestroyListeners = [pid];
 			fun(null, com);
 		}
 
@@ -570,40 +628,60 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 
 			}
-			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => { this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => { if(err) reject(err); else resolve(cmd); }); });
+			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
+				// debugger;
+				this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => {
+					// console.log(`ERROR: ${err}`);
+					// if(err) debugger;
+					if(err) {
+						if(version >= new SemVer("3.3"))
+							reject([err, cmd]);
+						else reject(err);
+					}
+					else resolve(cmd);
+				});
+			});
+			// heh
+			this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (0x1F4A3 & 0b1111111111)).toString(16) + "\"");
 		}
 
-		// let timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
-		// let color = md5(timeTag).substr(0, 6);
-		// let color = 'C0FFEE';
-		// let id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
+		let timeTag, color, id;
+		if(debug) {
+			timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
+			color = md5(timeTag).substr(0, 6);
+			id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
+		}
 
 
-		// console.group(id);
-		// console.log(`%c${timeTag} ${com.Cmd}`, `
-		// background-color: #${color};
-		// text-shadow: 
+		if(debug) console.group(id);
+		if(debug) console.log(`%c${timeTag} ${com.Cmd}`,
+		// `background-color: #${color};
+		// text-shadow:
 		// 	rgba(0, 0, 0, 1) 0px 0px 1px, 
 		// 	rgba(0, 0, 0, 1) 0px 0px 1px, 
 		// 	rgba(0, 0, 0, 1) 0px 0px 4px,  
 		// 	rgba(0, 0, 0, 1) 0px 0px 4px; 
 		// padding: 2px 6px; color: white;`);
+		`color: #${color};
+		text-shadow: rgba(255, 255, 255, .4) 0px 0px 5px;
+		padding: 2px 6px;`);
+
 		if (com.Cmd in child) {
 			// console.time(timeTag);
 			child[com.Cmd].call(this, com, () => {
 				
-				// console.groupEnd(id);
+				if(debug) console.groupEnd(id);
 				fun(null, com);
 			});
 		} else if (com.Cmd in View.prototype) {
 			View.prototype[com.Cmd].call(this, com, () => {
 				
-				// console.groupEnd(id);
+				if(debug) console.groupEnd(id);
 				fun(null, com);
 			});
 		} else {
 			console.warn('Command <' + com.Cmd + '> not Found');
-			console.groupEnd(id);
+			if(debug) console.groupEnd(id);
 			fun('Command <' + com.Cmd + '> not Found', com);
 		}
 	}
