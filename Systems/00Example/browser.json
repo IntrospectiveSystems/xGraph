@@ -3,13 +3,12 @@
 		"RootView": {
 			"Module": "xGraph:Widgets/RootView",
 			"Par": {
-				"Layout": "$HoloView"
+				"Layout": "$3DView"
 			}
 		},
-		"HoloView": {
-			"Module":"xGraph:Widgets/HoloView",
+		"3DView": {
+			"Module":"xGraph:Widgets/3DView",
 			"Par": {
-				"Scene": "$Scene"
 			}
 		}
 	}

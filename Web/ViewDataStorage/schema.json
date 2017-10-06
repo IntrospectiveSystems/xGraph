@@ -1,0 +1,6 @@
+{
+	"Apex": {
+		"$Setup": "Setup",
+		"Entity": "ViewDataStorage.js"
+	}
+}

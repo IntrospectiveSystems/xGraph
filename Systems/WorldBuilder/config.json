@@ -10,7 +10,7 @@
 	"Server": {
 	  "Module": "xGraph:Web/Server",
 	  "Par": {
-		"Apex":{
+		"ApexList":{
 		  "Scene":"$Scene"
 		},
 		"Nxs":"{xGraph}Web/Server/Nxs.js",

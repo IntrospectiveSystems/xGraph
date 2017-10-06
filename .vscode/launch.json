@@ -5,25 +5,26 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "RunModuleServer",
+			"name": "00Example",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/ModuleServer",
+			"cwd": "${workspaceRoot}/Systems/00Example",
 			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
 				"xGraph=${workspaceRoot}/../xGraph"
 			],
 			"env": {
-				"NODE_PATH": "node_modules"
+				"NODE_PATH": "node_modules",
+				"XGRAPH_ENV": "development"
 			}
 		},
 		{
-			"name": "Plexus",
+			"name": "RunModuleServer",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/Plexus",
-			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
+			"cwd": "${workspaceRoot}/Systems/ModuleServer",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
 				"xGraph=${workspaceRoot}/../xGraph"
@@ -48,10 +49,10 @@
 			}
 		},
 		{
-			"name": "3D World Test 2",
+			"name": "Sandbox",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/3DWorldTest2",
+			"cwd": "${workspaceRoot}/Systems/Sandbox",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -59,13 +60,14 @@
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
+						
 			}
 		},
 		{
-			"name": "Wobbler Test",
+			"name": "Mesh/World-Palette",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/WobbleTest",
+			"cwd": "${workspaceRoot}/Systems/Palette",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -73,26 +75,14 @@
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
+						
 			}
 		},
 		{
-			"name": "cvtBin",
+			"name": "Mesh/Server",
 			"type": "node",
 			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/WobbleTest/Simulations",
-			"program": "${workspaceRoot}/Systems/WobbleTest/Simulations/cvtBin.js",
-			"args": [
-				"Marcus.bin"
-			],
-			"env": {
-				"NODE_PATH": "node_modules"
-			}
-		},
-		{
-			"name": "Forest",
-			"type": "node",
-			"request": "launch",
-			"cwd": "${workspaceRoot}/Systems/Forest",
+			"cwd": "${workspaceRoot}/Systems/WorldBuilder",
 			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",
@@ -100,6 +90,22 @@
 			],
 			"env": {
 				"NODE_PATH": "node_modules"
+						
+			}
+		},
+		{
+			"name": "Mesh/Plexus",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Systems/Plexus",
+			"program": "${workspaceRoot}/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=${workspaceRoot}/../xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+						
 			}
 		}
 	]

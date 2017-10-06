@@ -22,8 +22,8 @@
 				popup.css('position', 'fixed');
 				popup.css('border-radius', '3px');
 				popup.css('box-shadow', 'rgba(0, 0, 0, 0.698039) 0px 5px 17px');
-				popup.css('top', (($(document.body).height() / 2) - 150) + 'px');
-				popup.css('left', (($(document.body).width() / 2) - 200) + 'px');
+				popup.css('top', (this.Par.Top||(($(document.body).height() / 2) - 150)) + 'px');
+				popup.css('left', (this.Par.Left||(($(document.body).width() / 2) - 200)) + 'px');
 
 				this.Vlt.popup.append(this.Vlt.root);
 				document.body.appendChild(this.Vlt.popup[0]);
@@ -113,6 +113,10 @@
 		}
 	}
 
+<<<<<<< HEAD
 	return Viewify(Popup, '3.3');
+=======
+	return Viewify(Popup, "3.1");
+>>>>>>> e8f008a5cff67779efb83efcd75a82b444367c6b
 
 })();
