@@ -14,7 +14,7 @@
 	function SetDomElement(com, fun) {
 		console.log('--Mouse/SetDomElement');
 		let Vlt = this.Vlt;
-		Vlt.domElement = $(com.DomElement);
+		Vlt.domElement = com.DomElement;
 		
 		//needed these to get the focus to work for keydown events
 		Vlt.domElement.focus();
@@ -26,16 +26,17 @@
 		Vlt.Mouse.inPanel = true;
 		domElement = Vlt.domElement
 
-		domElement.on("mouseenter",(evt) => {
+		domElement.on("mouseenter","canvas",(evt) => {
 		});
-		domElement.on("mouseleave",(evt) => {
+		domElement.on("mouseleave","canvas",(evt) => {
 			let info = {};			
 			info.Action = 'MouseLeave';
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("wheel", (evt) =>{
+		domElement.on("wheel","canvas", (evt) =>{
+			console.log("Handler ", this.Par.Handler.substr(30));
 			let info = {};
 			evt = evt.originalEvent;
 			let fac = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
@@ -45,7 +46,9 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("mousedown",(evt) => {
+		domElement.on("mousedown","canvas",(evt) => {
+			console.log("Handler ", this.Par.Handler.substr(30));
+			
 			info = {};
 			info.Mouse = {};
 			info.Mouse.x = evt.clientX;
@@ -65,7 +68,9 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("mousemove", (evt) =>{
+		domElement.on("mousemove", "canvas",(evt) =>{
+			//console.log("Handler ", this.Par.Handler.substr(30));
+			
 			let info = {};			
 			info.Action = 'Move';
 			info.Mouse = {};
@@ -75,7 +80,7 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("mouseup",(evt) => {
+		domElement.on("mouseup","canvas",(evt) => {
 			let info = {};
 			switch (evt.which) {
 				case 1:	// Left mouse
@@ -91,7 +96,7 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("keydown", (evt) =>{
+		domElement.on("keydown", "canvas",(evt) =>{
 			let info = {};			
 			info.Action = 'keydown';
 			info.CharKey = evt.key;

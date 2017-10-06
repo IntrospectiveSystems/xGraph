@@ -9,6 +9,7 @@
 		Resize,
 		Render,
 		DOMLoaded,
+		Cleanup,
 		DispatchEvent,
 		EvokeExample
 	};
@@ -49,13 +50,15 @@
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
 
-			loop();
+			View.RenderLoop = setInterval(_=>{
+				View.Renderer.render(View.Scene, View.Camera);
+			},20);
+
+			
 			fun(null, com);
 
-			function loop() {
-				View.Renderer.render(View.Scene, View.Camera);
-				requestAnimationFrame(loop);
-			}
+			
+
 		});
 	}
 
@@ -203,7 +206,7 @@
 		}, (err, pidApex) => {
 			this.send({ 
 				Cmd: "SetDomElement", 
-				"DomElement": this.Vlt.View.Renderer.domElement 
+				"DomElement": this.Vlt.div 
 			}, pidApex, (err, cmd) => {
 				console.log("GenModed the Mouse and set the DomElement");
 				//fun(null, com);
@@ -211,9 +214,16 @@
 		});
 	}
 
+	function Cleanup(com, fun){
+		console.log("--3DView/Cleanup", this.Par.Pid.substr(30));
+		
+		clearInterval(this.Vlt.View.RenderLoop);
+		if (fun)
+			fun(null, com);
+	}
 
 	function Render(com, fun){
-		console.log("--3DView/Render", this.Par.Pid.substr(24));
+		console.log("--3DView/Render", this.Par.Pid.substr(30));
 		this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 		this.super(com, fun);
 	}
@@ -360,7 +370,7 @@
 		let info = com.info;
 		let Vlt = this.Vlt;
 		Vlt.Mouse = com.mouse;
-
+		console.log(this.Par.Pid.substr(30));
 		var dispatch;
 		if ('Dispatch' in Vlt) {
 			dispatch = Vlt.Dispatch;
@@ -419,24 +429,26 @@
 		//console.log(info.Mouse)
 		let View=Vlt.View;
 		View.Ray.precision = 0.00001;
-		container = Vlt.div[0];
-		var w = container.clientWidth;
-		var h = container.clientHeight - 2 * container.clientTop;
+		container = Vlt.div;
+		var w = container.width();
+		var h = container.height() - 2 * container.offset().top;
 		var vec = new THREE.Vector2();
-		vec.x = 2 * (info.Mouse.x - container.offsetLeft) / w - 1;
-		vec.y = 1 - 2 * (info.Mouse.y - container.offsetTop) / h;
+		vec.x = 2 * (info.Mouse.x - container.offset().left) / w - 1;
+		vec.y = 1 - 2 * (info.Mouse.y - container.offset().top) / h;
+		console.log(vec);
 		View.Ray.setFromCamera(vec, View.Camera);
 		var hits = View.Ray.intersectObjects(View.Scene.children, true);
 		var hit;
 		var obj;
-		//console.log('Hits length is', hits);
+		console.log('Hits length is', hits);
 		for (var i = 0; i < hits.length; i++) {
 			hit = hits[i];
 			obj = hit.object;
 			var pt;
-			if (obj != null) {
+			if (obj != null && obj.name) {
 				//console.log('hit', hit);
 				//console.log('mouseRay', data);
+				debugger;
 				info.obj = {};
 				info.obj.id = obj.name
 				info.obj.responseHandler = Vlt.View.ResponseHandlers[info.obj.id] || undefined;

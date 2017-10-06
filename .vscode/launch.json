@@ -15,7 +15,8 @@
 				"xGraph=${workspaceRoot}/../xGraph"
 			],
 			"env": {
-				"NODE_PATH": "node_modules"
+				"NODE_PATH": "node_modules",
+				"XGRAPH_ENV": "development"
 			}
 		},
 		{
