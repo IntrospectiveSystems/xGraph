@@ -17,8 +17,7 @@
 			"xGraph.Widgets.RootView",
 			"xGraph.Widgets.3DView",
 			"xGraph.Widgets.Mouse",
-			"xGraph.Widgets.Popup",
-			"xGraph.Widgets.AceEditorView"
+			"xGraph.Widgets.Popup"
 		]
 	}
 }

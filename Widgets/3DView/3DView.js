@@ -174,9 +174,9 @@
 			"Par": {
 				Left: com.mouse.x,
 				Top: com.mouse.y,
-				"View": "xGraph:Widgets/AceEditorView",
-				"Width": 400,
-				"Height" : 300
+				"View": "xGraph:Widgets/3DView",
+				"Width": 800,
+				"Height" : 600
 			}
 		}, ()=>{})
 
@@ -215,6 +215,7 @@
 	function Render(com, fun){
 		console.log("--3DView/Render")
 		this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
+		this.super(com, fun);
 	}
 
 

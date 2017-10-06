@@ -4,13 +4,13 @@ Use by providing a Json file of commands (Add path to TestModule config as Par.T
 
 test.json Format:
 {
-	State: {
-		Pars: Required pars (key:value pairs) that allow the module to do it's job
+	"State": {
+		"Pars": Required pars (key:value pairs) that allow the module to do it's job
 	},
-    TestCases: [
+    "TestCases": [
         {
-            Command: <Object> Command object to send
-            Callback: <Object> Expected return command (Omit if no callback expected)
-        }, ...       
+            "Command": <Object> Command object to send,
+            "Callback": <Object> Expected return command (Omit if no callback expected)
+        }    
     ]
 }

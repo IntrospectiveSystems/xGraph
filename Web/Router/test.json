@@ -1,7 +1,11 @@
 {
-	"tests":[
-		{
-		
-		}
-	]
+	"State": {
+		"Pars": "Required pars (key:value pairs) that allow the module to do it's job"
+	},
+    "TestCases": [
+        {
+            "Command":" <Object> Command object to send",
+            "Callback":" <Object> Expected return command (Omit if no callback expected)"
+        }    
+    ]
 }
