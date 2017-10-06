@@ -213,7 +213,7 @@
 
 
 	function Render(com, fun){
-		console.log("--3DView/Render")
+		console.log("--3DView/Render", this.Par.Pid.substr(24));
 		this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 		this.super(com, fun);
 	}
