@@ -1,11 +1,39 @@
 {
 	"State": {
-		"Pars": "Required pars (key:value pairs) that allow the module to do it's job"
+		"Server":"xGraphTestPid",
+		"Table":{
+			"Test":"xGraphTestPid"
+		}	
 	},
-    "TestCases": [
+    "Cases": [
+		{
+			"Command": {
+				"Cmd":"Start"
+			},
+			"SentMessages":[
+				{
+					"Cmd":"Subscribe", 
+					"Pid":"xGraphSelfPid"
+				}
+			]
+		},
         {
-            "Command":" <Object> Command object to send",
-            "Callback":" <Object> Expected return command (Omit if no callback expected)"
-        }    
+			"Command": {
+				"Cmd":"Subscribe", 
+				"Name":"TestDestination",
+				"Pid": "xGraphTestPid"
+			}
+		},
+		{
+			"Command": {
+				"Cmd":"Test", 
+				"Destination":"TestDestination",
+				"Pid": "xGraphTestPid"
+			},
+			"Callback": {
+				"Cmd": "Test",
+				"Destination": "TestDestination2"
+			}
+		}
     ]
 }

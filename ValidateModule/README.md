@@ -5,11 +5,16 @@ Use by providing a Json file of commands (Add path to TestModule config as Par.T
 test.json Format:
 {
 	"State": {
-		"Pars": Required pars (key:value pairs) that allow the module to do it's job
+		"Par": "value.... Required pars (key:value pairs) that allow the module to do it's job
 	},
-    "TestCases": [
+    "Cases": [
         {
             "Command": <Object> Command object to send,
+			"SentMessages":[
+				{
+					"Command": <Object> command to be caught by test.
+				}
+			]
             "Callback": <Object> Expected return command (Omit if no callback expected)
         }    
     ]

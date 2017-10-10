@@ -3,7 +3,8 @@
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
-		Start: Start,
+		Start,
+		Subscribe,
 		"*": Send
 	};
 
@@ -13,6 +14,16 @@
 		console.log("--Router/Start");
 		
 		this.send({Cmd:"Subscribe", Pid:this.Par.Pid}, this.Par.Server);
+		if (fun)
+			fun(null, com);
+	}
+
+	function Subscribe(com, fun){
+		if (!this.Par.Table)
+			this.Par.Table = {}
+		
+		this.Par.Table[com.Name]= com.Pid;
+
 		if (fun)
 			fun(null, com);
 	}
