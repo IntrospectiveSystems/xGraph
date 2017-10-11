@@ -8,9 +8,9 @@
 		"Server": {
 			"Module": "xGraph.ValidateModule",
 			"Par": {
-				"TestModule" : "xGraph:Web/Router"
+				"TestModule" : "xGraph:Web/Server"
 			}
 		},
-		"Deferred":["xGraph.Web.Router"]
+		"Deferred":["xGraph.Web.Server"]
 	}
 }

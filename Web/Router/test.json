@@ -1,8 +1,8 @@
 {
 	"State": {
-		"Server":"xGraphTestPid",
+		"Server":"xGraphTesterPid",
 		"Table":{
-			"Test":"xGraphTestPid"
+			"Test":"xGraphTesterPid"
 		}	
 	},
     "Cases": [
@@ -21,18 +21,18 @@
 			"Command": {
 				"Cmd":"Subscribe", 
 				"Name":"TestDestination",
-				"Pid": "xGraphTestPid"
+				"Pid": "xGraphTesterPid"
 			}
 		},
 		{
 			"Command": {
 				"Cmd":"Test", 
 				"Destination":"TestDestination",
-				"Pid": "xGraphTestPid"
+				"Pid": "xGraphTesterPid"
 			},
-			"Callback": {
+			"Response": {
 				"Cmd": "Test",
-				"Destination": "TestDestination2"
+				"Pid": "*"				
 			}
 		}
     ]

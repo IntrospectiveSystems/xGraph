@@ -1,5 +1,5 @@
 (function Validate() {
-
+	let hashIt;
 
 	var dispatch = {
 		Start: Start,
@@ -32,61 +32,111 @@
 					}, {})
 				);
 			}
-			if (val === 'xGraphTestPid')
+			if (val === 'xGraphTesterPid')
 				return that.Par.Pid;
 			else if(val === 'xGraphSelfPid')
 				return that.Vlt.InstModule||'xGraphSelfPid';
 
 			return val;
 		};
-
+		hashIt = (()=>{
+			var k = [], i = 0;
+			for(; i < 64; ) k[i] = 0|(Math.abs(Math.sin(++i)) * 4294967296);
+			function calcMD5(str){ var b, c, d, j, x = [], str2 = unescape(encodeURI(str)),
+				a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
+				for(; i <= a; ) x[i >> 2] |= (str2.charCodeAt(i)||128) << 8 * (i++ % 4);
+				x[str = (a + 8 >> 6) * 16 + 14] = a * 8; i = 0; for(; i < str; i += 16){
+					a = h; j = 0; for(; j < 64; ) a = [ d = a[3], ((b = a[1]|0) + ((d = ((a[0] +
+						[b & (c = a[2]) | ~b&d,d & b | ~d & c,b ^ c ^ d,c ^ (b | ~d)][a = j >> 4])
+						+ (k[j] + (x[[j, 5 * j + 1, 3 * j + 5, 7 * j][a] % 16 + i]|0)))) << (a = [
+						7, 12, 17, 22, 5,  9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
+						]) | d >>> 32 - a)), b, c]; for(j = 4; j; ) h[--j] = h[j] + a[j]; } str = '';
+				for(; j < 32; ) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
+				return str;} return calcMD5; 
+		})();
+		
 		//To run the tests
 		const RunTests = _=> {
 			let Results = [];
 			
 			that.log(that.Vlt.Test.Cases.length + " Tests");
 			async.eachSeries(that.Vlt.Test.Cases, (test, next) => {
-				debugger;
 				if (test.Command.Cmd=="Setup" || test.Command.Cmd=="Start"){
 					let bMatch = true;
-					let message, keys, key;
+					let message, keys, key, hash,  hashStash = [], msgIdx;
 					if ("SentMessages" in test){
-						for (let msgIdx=0; msgIdx<test.SentMessages.length; msgIdx++){
-							message = test.SentMessages[msgIdx];
-							keys = Object.keys(message);
-							for (let i=0; i<keys.length; i++) {
-								key = keys[i];
-								if (message[key] !== that.Vlt.SentMessages[msgIdx][key]) {
-									bMatch = false;
-									break;
-								}
-							}
-						}
-					}
-					let result = {};
-					result[test.Command.Cmd] = bMatch;
-
-					Results.push(result);
-					next();
-					return;
-				}
-				that.send(test.Command, that.Vlt.InstModule, (err, returnedCommand) => {
-					let bMatch = true;
-					
-					//check for a binary match with the test.json test callback
-					if ('Callback' in test) {
-						let keys = Object.keys(test.Callback);
-						for (let i=0; i<keys.length; i++) {
-							if (test.Callback[keys[i]] !== returnedCommand[keys[i]]) {
+						for (msgIdx=0; msgIdx<test.SentMessages.length; msgIdx++){
+							hash = hashIt(test.SentMessages[msgIdx]);
+							hashStash.push(hash);
+							if (hash in that.Vlt.SentMessages)
+								that.Vlt.SentMessages[hash]--;
+							else{
 								bMatch = false;
 								break;
 							}
 						}
 					}
+					
+					for (msgIdx=0;msgIdx<hashStash.lenth; msgIdx++){
+						if (that.Vlt.SentMessages[hashStash[msgIdx]]!=0){
+							bMatch = false;
+							break;
+						}
+					}
+
 					let result = {};
 					result[test.Command.Cmd] = bMatch;
 
 					Results.push(result);
+					that.Vlt.SentMessages = {};
+					next();
+					return;
+				}
+				that.send(test.Command, that.Vlt.InstModule, (err, returnedCommand) => {
+					let bMatch = true;
+					let keys, key, hash, hashStash = [], msgIdx;
+
+					debugger;
+					//check for a binary match with the test.json test callback
+					if ('Response' in test) {
+						keys = Object.keys(test.Response);
+						for (let i=0; i<keys.length; i++) {
+							///fail if either the values are not equal, 
+							///or the value is "*" and key is in the returned command 
+							if ((test.Response[keys[i]] !== returnedCommand[keys[i]])
+									&& !((test.Response[keys[i]]=="*") && (keys[i] in returnedCommand))) {
+								bMatch = false;
+								break;
+							}
+						}
+					}
+
+					if ("SentMessages" in test){
+						for (msgIdx=0; msgIdx<test.SentMessages.length; msgIdx++){
+							hash = hashIt(test.SentMessages[msgIdx]);
+							hashStash.push(hash);
+							if (hash in that.Vlt.SentMessages)
+								that.Vlt.SentMessages[hash]--;
+							else{
+								bMatch = false;
+								break;
+							}
+						}
+					}
+					
+					for (msgIdx=0;msgIdx<hashStash.lenth; msgIdx++){
+						if (that.Vlt.SentMessages[hashStash[msgIdx]]!=0){
+							bMatch = false;
+							break;
+						}
+					}
+
+					let result = {};
+					result[test.Command.Cmd] = bMatch;
+
+					Results.push(result);
+					that.Vlt.SentMessages = {};
+					
 					next();
 				});
 
@@ -95,15 +145,14 @@
 				let fails = 0;
 				for (let key in Results) {
 					let keys = Object.keys(Results[key]);
-					that.log (keys[0]+ ' : '+ Results[key][keys[0]]);
+					that.log (keys[0]+ ' : '+ (Results[key][keys[0]]?"Pass":"Fail"));
 					if (!Results[key][keys[0]])
 						fails++;
 				}
 				if (fails == 0)
-					that.log("All tests Passed!");
+					that.log("\nAll tests Passed!");
 				else
-					that.log(`${fails} of ${Results.length} tests Failed.`)
-					
+					that.log(`\n${fails} of ${Results.length} tests Failed.`)
 			});
 		};
 
@@ -123,7 +172,6 @@
 				that.Vlt.Test = setPid(that.Vlt.Test);
 				RunTests();
 			});
-
 		});
 
 		//finish start:May happen before the test commences 
@@ -131,14 +179,18 @@
 	}
 
 	function DummyCatch(com, fun){
-		this.log(`Validate::DummyCatch ${JSON.stringify(com, null,2)}`);
-		
+		//this.log(`Validate::DummyCatch ${JSON.stringify(com, null,2)}`);
+
 		if (!this.Vlt.SentMessages)
-			this.Vlt.SentMessages = [];
-
-		this.Vlt.SentMessages.push(com);
+			this.Vlt.SentMessages = {};
 		
+		if ("Passport" in com)
+			delete com.Passport;
+		
+		let hash = hashIt(com)
 
+		this.Vlt.SentMessages[hash]= (this.Vlt.SentMessages[hash]||0)+1;
+	
 		if (fun)
 			fun(null, com);
 	}

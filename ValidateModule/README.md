@@ -2,6 +2,8 @@
 Loads tests from json and sends commands to a specified module. Returns true for each test that matches expected results.
 Use by providing a Json file of commands (Add path to TestModule config as Par.TestCases).
 
+for an example look at xGraph/Web/Router/test.json
+
 test.json Format:
 {
 	"State": {

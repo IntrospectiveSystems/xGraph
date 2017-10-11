@@ -37,7 +37,7 @@
 		if ('Port' in this.Par)
 			port = this.Par.Port;
 		else
-			port = 80;
+			port = 8080;
 		var web = http.createServer(function (req, res) {
 		//	console.log(req.method + ':' + req.url);
 			switch (req.method) {
@@ -285,12 +285,19 @@
 			
 			var str = JSON.stringify(mod);
 			//console.log("mod is ", Object.keys(mod));
-			zip.file('module.json', str);
+			zip.file('module.json', str, {
+				date: new Date("December 25, 2007 00:00:01")
+				//the date is required for zip consistency
+			});
 			man.push('module.json');
-			zip.file('manifest.json', JSON.stringify(man));
+			zip.file('manifest.json', JSON.stringify(man), {
+				date: new Date("December 25, 2007 00:00:01")
+				//the date is required for zip consistency
+			});
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;
 				fun(null, com);
+				debugger;
 			});
 		});
 	}

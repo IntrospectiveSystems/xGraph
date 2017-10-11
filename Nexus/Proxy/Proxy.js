@@ -351,10 +351,8 @@
 					}else{
 
 
-						//this code needs to be worked on notsure it will work if 
-						//we get disconnected
-
-
+						//this code needs to be worked on... 
+						//not sure what happens on disconnected
 
 
 						//Return a hard fail. Should be only called once.
