@@ -13,6 +13,7 @@ __Nexus = (function() {
 	var Initializers = {};
 	var EntCache = {};
 	var ModCache = {};
+	var ModuleCache = {};
 	var ZipCache = {};
 	var SymTab = {};
 	var Css = [];
@@ -23,6 +24,7 @@ __Nexus = (function() {
 		genEntity: genEntity,
 		delEntity: delEntity,
 		genModule: genModule,
+		getFile,
 		send: send,
 		getFont: getFont
 	};
@@ -164,6 +166,20 @@ __Nexus = (function() {
 		// }
 	}
 
+
+	function getFile(module, filename, fun) {
+		let mod = ModuleCache[module];
+		//console.log(Object.keys(ModCache[module]));
+		if (filename in mod) {
+			fun(null, mod[filename])
+			return;
+		}
+		let err = `Error: File ${filename} does not exist in module ${module}`;
+		fun(err);
+	}
+
+
+
 	//--------------------------------------------------------getFont
 	function getFont(font) {
 		if(font in Fonts)
@@ -187,6 +203,7 @@ __Nexus = (function() {
 			send: send,
 			deleteEntity: deleteEntity,
 			getPid: getPid,
+			getFile,
 			genModule :genModule
 		};
 
@@ -222,6 +239,10 @@ __Nexus = (function() {
 		//generate a module in the local system
 		function genModule(mod, fun){
 			nxs.genModule(mod,fun);
+		}
+
+		function getFile(filename, fun) {
+			nxs.getFile(Par.Module, filename, fun);
 		}
 
 		//-------------------------------------------------send
@@ -325,7 +346,7 @@ __Nexus = (function() {
 	// handled by Nxs for modules instantiated initially.
 	function genModule(mod, fun) {
 		var pidapx;
-		Initializers = {};
+		let Initializers = {};
 		addModule(mod, setup);
 
 		function setup(err, pid) {
@@ -392,6 +413,7 @@ __Nexus = (function() {
 				
 				zip.file('module.json').async('string').then(function(str) {
 					modjson = JSON.parse(str);
+					ModuleCache[mod.Module]= modjson;
 					var keys = Object.keys(mod);
 					//debugger;
 					styles();

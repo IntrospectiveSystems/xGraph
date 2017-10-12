@@ -2,21 +2,24 @@
 //jshint esversion: 6
 (function RenderController() {
 
-	let fs = require('fs');
-	let path = require('path');
-	let async = require('async');
+	let fs, path, async;
 
 	class RenderController {
 		Start(com, fun) {
+			fs = this.require('fs');
+			path = this.require('path');
+			async = this.require('async');
+
 			this.Vlt.threads = [];
 			this.Vlt.frames = {};
-			this.Vlt.Directory = this.Par.Directory || "C:/xGraph/Work/WobbleTest/Simulations";
+			this.Vlt.Directory = this.Par.Directory || (process.cwd()+"/Simulations");
 
 			// this.send({ Cmd: 'AddFolder', Dir: 'Marcus' }, this.Par.Pid, () => {
 				fun(null, com);
 			// });
 		}
 		AddFolder(com, fun) {
+			debugger;
 			let that = this;
 			fs.readdir(path.join(this.Vlt.Directory, com.Dir), (err, files) => {
 				async.eachSeries(files, function (item, next) {

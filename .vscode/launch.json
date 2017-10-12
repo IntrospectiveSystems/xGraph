@@ -19,6 +19,20 @@
 				"NODE_PATH": "node_modules"
 			}
 		},{
+			"name": "WobbleTest",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Systems/WobbleTest",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=${workspaceRoot}/../xGraph",
+				"development=true"
+			],
+			"env": {
+				"NODE_PATH": "node_modules"
+			}
+		},{
 			"name": "00Example",
 			"type": "node",
 			"request": "launch",

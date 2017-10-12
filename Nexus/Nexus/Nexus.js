@@ -80,17 +80,14 @@
 
 
 
-	var net = that.require('net');
+	var net = require('net');
 	var err;
 	var tmp = new Buffer(2);
-	
-	var STX = 2;
-	var ETX = 3;
 	
 	tmp[0] = 2;
 	tmp[1] = 3;
 	
-	var str = tmp.toString();
+	str = tmp.toString();
 	
 	let Vlt = {};
 	Vlt.STX = str.charAt(0);
@@ -105,10 +102,10 @@
 	connectLoop();
 	function connectLoop(){
 		sock.removeAllListeners();
-		sock.connect(port, host, function () {console.log("Nexus trying to connect to Broker ...")});
+		sock.connect(port, host, function () {EventLog(`Nexus trying to connect to Broker at "${host}:${port}"`)});
 
 		sock.on('connect', function () {
-			console.log('Nexus - Connected to Broker on host:' + host + ', port:' + port);
+			EventLog(`Nexus - Connected to Broker`);
 			Vlt.Sock = sock;
 			if (!("Replied" in Vlt)||Vlt.Replied ==false){
 				Vlt.Replied = true;

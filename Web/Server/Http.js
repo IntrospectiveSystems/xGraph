@@ -297,7 +297,6 @@
 			zip.generateAsync({type:'base64'}).then(function(data) {
 				com.Zip = data;
 				fun(null, com);
-				debugger;
 			});
 		});
 	}

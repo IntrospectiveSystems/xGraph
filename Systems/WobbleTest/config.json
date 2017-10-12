@@ -14,7 +14,7 @@
 		"Server": {
 			"Module": "xGraph:Web/Server",
 			"Par": {
-				"Apex": {
+				"ApexList": {
 					"Thing": "$Controller"
 				},
 				"Port": 8080,

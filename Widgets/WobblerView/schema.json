@@ -1,7 +1,6 @@
 {
 	"Apex": {
 		"Entity": "Wobbler.js",
-		"$Start": "Start",
 		"$Setup": "Setup"
 	}
 }

@@ -1,5 +1,5 @@
 //# sourceURL=3DView
-(function _3DView(){
+(function _3DView() {
 
 	//-----------------------------------------------------dispatch
 	let dispatch = {
@@ -20,9 +20,9 @@
 		this.super(com, (err, cmd) => {
 			console.log('--3DView/Setup');
 			let div = this.Vlt.div;
-			this.Vlt.View= {};
+			this.Vlt.View = {};
 			View = this.Vlt.View;
-			View.Geometries={};
+			View.Geometries = {};
 			View.Meshs = {};
 			View.ResponseHandlers = {};
 
@@ -50,21 +50,21 @@
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
 
-			View.RenderLoop = setInterval(_=>{
+			View.RenderLoop = setInterval(_ => {
 				View.Renderer.render(View.Scene, View.Camera);
-			},20);
+			}, 20);
 
-			
+
 			fun(null, com);
 
-			
+
 
 		});
 	}
 
 	function Start(com, fun) {
 		console.log('--3DView/Start');
-		
+
 
 
 		fun(null, com);
@@ -83,38 +83,38 @@
 		//
 		//
 		//add some objects to the world
-		let q={}
+		let q = {}
 		q.Cmd = "SetObjects";
 		q.Objects = [];
 
-		//add 20 ellipsoids with random location and scales
-		for (let idx = 0; idx< 20; idx++){
+		//add 10 ellipsoids with random location and scales
+		for (let idx = 0; idx < 10; idx++) {
 			obj = {
-				id  : idx,
+				id: idx,
 				geometry: {
-					id : "geom",
+					id: "geom",
 					name: "SphereGeometry",
-					arguments: [1,64,64]
+					arguments: [1, 64, 64]
 				},
-				mesh : {
-					id : "mesh",
+				mesh: {
+					id: "mesh",
 					name: "MeshPhongMaterial",
 					arguments: {
-						color : 0xFFFFFF*Math.random()
+						color: 0xFFFFFF * Math.random()
 					}
 				},
 				position: {
-					x: 100*Math.random(),
-					y: 100*Math.random(),
-					z: 100*Math.random()
+					x: 100 * Math.random(),
+					y: 100 * Math.random(),
+					z: 100 * Math.random()
 				},
 				scale: {
-					x:10*Math.random(),
-					y:10*Math.random(),
-					z:10*Math.random()
+					x: 10 * Math.random(),
+					y: 10 * Math.random(),
+					z: 10 * Math.random()
 				},
 				responseHandler: {
-					Cmd:"EvokeExample",
+					Cmd: "EvokeExample",
 					Handler: this.Par.Pid
 				}
 			};
@@ -122,17 +122,17 @@
 		}
 		// add a plane
 		obj = {
-			id  : "plane",
+			id: "plane",
 			geometry: {
-				id : "PlaneGeom",
+				id: "PlaneGeom",
 				name: "PlaneGeometry",
-				arguments: [100,100,99,99]
+				arguments: [100, 100, 99, 99]
 			},
-			mesh : {
-				id : "planeMesh",
+			mesh: {
+				id: "planeMesh",
 				name: "MeshBasicMaterial",
 				arguments: {
-					color:0x333333
+					color: 0x333333
 				}
 			},
 			position: {
@@ -142,8 +142,22 @@
 			}
 		};
 		q.Objects.push(obj);
+		// add a module 
+		obj = {
+			id: "module",
+			module: "xGraph:Scene/Modelx3D",
+			position: {
+				x: 50,
+				y: 50,
+				z: 0
+			},
+			model: "Geo.101Plants.Cactus3",
+			axis: [0, 0, 1],
+			angle: 0
+		};
+		q.Objects.push(obj);
 
-		this.send(q, this.Par.Pid, _=>
+		this.send(q, this.Par.Pid, _ =>
 			//callback
 			console.log("we sent the objects to be added to the scene")
 		);
@@ -168,7 +182,7 @@
 		*/
 	}
 
-	function EvokeExample(com, fun){
+	function EvokeExample(com, fun) {
 		console.log("EVOKE EXAMPLE", com.id);
 
 		console.log("Popup");
@@ -179,9 +193,9 @@
 				Top: com.mouse.y,
 				"View": "xGraph:Widgets/3DView",
 				"Width": 800,
-				"Height" : 600
+				"Height": 600
 			}
-		}, ()=>{})
+		}, () => { })
 
 
 		if (fun)
@@ -204,9 +218,9 @@
 				"Handler": this.Par.Pid
 			}
 		}, (err, pidApex) => {
-			this.send({ 
-				Cmd: "SetDomElement", 
-				"DomElement": this.Vlt.div 
+			this.send({
+				Cmd: "SetDomElement",
+				"DomElement": this.Vlt.div
 			}, pidApex, (err, cmd) => {
 				console.log("GenModed the Mouse and set the DomElement");
 				//fun(null, com);
@@ -214,15 +228,15 @@
 		});
 	}
 
-	function Cleanup(com, fun){
+	function Cleanup(com, fun) {
 		console.log("--3DView/Cleanup", this.Par.Pid.substr(30));
-		
+
 		clearInterval(this.Vlt.View.RenderLoop);
 		if (fun)
 			fun(null, com);
 	}
 
-	function Render(com, fun){
+	function Render(com, fun) {
 		console.log("--3DView/Render", this.Par.Pid.substr(30));
 		this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 		this.super(com, fun);
@@ -241,7 +255,7 @@
 	}
 
 
-	function SetObjects(com, fun){
+	async function SetObjects(com, fun) {
 		/**
 		 * 
 		 * the com will contain an Objects key that lists an array of objects
@@ -282,72 +296,174 @@
 		 * 		}
 		 * ]
 		 */
-		
-		for (let i = 0;i<com.Objects.length;i++){
-			
+
+		for (let i = 0; i < com.Objects.length; i++) {
+
 			let unit = com.Objects[i];
-			if (!unit.id && (unit.id !=0)){
+
+			if (!unit.id && (unit.id != 0)) {
 				console.log("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}
-			
-			let obj = this.Vlt.View.Scene.getObjectByName( unit.id );
 
-			if (!obj){
-				if(!unit.geometry || !unit.mesh){
-					console.log("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
-					continue;
-				}
-				let geom, mesh;
+			let obj = this.Vlt.View.Scene.getObjectByName(unit.id);
 
-				if ("id" in unit.geometry){
-					if (unit.geometry.id in this.Vlt.View.Geometries){
-						geom  = this.Vlt.View.Geometries[unit.geometry.id];
+			if (!obj) {
+				if (!unit.module) {
+					//we're building a 3JS object
+					if (!unit.geometry || !unit.mesh) {
+						console.log("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
+						continue;
+					}
+					let geom, mesh;
+
+					if ("id" in unit.geometry) {
+						if (unit.geometry.id in this.Vlt.View.Geometries) {
+							geom = this.Vlt.View.Geometries[unit.geometry.id];
+						} else {
+							geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
+							this.Vlt.View.Geometries[unit.geometry.id] = geom;
+						}
 					} else {
 						geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
-						this.Vlt.View.Geometries[unit.geometry.id] = geom;
 					}
-				} else{
-					geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
-				}
 
-				if ("id" in unit.mesh){
-					if (unit.mesh.id in this.Vlt.View.Meshs){
-						mesh  = this.Vlt.View.Meshs[unit.mesh.id];
+					if ("id" in unit.mesh) {
+						if (unit.mesh.id in this.Vlt.View.Meshs) {
+							mesh = this.Vlt.View.Meshs[unit.mesh.id];
+						} else {
+							mesh = new THREE[unit.mesh.name](unit.mesh.arguments);
+							this.Vlt.View.Meshs[unit.mesh.id] = mesh;
+						}
 					} else {
-						mesh = new THREE[unit.mesh.name](unit.mesh.arguments);
-						this.Vlt.View.Meshs[unit.mesh.id] = mesh;
+						mesh = new THREE[unit.mesh.name](...unit.mesh.arguments);
 					}
-				} else{
-					mesh = new THREE[unit.mesh.name](...unit.mesh.arguments);
-				}
 
-				obj = new THREE.Mesh(geom,mesh);
-				obj.name = unit.id;
+					obj = new THREE.Mesh(geom, mesh);
+					obj.name = unit.id;
+				} else {
+					
+					//we're passed a module and need to generate it
+					let mod = {
+						"Module": unit.module,
+						"Par": {
+							"Name": unit.id
+						}
+					};
+
+					if (unit.position)
+						mod.Par.Position = unit.position;
+					if (unit.model)
+						mod.Par.Model = unit.model;
+					if (unit.axis)
+						mod.Par.Axis = unit.axis;
+					if (unit.angle)
+						mod.Par.Angle = unit.angle;
+
+					obj = await new Promise((res, rej) => {
+						this.genModule(mod, (err, pidApex) => {
+								
+							let that = this;
+
+							//save the modules pid in unit.Pid
+							unit.Pid = pidApex;
+
+							unit.responseHandler= {
+								Cmd:"Evoke",
+								Handler: unit.Pid
+							};
+						
+							var q = {};
+							q.Cmd = 'GetGraph';
+							this.send(q, unit.Pid, scene);
+
+							function scene(err, r) {
+								console.log('..View3D/scene');
+								Inst = r.Inst;
+								if (err) {
+									console.log(' ** ERR:' + err);
+									if (fun)
+										fun(err);
+									return;
+								}
+								
+								async.eachSeries(Inst, instance, done);
+								
+								function instance(inst, func) {
+									var q = {};
+									q.Cmd = 'GetModel';
+									q.Instance = inst.Instance;
+									//debugger;
+									that.send(q, unit.Pid, rply);
+
+									function rply(err, x) {
+										if (err) {
+											func(err);
+											return;
+										}
+										if (!('Obj3D' in x)) {
+											var err = 'No model returned';
+											console.log(' ** ERR:' + err);
+											func(err);
+											return;
+										}
+										var objinst = new THREE.Object3D();
+										if ('Position' in inst) {
+											var pos = inst.Position;
+											objinst.position.x = pos[0];
+											objinst.position.y = pos[1];
+											objinst.position.z = pos[2];
+										}
+										if ('Axis' in inst && 'Angle' in inst) {
+											var axis = inst.Axis;
+											var ang = inst.Angle * Math.PI / 180.0;
+											var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
+											objinst.setRotationFromAxisAngle(vec, ang);
+										}
+										var data = {};
+										if ('Role' in inst)
+											data.Role = inst.Role;
+										else
+											data.Role = 'Fixed';
+										data.Pid = inst.Instance;
+										objinst.userData = data;
+										objinst.add(x.Obj3D);
+										res(objinst);								
+									}
+								}
+
+								
+								function done(){
+									console.log("Done Generating the Module/Model");
+								}
+							}
+						});
+					});
+				}
 			}
-			else if (unit.removed){
+			else if (unit.removed) {
 				this.Vlt.View.Scene.remove(obj);
 				continue;
 			}
-			
-			if (unit.position){
-				if (unit.position.x)
+			if (unit.position) {
+				if (unit.position.x||(unit.position.x==0))
 					obj.position.x = Math.round(unit.position.x);
-				if (unit.position.y)
+				if (unit.position.y||(unit.position.y==0))
 					obj.position.y = Math.round(unit.position.y);
-				if (unit.position.z)
-					obj.position.z = Math.round(unit.position.z)
+				if (unit.position.z||(unit.position.z==0))
+					obj.position.z = Math.round(unit.position.z);
 			}
 
-			if (unit.scale){
-				obj.scale.set(unit.scale.x||1,unit.scale.y||1, unit.scale.z||1);
+			if (unit.scale) {
+				obj.scale.set(unit.scale.x || 1, unit.scale.y || 1, unit.scale.z || 1);
 			}
 
-			if (unit.responseHandler){
-				this.Vlt.View.ResponseHandlers[unit.id]=unit.responseHandler;
+			if (unit.responseHandler) {
+				this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
 			}
 
 			this.Vlt.View.Scene.add(obj);
+			debugger;
 		}
 	}
 
@@ -358,7 +474,7 @@
 	function DispatchEvent(com) {
 		//debugger;
 		// if ((!com.Shared) && ("ShareDispatch" in this.Par)){
-			
+
 		// 	let q=JSON.parse(JSON.stringify(com));
 
 		// 	q.Shared = true;
@@ -385,10 +501,10 @@
 			harvest(Keyed);
 		}
 		var key = Vlt.Mouse.Mode + '.' + info.Action;
-		if (info.Action == 'LeftMouseDown'){
+		if (info.Action == 'LeftMouseDown') {
 			info = mouseRay(info, Vlt);
-			if (info.obj.responseHandler){
-				this.send({Cmd:info.obj.responseHandler.Cmd, id:info.obj.id, point:info.point, mouse:info.Mouse}, info.obj.responseHandler.Handler, _=>{
+			if (info.obj.responseHandler) {
+				this.send({ Cmd: info.obj.responseHandler.Cmd, id: info.obj.id, point: info.point, mouse: info.Mouse }, info.obj.responseHandler.Handler, _ => {
 					//
 					//
 					//may need to handle evoke callback here
@@ -424,10 +540,10 @@
 	}
 
 	//-----------------------------------------------------mouseRay
-	function mouseRay(info,Vlt) {
+	function mouseRay(info, Vlt) {
 		//var info = {};
 		//console.log(info.Mouse)
-		let View=Vlt.View;
+		let View = Vlt.View;
 		View.Ray.precision = 0.00001;
 		container = Vlt.div;
 		var w = container.width();
@@ -580,7 +696,7 @@
 	// Rotate view about current Focus
 	// TBD: Remove Three.js dependancy
 	function Rotate(info, Vlt) {
-		
+
 		var dispatch = {
 			// "Idle.LeftMouseDown":start,
 			'Idle.RightMouseDown': start,

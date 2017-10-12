@@ -96,7 +96,6 @@
 					let bMatch = true;
 					let keys, key, hash, hashStash = [], msgIdx;
 
-					debugger;
 					//check for a binary match with the test.json test callback
 					if ('Response' in test) {
 						keys = Object.keys(test.Response);

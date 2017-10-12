@@ -1,6 +1,9 @@
 {
 	"xGraph": "{xGraph}",
 	"Cache": "cache",
+	"Sources":{
+
+	},
 	"Modules": {
 		"Nexus": {
 			"Module": "xGraph.Nexus.Nexus"
