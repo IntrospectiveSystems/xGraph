@@ -32,11 +32,27 @@
 			"env": {
 				"NODE_PATH": "node_modules"
 			}
-		},{
+		},
+		{
 			"name": "00Example",
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceRoot}/Systems/00Example",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=${workspaceRoot}/../xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules",
+				"XGRAPH_ENV": "development"
+			}
+		},
+		{
+			"name": "01Example",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Systems/01ExampleWithController",
 			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
 			"args": [
 				"Config=config.json",

@@ -207,16 +207,16 @@
 				if(fun) {
 					com.Passport.Disp = 'Query';
 				}
-				if ('Forward' in com) {
-					com.Passport.To = com.Forward;
-					if(fun) {
-						if (!('messages' in this.Vlt)) this.Vlt.messages = {};
-						this.Vlt.messages[com.Passport.Pid] = fun;
-					}
-				}
-				var str = JSON.stringify(com);
-				sock.send(str);
 			}
+			if ('Forward' in com) {
+				com.Passport.To = com.Forward;
+				if(fun) {
+					if (!('messages' in this.Vlt)) this.Vlt.messages = {};
+					this.Vlt.messages[com.Passport.Pid] = fun;
+				}
+			}
+			var str = JSON.stringify(com);
+			sock.send(str);
 		}
 	}
 
