@@ -1,10 +1,10 @@
-//# sourceURL=RenderController.js
+//# sourceURL=Controller.js
 //jshint esversion: 6
-(function RenderController() {
+(function Controller() {
 
 	let fs, path, async;
 
-	class RenderController {
+	class Controller {
 		Start(com, fun) {
 			fs = this.require('fs');
 			path = this.require('path');
@@ -103,7 +103,7 @@
 	}
 
 	return {
-		dispatch: RenderController.prototype
+		dispatch: Controller.prototype
 	};
 
 })();
