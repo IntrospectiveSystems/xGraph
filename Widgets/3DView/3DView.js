@@ -6,6 +6,7 @@
 		Setup,
 		Start,
 		SetObjects,
+		ImageCapture,
 		Resize,
 		Render,
 		DOMLoaded,
@@ -51,6 +52,26 @@
 			View.Camera.updateProjectionMatrix();
 
 			View.RenderLoop = setInterval(_ => {
+				
+				//For testing of updating elevations
+				if (this.Vlt.Update){
+					this.Vlt.Update=false;
+					let q = {}
+					q.Cmd = "SetObjects";
+					q.Objects = [];
+					let obj = {
+						id: "plane",
+						elevations:[]
+					};
+					q.Objects.push(obj);
+					this.send(q, this.Par.Pid,(err, com)=>{
+						setTimeout(this.send({Cmd:"ImageCapture"}, this.Par.Pid) ,40);
+					});
+				}
+				//end TEST
+
+
+
 				View.Renderer.render(View.Scene, View.Camera);
 			}, 20);
 
@@ -83,44 +104,45 @@
 		//
 		//
 		//add some objects to the world
-		let q = {}
+		let q = {}, obj;
 		q.Cmd = "SetObjects";
 		q.Objects = [];
-
-		//add 10 ellipsoids with random location and scales
-		for (let idx = 0; idx < 10; idx++) {
-			obj = {
-				id: idx,
-				geometry: {
-					id: "geom",
-					name: "SphereGeometry",
-					arguments: [1, 64, 64]
-				},
-				mesh: {
-					id: "mesh",
-					name: "MeshPhongMaterial",
-					arguments: {
-						color: 0xFFFFFF * Math.random()
-					}
-				},
-				position: {
-					x: 100 * Math.random(),
-					y: 100 * Math.random(),
-					z: 100 * Math.random()
-				},
-				scale: {
-					x: 10 * Math.random(),
-					y: 10 * Math.random(),
-					z: 10 * Math.random()
-				},
-				responseHandler: {
-					Cmd: "EvokeExample",
-					Handler: this.Par.Pid
-				}
-			};
-			q.Objects.push(obj);
-		}
+		
+		// //add 10 ellipsoids with random location and scales
+		// for (let idx = 0; idx < 10; idx++) {
+		// 	obj = {
+		// 		id: idx,
+		// 		geometry: {
+		// 			id: "geom",
+		// 			name: "SphereGeometry",
+		// 			arguments: [1, 64, 64]
+		// 		},
+		// 		mesh: {
+		// 			id: "mesh",
+		// 			name: "MeshPhongMaterial",
+		// 			arguments: {
+		// 				color: 0xFFFFFF * Math.random()
+		// 			}
+		// 		},
+		// 		position: {
+		// 			x: 100 * Math.random(),
+		// 			y: 100 * Math.random(),
+		// 			z: 100 * Math.random()
+		// 		},
+		// 		scale: {
+		// 			x: 10 * Math.random(),
+		// 			y: 10 * Math.random(),
+		// 			z: 10 * Math.random()
+		// 		},
+		// 		responseHandler: {
+		// 			Cmd: "EvokeExample",
+		// 			Handler: this.Par.Pid
+		// 		}
+		// 	};
+		// 	q.Objects.push(obj);
+		// }
 		// add a plane
+
 		obj = {
 			id: "plane",
 			geometry: {
@@ -130,7 +152,7 @@
 			},
 			mesh: {
 				id: "planeMesh",
-				name: "MeshBasicMaterial",
+				name: "MeshPhongMaterial",
 				arguments: {
 					color: 0x333333
 				}
@@ -139,13 +161,15 @@
 				x: 50,
 				y: 50,
 				z: 0
-			}
+			}, 
+			elevations:[]
 		};
 		q.Objects.push(obj);
 		// add a module 
 		obj = {
 			id: "module",
 			module: "xGraph:Scene/Modelx3D",
+			parentId: "plane",
 			position: {
 				x: 50,
 				y: 50,
@@ -297,6 +321,8 @@
 		 * ]
 		 */
 
+		debugger;
+		
 		for (let i = 0; i < com.Objects.length; i++) {
 
 			let unit = com.Objects[i];
@@ -309,6 +335,7 @@
 			let obj = this.Vlt.View.Scene.getObjectByName(unit.id);
 
 			if (!obj) {
+				unit.new = true;
 				if (!unit.module) {
 					//we're building a 3JS object
 					if (!unit.geometry || !unit.mesh) {
@@ -454,6 +481,17 @@
 					obj.position.z = Math.round(unit.position.z);
 			}
 
+			if (unit.elevations){
+				// add in the known elevations
+				for (let i = 0, l = obj.geometry.vertices.length; i < l; i++) {
+					let row = Math.floor(i/obj.geometry.parameters.width);
+					let col = i - row*obj.geometry.parameters.width;
+					let idx = (obj.geometry.parameters.height - row)*obj.geometry.parameters.width+col;
+					obj.geometry.vertices[i].z = unit.elevations[idx]|| Math.random();
+				}
+				obj.geometry.verticesNeedUpdate=true;
+			}
+
 			if (unit.scale) {
 				obj.scale.set(unit.scale.x || 1, unit.scale.y || 1, unit.scale.z || 1);
 			}
@@ -462,12 +500,36 @@
 				this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
 			}
 
-			this.Vlt.View.Scene.add(obj);
-			debugger;
+			if (unit.new){
+				if (unit.parentId){
+					let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
+					if (parent){
+						parent.add(obj);
+					} else{
+						console.log("Parent not defined in three.js scene");
+						this.Vlt.View.Scene.add(obj);
+						
+					}
+				}else{
+					this.Vlt.View.Scene.add(obj);
+				}
+			}
 		}
+
+		if (fun)
+			fun(null, com);
 	}
 
-
+	function ImageCapture(com, fun){
+		debugger;
+		let b64 = this.Vlt.View.Renderer.domElement.toDataURL();
+		this.Vlt.View.Renderer.domElement.toBlob((blob) => {
+			console.log('LENGTH', b64.length);
+			com.Image = b64;
+			debugger;
+			fun(null, com);
+		});
+	}
 
 
 	//-----------------------------------------------------Dispatch
@@ -486,7 +548,7 @@
 		let info = com.info;
 		let Vlt = this.Vlt;
 		Vlt.Mouse = com.mouse;
-		console.log(this.Par.Pid.substr(30));
+		// console.log(this.Par.Pid.substr(30));
 		var dispatch;
 		if ('Dispatch' in Vlt) {
 			dispatch = Vlt.Dispatch;
@@ -551,7 +613,7 @@
 		var vec = new THREE.Vector2();
 		vec.x = 2 * (info.Mouse.x - container.offset().left) / w - 1;
 		vec.y = 1 - 2 * (info.Mouse.y - container.offset().top) / h;
-		console.log(vec);
+		// console.log(vec);
 		View.Ray.setFromCamera(vec, View.Camera);
 		var hits = View.Ray.intersectObjects(View.Scene.children, true);
 		var hit;
@@ -564,7 +626,7 @@
 			if (obj != null && obj.name) {
 				//console.log('hit', hit);
 				//console.log('mouseRay', data);
-				debugger;
+			// debugger;
 				info.obj = {};
 				info.obj.id = obj.name
 				info.obj.responseHandler = Vlt.View.ResponseHandlers[info.obj.id] || undefined;
@@ -688,7 +750,7 @@
 			info.Keys.push('Idle.keydown.n');
 			return;
 		}
-		let View = VltView;
+		Vlt.Update= true;
 	}
 
 

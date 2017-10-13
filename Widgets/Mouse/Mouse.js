@@ -96,7 +96,7 @@
 			//evt.stopPropagation();
 			evt.returnValue = false;
 		});
-		domElement.on("keydown", "canvas",(evt) =>{
+		domElement.on("keydown", (evt) =>{
 			let info = {};			
 			info.Action = 'keydown';
 			info.CharKey = evt.key;

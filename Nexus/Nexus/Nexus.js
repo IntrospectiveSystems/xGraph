@@ -1145,7 +1145,7 @@
 				//
 				await new Promise((res, rej)=>{
 					res();
-				})
+				});
 				//
 				//
 
