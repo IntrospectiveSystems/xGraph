@@ -73,127 +73,6 @@
 	}
 	EventLog(JSON.stringify(Config, null, 2));
 
-
-
-
-
-
-
-
-	var net = require('net');
-	var err;
-	var tmp = new Buffer(2);
-	
-	tmp[0] = 2;
-	tmp[1] = 3;
-	
-	str = tmp.toString();
-	
-	let Vlt = {};
-	Vlt.STX = str.charAt(0);
-	Vlt.ETX = str.charAt(1);
-	Vlt.Buf = '';
-	Vlt.State = 0;
-	var Msg;
-	var port = "27000";
-	var host = "modulebroker.xgraphdev.com";
-	var sock = new net.Socket();
-
-	connectLoop();
-	function connectLoop(){
-		sock.removeAllListeners();
-		sock.connect(port, host, function () {EventLog(`Nexus trying to connect to Broker at "${host}:${port}"`)});
-
-		sock.on('connect', function () {
-			EventLog(`Nexus - Connected to Broker`);
-			Vlt.Sock = sock;
-			if (!("Replied" in Vlt)||Vlt.Replied ==false){
-				Vlt.Replied = true;
-			}
-		});
-
-		sock.on('error', (err) => {
-			console.log(' ** ERR3:' + err);
-			that.log("Nexus is Polling for Broker");
-			if ("Sock" in Vlt)
-				delete Vlt["Sock"];
-			setTimeout(connectLoop, 3000);
-			if (!("Replied" in Vlt)||Vlt.Replied ==false){
-				Vlt.Replied = true;
-			}
-		});
-
-		sock.on('disconnect', (err) => {
-			console.log(' ** Socket disconnected:' + err);
-			if ("Sock" in Vlt)
-				delete Vlt[Sock];
-			setTimeout(connectLoop,3000);
-		});
-
-		sock.on('data', function (data) {
-			var nd = data.length;
-			var i1= 0;
-			var i2;
-			var STX = 2;
-			var ETX = 3;
-			if(Vlt.State == 0)
-				Vlt.Buf = '';
-			for(let i=0; i<nd; i++) {
-				switch(Vlt.State) {
-					case 0:
-						if(data[i] == STX) {
-							Vlt.Buf = '';
-							Vlt.State = 1;
-							i1 = i+1;
-						}
-						break;
-					case 1:
-						i2 = i;
-						if(data[i] == ETX)
-							Vlt.State = 2;
-						break;
-				}
-			}
-			switch(Vlt.State) {
-				case 0:
-					break;
-				case 1:
-					Vlt.Buf += data.toString('utf8', i1, i2+1);
-					break;
-				default:
-					Vlt.Buf += data.toString('utf8', i1, i2);
-					Vlt.State = 0;
-					var com = JSON.parse(Vlt.Buf);
-					if('Reply' in com.Passport) {
-						if(Vlt.Fun[com.Passport.Pid])
-							Vlt.Fun[com.Passport.Pid](null, com);
-					} else {
-
-
-						//do we really want links in clients?
-						that.send(com, Par.Link);
-					}
-					break;
-			}
-		});
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	CacheDir = 'cache';
 	if ('Cache' in Params)
 		CacheDir = Params.Cache;
@@ -731,6 +610,7 @@
 				fun(null, ent);
 				return;
 			}
+			//debugger;
 			GetModule(folder, function (err, mod) {
 				if (err) {
 					console.log(' ** ERR:Module <' + folder + '> not available');
@@ -838,9 +718,11 @@
 		// eventually this should be some kind of
 		// alternate repository (TBD)
 		var keys = Object.keys(Config.Modules);
+		//debugger;
 		for (let i = 0; i < keys.length; i++) {
 			let key = keys[i];
 			if (key == 'Deferred') {
+				//debugger;
 				var arr = Config.Modules[key];
 				arr.forEach(function (folder) {
 					if (Folders.indexOf(folder) < 0)
@@ -848,11 +730,13 @@
 				});
 			} else {
 				var mod = {};
+				//console.log('mod', mod);
 				let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
 				if (Folders.indexOf(folder) < 0)
 					Folders.push(folder);
 			}
 		}
+		//console.log('Folders', Folders);
 		let nfolders = Folders.length;
 		let ifolder = -1;
 		next();
@@ -1112,18 +996,19 @@
 	//    module is the name withing that group which can be further
 	//        separated by dots as desired
 	function GetModule(modnam, fun) {
+		// console.log('##GetModule', modnam);
+		// debugger;
 		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		var dir = ModName.replace('.', ':').replace(/\./g, '/');
 		var ModPath = genPath(dir);
-		
-		
 		if (ModName in ModCache) {
 			fun(null, ModCache[ModName]);
 			return;
 		}
 
 		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
-		fs.lstat(cachedMod, async function (err, stat) {
+		//console.log("looking in dir", dir);
+		fs.lstat(cachedMod, function (err, stat) {
 			if (stat && !development) {
 				if (!stat.isDirectory()) {
 					fs.readFile(cachedMod, function (err, data) {
@@ -1143,16 +1028,11 @@
 				//
 				//		Access from the Broker!!!!!
 				//
-				await new Promise((res, rej)=>{
-					res();
-				});
 				//
 				//
-
+				//debugger;
 				var mod = {};
-				fs.readdir(ModPath, buildModule);
-					
-				function buildModule(err, files) {
+				fs.readdir(ModPath, function (err, files) {
 					if (err) {
 						console.log(' ** ERR:Module <' + ModPath + '? not available');
 						fun(err);
@@ -1169,6 +1049,7 @@
 
 							if ('schema.json' in mod) {
 								var schema = JSON.parse(mod['schema.json']);
+								//console.log('schema', JSON.stringify(schema, null, 2));
 								if ('Apex' in schema) {
 									var apx = schema.Apex;
 									if ('$Setup' in apx)
@@ -1178,6 +1059,7 @@
 									if ('$Save' in apx)
 										mod.Save = apx['$Save'];
 								}
+								//debugger;
 							}
 
 							ModCache[ModName] = mod;
@@ -1204,7 +1086,7 @@
 							scan();
 						})
 					}
-				}
+				});
 			}
 		});
 	}
@@ -1218,7 +1100,8 @@
 		var Setup = {};
 		var Start = {};
 		var folders = fs.readdirSync(CacheDir);
-		
+		//console.log('folders', folders);
+		//debugger;
 		for (var ifold = 0; ifold < folders.length; ifold++) {
 			var folder = folders[ifold];
 			var dir = CacheDir + '/' + folder;
