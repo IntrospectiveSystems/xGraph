@@ -1,0 +1,26 @@
+{
+  "name": "build-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IntrospectiveSystems/xGraph.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IntrospectiveSystems/xGraph/issues"
+  },
+  "homepage": "https://github.com/IntrospectiveSystems/xGraph#readme",
+  "dependencies": {
+    "nexe": "^2.0.0-rc.17",
+    "preprocessor": "^1.4.0",
+    "typescript": "^2.5.3",
+    "merge-dirs": "^0.2.1",
+    "targz": "^1.0.1"
+  }
+}
