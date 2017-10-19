@@ -4,8 +4,6 @@
 	var Path = require('path');
 	let log = fs.createWriteStream(process.cwd() + "/EventLog.txt");
 
-	process.env.NODE_PATH = "node_modules/";
-
 	var Uuid;
 	var CacheDir;
 	var WorkDir = process.cwd();
@@ -53,6 +51,8 @@
 				development = (parts[1] === 'true');
 		}
 	}
+	if ("XGRAPH" in process.env)
+		Params["xGraph"]= process.env.XGRAPH;
 
 	var config = 'config.json';
 	if ('Config' in Params)
