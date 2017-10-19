@@ -49,6 +49,21 @@
 			}
 		},
 		{
+			"name": "TableViewTest",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Systems/TableViewTest",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=${workspaceRoot}/../xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules",
+				"XGRAPH_ENV": "development"
+			}
+		},
+		{
 			"name": "01Example",
 			"type": "node",
 			"request": "launch",
