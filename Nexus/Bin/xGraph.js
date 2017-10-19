@@ -1,7 +1,6 @@
 console.log("Executing");
 console.log(process.cwd());
 
-
 //set all command line arguments to ENV variables
 let arg;
 for (let iarg = 0; iarg < process.argv.length; iarg++) {
@@ -17,8 +16,6 @@ for (let iarg = 0; iarg < process.argv.length; iarg++) {
 		}
 	}
 }
-
-
 
 process.env.NODE_PATH = "node_modules/";
 const { spawn } = require('child_process');
