@@ -1,7 +1,10 @@
 (function () {
+	
 	var fs = require('fs');
 	var Path = require('path');
 	let log = fs.createWriteStream(process.cwd() + "/EventLog.txt");
+
+	process.env.NODE_PATH = "node_modules/";
 
 	var Uuid;
 	var CacheDir;
@@ -13,7 +16,7 @@
 	var ApexIndex = {}; // {<Apex pid>:<folder>}
 	var EntCache = {};	// {<Entity pid>:<Entity>
 	var ImpCache = {};	// {<Implementation path>: <Implementation(e.g. disp)>}
-	var package = {};
+	var packagejson = {};
 	var Mod = {};
 	var Nxs = {
 		EventLog: EventLog,
@@ -931,38 +934,38 @@
 		// directory by merging package.json of the
 		// individual modules and then running npm
 		// to create node_modules directory for system
-		var package;
+		var packagejson;
 		//console.log('ModeCache', ModCache);
 		for (let folder in ModCache) {
 			let mod = ModCache[folder];
 			if ('package.json' in mod) {
 				obj = JSON.parse(mod['package.json']);
 				//console.log('Input', obj);
-				if (!package) {
-					package = obj;
+				if (!packagejson) {
+					packagejson = obj;
 					continue;
 				}
 				//console.log('A');
 				if (obj.dependencies) {
 					//console.log('B');
-					if (!package.dependencies) package.dependencies = {};
+					if (!packagejson.dependencies) packagejson.dependencies = {};
 					for (key in obj.dependencies) {
 						//console.log('key', key);
-						if (!(key in package.dependencies))
-							package.dependencies[key] = obj.dependencies[key];
+						if (!(key in packagejson.dependencies))
+							packagejson.dependencies[key] = obj.dependencies[key];
 					}
 				}
 				if (obj.devDependencies) {
-					if (!package.devDependencies) package.devDependencies = {};
+					if (!packagejson.devDependencies) packagejson.devDependencies = {};
 					for (key in obj.devDependencies) {
-						if (!(key in package.devDependencies))
-							package.devDependencies[key] = obj.devDependencies[key];
+						if (!(key in packagejson.devDependencies))
+							packagejson.devDependencies[key] = obj.devDependencies[key];
 					}
 				}
 				//console.log('output', package);
 			}
 		}
-		var strout = JSON.stringify(package, null, 2);
+		var strout = JSON.stringify(packagejson, null, 2);
 		fs.writeFileSync('package.json', strout);
 		const proc = require('child_process');
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
@@ -1030,8 +1033,9 @@
 				//
 				//
 				//
-				//debugger;
+
 				var mod = {};
+ 
 				fs.readdir(ModPath, function (err, files) {
 					if (err) {
 						console.log(' ** ERR:Module <' + ModPath + '? not available');

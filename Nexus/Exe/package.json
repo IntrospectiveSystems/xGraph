@@ -1,0 +1,11 @@
+{
+  "name": "exe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "xGraph.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
