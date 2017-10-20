@@ -44,6 +44,11 @@ switch(process.argv[1]) {
     help();
     break;
   }
+  case 'g':
+  case 'init': {
+    init(process.argv.slice(2));
+    break;
+  }
   default: {
     console.log(`unknown command <${process.argv[1]}>`);
     help();
@@ -51,7 +56,11 @@ switch(process.argv[1]) {
   }
 }
 
+async function init(args) {
+  
+  console.log('[', ...args, ']');
 
+}
 
 function help() {
   console.log(`
@@ -64,12 +73,12 @@ function help() {
         Example: xgraph run --config config.json
                  xgraph run --cache cache/
         
-  `)
+  `);
 }
 
 async function run() {
   try{
-    await new Promise((resolve, reject) => ensureNode(_ => {if(_) resolve(); else reject();}));
+    await ensureNode();
     console.log('look for config/cache here: ' + cwd);
     console.log('executable is here: ' + bindir);
   }catch(e) {
@@ -77,44 +86,48 @@ async function run() {
   }
 }
 
-function ensureNode(fun) {
+async function ensureNode() {
   if(linux) {
     let node = (execSync('which node').toString());
     node = '';
     if(node != '') {
       console.log();
-      fun(true);
     }
     else {
-      require('https').get({
-        host: 'nodejs.org',
-        path: '/dist/v8.4.0/node-v8.4.0-linux-x64.tar.gz'
-      }, (response) => {
-        let body = '';
-        response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
-        response.on('end', function() {
-          // console.log('extraction time!');
-          tar.decompress({
-            src: bindir + '/node.tar.gz',
-            dest: bindir
-          }, function() {
-            // console.log(mergedirs);
-            try {
-              mergedirs('node-v8.4.0-linux-x64/bin', '/usr/bin', 'overwrite');
-              mergedirs('node-v8.4.0-linux-x64/include', '/usr/include', 'overwrite');
-              mergedirs('node-v8.4.0-linux-x64/lib', '/usr/lib', 'overwrite');
-              mergedirs('node-v8.4.0-linux-x64/share', '/usr/share', 'overwrite');
-              //TODO RIMRAF THE ZIP AND EXTRACTED FILES
-              console.log('dun');
-            }catch(e) {
-              console.log('Could not install node, try running the command again with sudo\n');
-              console.log("If the problem persists, email support@introspectivesystems.com");
-              console.log('with this ' + e.toString());
-            }
-            
+      await new Promise((resolve) => {
+        require('https').get({
+          host: 'nodejs.org',
+          path: '/dist/v8.4.0/node-v8.4.0-linux-x64.tar.gz'
+        }, (response) => {
+          let body = '';
+          response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
+          response.on('end', function() {
+            // console.log('extraction time!');
+            tar.decompress({
+              src: bindir + '/node.tar.gz',
+              dest: bindir
+            }, function() {
+              // console.log(mergedirs);
+              try {
+                mergedirs('node-v8.4.0-linux-x64/bin', '/usr/bin', 'overwrite');
+                mergedirs('node-v8.4.0-linux-x64/include', '/usr/include', 'overwrite');
+                mergedirs('node-v8.4.0-linux-x64/lib', '/usr/lib', 'overwrite');
+                mergedirs('node-v8.4.0-linux-x64/share', '/usr/share', 'overwrite');
+                //TODO RIMRAF THE ZIP AND EXTRACTED FILES
+                console.log('dun');
+                resolve();
+              }catch(e) {
+                console.log('Could not install node, try running the command again with sudo\n');
+                console.log("If the problem persists, email support@introspectivesystems.com");
+                console.log('with this ' + e.toString());
+                process.exit(1);
+                resolve();
+              }
+            });
           });
         });
       });
+
     }
   }
 }
@@ -153,3 +166,49 @@ function ensureNode(fun) {
 // ls.on('close', (code) => {
 // 	console.log(`child process exited with code ${code}`);
 // });
+
+
+
+
+
+
+
+
+
+
+
+// -------------------------------------------------------------
+//                       templating stuff
+// -------------------------------------------------------------
+
+let launchConfigBase = {
+  version: "0.2.0",
+  configurations: []
+};
+let config = (repo, system) => {return {
+	name: system,
+	type: "node",
+	request: "launch",
+	cwd: `\${workspaceRoot}/Systems/${system}`,
+	program: '${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js',
+	args: [
+		"xGraph=${workspaceRoot}/../xGraph",
+		`${repo}=\${workspaceRoot}`,
+		"development=true"
+	],
+	env: {
+		NODE_PATH: "node_modules"
+	}
+}};
+
+function initSystem() {
+
+}
+
+function initModule() {
+
+}
+
+function initView() {
+
+}
