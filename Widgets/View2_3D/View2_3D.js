@@ -174,7 +174,7 @@
 				}, (err, pidApex) => {
 					//debugger;
 					that.Vlt.MousePid = pidApex;
-					that.send({ Cmd: "SetDomElement", "DomElement": that.Vlt.View.Renderer.domElement }, that.Vlt.MousePid, (err, cmd) => {
+					that.send({ Cmd: "SetDomElement", "DomElement": that.Vlt.div }, that.Vlt.MousePid, (err, cmd) => {
 						console.log("GenModed the Mouse and set the DomElement");
 						if (next) 
 							next(done);
@@ -369,17 +369,8 @@
 
 	//-----------------------------------------------------Dispatch
 	function DispatchEvent(com) {
-		//debugger;
-		// if ((!com.Shared) && ("ShareDispatch" in this.Par)){
-			
-		// 	let q=JSON.parse(JSON.stringify(com));
-
-		// 	q.Shared = true;
-		// 	for (let i = 0;i< this.Par.ShareDispatch.length;i++){
-		// 		this.send(q, this.Par.ShareDispatch[i]);
-		// 	}
-		// }
-		// console.log("--ThreeJsView/DispatchEvent", com.info.Action);
+		
+		console.log("--ThreeJsView/DispatchEvent", com.info.Action);
 		let info = com.info;
 		let Vlt = this.Vlt;
 		Vlt.Mouse = com.mouse;
@@ -404,7 +395,7 @@
 		if ('CharKey' in info)
 			key += '.' + info.CharKey;
 		info.Key = key;
-		//console.log(this.Par.View, 'Dispatch', key);
+		console.log(this.Par.View, 'Dispatch', key);
 		if (key in dispatch) {
 			var proc = dispatch[key];
 			proc(info, Vlt);
