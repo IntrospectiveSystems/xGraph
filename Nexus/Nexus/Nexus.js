@@ -489,7 +489,6 @@
 		modpath += ApexIndex[apx];
 		let apxpath = modpath + '/' + apx;
 		let entpath = apxpath + '/' + pid + '.json';
-		console.log('--Nexus/save', entpath);
 
 
 		let checkModule = (() => {
@@ -559,7 +558,7 @@
 			ent = EntCache[pid];
 			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
 			//debugger;
-			EventLog("Saved ent.json at " + entpath);
+			EventLog("Saved 'ent'.json at " + entpath);
 			if (fun) fun(null);
 		});
 

@@ -28,7 +28,7 @@ let unix = false;
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
 
-if(process.argv.length == 1) process.argv[1] = 'run';
+if(process.argv.length == 1) process.argv[1] = 'help';
 
 switch(process.argv[1]) {
   case 'run': {

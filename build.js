@@ -64,7 +64,7 @@
 	//make for linux 
 	tar.compress({
 		src: 'bin/linux/',
-		dest: 'path_to_compressed_file'
+		dest: 'bin/linux/xgraph.tar.gz'
 	}, function(err){
 		if(err) {
 			console.log(err);
