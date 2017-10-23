@@ -51,6 +51,8 @@
 				development = (parts[1] === 'true');
 		}
 	}
+
+	//if xGraph path has been defined by the process in process.env then use it
 	if ("XGRAPH" in process.env)
 		Params["xGraph"]= process.env.XGRAPH;
 

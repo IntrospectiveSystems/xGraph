@@ -146,7 +146,7 @@ function startChildProcess() {
 	const { spawn } = require('child_process');
 
 	console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-	const ls = spawn("node", [process.env.XGRAPH + "/Nexus/Nexus/Nexus.js", ...process.argv], { env: process.env });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
 
 	ls.stdout.on('data', (data) => {
 		console.log(`${data}`);
