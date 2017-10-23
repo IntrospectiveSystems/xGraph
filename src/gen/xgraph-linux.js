@@ -12,7 +12,7 @@ let unix = true;
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
 
-if(process.argv.length == 1) process.argv[1] = 'run';
+if(process.argv.length == 1) process.argv[1] = 'help';
 
 switch(process.argv[1]) {
   case 'run': {
@@ -172,7 +172,7 @@ function startChildProcess() {
   const { spawn } = require('child_process');
 
   console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-  const ls = spawn("node", [process.env.XGRAPH + "/Nexus/Nexus/Nexus.js", ...process.argv], { env: process.env });
+  const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
 
   ls.stdout.on('data', (data) => {
     console.log(`${data}`);
@@ -221,12 +221,7 @@ let config = (repo, system) => {return {
 
 function initSystem() {
 
-<<<<<<< HEAD
-	console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
-=======
 }
->>>>>>> 2dd6269bbf5720e96e508a81b68e0fbecf2c16f7
 
 function initModule() {
 

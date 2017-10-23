@@ -135,7 +135,9 @@ function install() {
       });
     });
     // #else
-    console.error(`System ${system} is not yet supported`);
+	console.error(`System ${system} is not yet supported`);
+	//node-msi.fetch.start
+
     // #endif
   });
 }
