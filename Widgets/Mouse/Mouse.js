@@ -14,7 +14,7 @@
 	function SetDomElement(com, fun) {
 		console.log('--Mouse/SetDomElement');
 		let Vlt = this.Vlt;
-		Vlt.domElement = com.DomElement;
+		Vlt.domElement = ("length" in com.DomElement)? com.DomElement : $(com.DomElement);
 		
 		//needed these to get the focus to work for keydown events
 		Vlt.domElement.focus();
