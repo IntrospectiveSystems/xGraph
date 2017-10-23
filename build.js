@@ -32,14 +32,32 @@
 		bundle: true
 	});
 
-	//move all required files to lib of system bin.
-	try {fs.mkdirSync('bin/linux/lib');}catch(e){console.log(e);}
-	try {fs.mkdirSync('bin/linux/lib/Nexus');}catch(e){console.log(e);}
-	try {fs.writeFileSync('bin/linux/lib/Nexus/Nexus.js',fs.readFileSync('Nexus/Nexus/Nexus.js'));}catch(e){console.log(e);}
-	try {fs.writeFileSync('bin/linux/lib/Nexus/package.json',fs.readFileSync('Nexus/Nexus/package.json'));}catch(e){console.log(e);}
-	try {fs.mkdirSync('bin/linux/lib/Proxy');	}catch(e){console.log(e);}
-	try {fs.writeFileSync('bin/linux/lib/Proxy/Proxy.js',fs.readFileSync('Nexus/Proxy/Proxy.js'));}catch(e){console.log(e);}
-	try {fs.writeFileSync('bin/linux/lib/Proxy/schema.json',fs.readFileSync('Nexus/Proxy/schema.json'));}catch(e){console.log(e);}
+	
+	//move all required files to lib of system bin.                       -17 is errno: EEXISTS
+	function ensureDir(dir) {try{fs.mkdirSync(dir);}catch(e){if(e.errno != -17)console.log(e);}}
+	function copy(src, dst) {try {fs.writeFileSync(dst,fs.readFileSync(src));}catch(e){if(e.errno != -17)console.log(e);}}
+
+
+	// copy everything into bin/lib
+	ensureDir('bin/lib');
+	ensureDir('bin/lib/Proxy');
+	ensureDir('bin/lib/Nexus');
+
+	copy('Nexus/Nexus/Nexus.js', 'bin/lib/Nexus/Nexus.js');
+	copy('Nexus/Nexus/package.json', 'bin/lib/Nexus/package.json');
+	copy('Nexus/Proxy/Proxy.js', 'bin/lib/Proxy/Proxy.js');
+	copy('Nexus/Proxy/schema.json', 'bin/lib/Proxy/schema.json');
+
+
+	//copy bin/lib into bin/linux/lib
+	ensureDir('bin/linux/lib');
+	ensureDir('bin/linux/lib/Nexus');
+	ensureDir('bin/linux/lib/Proxy');
+	
+	copy('bin/lib/Nexus/Nexus.js', 'bin/linux/lib/Nexus/Nexus.js');
+	copy('bin/lib/Nexus/package.json', 'bin/linux/lib/Nexus/package.json');
+	copy('bin/lib/Proxy/Proxy.js', 'bin/linux/lib/Proxy/Proxy.js');
+	copy('bin/lib/Proxy/schema.json', 'bin/linux/lib/Proxy/schema.json');
 
 	
 	//make the tar.gz ... msi ... mac dmg/pkg
