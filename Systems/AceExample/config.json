@@ -1,0 +1,21 @@
+{
+	"xGraph": "{xGraph}",
+	"Cache": "cache",
+	"Modules": {
+		"Nexus": {
+			"Module": "xGraph.Nexus.Nexus"
+		},
+		"Server": {
+			"Module": "xGraph.Web.Server",
+			"Par": {
+				"ApexList": {},
+				"Port": 8080,
+				"Url": "Paint"
+			}
+		},
+		"Deferred":[
+			"xGraph.Widgets.RootView",
+			"xGraph.Widgets.AceEditorView"
+		]
+	}
+}

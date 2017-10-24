@@ -82,6 +82,17 @@
 	copy('bin/lib/Proxy/Proxy.js', 'bin/windows/bin/lib/Proxy/Proxy.js');
 	copy('bin/lib/Proxy/schema.json', 'bin/windows/bin/lib/Proxy/schema.json');
 
+	//copy bin/lib into bin/windows/lib
+	ensureDir('bin/mac')
+	ensureDir('bin/mac/lib');
+	ensureDir('bin/mac/lib/Nexus');
+	ensureDir('bin/mac/lib/Proxy');
+	
+	copy('bin/lib/Nexus/Nexus.js', 'bin/mac/lib/Nexus/Nexus.js');
+	copy('bin/lib/Nexus/package.json', 'bin/mac/lib/Nexus/package.json');
+	copy('bin/lib/Proxy/Proxy.js', 'bin/mac/lib/Proxy/Proxy.js');
+	copy('bin/lib/Proxy/schema.json', 'bin/mac/lib/Proxy/schema.json');
+
 	
 	//make the tar.gz ... msi ... mac dmg/pkg
 	//make for linux 
@@ -131,5 +142,6 @@
 	   });
 
 	   //https://wiki.gnome.org/msitools/HowTo/CreateMSI
+	   
 
 })();
