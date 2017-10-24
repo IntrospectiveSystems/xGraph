@@ -1,0 +1,15 @@
+{
+	"Modules": {
+		"RootView": {
+			"Module": "xGraph:Widgets/RootView",
+			"Par": {
+				"Layout": "$AceView"
+			}
+		},
+		"AceView": {
+			"Module":"xGraph:Widgets/AceEditorView",
+			"Par": {
+			}
+		}
+	}
+}

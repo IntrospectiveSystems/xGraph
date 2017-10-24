@@ -33,7 +33,7 @@ let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
 let configFile = null; // purposefully null
 let cacheDir = null;
 
-if(process.argv.length == 1) process.argv[1] = 'run';
+if(process.argv.length == 1) process.argv[1] = 'help';
 
 processSwitches();
 
@@ -140,7 +140,9 @@ function install() {
       });
     });
     // #else
-    console.error(`System ${system} is not yet supported`);
+	console.error(`System ${system} is not yet supported`);
+	//node-msi.fetch.start
+
     // #endif
   });
 }

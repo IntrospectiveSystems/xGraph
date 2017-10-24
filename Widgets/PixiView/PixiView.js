@@ -123,10 +123,11 @@
 			ob = View.TileTable[idx];
 			newtint = (Data.Data[idx] in Data.Dictionary)? Data.Dictionary[Data.Data[idx]]:Data.Dictionary["default"];
 			if (ob.tint != newtint){
-				console.log("++");
+				//console.log("++");
 				ob.tint = newtint;
 			}
 		}	
+
 		View.Renderer.render(View.Stage);
 		if ("WorldPid" in this.Vlt){
 			// debugger;
