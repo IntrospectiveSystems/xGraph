@@ -1,8 +1,32 @@
 (function () {
-	
+	///Startup Processes
 	var fs = require('fs');
 	var Path = require('path');
-	let log = fs.createWriteStream(process.cwd() + "/EventLog.txt");
+	let log = {
+		write: (...str) => {
+			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" "), (err)=>{if (err) console.log(err)});
+		}
+	};
+	let date = new Date();
+	
+	//give log levels - log.v()
+	global.log = {
+		v: (...str) => {
+			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+		},
+		d: (...str) => {
+			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+		},
+		i: (...str) => {
+			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+		},
+		w: (...str) => {
+			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+		},
+		e: (...str) => {
+			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+		}
+	};
 
 	var Uuid;
 	var CacheDir;
@@ -29,7 +53,9 @@
 		getFile,
 		sendMessage: sendMessage
 	}
-	EventLog('=================================================');
+	
+	EventLog('\n=================================================');
+	EventLog(`Nexus Instantiate Start: ${date.toString()}`);
 
 	// Process input arguments and define macro parameters
 	var args = process.argv;
@@ -52,42 +78,20 @@
 		}
 	}
 
-	//if xGraph path has been defined by the process in process.env then use it
-	if ("XGRAPH" in process.env)
-		Params["xGraph"]= process.env.XGRAPH;
-
-	var config = 'config.json';
-	if ('Config' in Params)
-		config = Params.Config;
-	let str = fs.readFileSync(config);
-	let val;
-	if (str) {
-		var ini = JSON.parse(str);
-		for (key in ini) {
-			val = ini[key];
-			if (typeof val == 'string') {
-				Config[key] = Macro(val);
-				Params[key] = Config[key];
-			} else {
-				Config[key] = val;
-			}
-		}
-	} else {
-		EventLog(' ** No configuration file provided');
-		process.exit(1);
-	}
-	EventLog(JSON.stringify(Config, null, 2));
+	// //if xGraph path has been defined by the process in process.env then use it
+	// if ("XGRAPH" in process.env)
+	// 	Params["xGraph"] = process.env.XGRAPH;
 
 	CacheDir = 'cache';
+
 	if ('Cache' in Params)
 		CacheDir = Params.Cache;
-	//	remDir(CacheDir); // REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE
-	if (!fs.existsSync(CacheDir)) {
-		development = false;
-		Genesis(Initiate);
-	} else {
-		Initiate(Run);
-	}
+	
+	Initiate(Run);
+	
+
+
+
 
 	function EventLog(string) {
 		//event log only built to handle strings
@@ -105,27 +109,6 @@
 		}
 	}
 
-	//-----------------------------------------------------remDir
-	// Shake well before using
-	// Recursive directory deletion
-	function remDir(path) {
-		var files = [];
-		if (fs.existsSync(path)) {
-			files = fs.readdirSync(path);
-			files.forEach(function (file, index) {
-				var curPath = path + "/" + file;
-				if (fs.lstatSync(curPath).isDirectory()) { // recurse
-					//console.log('Deleting folder:' + curPath);
-					remDir(curPath);
-				} else { // delete file
-					///console.log('Deleting file:' + curPath);
-					fs.unlinkSync(curPath);
-				}
-			});
-			//console.log('Deleting folder:' + path);
-			fs.rmdirSync(path);
-		}
-	}
 	//---------------------------------------------------------genPid
 	// Create a new PID
 	function genPid() {
@@ -139,47 +122,47 @@
 
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
-		//	EventLog('!!genPath', filein);
-		if (!filein) {
-			EventLog(' ** ERR:Invalid file name');
-			return '';
-		}
-		var cfg = Config;
-		var path;
-		var parts;
-		var file = filein;
-		if (Config.Redirect) {
-			if (file in Config.Redirect)
-				file = Config.Redirect[file];
-		}
-		if (file.charAt(0) == '/')
-			return file;
-		if (file.charAt(0) == '{') { // Macro
-			parts = file.split('}');
-			if (parts.length != 2) {
-				return;
-			}
-			var name = parts[0].substr(1);
-			if (name in cfg) {
-				path = cfg[name] + '/' + parts[1];
-				return path;
-			} else {
-				EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
-				return;
-			}
-		}
-		parts = file.split(':');
-		if (parts.length == 2) {
-			if (parts[0] in cfg) {
-				path = cfg[parts[0]] + '/' + parts[1];
-			} else {
-				EventLog(' ** ERR:File <' + file + '> prefix not defined');
-				return;
-			}
-		} else {
-			path = file;
-		}
-		return path;
+		// EventLog('!!genPath', filein);
+		// if (!filein) {
+		// 	EventLog(' ** ERR:Invalid file name');
+		// 	return '';
+		// }
+		// var cfg = Config;
+		// var path;
+		// var parts;
+		// var file = filein;
+		// if (Config.Redirect) {
+		// 	if (file in Config.Redirect)
+		// 		file = Config.Redirect[file];
+		// }
+		// if (file.charAt(0) == '/')
+		// 	return file;
+		// if (file.charAt(0) == '{') { // Macro
+		// 	parts = file.split('}');
+		// 	if (parts.length != 2) {
+		// 		return;
+		// 	}
+		// 	var name = parts[0].substr(1);
+		// 	if (name in cfg) {
+		// 		path = cfg[name] + '/' + parts[1];
+		// 		return path;
+		// 	} else {
+		// 		EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
+		// 		return;
+		// 	}
+		// }
+		// parts = file.split(':');
+		// if (parts.length == 2) {
+		// 	if (parts[0] in cfg) {
+		// 		path = cfg[parts[0]] + '/' + parts[1];
+		// 	} else {
+		// 		EventLog(' ** ERR:File <' + file + '> prefix not defined');
+		// 		return;
+		// 	}
+		// } else {
+		// 	path = file;
+		// }
+		// return path;
 	}
 
 	function Macro(str) {
@@ -409,7 +392,6 @@
 		function getPid() {
 			return Par.Pid;
 		}
-
 	}
 
 	//-----------------------------------------------------genEntity
@@ -455,7 +437,7 @@
 	function deleteEntity(apx, pid, fun) {
 		var modpath = CacheDir + '/';
 		modpath += ApexIndex[apx];
-		let apxpath = modpath + '/' + apx+'/';
+		let apxpath = modpath + '/' + apx + '/';
 
 		let rmList = [];
 		//we first check to see if it's an apex
@@ -463,7 +445,7 @@
 		//the module and then delete all of the entity files found therein.
 		if (apx == pid) {
 			files = fs.readdirSync(apxpath);
-			for( let i =0;i<files.length;i++){
+			for (let i = 0; i < files.length; i++) {
 				rmList.push(files[i].split('.')[0]);
 			}
 			remDir(apxpath);
@@ -707,109 +689,7 @@
 		});
 	}
 
-	//-----------------------------------------------------Genesis
-	// Create cache if it does nto exist and populate
-	// This is called only once when a new systems is
-	// first instantiated
-	function Genesis(fun) {
-		EventLog('--Nexus/Genesis');
-		var Folders = [];
-
-		// Create new cache and install high level
-		// module subdirectories. Each of these also
-		// has a link to the source of that module,
-		// at this point a local file directory, but
-		// eventually this should be some kind of
-		// alternate repository (TBD)
-		var keys = Object.keys(Config.Modules);
-		//debugger;
-		for (let i = 0; i < keys.length; i++) {
-			let key = keys[i];
-			if (key == 'Deferred') {
-				//debugger;
-				var arr = Config.Modules[key];
-				arr.forEach(function (folder) {
-					if (Folders.indexOf(folder) < 0)
-						Folders.push(folder);
-				});
-			} else {
-				var mod = {};
-				//console.log('mod', mod);
-				let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
-				if (Folders.indexOf(folder) < 0)
-					Folders.push(folder);
-			}
-		}
-		//console.log('Folders', Folders);
-		let nfolders = Folders.length;
-		let ifolder = -1;
-		next();
-
-		function next() {
-			ifolder++;
-			if (ifolder >= nfolders) {
-				refreshSystem(populate);
-				return;
-			}
-			let folder = Folders[ifolder];
-			GetModule(folder, function (err, mod) {
-				ModCache[folder] = mod;
-				next();
-			});
-		}
-
-		function populate() {
-			console.log('--populate');
-			// Build cache structure and Module.json
-			fs.mkdirSync(CacheDir);
-			for (let folder in ModCache) {
-				console.log(folder);
-				var mod = ModCache[folder];
-				var dir = CacheDir + '/' + folder;
-				fs.mkdirSync(dir);
-				path = dir + '/Module.json';
-				var str = JSON.stringify(ModCache[folder]);
-				fs.writeFileSync(path, str);
-				var path = dir + '/Module.json';
-				fs.writeFileSync(path, JSON.stringify(mod, null, 2));
-				//console.log(Object.keys(mod));
-			}
-
-			// Assign pids to all instance in Configu.Modules
-			for (let instname in Config.Modules) {
-				//debugger;
-				Apex[instname] = genPid();
-			}
-			console.log('Apex', Apex);
-
-			// Now populate all of the modules from config.json
-			for (let instname in Config.Modules) {
-				if (instname === 'Deferred')
-					continue;
-				if (instname === 'Nexus')
-					continue;
-				var inst = Config.Modules[instname];
-				console.log(instname, inst);
-				var pidinst = Apex[instname];
-				var ents = compileInstance(pidinst, inst);
-				folder = inst.Module;
-				// The following is for backword compatibility only
-				var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
-				var dirinst = CacheDir + '/' + folder + '/' + pidinst;
-				fs.mkdirSync(dirinst);
-				ents.forEach(function (ent) {
-					let path = dirinst + '/' + ent.Pid + '.json';
-					//console.log('entity path', path);
-					//console.log('ent', ent);
-					fs.writeFileSync(path, JSON.stringify(ent, null, 2));
-				});
-			}
-			//	process.exit(0);
-			Initiate(Run);
-		}
-	}
-
-	//----------------------------------------------------=CompileMOdule
+	//----------------------------------------------------=CompileModule
 	// Generate array of entities from module
 	// Module must be in cache to allow use by both Genesis and
 	// GenModule
@@ -867,12 +747,12 @@
 			// debugger;
 			//console.log(typeof val);
 			if (typeof val === 'object') {
-				return (Array.isArray(val) ? 
-					val.map(v => symbol(v)) : 
+				return (Array.isArray(val) ?
+					val.map(v => symbol(v)) :
 					Object.entries(val).map(([key, val]) => {
 						return [key, symbol(val)];
 					}).reduce((prev, curr) => {
-						prev[curr[0]]=curr[1];
+						prev[curr[0]] = curr[1];
 						return prev;
 					}, {})
 				);
@@ -895,41 +775,6 @@
 		// previous refresh. This is most important
 		// for the package.json and node_modeuls dir
 		console.log('--refreshSystems');
-		//debugger;
-		//var files = fs.readdirSync(WorkDir);
-		// for (let i = 0; i < files.length; i++) {
-		// 	let file = files[i];
-		// 	var path = WorkDir + '/' + file;
-		// 	switch (file) {
-		// 		case 'cache':
-		// 		case 'config.json':
-		// 		case 'browser.json':
-		// 			//	console.log('Keeping:' + path);
-		// 			continue;
-		// 	}
-		// 	if (fs.lstatSync(path).isDirectory()) { // recurse
-		// 		// remDir(path);
-		// 		//	deleteFolderRecursive(curPath);
-		// 	} else { // delete file
-		// 		//	console.log('Deleting file:' + path);
-		// 		//	fs.unlinkSync(path);
-		// 	}
-		// }
-
-		// let nodepath= WorkDir+'/node_modules/';
-		// let stat;
-		// try{
-		// 	stat = fs.lstatSync(nodepath);
-		// }
-		// catch (err){
-		// 	stat = undefined
-		// }
-		// //debugger;
-		// if (stat) {
-		// 	if (stat.isDirectory()) {
-		// 		remDir(nodepath);
-		// 	}
-		// }
 
 		// Reconstruct package.json and nod_modules
 		// directory by merging package.json of the
@@ -972,7 +817,7 @@
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
 
-		
+
 		ps.stdout.on('data', _ => process.stdout.write(_.toString()));
 		ps.stderr.on('data', _ => process.stdout.write(_.toString()));
 
@@ -1000,11 +845,11 @@
 	//    module is the name withing that group which can be further
 	//        separated by dots as desired
 	function GetModule(modnam, fun) {
-		// console.log('##GetModule', modnam);
+		console.log('##GetModule', modnam);
 		// debugger;
 		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		var dir = ModName.replace('.', ':').replace(/\./g, '/');
-		var ModPath = genPath(dir);
+		//var ModPath = genPath(dir);
 		if (ModName in ModCache) {
 			fun(null, ModCache[ModName]);
 			return;
@@ -1025,74 +870,11 @@
 						return;
 					});
 				}
-			} else {
-
-				//
-				//
-				//
-				//		Access from the Broker!!!!!
-				//
-				//
-				//
-
-				var mod = {};
- 
-				fs.readdir(ModPath, function (err, files) {
-					if (err) {
-						console.log(' ** ERR:Module <' + ModPath + '? not available');
-						fun(err);
-						return;
-					}
-					var nfile = files.length;
-					var ifile = -1;
-					scan();
-
-					function scan() {
-						ifile++;
-						if (ifile >= nfile) {
-							mod.ModName = ModName;
-
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								//console.log('schema', JSON.stringify(schema, null, 2));
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-								//debugger;
-							}
-
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
-							return;
-						}
-						var file = files[ifile];
-						var path = ModPath + '/' + file;
-						fs.lstat(path, function (err, stat) {
-							if (stat) {
-								if (!stat.isDirectory()) {
-									fs.readFile(path, function (err, data) {
-										if (err) {
-											fun(err);
-											return;
-										}
-										mod[file] = data.toString();
-										scan();
-										return;
-									});
-									return;
-								}
-							}
-							scan();
-						})
-					}
-				});
-			}
+			} 
+			fun(`Module ${ModName} Not In Cache\n
+				Include it in Deferred Array and Recompile or \n
+				Use the Import tool to import it into the cache`, ModCache[ModName]);
+				return;
 		});
 	}
 
@@ -1105,8 +887,7 @@
 		var Setup = {};
 		var Start = {};
 		var folders = fs.readdirSync(CacheDir);
-		//console.log('folders', folders);
-		//debugger;
+
 		for (var ifold = 0; ifold < folders.length; ifold++) {
 			var folder = folders[ifold];
 			var dir = CacheDir + '/' + folder;
