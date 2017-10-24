@@ -96,7 +96,8 @@ async function ensureNode() {
 
 	if (node != '') {
 		console.log();
-		fun(true);
+    // fun(true);
+    return;
 	} else {
 		await install();
 	}
