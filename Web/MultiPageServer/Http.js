@@ -24,11 +24,11 @@
 		log.v('--Http/Start');
 
 		var that = this;
-		let fs = this.require('fs');
-		let async = this.require('async');
-		let jszip = this.require("jszip");
-		let path = this.require("path");
-		this.Vlt.SSLRedircet = false;
+		fs = this.require('fs');
+		async = this.require('async');
+		jszip = this.require("jszip");
+		path = this.require("path");
+		this.Vlt.SSLRedirect = false;
 		let attemptSSL = 'SSL' in this.Par && 'Domain' in this.Par.SSL && 'Email' in this.Par.SSL && 'Port' in this.Par.SSL;
 
 		let getCertificate = (le) => {
@@ -48,8 +48,8 @@
 
 																																	// checks :conf/renewal/:hostname.conf
 			le.register({                                               // and either renews or registers
-				domains: ['planit.xgraphdev.com'],                        // CHANGE TO YOUR DOMAIN
-				email: 'marcus.gosselin@introspectivesystems.com',        // CHANGE TO YOUR EMAIL
+				domains: [this.Par.SSL.Domain],                           // CHANGE TO YOUR DOMAIN
+				email: this.Par.SSL.Email,                                // CHANGE TO YOUR EMAIL
 				agreeTos: true,                                           // set to true to automatically accept an agreement
 				rsaKeySize: 2048																					// which you have pre-approved (not recommended)
 			}).then(next);
@@ -132,9 +132,9 @@
 			let httpServer = http.createServer(function (req, res) {
 				log.v('[HTTP ] ' + req.url);
 
-				if(req.url.startsWith('.well-known/acme-challenge')) {
+				if(!req.url.startsWith('.well-known/acme-challenge')) {
 					// this probably isnt a challenge....
-					if(this.Vlt.SSLRedircet) {
+					if(that.Vlt.SSLRedirect) {
 						// upgrade to SSL if we can
 						res.writeHead(301, {Location: `https://${req.headers.host}${req.url}`});
 					}else {
@@ -151,7 +151,7 @@
 			});
 			// log.i(' ** Spider listening on port 8080');
 			httpServer.listen(this.Par.Port || 8080);
-			log.i(`Creating HTTP/1.1 Server with ${this.Par.HTMLFile}.html`);
+			log.i(`Created HTTP/1.1 Server with ${this.Par.HTMLFile}.html`);
 			// log.i('WE LISTENIN HTTP');
 			if(attemptSSL)
 				getCertificate(le);
@@ -422,12 +422,12 @@
 	// ignore the request to confuse the hackers.
 	function Get(that, req, res) {
 		// debugger;
-		log.i();
+		// log.i();
 		// log.i('--Get', req.url);
 		var Par = that.Par;
 		var url = Par.HTMLFile;
 		// log.i("LOOOOOK HEEREEE!!! (o).(o)"+url);
-		log.i(req.url);
+		// log.i(req.url);
 		if(req.url == '/manifest.json' && 'Manifest' in that.Par) {
 			res.writeHead(200); 
 			// log.i(`"${JSON.stringify(that.Par.Manifest, null, 2)}"`);
