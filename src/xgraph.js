@@ -95,8 +95,8 @@ async function ensureNode() {
 	let node = (execSync('which node').toString());
 
 	if (node != '') {
-		console.log();
-		fun(true);
+    console.log();
+    return;
 	} else {
 		await install();
 	}

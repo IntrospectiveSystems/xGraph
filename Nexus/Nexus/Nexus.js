@@ -4,6 +4,24 @@
 	var Path = require('path');
 	let log = fs.createWriteStream(process.cwd() + "/EventLog.txt");
 
+	global.log = {
+		v: (...str) => {
+			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+		},
+		d: (...str) => {
+			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+		},
+		i: (...str) => {
+			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+		},
+		w: (...str) => {
+			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+		},
+		e: (...str) => {
+			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+		}
+	}
+
 	var Uuid;
 	var CacheDir;
 	var WorkDir = process.cwd();

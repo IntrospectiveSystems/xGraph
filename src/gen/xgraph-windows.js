@@ -9,10 +9,17 @@ let windows = true;
 let mac = false;
 let unix = false;
 
+let pathOverrides = {};
+
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
 
+let configFile = null; // purposefully null
+let cacheDir = null;
+
 if(process.argv.length == 1) process.argv[1] = 'help';
+
+processSwitches();
 
 switch(process.argv[1]) {
   case 'run': {
@@ -37,7 +44,7 @@ switch(process.argv[1]) {
 }
 
 async function init(args) {
-  
+  console.log('init System');
   console.log('[', ...args, ']');
 
 }
@@ -58,7 +65,7 @@ function help() {
 
 async function run() {
 	try {
-		await new Promise((resolve, reject) => ensureNode(_ => { if (_) resolve(); else reject(); }));
+		await ensureNode();
 		console.log('look for config/cache here: ' + cwd);
 		console.log('executable is here: ' + bindir);
 		startChildProcess();
@@ -67,17 +74,45 @@ async function run() {
 	}
 }
 
-function ensureNode(fun) {
+async function ensureNode() {
 		console.error(`System ${system} is not yet supported`);
 	}
 
 function install() {
-
 	return new Promise((resolve) => {
 	console.error(`System ${system} is not yet supported`);
 	//node-msi.fetch.start
 
   });
+}
+
+function processSwitches() {
+  for(let i = 0; i < process.argv.length; i ++) {
+    let str = process.argv[i];
+    if(str.startsWith('--')) {
+      let key = process.argv[i].slice(2);
+      applySwitch(key, i);
+    }
+  }
+}
+
+function applySwitch(str, i) {
+  let val = null;
+  if ((i+1) in process.argv) { // switch has a value
+    val = process.argv[i+1];
+  }
+  switch(key) {
+    case 'config': {
+      configFile = val;
+      break;
+    }
+    case 'cache': {
+      cacheDir = val;
+    }
+    default: {
+      pathOverrides[key] = val;
+    }
+  }
 }
 
 //set all command line arguments to ENV variables
