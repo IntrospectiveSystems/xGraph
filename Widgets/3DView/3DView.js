@@ -52,20 +52,20 @@
 			View.Camera.updateProjectionMatrix();
 
 			View.RenderLoop = setInterval(_ => {
-				
+
 				//For testing of updating elevations
-				if (this.Vlt.Update){
-					this.Vlt.Update=false;
+				if (this.Vlt.Update) {
+					this.Vlt.Update = false;
 					let q = {}
 					q.Cmd = "SetObjects";
 					q.Objects = [];
 					let obj = {
 						id: "plane",
-						elevations:[]
+						elevations: []
 					};
 					q.Objects.push(obj);
-					this.send(q, this.Par.Pid,(err, com)=>{
-						setTimeout(this.send({Cmd:"ImageCapture"}, this.Par.Pid) ,40);
+					this.send(q, this.Par.Pid, (err, com) => {
+						setTimeout(this.send({ Cmd: "ImageCapture" }, this.Par.Pid), 40);
 					});
 				}
 				//end TEST
@@ -86,8 +86,8 @@
 	function Start(com, fun) {
 		console.log('--3DView/Start');
 
-		if ("Controller" in this.Par){
-			this.send({Cmd:"Register", Pid:this.Par.Pid}, this.Par.Controller, (err, com)=>{
+		if ("Controller" in this.Par) {
+			this.send({ Cmd: "Register", Pid: this.Par.Pid }, this.Par.Controller, (err, com) => {
 				console.log("Registered with Controller");
 			});
 		}
@@ -107,111 +107,113 @@
 		//
 		//
 		//
-		//add some objects to the world
-		// let q = {}, obj;
-		// q.Cmd = "SetObjects";
-		// q.Objects = [];
-		
-		// //add 10 ellipsoids with random location and scales
-		// for (let idx = 0; idx < 10; idx++) {
-		// 	obj = {
-		// 		id: idx,
-		// 		geometry: {
-		// 			id: "geom",
-		// 			name: "SphereGeometry",
-		// 			arguments: [1, 64, 64]
-		// 		},
-		// 		mesh: {
-		// 			id: "mesh",
-		// 			name: "MeshPhongMaterial",
-		// 			arguments: {
-		// 				color: 0xFFFFFF * Math.random()
-		// 			}
-		// 		},
-		// 		position: {
-		// 			x: 100 * Math.random(),
-		// 			y: 100 * Math.random(),
-		// 			z: 100 * Math.random()
-		// 		},
-		// 		scale: {
-		// 			x: 10 * Math.random(),
-		// 			y: 10 * Math.random(),
-		// 			z: 10 * Math.random()
-		// 		},
-		// 		responseHandler: {
-		// 			Cmd: "EvokeExample",
-		// 			Handler: this.Par.Pid
-		// 		}
-		// 	};
-		// 	q.Objects.push(obj);
-		// }
-		// add a plane
+		if (!("Controller" in this.Par)) {
+			//add some objects to the world
+			let q = {}, obj;
+			q.Cmd = "SetObjects";
+			q.Objects = [];
 
-		// obj = {
-		// 	id: "plane",
-		// 	geometry: {
-		// 		id: "PlaneGeom",
-		// 		name: "PlaneGeometry",
-		// 		arguments: [100, 100, 99, 99]
-		// 	},
-		// 	mesh: {
-		// 		id: "planeMesh",
-		// 		name: "MeshPhongMaterial",
-		// 		arguments: {
-		// 			color: 0x333333
-		// 		}
-		// 	},
-		// 	position: {
-		// 		x: 50,
-		// 		y: 50,
-		// 		z: 0
-		// 	}, 
-		// 	elevations:[],
-		// 	responseHandler: {
-		// 		Cmd: "EvokeExample",
-		// 		Handler: this.Par.Pid
-		// 	}
-		// };
-		// q.Objects.push(obj);
-		// // add a module 
-		// obj = {
-		// 	id: "module",
-		// 	module: "xGraph:Scene/Modelx3D",
-		// 	parentId: "plane",
-		// 	position: {
-		// 		x: 0,
-		// 		y: 0,
-		// 		z: 0
-		// 	},
-		// 	model: "Geo.101Plants.Cactus3",
-		// 	axis: [0, 0, 1],
-		// 	angle: 0
-		// };
-		// q.Objects.push(obj);
+			// //add 10 ellipsoids with random location and scales
+			for (let idx = 0; idx < 100; idx++) {
+				obj = {
+					id: idx,
+					geometry: {
+						id: "geom",
+						name: "SphereGeometry",
+						arguments: [1, 64, 64]
+					},
+					mesh: {
+						id: "mesh",
+						name: "MeshPhongMaterial",
+						arguments: {
+							color: 0xFFFFFF * Math.random()
+						}
+					},
+					position: {
+						x: 100 * Math.random(),
+						y: 100 * Math.random(),
+						z: 100 * Math.random()
+					},
+					scale: {
+						x: 10 * Math.random(),
+						y: 10 * Math.random(),
+						z: 10 * Math.random()
+					},
+					responseHandler: {
+						Cmd: "EvokeExample",
+						Handler: this.Par.Pid
+					}
+				};
+				q.Objects.push(obj);
+			}
+			// add a plane
 
-		// this.send(q, this.Par.Pid, _ =>
-		// 	//callback
-		// 	console.log("we sent the objects to be added to the scene")
-		// );
+			obj = {
+				id: "plane",
+				geometry: {
+					id: "PlaneGeom",
+					name: "PlaneGeometry",
+					arguments: [100, 100, 99, 99]
+				},
+				mesh: {
+					id: "planeMesh",
+					name: "MeshPhongMaterial",
+					arguments: {
+						color: 0x333333
+					}
+				},
+				position: {
+					x: 50,
+					y: 50,
+					z: 0
+				}, 
+				elevations:[],
+				responseHandler: {
+					Cmd: "EvokeExample",
+					Handler: this.Par.Pid
+				}
+			};
+			q.Objects.push(obj);
+			// // add a module 
+			obj = {
+				id: "module",
+				module: "xGraph:Scene/Modelx3D",
+				parentId: "plane",
+				position: {
+					x: 0,
+					y: 0,
+					z: 0
+				},
+				model: "Geo.101Plants.Cactus3",
+				axis: [0, 0, 1],
+				angle: 0
+			};
+			q.Objects.push(obj);
 
-
-		/*
+			this.send(q, this.Par.Pid, _ =>
+				//callback
+				console.log("we sent the objects to be added to the scene")
+			);
 
 
-
-
-
-
-		END EXAMPLE CODE
-
-
-
-
-
-
-
-
-		*/
+			/*
+	
+	
+	
+	
+	
+	
+			END EXAMPLE CODE
+	
+	
+	
+	
+	
+	
+	
+	
+			*/
+		}
 	}
 
 	function EvokeExample(com, fun) {
@@ -330,7 +332,7 @@
 		 * ]
 		 */
 
-		
+
 		for (let i = 0; i < com.Objects.length; i++) {
 
 			let unit = com.Objects[i];
@@ -377,7 +379,7 @@
 					obj = new THREE.Mesh(geom, mesh);
 					obj.name = unit.id;
 				} else {
-					
+
 					//we're passed a module and need to generate it
 					let mod = {
 						"Module": unit.module,
@@ -397,17 +399,17 @@
 
 					obj = await new Promise((res, rej) => {
 						this.genModule(mod, (err, pidApex) => {
-								
+
 							let that = this;
 
 							//save the modules pid in unit.Pid
 							unit.Pid = pidApex;
 
-							unit.responseHandler= {
-								Cmd:"Evoke",
+							unit.responseHandler = {
+								Cmd: "Evoke",
 								Handler: unit.Pid
 							};
-						
+
 							var q = {};
 							q.Cmd = 'GetGraph';
 							this.send(q, unit.Pid, scene);
@@ -421,9 +423,9 @@
 										fun(err);
 									return;
 								}
-								
+
 								async.eachSeries(Inst, instance, done);
-								
+
 								function instance(inst, func) {
 									var q = {};
 									q.Cmd = 'GetModel';
@@ -463,12 +465,12 @@
 										data.Pid = inst.Instance;
 										objinst.userData = data;
 										objinst.add(x.Obj3D);
-										res(objinst);								
+										res(objinst);
 									}
 								}
 
-								
-								function done(){
+
+								function done() {
 									console.log("Done Generating the Module/Model");
 								}
 							}
@@ -481,26 +483,26 @@
 				continue;
 			}
 			if (unit.position) {
-				if (unit.position.x||(unit.position.x==0))
+				if (unit.position.x || (unit.position.x == 0))
 					obj.position.x = Math.round(unit.position.x);
-				if (unit.position.y||(unit.position.y==0))
+				if (unit.position.y || (unit.position.y == 0))
 					obj.position.y = Math.round(unit.position.y);
-				if (unit.position.z||(unit.position.z==0))
+				if (unit.position.z || (unit.position.z == 0))
 					obj.position.z = Math.round(unit.position.z);
 			}
 
-			if (unit.elevations){
+			if (unit.elevations) {
 				// add in the known elevations
 				for (let i = 0, l = obj.geometry.vertices.length; i < l; i++) {
-					let row = Math.floor(i/obj.geometry.parameters.width);
-					let col = i - row*obj.geometry.parameters.width;
-					let idx = (obj.geometry.parameters.height - row)*obj.geometry.parameters.width+col;
-					obj.geometry.vertices[i].z = unit.elevations[idx]|| Math.random();
+					let row = Math.floor(i / obj.geometry.parameters.width);
+					let col = i - row * obj.geometry.parameters.width;
+					let idx = (obj.geometry.parameters.height - row) * obj.geometry.parameters.width + col;
+					obj.geometry.vertices[i].z = unit.elevations[idx] || Math.random();
 				}
-				obj.geometry.verticesNeedUpdate=true;
-				obj.geometry.elementsNeedUpdate=true;
-				obj.geometry.normalsNeedUpdate=true;
-				obj.updateMatrix();				
+				obj.geometry.verticesNeedUpdate = true;
+				obj.geometry.elementsNeedUpdate = true;
+				obj.geometry.normalsNeedUpdate = true;
+				obj.updateMatrix();
 			}
 
 			if (unit.scale) {
@@ -511,19 +513,19 @@
 				this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
 			}
 
-			if (unit.new){
-				if (unit.parentId){
+			if (unit.new) {
+				if (unit.parentId) {
 					let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
-					if (parent){
+					if (parent) {
 						parent.add(obj);
 						obj.matrixWorldNeedsUpdate = true;
 						obj.updateMatrixWorld();
-					} else{
+					} else {
 						console.log("Parent not defined in three.js scene");
 						this.Vlt.View.Scene.add(obj);
-						
+
 					}
-				}else{
+				} else {
 					this.Vlt.View.Scene.add(obj);
 				}
 			}
@@ -533,20 +535,20 @@
 			fun(null, com);
 	}
 
-	function ImageCapture(com, fun){
+	function ImageCapture(com, fun) {
 		if (this.Vlt.Count)
 			this.Vlt.Count++
-		else	
+		else
 			this.Vlt.Count = 1;
-		
+
 		View.Renderer.render(View.Scene, View.Camera);
-			
+
 		let b64 = this.Vlt.View.Renderer.domElement.toDataURL();
 
 		com.Image = b64;
 		com.Name = this.Vlt.Count;
 
-		if ("Controller" in this.Par){
+		if ("Controller" in this.Par) {
 			com.Cmd = "SaveImage";
 			this.send(com, this.Par.Controller);
 		}
@@ -649,7 +651,7 @@
 			if (obj != null && obj.name) {
 				//console.log('hit', hit);
 				//console.log('mouseRay', data);
-			// debugger;
+				// debugger;
 				info.obj = {};
 				info.obj.id = obj.name
 				info.obj.responseHandler = Vlt.View.ResponseHandlers[info.obj.id] || undefined;
@@ -773,7 +775,7 @@
 			info.Keys.push('Idle.keydown.n');
 			return;
 		}
-		Vlt.Update= true;
+		Vlt.Update = true;
 	}
 
 
