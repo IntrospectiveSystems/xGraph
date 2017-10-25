@@ -2,31 +2,38 @@
 	
 	var fs = require('fs');
 	var Path = require('path');
-	let log = {
-		write: (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" "), (err)=>{if (err) console.log(err)});
-		}
-	};
 	let date = new Date();
-
-	//give log levels - log.v()
-	global.log = {
+	let xgraphlog = (...str) => {
+		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ")+"\n", (err)=>{if (err) {console.error(err); process.exit(1)}});
+	};
+	//give log levels - log.v() log.d() ...	
+	// v : verbose
+	// d : debug
+	// i : info
+	// w : warn
+	// e : error
+	let log = {
         v: (...str) => {
-            console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+			xgraphlog(...str);			
         },
         d: (...str) => {
-            console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+			xgraphlog(...str);			
         },
         i: (...str) => {
-            console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+			xgraphlog(...str);			
         },
         w: (...str) => {
-            console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+			xgraphlog(...str);
         },
         e: (...str) => {
-            console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-        }
-    };
+			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+			xgraphlog(...str);
+		}
+	};
 
 	var Uuid;
 	var CacheDir;
@@ -36,29 +43,19 @@
 	var ModCache = {};	// {<folder>: <module>}
 	var packagejson = {};
 	
-	EventLog('\n=================================================');
-	EventLog(`Genesis Compile Start: ${date.toString()}`);
+	log.i('\n=================================================');
+	log.i(`Genesis Compile Start: ${date.toString()}`);
 
 	// Process input arguments and define macro parameters
 	var args = process.argv;
 	let arg, parts;
-	let development = false;
-
-	if (process.env.XGRAPH_ENV && process.env.XGRAPH_ENV.toLowerCase() === "development") {
-		development = true;
-	}
-
 	let Params = {};
-
 	for (var iarg = 0; iarg < args.length; iarg++) {
 		arg = args[iarg];
-		EventLog(arg);
+		log.v(arg);
 		parts = arg.split('=');
 		if (parts.length == 2) {
 			Params[parts[0]] = parts[1];
-			//make way for development=true command line set
-			if (parts[0] == 'development')
-				development = (parts[1] === 'true');
 		}
 	}
 
@@ -85,78 +82,68 @@
 			}
 		}
 	} else {
-		EventLog(' ** No configuration file provided');
+		log.e(' ** No configuration file (config.json) provided');
 		process.exit(1);
 	}
 
-	EventLog(JSON.stringify(Config, null, 2));
+	log.v(JSON.stringify(Config, null, 2));
 
 	CacheDir = 'cache';
 
 	if ('Cache' in Params)
 		CacheDir = Params.Cache;
 
-	EventLog(`About to remove the cacheDir: "${CacheDir}"`);
-	
+	// If the CacheDir exists we delete it before rebuilding
 	if (fs.existsSync(CacheDir)){ 
-		remDir(CacheDir); // REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE
+		log.v(`About to remove the cacheDir: "${CacheDir}"`);
+		remDir(CacheDir); 
 	}
 
 	Genesis();
 
-	function EventLog(string) {
-		//event log only built to handle strings
-		//write them out
-		log.write(string + "\n");
-		console.log(string);
-	}
-
 	//-----------------------------------------------------remDir
-	// Shake well before using
 	// Recursive directory deletion
+	// Used for cache cleanup
 	function remDir(path) {
 		var files = [];
 		if (fs.existsSync(path)) {
 			files = fs.readdirSync(path);
 			files.forEach(function (file, index) {
 				var curPath = path + "/" + file;
-				if (fs.lstatSync(curPath).isDirectory()) { // recurse
-					//console.log("Entering Directory", curPath);
+				if (fs.lstatSync(curPath).isDirectory()) { 
+					// recurse
 					remDir(curPath);
-				} else { // delete file
-					//console.log("Removing the file", curPath);
+				} else { 
+					// delete file
 					fs.unlinkSync(curPath);
 				}
 			});
 			fs.rmdirSync(path);
-			EventLog(`Removing the directory ${path}`);
+			log.v(`Removing the directory ${path}`);
 		}
 	}
+
 	//---------------------------------------------------------genPid
 	// Create a new PID
 	function genPid() {
 		if (!Uuid)
-			Uuid = require('node-uuid');
-		var str = Uuid.v4();
+			Uuid = require('uuid/v4');
+		var str = Uuid();
 		var pid = str.replace(/-/g, '').toUpperCase();
 		return pid;
 	}
 
 	//---------------------------------------------------------genPath
 	function genPath(filein) {
-		//	EventLog('!!genPath', filein);
 		if (!filein) {
-			EventLog(' ** ERR:Invalid file name');
+			log.e(' ** ERR:Invalid file name');
 			return '';
 		}
 		var cfg = Config;
 		var path;
 		var parts;
 		var file = filein;
-		if (Config.Redirect) {
-			if (file in Config.Redirect)
-				file = Config.Redirect[file];
-		}
+
 		if (file.charAt(0) == '/')
 			return file;
 		if (file.charAt(0) == '{') { // Macro
@@ -169,7 +156,7 @@
 				path = cfg[name] + '/' + parts[1];
 				return path;
 			} else {
-				EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
+				log.e(' ** ERR:File <' + file + '> {' + name + '} not found');
 				return;
 			}
 		}
@@ -178,7 +165,7 @@
 			if (parts[0] in cfg) {
 				path = cfg[parts[0]] + '/' + parts[1];
 			} else {
-				EventLog(' ** ERR:File <' + file + '> prefix not defined');
+				log.e(' ** ERR:File <' + file + '> prefix not defined');
 				return;
 			}
 		} else {
@@ -225,16 +212,13 @@
 	// Create cache if it does nto exist and populate
 	// This is called only once when a new systems is
 	// first instantiated
-	function Genesis(fun) {
-		EventLog('--Nexus/Genesis');
+	function Genesis() {
+		log.i('--Nexus/Genesis');
 		var Folders = [];
 
 		// Create new cache and install high level
 		// module subdirectories. Each of these also
-		// has a link to the source of that module,
-		// at this point a local file directory, but
-		// eventually this should be some kind of
-		// alternate repository (TBD)
+		// has a link to the source of that module (Module.json).
 		var keys = Object.keys(Config.Modules);
 		for (let i = 0; i < keys.length; i++) {
 			let key = keys[i];
@@ -245,12 +229,13 @@
 						Folders.push(folder);
 				});
 			} else {
-				var mod = {};
+				//var mod = {};
 				let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
 				if (Folders.indexOf(folder) < 0)
 					Folders.push(folder);
 			}
 		}
+
 		let nfolders = Folders.length;
 		let ifolder = -1;
 		next();
@@ -269,27 +254,23 @@
 		}
 
 		function populate() {
-			console.log('--populate');
-			// Build cache structure and Module.json
+			log.v('--populate : Writing Cache to Disk');
+			// Write cache to CacheDir
 			fs.mkdirSync(CacheDir);
 			for (let folder in ModCache) {
-				console.log(folder);
 				var mod = ModCache[folder];
 				var dir = CacheDir + '/' + folder;
 				fs.mkdirSync(dir);
-				path = dir + '/Module.json';
-				var str = JSON.stringify(ModCache[folder]);
-				fs.writeFileSync(path, str);
-				var path = dir + '/Module.json';
+				log.v(`Writing Module ${folder} to ${CacheDir}`);
+				let path = dir + '/Module.json';
 				fs.writeFileSync(path, JSON.stringify(mod, null, 2));
 			}
 
-			// Assign pids to all instance in Configu.Modules
+			// Assign pids to all instance in Config.Modules
 			for (let instname in Config.Modules) {
-				//debugger;
 				Apex[instname] = genPid();
 			}
-			console.log('Apex', Apex);
+			log.v('Apex', JSON.stringify(Apex, null, 2));
 
 			// Now populate all of the modules from config.json
 			for (let instname in Config.Modules) {
@@ -298,7 +279,7 @@
 				if (instname === 'Nexus')
 					continue;
 				var inst = Config.Modules[instname];
-				console.log(instname, inst);
+				log.v(instname, JSON.stringify(inst, null, 2));
 				var pidinst = Apex[instname];
 				var ents = compileInstance(pidinst, inst);
 				folder = inst.Module;
@@ -312,12 +293,12 @@
 				});
 			}
 
-			EventLog(`Genesis Compile Stop: ${date.toString()}`);
-			EventLog('=================================================\n');
+			log.i(`Genesis Compile Stop: ${date.toString()}`);
+			log.i('=================================================\n');
 		}
 	}
 
-	//----------------------------------------------------=CompileMOdule
+	//----------------------------------------------------CompileModule
 	// Generate array of entities from module
 	// Module must be in cache to allow use by both Genesis and
 	// GenModule
@@ -325,7 +306,6 @@
 	function compileInstance(pidapx, inst) {
 		var Local = {};
 		var modnam = inst.Module;
-		//debugger;
 		var mod;
 		var ents = [];
 		// The following is for backword compatibility only
@@ -333,13 +313,12 @@
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
 		} else {
-			console.log(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+			log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+			process.exit(1);
 			return;
 		}
 		var schema = JSON.parse(mod['schema.json']);
 		var entkeys = Object.keys(schema);
-		//console.log('entkeys', entkeys);
-		Local = {};
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			if (entkey === 'Apex')
@@ -347,7 +326,6 @@
 			else
 				Local[entkey] = genPid();
 		}
-		//console.log('Local', Local);
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			let ent = schema[entkey];
@@ -372,8 +350,6 @@
 		return ents;
 
 		function symbol(val) {
-			// debugger;
-			//console.log(typeof val);
 			if (typeof val === 'object') {
 				return (Array.isArray(val) ? 
 					val.map(v => symbol(v)) : 
@@ -399,32 +375,23 @@
 	}
 
 	function refreshSystem(func) {
-		// Clean up all of the files from the
-		// previous refresh. This is most important
-		// for the package.json and node_modeuls dir
-		console.log('--refreshSystems');
-
-		// Reconstruct package.json and nod_modules
+		// Reconstruct package.json and node_modules
 		// directory by merging package.json of the
 		// individual modules and then running npm
-		// to create node_modules directory for system
+		// to create node_modules directory for system		
+		log.i('--refreshSystems: Updating and installing dependencies\n');
 		var packagejson;
-		//console.log('ModeCache', ModCache);
 		for (let folder in ModCache) {
 			let mod = ModCache[folder];
 			if ('package.json' in mod) {
 				obj = JSON.parse(mod['package.json']);
-				//console.log('Input', obj);
 				if (!packagejson) {
 					packagejson = obj;
 					continue;
 				}
-				//console.log('A');
 				if (obj.dependencies) {
-					//console.log('B');
 					if (!packagejson.dependencies) packagejson.dependencies = {};
 					for (key in obj.dependencies) {
-						//console.log('key', key);
 						if (!(key in packagejson.dependencies))
 							packagejson.dependencies[key] = obj.dependencies[key];
 					}
@@ -436,148 +403,133 @@
 							packagejson.devDependencies[key] = obj.devDependencies[key];
 					}
 				}
-				//console.log('output', package);
 			}
 		}
+
+		//include Genesis/Nexus required npm modules
+		packagejson.dependencies["uuid"] = "3.1.0";
+		packagejson.dependencies["async"] = "0.9.0";
+		
+
 		var strout = JSON.stringify(packagejson, null, 2);
+		//write the compiled package.json to disk
 		fs.writeFileSync('package.json', strout);
+
+		//call npm install on a childprocess of node
 		const proc = require('child_process');
+
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
 
-		
-		ps.stdout.on('data', _ => process.stdout.write(_.toString()));
-		ps.stderr.on('data', _ => process.stdout.write(_.toString()));
+		ps.stdout.on('data', _ => log.v(_.toString()));
+		ps.stderr.on('data', _ => log.v(_.toString()));
 
 		ps.on('err', function (err) {
-			EventLog('Failed to start child process.');
-			EventLog('err:' + err);
+			log.e('Failed to start child process.');
+			log.e('err:' + err);
 		});
 
 		ps.on('exit', function (code) {
-			EventLog('npm process exited with code:' + code);
-			EventLog('Current working directory: ' + process.cwd());
+			if (code == 0)
+				log.i('dependencies installed correctly');
+			else{
+				log.e('npm process exited with code:' + code);
+				process.exit(1);
+			}
+			log.v('Current working directory: ' + process.cwd());
 			func();
 		});
 	}
 
 	//-----------------------------------------------------GetModule
-	// This is a surrogate for an eventual Module Server. This
-	// code should be useful in developing such.
-	// Because Nexus during Genesis does not have zip capability,
-	// it relies on the Module Server to deliver content in that form.
-	// Module Server names use dot notiation as in domain.family.module
-	// where..
-	//    domain is a major domain name such as 'xCraft2", or 'xGraph'
-	//    family is a grouping withing the domain such as 'Widgets'
-	//    module is the name withing that group which can be further
-	//        separated by dots as desired
+	// This will 
 	function GetModule(modnam, fun) {
+		let mod = {};
 		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		var dir = ModName.replace('.', ':').replace(/\./g, '/');
 		var ModPath = genPath(dir);
-		// if (ModName in ModCache) {
-		// 	fun(null, ModCache[ModName]);
-		// 	return;
-		// }
-
-		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
-		EventLog(cachedMod);
-		fs.lstat(cachedMod, function (err, stat) {
-			// if (stat && !development) {
-			// 	if (!stat.isDirectory()) {
-			// 		fs.readFile(cachedMod, function (err, data) {
-			// 			if (err) {
-			// 				fun(err);
-			// 				return;
-			// 			}
-			// 			ModCache[ModName] = JSON.parse(data.toString());
-			// 			fun(null, ModCache[ModName]);
-			// 			return;
-			// 		});
-			// 	}
-			// } else {
 
 
+		//
 
+		// only do this if the moduleName and broker reference match!!!!
+
+		//
+
+		//get the module from memory (ModCache) if it has already been retrieved
+		if (ModName in ModCache) {
+			fun(null, ModCache[ModName]);
+			return;
+		}
+
+
+		//
+
+		//
+
+		//
+
+		//get the module from the defined broker
 
 
 
 
+		log.e(ModName, ModPath);
+		//read the module from path in the local file system
+		//create the Module.json and add it to ModCache
+		fs.readdir(ModPath, function (err, files) {
+			if (err) {
+				err += ' ** ERR:Module <' + ModPath + '? not available'
+				log.e(err);
+				fun(err);
+				return;
+			}
+			var nfile = files.length;
+			var ifile = -1;
+			scan();
 
+			function scan() {
+				ifile++;				
 
-
-			/////////////////////////////////////////////////We Play HERE
-
-
-
-
-
-			//
-			//
-			//
-			//		Access from the Broker!!!!!
-			//
-			//
-			//
-
-			var mod = {};
-
-			fs.readdir(ModPath, function (err, files) {
-				if (err) {
-					console.log(' ** ERR:Module <' + ModPath + '? not available');
-					fun(err);
+				if (ifile >= nfile) {
+					mod.ModName = ModName;
+					if ('schema.json' in mod) {
+						var schema = JSON.parse(mod['schema.json']);
+						if ('Apex' in schema) {
+							var apx = schema.Apex;
+							if ('$Setup' in apx)
+								mod.Setup = apx['$Setup'];
+							if ('$Start' in apx)
+								mod.Start = apx['$Start'];
+							if ('$Save' in apx)
+								mod.Save = apx['$Save'];
+						}
+					}
+					ModCache[ModName] = mod;
+					fun(null, ModCache[ModName]);
 					return;
 				}
-				var nfile = files.length;
-				var ifile = -1;
-				scan();
-
-				function scan() {
-					ifile++;
-					if (ifile >= nfile) {
-						mod.ModName = ModName;
-
-						if ('schema.json' in mod) {
-							var schema = JSON.parse(mod['schema.json']);
-							//console.log('schema', JSON.stringify(schema, null, 2));
-							if ('Apex' in schema) {
-								var apx = schema.Apex;
-								if ('$Setup' in apx)
-									mod.Setup = apx['$Setup'];
-								if ('$Start' in apx)
-									mod.Start = apx['$Start'];
-								if ('$Save' in apx)
-									mod.Save = apx['$Save'];
-							}
-						}
-
-						ModCache[ModName] = mod;
-						fun(null, ModCache[ModName]);
-						return;
-					}
-					var file = files[ifile];
-					var path = ModPath + '/' + file;
-					fs.lstat(path, function (err, stat) {
-						if (stat) {
-							if (!stat.isDirectory()) {
-								fs.readFile(path, function (err, data) {
-									if (err) {
-										fun(err);
-										return;
-									}
-									mod[file] = data.toString();
-									scan();
+				var file = files[ifile];
+				var path = ModPath + '/' + file;
+				fs.lstat(path, function (err, stat) {
+					if (stat) {
+						if (!stat.isDirectory()) {
+							fs.readFile(path, function (err, data) {
+								if (err) {
+									log.e(err);
+									fun(err);
 									return;
-								});
+								}
+								mod[file] = data.toString();
+								scan();
 								return;
-							}
+							});
+							return;
 						}
-						scan();
-					})
-				}
-			});
-			//}
+					}
+					scan();
+				});
+			}
 		});
 	}
 

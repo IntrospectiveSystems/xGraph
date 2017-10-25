@@ -2,31 +2,38 @@
 	///Startup Processes
 	var fs = require('fs');
 	var Path = require('path');
-	let log = {
-		write: (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" "), (err)=>{if (err) console.log(err)});
-		}
-	};
 	let date = new Date();
-	
-	//give log levels - log.v()
-	global.log = {
-		v: (...str) => {
-			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-		},
-		d: (...str) => {
-			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-		},
-		i: (...str) => {
-			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-		},
-		w: (...str) => {
-			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
-		},
-		e: (...str) => {
-			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-		}
+	let xgraphlog = (...str) => {
+		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ")+"\n", (err)=>{if (err) console.log(err)});
 	};
+	//give log levels - log.v() log.d() ...	
+	// v : verbose --everything is broken
+	// d : debug   --casual development
+	// i : info    --end user info
+	// w : warn    --what should be fixed
+	// e : error   --what must be fixed
+	let log = {
+        v: (...str) => {
+			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+			xgraphlog(...str);			
+        },
+        d: (...str) => {
+			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+			xgraphlog(...str);			
+        },
+        i: (...str) => {
+			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+			xgraphlog(...str);			
+        },
+        w: (...str) => {
+			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+			xgraphlog(...str);
+        },
+        e: (...str) => {
+			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+			xgraphlog(...str);
+		}
+    };
 
 	var Uuid;
 	var CacheDir;
@@ -97,8 +104,6 @@
 		//event log only built to handle strings
 		//write them out
 		log.write(string + "\n");
-		//currently we also write it to the console,this will not always exist
-		console.log(string);
 	}
 
 	//-----------------------------------------------------Run
