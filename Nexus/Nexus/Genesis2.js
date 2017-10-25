@@ -474,7 +474,6 @@
 
 
 
-		log.e(ModName, ModPath);
 		//read the module from path in the local file system
 		//create the Module.json and add it to ModCache
 		fs.readdir(ModPath, function (err, files) {
