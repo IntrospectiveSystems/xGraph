@@ -1,9 +1,4 @@
 (function () {
-	
-	//
-	// Declare and Initialize base functions
-	//
-
 	const fs = require('fs'); 	
 	const date = new Date();  		
 	let Uuid;							
@@ -15,6 +10,12 @@
 	let packagejson = {};				// The compiled package.json, built from Modules
 	let args = process.argv;			// The input argutments ----- should be removed ??
 	let Params = {};					// The set of Macros for defining paths ---- should be removed??
+	
+	
+	//
+	// Logging Functionality
+	//
+		
 	// The logging function for writing to xgraph.log to the current working directory
 	const xgraphlog = (...str) => {
 		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ")+"\n", (err)=>{if (err) {console.error(err); process.exit(1)}});
@@ -51,9 +52,8 @@
 
 	
 
-
 	//
-	// Setup for Genesis (the compilation process)
+	// Setup for Genesis
 	//
 
 	log.i('\n=================================================');
@@ -206,6 +206,8 @@
 			log.i('=================================================\n');
 		}
 	}
+
+
 
 	//
 	// Helper functions
