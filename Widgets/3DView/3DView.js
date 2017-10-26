@@ -337,7 +337,7 @@
 
 			let unit = com.Objects[i];
 
-			if (!unit.id && (unit.id != 0)) {
+			if (!unit.id || (unit.id && unit.id != 0)) {
 				console.log("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}

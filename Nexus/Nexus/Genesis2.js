@@ -1,7 +1,10 @@
 (function () {
-	const fs = require('fs'); 	
-	const date = new Date();  		
-	let Uuid;							
+	console.log(`\nInitializing the Compile Engine`);
+	console.time('Genesis Runtime');
+
+	const fs = require('fs');
+	const date = new Date();
+	let Uuid;
 	let CacheDir;						// The location of where the Cache will be stored
 	let Config = {};					// The read config.json
 	let Apex = {};						// {<Name>: <pid of Apex>}
@@ -10,15 +13,15 @@
 	let packagejson = {};				// The compiled package.json, built from Modules
 	let args = process.argv;			// The input argutments ----- should be removed ??
 	let Params = {};					// The set of Macros for defining paths ---- should be removed??
-	
-	
+
+
 	//
 	// Logging Functionality
 	//
-		
+
 	// The logging function for writing to xgraph.log to the current working directory
 	const xgraphlog = (...str) => {
-		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ")+"\n", (err)=>{if (err) {console.error(err); process.exit(1)}});
+		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
 	};
 	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 	// Levels include:
@@ -28,137 +31,206 @@
 	// w : warn
 	// e : error
 	const log = {
-        v: (...str) => {
+		v: (...str) => {
 			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-			xgraphlog(...str);			
-        },
-        d: (...str) => {
+			xgraphlog(...str);
+		},
+		d: (...str) => {
 			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-			xgraphlog(...str);			
-        },
-        i: (...str) => {
+			xgraphlog(...str);
+		},
+		i: (...str) => {
 			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-			xgraphlog(...str);			
-        },
-        w: (...str) => {
+			xgraphlog(...str);
+		},
+		w: (...str) => {
 			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
 			xgraphlog(...str);
-        },
-        e: (...str) => {
+		},
+		e: (...str) => {
 			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
 			xgraphlog(...str);
 		}
 	};
 
-	
+	setup();
 
+	genesis();
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	//
-	// Setup for Genesis
+	// Only Function Definitions Beyond This Point
+	//
 	//
 
-	log.i('\n=================================================');
-	log.i(`Genesis Compile Start: ${date.toString()}`);
 
-	// Process input arguments and define macro parameters
-	let arg, parts;	
-	for (var iarg = 0; iarg < args.length; iarg++) {
-		arg = args[iarg];
-		log.v(arg);
-		parts = arg.split('=');
-		if (parts.length == 2) {
-			Params[parts[0]] = parts[1];
+	function setup() {
+		log.i('=================================================');
+		log.i(`Genesis Setup:`);
+
+		defineMacros();
+
+		parseConfig();
+
+		cleanCache();
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		//
+		// Only Function Definitions Beyond This Point
+		//
+		//
+
+		function defineMacros() {
+			// Process input arguments and define macro parameters
+			let arg, parts;
+			for (var iarg = 0; iarg < args.length; iarg++) {
+				arg = args[iarg];
+				log.v(arg);
+				parts = arg.split('=');
+				if (parts.length == 2) {
+					Params[parts[0]] = parts[1];
+				}
+			}
+
+			// Use the xGraph path if defined in the process.env
+			// --- should be removed ??
+			if ("XGRAPH" in process.env)
+				Params["xGraph"] = process.env.XGRAPH;
+
 		}
-	}
 
-	// Use the xGraph path if defined in the process.env
-	// --- should be removed ??
-	if ("XGRAPH" in process.env)
-		Params["xGraph"]= process.env.XGRAPH;
+		function parseConfig() {
+			// Read in the provided config.json file
+			// File is passed in Params.Config or defaults to "config.json" in current working directory
+			let cfg = fs.readFileSync(Params.Config || 'config.json');
 
-	// Read in the provided config.json file
-	// File is passed in Params.Config or defaults to "config.json" in current working directory
-	let cfg = fs.readFileSync(Params.Config || 'config.json');
-	
-	// Parse the config.json and replace Macros
-	// Store all Macros in Params --- should be removed?
-	let val;
-	if (cfg) {
-		var ini = JSON.parse(cfg);
-		for (key in ini) {
-			val = ini[key];
-			if (typeof val == 'string') {
-				Config[key] = Macro(val);
-				Params[key] = Config[key];
+			// Parse the config.json and replace Macros
+			// Store all Macros in Params --- should be removed?
+			let val, sources, subval;
+			if (cfg) {
+				var ini = JSON.parse(cfg);
+				for (let key in ini) {
+					val = ini[key];
+					if (typeof val == 'string') {
+						//this if will be depricated when Sources are used solely
+						// --- should be removed ??
+						Config[key] = Macro(val);
+						//Params[key] = Config[key];
+					} else {
+						if (key == "Sources") {
+							Config.Sources = {};
+							sources = ini["Sources"];
+							for (let subkey in sources) {
+								subval = sources[subkey];
+								if (typeof subval == 'string') {
+									Config.Sources[subkey] = Macro(subval);
+									//Params[subkey] = Config[subkey];
+								} else {
+									Config.Sources[subkey] = subval;
+								}
+							}
+						} else {
+							Config[key] = val;
+						}
+					}
+				}
 			} else {
-				Config[key] = val;
+				// No config was provided. Exit promptly.
+				log.e(' ** No configuration file (config.json) provided');
+				process.exit(1);
+			}
+
+			// Print out the parsed config
+			log.v(JSON.stringify(Config, null, 2));
+		}
+
+		function cleanCache() {
+			// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+			CacheDir = Params.Cache || "cache"
+
+			// Remove the provided cache directory
+			if (fs.existsSync(CacheDir)) {
+				log.v(`About to remove the cacheDir: "${CacheDir}"`);
+				remDir(CacheDir);
 			}
 		}
-	} else {
-		// No config was provided. Exit promptly.
-		log.e(' ** No configuration file (config.json) provided');
-		process.exit(1);
 	}
 
-	// Print out the parsed config
-	log.v(JSON.stringify(Config, null, 2));
 
-	// Remove the provided cache directory
-	// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-	if (fs.existsSync(Params.Cache || "cache")){ 
-		log.v(`About to remove the cacheDir: "${CacheDir}"`);
-		remDir(CacheDir); 
-	}
-
-	Genesis();
-
-
-
-
-
-
-
-
-	
 	//----------------------------------------------------Genesis
 	// Builds a cache from a config.json
-	function Genesis() {
-		log.i('--Nexus/Genesis');
-		var Folders = [];
+	function genesis() {
+		log.i('=================================================');
+		log.i(`Genesis Compile Start:`);
 
-		// Create new cache and install high level
-		// module subdirectories. Each of these also
-		// has a link to the source of that module (Module.json).
-		var keys = Object.keys(Config.Modules);
-		for (let i = 0; i < keys.length; i++) {
-			let key = keys[i];
-			if (key == 'Deferred') {
-				var arr = Config.Modules[key];
-				arr.forEach(function (folder) {
-					if (Folders.indexOf(folder) < 0)
-						Folders.push(folder);
-				});
-			} else {
-				//var mod = {};
-				let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
-				if (Folders.indexOf(folder) < 0)
-					Folders.push(folder);
+
+		generateModuleCatalog();
+
+		let ifolder = -1;
+		let moduleKeys = Object.keys(Modules);
+		let nfolders = moduleKeys.length;
+
+		recursiveBuild();
+
+		
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		//
+		// Only Function Definitions Beyond This Point
+		//
+		//
+
+		function generateModuleCatalog() {
+			// Create new cache and install high level
+			// module subdirectories. Each of these also
+			// has a link to the source of that module (Module.json).
+			var keys = Object.keys(Config.Modules);
+			for (let i = 0; i < keys.length; i++) {
+				let key = keys[i];
+				if (key == 'Deferred') {
+					var arr = Config.Modules[key];
+					arr.forEach(function (mod) {
+						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+						let source = mod.Source;
+						if (!(folder in Modules)) {
+							Modules[folder] = source;
+						} else {
+							if (Modules[folder] != source) {
+								log.e("Broker Mismatch Exception");
+								process.exit(2);
+							}
+						}
+					});
+				} else {
+					let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
+					let source = Config.Modules[key].Source;
+					if (!(folder in Modules)) {
+						Modules[folder] = source;
+					} else {
+						if (Modules[folder] != source) {
+							log.e("Broker Mismatch Exception");
+							process.exit(2);
+						}
+					}
+				}
 			}
 		}
 
-		let nfolders = Folders.length;
-		let ifolder = -1;
-		next();
-
-		function next() {
+		function recursiveBuild() {
 			ifolder++;
 			if (ifolder >= nfolders) {
 				refreshSystem(populate);
 				return;
 			}
-			let folder = Folders[ifolder];
-			GetModule(folder, function (err, mod) {
+
+			let folder = moduleKeys[ifolder];
+			let modrequest = {
+				"Module": folder,
+				"Source": Modules[folder]
+			};
+
+			GetModule(modrequest, function (err, mod) {
 				ModCache[folder] = mod;
-				next();
+				recursiveBuild();
 			});
 		}
 
@@ -204,6 +276,7 @@
 
 			log.i(`Genesis Compile Stop: ${date.toString()}`);
 			log.i('=================================================\n');
+			console.timeEnd("Genesis Runtime");
 		}
 	}
 
@@ -213,14 +286,23 @@
 	// Helper functions
 	//
 
-	//-----------------------------------------------------GetModule
-	// For retrieving modules
-	// Modules come from memory, a defined broker, or disk depending on the module definition
-	function GetModule(modnam, fun) {
+
+	/**
+	 * For retrieving modules
+	 * Modules come from memory, a defined broker, or disk depending on the module definition
+	 * @param {Object} modRequest 
+	 * @param {String} modRequest.Module
+	 * @param {String} modRequest.Source
+	 * @callback fun 
+	 * @returns mod
+	 */
+	function GetModule(modRequest, fun) {
+		let modnam = modRequest.Module;
+		let source = modRequest.Source;
 		let mod = {};
-		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
-		var dir = ModName.replace('.', ':').replace(/\./g, '/');
-		var ModPath = genPath(dir);
+		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		let dir = ModName.replace('.', ':').replace(/\./g, '/');
+		let ModPath = genPath(dir);
 
 
 		//
@@ -261,7 +343,7 @@
 			scan();
 
 			function scan() {
-				ifile++;				
+				ifile++;
 
 				if (ifile >= nfile) {
 					mod.ModName = ModName;
@@ -358,12 +440,12 @@
 
 		function symbol(val) {
 			if (typeof val === 'object') {
-				return (Array.isArray(val) ? 
-					val.map(v => symbol(v)) : 
+				return (Array.isArray(val) ?
+					val.map(v => symbol(v)) :
 					Object.entries(val).map(([key, val]) => {
 						return [key, symbol(val)];
 					}).reduce((prev, curr) => {
-						prev[curr[0]]=curr[1];
+						prev[curr[0]] = curr[1];
 						return prev;
 					}, {})
 				);
@@ -386,7 +468,7 @@
 	// directory by merging package.json of the
 	// individual modules and then running npm
 	// to create node_modules directory for system	
-	function refreshSystem(func) {		
+	function refreshSystem(func) {
 		log.i('--refreshSystems: Updating and installing dependencies\n');
 		var packagejson;
 		for (let folder in ModCache) {
@@ -417,7 +499,8 @@
 		//include Genesis/Nexus required npm modules
 		packagejson.dependencies["uuid"] = "3.1.0";
 		packagejson.dependencies["async"] = "0.9.0";
-		
+		//for old nexus --- should be removed ...
+		packagejson.dependencies["node-uuid"] = "~1.4.2";
 
 		var strout = JSON.stringify(packagejson, null, 2);
 		//write the compiled package.json to disk
@@ -440,7 +523,7 @@
 		ps.on('exit', function (code) {
 			if (code == 0)
 				log.i('dependencies installed correctly');
-			else{
+			else {
 				log.e('npm process exited with code:' + code);
 				process.exit(1);
 			}
@@ -499,7 +582,7 @@
 			log.e(' ** ERR:Invalid file name');
 			return '';
 		}
-		var cfg = Config;
+		var cfg = Params;
 		var path;
 		var parts;
 		var file = filein;
@@ -543,10 +626,10 @@
 			files = fs.readdirSync(path);
 			files.forEach(function (file, index) {
 				var curPath = path + "/" + file;
-				if (fs.lstatSync(curPath).isDirectory()) { 
+				if (fs.lstatSync(curPath).isDirectory()) {
 					// recurse
 					remDir(curPath);
-				} else { 
+				} else {
 					// delete file
 					fs.unlinkSync(curPath);
 				}
