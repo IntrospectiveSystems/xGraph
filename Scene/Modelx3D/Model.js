@@ -20,7 +20,6 @@
 
 	function Setup(com, fun) {
 		console.log('--Model/Setup');
-		debugger;
 		async = this.require('async');
 		fs = this.require('fs')
 		this.Vlt.Graph = [];
