@@ -1,174 +1,207 @@
 (function () {
-	///Startup Processes
-	var fs = require('fs');
-	var Path = require('path');
-	let date = new Date();
-	let xgraphlog = (...str) => {
-		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ")+"\n", (err)=>{if (err) console.log(err)});
+	console.log(`\nInitializing the Run Engine`);
+	console.time('Nexus Start Time');
+
+	const fs = require('fs');
+	const date = new Date();
+	let Uuid;
+	let CacheDir;						// The location of where the Cache will be stored
+	let Config = {};					// The read config.json
+	let Apex = {};						// {<Name>: <pid of Apex>}
+	let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
+	let ModCache = {};					// {<folder>: <module>}
+	let ApexIndex = {}; 				// {<Apex pid>:<folder>}
+	let SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
+	let EntCache = {};					// {<Entity pid>:<Entity>
+	let ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
+	let packagejson = {};				// The compiled package.json, built from Modules
+	let args = process.argv;			// The input argutments ----- should be removed ??
+	let Params = {};					// The set of Macros for defining paths ---- should be removed??
+	let Nxs = {
+		genPid,
+		//genPath,
+		GetModule,
+		genModule,
+		genEntity,
+		deleteEntity,
+		saveEntity,
+		// getParameter,
+		getFile,
+		sendMessage
 	};
-	//give log levels - log.v() log.d() ...	
-	// v : verbose --everything is broken
-	// d : debug   --casual development
-	// i : info    --end user info
-	// w : warn    --what should be fixed
-	// e : error   --what must be fixed
-	let log = {
-        v: (...str) => {
+
+
+	//
+	// Logging Functionality
+	//
+
+	// The logging function for writing to xgraph.log to the current working directory
+	const xgraphlog = (...str) => {
+		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
+	};
+	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+	// Levels include:
+	// v : verbose
+	// d : debug
+	// i : info
+	// w : warn
+	// e : error
+	const log = global.log = {
+		v: (...str) => {
 			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-			xgraphlog(...str);			
-        },
-        d: (...str) => {
+			xgraphlog(...str);
+		},
+		d: (...str) => {
 			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-			xgraphlog(...str);			
-        },
-        i: (...str) => {
+			xgraphlog(...str);
+		},
+		i: (...str) => {
 			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-			xgraphlog(...str);			
-        },
-        w: (...str) => {
+			xgraphlog(...str);
+		},
+		w: (...str) => {
 			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
 			xgraphlog(...str);
-        },
-        e: (...str) => {
+		},
+		e: (...str) => {
 			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
 			xgraphlog(...str);
 		}
-    };
+	};
 
-	var Uuid;
-	var CacheDir;
-	var WorkDir = process.cwd();
-	var Config = {};
-	var Apex = {};		// {<Name>: <pid of Apex>}
-	var Modules = {};	// {<Name>: <mod desc>} - only in Genesis
-	var ModCache = {};	// {<folder>: <module>}
-	var ApexIndex = {}; // {<Apex pid>:<folder>}
-	var EntCache = {};	// {<Entity pid>:<Entity>
-	var ImpCache = {};	// {<Implementation path>: <Implementation(e.g. disp)>}
-	var packagejson = {};
-	var Mod = {};
-	var Nxs = {
-		EventLog: EventLog,
-		genPid: genPid,
-		genPath: genPath,
-		GetModule,
-		genModule: genModule,
-		genEntity: genEntity,
-		deleteEntity: deleteEntity,
-		saveEntity,
-		getParameter: getParameter,
-		getFile,
-		sendMessage: sendMessage
-	}
-	
-	EventLog('\n=================================================');
-	EventLog(`Nexus Instantiate Start: ${date.toString()}`);
 
-	// Process input arguments and define macro parameters
-	var args = process.argv;
-	let arg;
-	let parts;
-	let development = false;
-	if (process.env.XGRAPH_ENV && process.env.XGRAPH_ENV.toLowerCase() === "development") {
-		development = true;
-	}
-	let Params = {};
-	for (var iarg = 0; iarg < args.length; iarg++) {
-		arg = args[iarg];
-		EventLog(arg);
-		parts = arg.split('=');
-		if (parts.length == 2) {
-			Params[parts[0]] = parts[1];
-			//make way for development=true command line set
-			if (parts[0] == 'development')
-				development = (parts[1] === 'true');
+
+	setup();
+
+	initiate(run);
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Only Function Definitions Beyond This Point
+	//
+	//
+
+
+
+	function setup() {
+		log.i('=================================================');
+		log.i(`Nexus Setup:`);
+
+		defineMacros();
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		//
+		// Only Function Definitions Beyond This Point
+		//
+		//
+
+		function defineMacros() {
+			// Process input arguments and define macro parameters
+			let arg, parts;
+			for (var iarg = 0; iarg < args.length; iarg++) {
+				arg = args[iarg];
+				log.v(arg);
+				parts = arg.split('=');
+				if (parts.length == 2) {
+					Params[parts[0]] = parts[1];
+				}
+			}
+
+			// Use the xGraph path if defined in the process.env
+			// --- should be removed ??
+			if ("XGRAPH" in process.env) Params["xGraph"] = process.env.XGRAPH;
+
+			// Define where the cache is located
+			CacheDir = Params.Cache || 'cache';
 		}
 	}
 
-	// //if xGraph path has been defined by the process in process.env then use it
-	// if ("XGRAPH" in process.env)
-	// 	Params["xGraph"] = process.env.XGRAPH;
-
-	CacheDir = 'cache';
-
-	if ('Cache' in Params)
-		CacheDir = Params.Cache;
-	
-	Initiate(Run);
-	
-
-
-
-
-	function EventLog(string) {
-		//event log only built to handle strings
-		//write them out
-		log.write(string + "\n");
-	}
 
 	//-----------------------------------------------------Run
-	function Run() {
-		EventLog('\n--Nexus/Run');
+	function run() {
+		log.i('\n--Nexus/Run');
 		if ('send' in process) {
 			process.send('{"Cmd":"Finished"}');
 		}
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	//---------------------------------------------------------genPid
 	// Create a new PID
 	function genPid() {
 		if (!Uuid)
-			Uuid = require('node-uuid');
-		var str = Uuid.v4();
+			Uuid = require('uuid/v4');
+		var str = Uuid();
 		var pid = str.replace(/-/g, '').toUpperCase();
-
 		return pid;
 	}
 
-	//---------------------------------------------------------genPath
-	function genPath(filein) {
-		// EventLog('!!genPath', filein);
-		// if (!filein) {
-		// 	EventLog(' ** ERR:Invalid file name');
-		// 	return '';
-		// }
-		// var cfg = Config;
-		// var path;
-		// var parts;
-		// var file = filein;
-		// if (Config.Redirect) {
-		// 	if (file in Config.Redirect)
-		// 		file = Config.Redirect[file];
-		// }
-		// if (file.charAt(0) == '/')
-		// 	return file;
-		// if (file.charAt(0) == '{') { // Macro
-		// 	parts = file.split('}');
-		// 	if (parts.length != 2) {
-		// 		return;
-		// 	}
-		// 	var name = parts[0].substr(1);
-		// 	if (name in cfg) {
-		// 		path = cfg[name] + '/' + parts[1];
-		// 		return path;
-		// 	} else {
-		// 		EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
-		// 		return;
-		// 	}
-		// }
-		// parts = file.split(':');
-		// if (parts.length == 2) {
-		// 	if (parts[0] in cfg) {
-		// 		path = cfg[parts[0]] + '/' + parts[1];
-		// 	} else {
-		// 		EventLog(' ** ERR:File <' + file + '> prefix not defined');
-		// 		return;
-		// 	}
-		// } else {
-		// 	path = file;
-		// }
-		// return path;
-	}
+	// //---------------------------------------------------------genPath
+	// function genPath(filein) {
+	// 	// EventLog('!!genPath', filein);
+	// 	// if (!filein) {
+	// 	// 	EventLog(' ** ERR:Invalid file name');
+	// 	// 	return '';
+	// 	// }
+	// 	// var cfg = Config;
+	// 	// var path;
+	// 	// var parts;
+	// 	// var file = filein;
+	// 	// if (Config.Redirect) {
+	// 	// 	if (file in Config.Redirect)
+	// 	// 		file = Config.Redirect[file];
+	// 	// }
+	// 	// if (file.charAt(0) == '/')
+	// 	// 	return file;
+	// 	// if (file.charAt(0) == '{') { // Macro
+	// 	// 	parts = file.split('}');
+	// 	// 	if (parts.length != 2) {
+	// 	// 		return;
+	// 	// 	}
+	// 	// 	var name = parts[0].substr(1);
+	// 	// 	if (name in cfg) {
+	// 	// 		path = cfg[name] + '/' + parts[1];
+	// 	// 		return path;
+	// 	// 	} else {
+	// 	// 		EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
+	// 	// 		return;
+	// 	// 	}
+	// 	// }
+	// 	// parts = file.split(':');
+	// 	// if (parts.length == 2) {
+	// 	// 	if (parts[0] in cfg) {
+	// 	// 		path = cfg[parts[0]] + '/' + parts[1];
+	// 	// 	} else {
+	// 	// 		EventLog(' ** ERR:File <' + file + '> prefix not defined');
+	// 	// 		return;
+	// 	// 	}
+	// 	// } else {
+	// 	// 	path = file;
+	// 	// }
+	// 	// return path;
+	// }
 
 	function Macro(str) {
 		let state = 1;
@@ -210,40 +243,39 @@
 	function sendMessage(com, fun) {
 		//console.log('--sendMessage', com.Cmd);
 		if (!('Passport' in com)) {
-			EventLog(' ** ERR:Message has no Passport, ignored');
-			EventLog('    ' + JSON.stringify(com));
+			log.e(' ** ERR:Message has no Passport, ignored');
+			log.e('    ' + JSON.stringify(com));
 			if (fun)
 				fun('No Passport');
 			return;
 		}
 		if (!('To' in com.Passport) || !com.Passport.To) {
-			EventLog(' ** ERR:Message has no destination entity, ignored');
-			EventLog('    ' + JSON.stringify(com));
+			log.e(' ** ERR:Message has no destination entity, ignored');
+			log.e('    ' + JSON.stringify(com));
 			console.trace();
 			if (fun)
 				fun('No recipient in message', com);
 			return;
 		}
 		if (!('Pid' in com.Passport)) {
-			EventLog(' ** ERR:Message has no message id, ignored');
-			EventLog('    ' + JSON.stringify(com));
+			log.e(' ** ERR:Message has no message id, ignored');
+			log.e('    ' + JSON.stringify(com));
 			if (fun)
 				fun('No message id', com);
 			return;
 		}
 
-		var pid = com.Passport.To;
+		let pid = com.Passport.To;
 		if (pid in EntCache) {
-			var ent = EntCache[pid];
+			let ent = EntCache[pid];
 			ent.dispatch(com, reply);
 			return;
 		}
 		if (pid in ApexIndex) {
-			//console.log('In ApexIndex');
 			getEntity(pid, pid, done);
 			return;
 		}
-		var apx;
+		let apx;
 		if ('Apex' in com.Passport)
 			apx = com.Passport.Apex;
 		else
@@ -252,8 +284,8 @@
 
 		function done(err, ent) {
 			if (err) {
-				EventLog(' ** ERR:' + err);
-				console.log(JSON.stringify(com, null, 2));
+				log.e(' ** ERR:' + err);
+				log.e(JSON.stringify(com, null, 2));
 				if (fun)
 					fun(err, com);
 				return;
@@ -263,20 +295,19 @@
 		}
 
 		function reply(err, q) {
-			//	EventLog('..Nexus/send/reply', com.Cmd, com.Passport);
 			if (fun)
 				fun(err, q);
 		}
 	}
 
-	//-----------------------------------------------------getParameter
-	// Retrieve command line parameter
-	function getParameter(name) {
-		EventLog('--Nexus/GetParameter');
-		EventLog('Params', JSON.stringify(Params, null, 2));
-		if (name in Params)
-			return Params[name];
-	}
+	// //-----------------------------------------------------getParameter
+	// // Retrieve command line parameter
+	// function getParameter(name) {
+	// 	log.v('--Nexus/GetParameter');
+	// 	log.v('Params', JSON.stringify(Params, null, 2));
+	// 	if (name in Params)
+	// 		return Params[name];
+	// }
 
 	//-----------------------------------------------------Entity
 	// This is the entity base class that is used to create
@@ -287,49 +318,34 @@
 		var Vlt = {};
 
 		return {
-			Par: Par,
-			Vlt: Vlt,
-			dispatch: dispatch,
-			genModule: genModule,
+			Par,
+			Vlt,
+			dispatch,
+			genModule,
 			getModule,
-			genEntity: genEntity,
+			genEntity,
 			deleteEntity,
-			genPid: genPid,
-			genPath: genPath,
-			send: send,
-			save: save,
-			getPid: getPid,
+			genPid,
+			//genPath: genPath,
+			send,
+			save,
+			getPid,
 			getFile,
-			log: log,
 			require
 		};
 
-		//log data to EventLog.txt in the current working directory
-		//this log only works with a single string 
-		function log(string) {
-			//we will write to the eventlog if this.log was misused
-			if (arguments.length > 1) {
-				nxs.EventLog("Error: Message may be incomplete\n" +
-					"more than one argument was passed to this.log()");
-			}
-			nxs.EventLog(string);
-		}
-
 		function getFile(filename, fun) {
-			nxs.EventLog(`Entity - Getting file ${filename} from ${Par.Module}`);
+			log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
 			nxs.getFile(Par.Module, filename, fun);
 		}
 
-		function getModule(modulename, fun) {
-			// nxs.EventLog(`Entity - Getting module ${modulename}`);
-			nxs.GetModule(modulename, fun);
+		function getModule(moduleDef, fun) {
+			nxs.GetModule(moduleDef, fun);
 		}
 
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
 		function dispatch(com, fun) {
-			//	EventLog(Mod);
-			//  EventLog('||dispatch', com.Cmd);
 			var disp = Imp.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -339,19 +355,19 @@
 				disp['*'].call(this, com, fun);
 				return;
 			}
-			nxs.EventLog(' ** ERR:Nada Cmd:' + com.Cmd);
+			log.e(' ** ERR:Nada Cmd:' + com.Cmd);
 			fun('Nada', com);
 		}
 
 		//-------------------------------------------------genModule
 		// Generate module and return (err, pidapx);
 		function genModule(mod, fun) {
-			//	EventLog('--Entity/genModule');
+			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
 
 		function deleteEntity(fun) {
-			//EventLog("DElElTingASDF")
+			log.v(`Deleting Entity ${Par.Pid}`);
 			nxs.deleteEntity(Par.Apex, Par.Pid, fun);
 		}
 
@@ -360,14 +376,13 @@
 		}
 
 		function genPid() {
-			let pid = nxs.genPid();
-			return pid;
+			return nxs.genPid();
 		}
 
-		function genPath(mod) {
-			let path = nxs.genPath(mod);
-			return path;
-		}
+		// function genPath(mod) {
+		// 	let path = nxs.genPath(mod);
+		// 	return path;
+		// }
 
 		//-------------------------------------------------send
 		// Send message to another entity which can be in another
@@ -413,7 +428,7 @@
 		}
 
 		if (!(par.Entity in mod)) {
-			console.log(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
+			log.e(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
 			if (fun)
 				fun('Null entity');
 			return;
@@ -424,25 +439,23 @@
 		par.Apex = apx;
 
 		if (impkey in ImpCache) {
-			var imp = ImpCache[impkey];
-			var ent = new Entity(Nxs, imp, par);
+			let imp = ImpCache[impkey];
+			let ent = new Entity(Nxs, imp, par);
 			EntCache[par.Pid] = ent;
 			fun(null, par.Pid);
 			return;
 		}
 
-		var imp = (1, eval)(mod[par.Entity]);
+		let imp = (1, eval)(mod[par.Entity]);
 		ImpCache[impkey] = imp;
-		var ent = new Entity(Nxs, imp, par);
+		let ent = new Entity(Nxs, imp, par);
 		EntCache[par.Pid] = ent;
 
 		fun(null, par.Pid);
 	}
 
 	function deleteEntity(apx, pid, fun) {
-		var modpath = CacheDir + '/';
-		modpath += ApexIndex[apx];
-		let apxpath = modpath + '/' + apx + '/';
+		let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;
 
 		let rmList = [];
 		//we first check to see if it's an apex
@@ -456,7 +469,7 @@
 			remDir(apxpath);
 		} else {
 			rmList.push(pid);
-			console.log('Deleting file:' + apxpath + '/' + pid + '.json');
+			log.v('Deleting file:' + apxpath + '/' + pid + '.json');
 			fs.unlinkSync(apxpath + '/' + pid + '.json');
 		}
 
@@ -472,11 +485,9 @@
 	}
 
 	function saveEntity(apx, pid, fun) {
-		var modpath = CacheDir + '/';
-		modpath += ApexIndex[apx];
-		let apxpath = modpath + '/' + apx;
-		let entpath = apxpath + '/' + pid + '.json';
-
+		let modpath = `${CacheDir}/${ApexIndex[apx]}`;
+		let apxpath = `${modpath}/${apx}`;
+		let entpath = `${apxpath}/${pid}.json`;
 
 		let checkModule = (() => {
 			//this function checks to make sure the entities Module.json 
@@ -489,8 +500,8 @@
 					if (pid == apx) {
 						fs.mkdirSync(modpath);
 						let path = modpath + '/Module.json';
-						EventLog("Saved Module.json at " + path);
-						var str = JSON.stringify(mod, null, 2);
+						log.v("Saved Module.json at " + path);
+						let str = JSON.stringify(mod, null, 2);
 						fs.writeFileSync(path, str);
 						checkApex();
 					} else {
@@ -498,7 +509,7 @@
 							fun("Save Not Implemented in Module's Apex", modpath);
 							return;
 						}
-						var com = {};
+						let com = {};
 						com.Cmd = mod["Save"];
 						com.Passport = {};
 						com.Passport.To = pidapx;
@@ -518,14 +529,14 @@
 				} else {
 					if (pid == apx) {
 						fs.mkdirSync(apxpath);
-						EventLog("Made directory " + apxpath);
+						log.v("Made directory " + apxpath);
 						checkEntity();
 					} else {
 						if (!("Save" in mod)) {
 							fun("Apex has not been saved", apx);
 							return;
 						}
-						var com = {};
+						let com = {};
 						com.Cmd = mod["Save"];
 						com.Passport = {};
 						com.Passport.To = pidapx;
@@ -537,15 +548,13 @@
 		});
 
 		let checkEntity = (() => {
-
 			if (!(pid in EntCache)) {
 				if (fun) fun('pid has not been loaded to EntCache...' + pid);
 				return;
 			}
 			ent = EntCache[pid];
 			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
-			//debugger;
-			EventLog("Saved 'ent'.json at " + entpath);
+			log.v("Saved 'ent'.json at " + entpath);
 			if (fun) fun(null);
 		});
 
@@ -554,21 +563,20 @@
 
 	function getFile(module, filename, fun) {
 		let mod = ModCache[module];
-		//console.log(Object.keys(ModCache[module]));
 		if (filename in mod) {
 			fun(null, mod[filename])
 			return;
 		}
 		let err = `Error: File ${filename} does not exist in module ${module}`;
-		EventLog(err);
+		log.e(err);
 		fun(err);
 	}
 
 	//-----------------------------------------------------getEntity
 	function getEntity(apx, pid, fun) {
-		var imp;
-		var par;
-		var ent;
+		let imp;
+		let par;
+		let ent;
 
 		// If entity already cached, just return it
 		if (pid in EntCache) {
@@ -579,45 +587,48 @@
 
 		// Check to see if Apex entity in this system
 		if (!(apx in ApexIndex)) {
-			//	EventLog(' ** ERR:Pid <' + pid + '> not Apex in system');
 			fun('Not available');
 			return;
 		}
-		var folder = ApexIndex[apx];
-		var path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
+		let folder = ApexIndex[apx];
+		let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
 		fs.readFile(path, function (err, data) {
 			if (err) {
-				console.log(' ** ERR:<' + path + '> unavailable');
+				log.e(' ** ERR:<' + path + '> unavailable');
 				if (fun)
 					fun('Unavailable');
 				return;
 			}
-			var par = JSON.parse(data.toString());
-			var impkey = folder + '/' + par.Entity;
+			let par = JSON.parse(data.toString());
+			let impkey = folder + '/' + par.Entity;
 			if (impkey in ImpCache) {
-				var imp = ImpCache[impkey];
-				var ent = new Entity(Nxs, imp, par);
+				let imp = ImpCache[impkey];
+				let ent = new Entity(Nxs, imp, par);
 				EntCache[pid] = ent;
 				fun(null, ent);
 				return;
 			}
-			//debugger;
-			GetModule(folder, function (err, mod) {
+			let moduleRequest = {
+				Module:folder,
+				Source: SourceIndex[apx]||null
+			};
+			// --- should be removed ??
+			GetModule(moduleRequest, function (err, mod) {
 				if (err) {
-					console.log(' ** ERR:Module <' + folder + '> not available');
+					log.e(' ** ERR:Module <' + folder + '> not available');
 					if (fun)
 						fun('Module not available');
 					return;
 				}
 				if (!(par.Entity in mod)) {
-					console.log(' ** ERR:<' + par.Entity + '> not in module <' + folder + '>');
+					log.e(' ** ERR:<' + par.Entity + '> not in module <' + folder + '>');
 					if (fun)
 						fun('Null entity');
 					return;
 				}
-				var imp = (1, eval)(mod[par.Entity]);
+				let imp = (1, eval)(mod[par.Entity]);
 				ImpCache[impkey] = imp;
-				var ent = new Entity(Nxs, imp, par);
+				let ent = new Entity(Nxs, imp, par);
 				EntCache[pid] = ent;
 				fun(null, ent);
 			});
@@ -632,21 +643,26 @@
 	// TBD: If modules saved, Initializers will need to be
 	//      added to the Start and Setup lists in Root
 	function genModule(inst, fun) {
-		var that = this;
-		var modnam = inst.Module;
-		GetModule(modnam, function (err, mod) {
+		let that = this;
+		let modRequest = {
+			Module: inst.Module,
+			Source: inst.Source || undefined
+		};
+		// --- should be removed ??
+		GetModule(modRequest, function (err, mod) {
 			if (err) {
 				console.log(' ** ERR:GenModule err -', err);
 				if (fun)
 					fun(err);
 				return;
 			}
-			var pidapx = genPid();
+			let modnam = inst.Module;
+			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
-			var ents = compileInstance(pidapx, inst);
+			let ents = compileInstance(pidapx, inst);
 			ents.forEach(function (par) {
 				let impkey = modnam + par.Entity;
-				var imp;
+				let imp;
 				if (impkey in ImpCache) {
 					imp = ImpCache[impkey];
 				} else {
@@ -656,7 +672,6 @@
 				var ent = new Entity(Nxs, imp, par);
 				EntCache[par.Pid] = ent;
 			});
-
 			setup();
 
 			function setup() {
@@ -700,23 +715,21 @@
 	// GenModule
 	// The first parameter is the pid assigned to the Apex
 	function compileInstance(pidapx, inst) {
-		var Local = {};
-		var modnam = inst.Module;
-		//debugger;
-		var mod;
-		var ents = [];
+		let Local = {};
+		let modnam = inst.Module;
+		let mod;
+		let ents = [];
 		// The following is for backword compatibility only
-		var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		let modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
 		} else {
-			console.log(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+			log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
 			return;
 		}
 		var schema = JSON.parse(mod['schema.json']);
 		var entkeys = Object.keys(schema);
-		//console.log('entkeys', entkeys);
-		Local = {};
+
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			if (entkey === 'Apex')
@@ -724,24 +737,28 @@
 			else
 				Local[entkey] = genPid();
 		}
-		//console.log('Local', Local);
+
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			let ent = schema[entkey];
 			ent.Pid = Local[entkey];
+
+			//load module pars into the Apex entity
 			if (entkey == 'Apex' && 'Par' in inst) {
-				var pars = Object.keys(inst.Par);
-				for (var ipar = 0; ipar < pars.length; ipar++) {
-					var par = pars[ipar];
+				let pars = Object.keys(inst.Par);
+				for (let ipar = 0; ipar < pars.length; ipar++) {
+					let par = pars[ipar];
 					ent[par] = inst.Par[par];
 				}
 			}
 			ent.Module = modnam;
 			ent.Apex = pidapx;
-			var pars = Object.keys(ent);
+
+			//load pars from schema
+			let pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
-				var par = pars[ipar];
-				var val = ent[par];
+				let par = pars[ipar];
+				let val = ent[par];
 				ent[par] = symbol(val);
 			}
 			ents.push(ent);
@@ -749,8 +766,7 @@
 		return ents;
 
 		function symbol(val) {
-			// debugger;
-			//console.log(typeof val);
+
 			if (typeof val === 'object') {
 				return (Array.isArray(val) ?
 					val.map(v => symbol(v)) :
@@ -775,95 +791,42 @@
 		}
 	}
 
-	function refreshSystem(func) {
-		// Clean up all of the files from the
-		// previous refresh. This is most important
-		// for the package.json and node_modeuls dir
-		console.log('--refreshSystems');
 
-		// Reconstruct package.json and nod_modules
-		// directory by merging package.json of the
-		// individual modules and then running npm
-		// to create node_modules directory for system
-		var packagejson;
-		//console.log('ModeCache', ModCache);
-		for (let folder in ModCache) {
-			let mod = ModCache[folder];
-			if ('package.json' in mod) {
-				obj = JSON.parse(mod['package.json']);
-				//console.log('Input', obj);
-				if (!packagejson) {
-					packagejson = obj;
-					continue;
-				}
-				//console.log('A');
-				if (obj.dependencies) {
-					//console.log('B');
-					if (!packagejson.dependencies) packagejson.dependencies = {};
-					for (key in obj.dependencies) {
-						//console.log('key', key);
-						if (!(key in packagejson.dependencies))
-							packagejson.dependencies[key] = obj.dependencies[key];
-					}
-				}
-				if (obj.devDependencies) {
-					if (!packagejson.devDependencies) packagejson.devDependencies = {};
-					for (key in obj.devDependencies) {
-						if (!(key in packagejson.devDependencies))
-							packagejson.devDependencies[key] = obj.devDependencies[key];
-					}
-				}
-				//console.log('output', package);
-			}
+
+	/**
+	 * For retrieving modules
+	 * Modules come from memory, a defined broker, or disk depending on the module definition
+	 * @param {Object} modRequest 
+	 * @param {String} modRequest.Module
+	 * @param {String} modRequest.Source
+	 * @param {Function} fun 
+	 * @returns mod
+	 */
+	function GetModule(modRequest, fun) {
+
+		let modnam = modRequest.Module;
+		if (typeof modRequest !="object"){
+			modnam = modRequest;
+			// --- should be removed ???
 		}
-		var strout = JSON.stringify(packagejson, null, 2);
-		fs.writeFileSync('package.json', strout);
-		const proc = require('child_process');
-		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-		var ps = proc.spawn(npm, ['install']);
+		let source = modRequest.Source;
+		let mod = {};
+		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		let dir = ModName.replace('.', ':').replace(/\./g, '/');
 
 
-		ps.stdout.on('data', _ => process.stdout.write(_.toString()));
-		ps.stderr.on('data', _ => process.stdout.write(_.toString()));
+		//get the module from memory (ModCache) if it has already been retrieved
+		if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
-		ps.on('err', function (err) {
-			EventLog('Failed to start child process.');
-			EventLog('err:' + err);
-		});
-
-		ps.on('exit', function (code) {
-			EventLog('npm process exited with code:' + code);
-			EventLog('Current working directory: ' + process.cwd());
-			func();
-		});
-	}
-
-	//-----------------------------------------------------GetModule
-	// This is a surrogate for an eventual Module Server. This
-	// code should be useful in developing such.
-	// Because Nexus during Genesis does not have zip capability,
-	// it relies on the Module Server to deliver content in that form.
-	// Module Server names use dot notiation as in domain.family.module
-	// where..
-	//    domain is a major domain name such as 'xCraft2", or 'xGraph'
-	//    family is a grouping withing the domain such as 'Widgets'
-	//    module is the name withing that group which can be further
-	//        separated by dots as desired
-	function GetModule(modnam, fun) {
-		console.log('##GetModule', modnam);
-		// debugger;
-		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
-		var dir = ModName.replace('.', ':').replace(/\./g, '/');
-		//var ModPath = genPath(dir);
-		if (ModName in ModCache) {
-			fun(null, ModCache[ModName]);
-			return;
-		}
 
 		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
-		//console.log("looking in dir", dir);
 		fs.lstat(cachedMod, function (err, stat) {
-			if (stat && !development) {
+			if (err) {
+				log.e(`Error retreiving ${cachedMod} from cache`);
+				fun(err);
+				return;
+			}
+			if (stat) {
 				if (!stat.isDirectory()) {
 					fs.readFile(cachedMod, function (err, data) {
 						if (err) {
@@ -875,18 +838,18 @@
 						return;
 					});
 				}
-			} 
-			fun(`Module ${ModName} Not In Cache\n
-				Include it in Deferred Array and Recompile or \n
-				Use the Import tool to import it into the cache`, ModCache[ModName]);
+			} else {
+				err = `Module ${cachedMod} does not exist in the cache`
+				log.e(err);
+				fun(err);
 				return;
+			}
 		});
 	}
 
 	//-----------------------------------------------------Initialize
-	async function Initiate(fun) {
-		EventLog('\n--Nexus/Initiate');
-		let refresh = false;
+	function initiate(fun) {
+		log.i('\n--Nexus/Initiate');
 		Modules = {};
 		ApexIndex = {};
 		var Setup = {};
@@ -899,31 +862,12 @@
 			if (!fs.lstatSync(dir).isDirectory())
 				continue;
 			var path = dir + '/Module.json';
-
-			if (!fs.existsSync(path) || development) {
-				let mod = await new Promise((resolve, reject) => {
-					GetModule(folder, (err, mod) => {
-						if (err)
-							reject(err);
-						else
-							resolve(mod);
-					});
-				});
-				refresh = true;
-				if (!fs.existsSync(path) && !development) {
-					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
-					EventLog('WARNING: Replaced Missing Module.json at ' + path);
-				}
-				parseMod(mod, dir, folder);
-
-			} else {
-				var data = fs.readFileSync(path).toString();
-				var mod = JSON.parse(data);
-				parseMod(mod, dir, folder);
-			}
+			var data = fs.readFileSync(path).toString();
+			var mod = JSON.parse(data);
+			parseMod(mod, dir, folder);
+			
 
 			function parseMod(mod, dir, folder) {
-				//console.log('mod', JSON.stringify(mod, null, 2));
 				Modules[folder] = mod;
 				var files = fs.readdirSync(dir);
 				for (var ifile = 0; ifile < files.length; ifile++) {
@@ -940,21 +884,18 @@
 					}
 				}
 			}
-			//console.log('ApexIndex', ApexIndex);
 		}
-		//console.log('Modules', JSON.stringify(Modules, null, 2));
-		console.log('ApexIndex', JSON.stringify(ApexIndex, null, 2));
-		console.log('Setup', JSON.stringify(Setup, null, 2));
-		console.log('Start', JSON.stringify(Start, null, 2));
+
+		log.v('ApexIndex', JSON.stringify(ApexIndex, null, 2));
+		log.v('Setup', JSON.stringify(Setup, null, 2));
+		log.v('Start', JSON.stringify(Start, null, 2));
 
 		// Setup
 		var ipid = -1;
 		var pids = Object.keys(Setup);
-		if (refresh) {
-			refreshSystem(setup);
-		} else {
-			setup();
-		}
+	
+		setup();
+		
 
 		function setup() {
 			ipid++;
@@ -977,7 +918,7 @@
 		function start() {
 			ipid++;
 			if (ipid >= pids.length) {
-				Run();
+				fun();
 				return;
 			}
 			var pid = pids[ipid];
