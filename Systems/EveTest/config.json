@@ -23,7 +23,7 @@
 		},
 		"Deferred":[
 			"xGraph.Widgets.RootView",
-			"xGraph.Widgets.3DView",
+			"xGraph.Eve.View3D",
 			"xGraph.Widgets.Mouse",
 			"xGraph.Widgets.Popup"
 		]

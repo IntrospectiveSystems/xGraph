@@ -73,7 +73,7 @@
 				elevations:[]
 			};
 			q.Objects.push(obj);
-			// add a module 
+			// add a module
 			obj = {
 				id: "module",
 				module: "xGraph:Scene/Modelx3D",
@@ -88,8 +88,7 @@
 				angle: 0
 			};
 			q.Objects.push(obj);
-			debugger;
-			
+
 			this.send(q, this.Par.Server, _ =>
 				//callback
 				console.log("we sent the objects to be added to the scene")

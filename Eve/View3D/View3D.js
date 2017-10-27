@@ -1,5 +1,5 @@
 //# sourceURL=View3D
-(function _3DView() {
+(function _View3D() {
 
 	//-----------------------------------------------------dispatch
 	let dispatch = {
@@ -26,7 +26,6 @@
 			View.Geometries = {};
 			View.Meshs = {};
 			View.ResponseHandlers = {};
-
 			View.Ray = new THREE.Raycaster();
 			View.Renderer = new THREE.WebGLRenderer({ antialias: true });
 			View.Renderer.setClearColor(0xBEDCF7, 1);
@@ -50,175 +49,25 @@
 			View.Camera.up.set(0.0, 0.0, 1.0);
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
-
 			View.RenderLoop = setInterval(_ => {
-
-				//For testing of updating elevations
-				if (this.Vlt.Update) {
-					this.Vlt.Update = false;
-					let q = {}
-					q.Cmd = "SetObjects";
-					q.Objects = [];
-					let obj = {
-						id: "plane",
-						elevations: []
-					};
-					q.Objects.push(obj);
-					this.send(q, this.Par.Pid, (err, com) => {
-						setTimeout(this.send({ Cmd: "ImageCapture" }, this.Par.Pid), 40);
-					});
-				}
-				//end TEST
-
-
-
 				View.Renderer.render(View.Scene, View.Camera);
 			}, 20);
-
-
 			fun(null, com);
-
-
-
 		});
 	}
 
 	function Start(com, fun) {
 		console.log('--3DView/Start');
-
 		if ("Controller" in this.Par) {
 			this.send({ Cmd: "Register", Pid: this.Par.Pid }, this.Par.Controller, (err, com) => {
 				console.log("Registered with Controller");
 			});
 		}
-
 		fun(null, com);
-
-		///
-		//
-		//
-		//
-		//
-		//
-		//			EXAMPLE CODE FOR ADDING OBJECTS TO WORLD
-		//
-		//
-		//
-		//
-		//
-		//
-		if (!("Controller" in this.Par)) {
-			//add some objects to the world
-			let q = {}, obj;
-			q.Cmd = "SetObjects";
-			q.Objects = [];
-
-			// //add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx < 100; idx++) {
-				obj = {
-					id: idx,
-					geometry: {
-						id: "geom",
-						name: "SphereGeometry",
-						arguments: [1, 64, 64]
-					},
-					mesh: {
-						id: "mesh",
-						name: "MeshPhongMaterial",
-						arguments: {
-							color: 0xFFFFFF * Math.random()
-						}
-					},
-					position: {
-						x: 100 * Math.random(),
-						y: 100 * Math.random(),
-						z: 100 * Math.random()
-					},
-					scale: {
-						x: 10 * Math.random(),
-						y: 10 * Math.random(),
-						z: 10 * Math.random()
-					},
-					responseHandler: {
-						Cmd: "EvokeExample",
-						Handler: this.Par.Pid
-					}
-				};
-				q.Objects.push(obj);
-			}
-			// add a plane
-
-			obj = {
-				id: "plane",
-				geometry: {
-					id: "PlaneGeom",
-					name: "PlaneGeometry",
-					arguments: [100, 100, 99, 99]
-				},
-				mesh: {
-					id: "planeMesh",
-					name: "MeshPhongMaterial",
-					arguments: {
-						color: 0x333333
-					}
-				},
-				position: {
-					x: 50,
-					y: 50,
-					z: 0
-				}, 
-				elevations:[],
-				responseHandler: {
-					Cmd: "EvokeExample",
-					Handler: this.Par.Pid
-				}
-			};
-			q.Objects.push(obj);
-			// // add a module 
-			obj = {
-				id: "module",
-				module: "xGraph:Scene/Modelx3D",
-				parentId: "plane",
-				position: {
-					x: 0,
-					y: 0,
-					z: 0
-				},
-				model: "Geo.101Plants.Cactus3",
-				axis: [0, 0, 1],
-				angle: 0
-			};
-			q.Objects.push(obj);
-
-			this.send(q, this.Par.Pid, _ =>
-				//callback
-				console.log("we sent the objects to be added to the scene")
-			);
-
-
-			/*
-	
-	
-	
-	
-	
-	
-			END EXAMPLE CODE
-	
-	
-	
-	
-	
-	
-	
-	
-			*/
-		}
 	}
 
 	function EvokeExample(com, fun) {
 		console.log("EVOKE EXAMPLE", com.id);
-
 		console.log("Popup");
 		this.genModule({
 			"Module": "xGraph:Widgets/Popup",
@@ -230,8 +79,6 @@
 				"Height": 600
 			}
 		}, () => { })
-
-
 		if (fun)
 			fun(null, com)
 	}
@@ -245,13 +92,12 @@
 		View.Renderer.setSize(div.width(), div.height());
 		View.Camera.aspect = div.width() / div.height();
 		View.Camera.updateProjectionMatrix();
-
-		this.genModule({
-			"Module": 'xGraph:Widgets/Mouse',
-			"Par": {
-				"Handler": this.Par.Pid
-			}
-		}, (err, pidApex) => {
+		var nav = {};
+		nav.Module = this.Par.Navigation;
+		nav.Par = {};
+		nav.Par.Handler = this.Par.Pid;
+		console.log('nav', nav);
+		this.genModule(nav, (err, pidApex) => {
 			this.send({
 				Cmd: "SetDomElement",
 				"DomElement": this.Vlt.div
@@ -264,7 +110,6 @@
 
 	function Cleanup(com, fun) {
 		console.log("--3DView/Cleanup", this.Par.Pid.substr(30));
-
 		clearInterval(this.Vlt.View.RenderLoop);
 		if (fun)
 			fun(null, com);
@@ -331,19 +176,13 @@
 		 * 		}
 		 * ]
 		 */
-
-
 		for (let i = 0; i < com.Objects.length; i++) {
-
 			let unit = com.Objects[i];
-
 			if (!unit.id && (unit.id != 0)) {
 				console.log("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}
-
 			let obj = this.Vlt.View.Scene.getObjectByName(unit.id);
-
 			if (!obj) {
 				unit.new = true;
 				if (!unit.module) {
@@ -353,7 +192,6 @@
 						continue;
 					}
 					let geom, mesh;
-
 					if ("id" in unit.geometry) {
 						if (unit.geometry.id in this.Vlt.View.Geometries) {
 							geom = this.Vlt.View.Geometries[unit.geometry.id];
@@ -364,7 +202,6 @@
 					} else {
 						geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
 					}
-
 					if ("id" in unit.mesh) {
 						if (unit.mesh.id in this.Vlt.View.Meshs) {
 							mesh = this.Vlt.View.Meshs[unit.mesh.id];
@@ -379,7 +216,6 @@
 					obj = new THREE.Mesh(geom, mesh);
 					obj.name = unit.id;
 				} else {
-
 					//we're passed a module and need to generate it
 					let mod = {
 						"Module": unit.module,
@@ -387,7 +223,6 @@
 							"Name": unit.id
 						}
 					};
-
 					if (unit.position)
 						mod.Par.Position = unit.position;
 					if (unit.model)
@@ -396,24 +231,18 @@
 						mod.Par.Axis = unit.axis;
 					if (unit.angle)
 						mod.Par.Angle = unit.angle;
-
 					obj = await new Promise((res, rej) => {
 						this.genModule(mod, (err, pidApex) => {
-
 							let that = this;
-
 							//save the modules pid in unit.Pid
 							unit.Pid = pidApex;
-
 							unit.responseHandler = {
 								Cmd: "Evoke",
 								Handler: unit.Pid
 							};
-
 							var q = {};
 							q.Cmd = 'GetGraph';
 							this.send(q, unit.Pid, scene);
-
 							function scene(err, r) {
 								console.log('..View3D/scene');
 								Inst = r.Inst;
@@ -469,7 +298,6 @@
 									}
 								}
 
-
 								function done() {
 									console.log("Done Generating the Module/Model");
 								}
@@ -490,7 +318,6 @@
 				if (unit.position.z || (unit.position.z == 0))
 					obj.position.z = Math.round(unit.position.z);
 			}
-
 			if (unit.elevations) {
 				// add in the known elevations
 				for (let i = 0, l = obj.geometry.vertices.length; i < l; i++) {
@@ -504,15 +331,12 @@
 				obj.geometry.normalsNeedUpdate = true;
 				obj.updateMatrix();
 			}
-
 			if (unit.scale) {
 				obj.scale.set(unit.scale.x || 1, unit.scale.y || 1, unit.scale.z || 1);
 			}
-
 			if (unit.responseHandler) {
 				this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
 			}
-
 			if (unit.new) {
 				if (unit.parentId) {
 					let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
@@ -530,7 +354,6 @@
 				}
 			}
 		}
-
 		if (fun)
 			fun(null, com);
 	}
@@ -540,36 +363,20 @@
 			this.Vlt.Count++
 		else
 			this.Vlt.Count = 1;
-
 		View.Renderer.render(View.Scene, View.Camera);
-
 		let b64 = this.Vlt.View.Renderer.domElement.toDataURL();
-
 		com.Image = b64;
 		com.Name = this.Vlt.Count;
-
 		if ("Controller" in this.Par) {
 			com.Cmd = "SaveImage";
 			this.send(com, this.Par.Controller);
 		}
-
 		fun(null, com);
 	}
 
 
 	//-----------------------------------------------------Dispatch
 	function DispatchEvent(com) {
-		//debugger;
-		// if ((!com.Shared) && ("ShareDispatch" in this.Par)){
-
-		// 	let q=JSON.parse(JSON.stringify(com));
-
-		// 	q.Shared = true;
-		// 	for (let i = 0;i< this.Par.ShareDispatch.length;i++){
-		// 		this.send(q, this.Par.ShareDispatch[i]);
-		// 	}
-		// }
-		// console.log("--ThreeJsView/DispatchEvent", com.info.Action);
 		let info = com.info;
 		let Vlt = this.Vlt;
 		Vlt.Mouse = com.mouse;
@@ -591,12 +398,12 @@
 		if (info.Action == 'LeftMouseDown') {
 			info = mouseRay(info, Vlt);
 			if (info.obj.responseHandler) {
-				this.send({ Cmd: info.obj.responseHandler.Cmd, id: info.obj.id, point: info.point, mouse: info.Mouse }, info.obj.responseHandler.Handler, _ => {
-					//
-					//
-					//may need to handle evoke callback here
-					//
-					//
+				let disp = {};
+				disp.Cmd = info.obj.responseHandler.Cmd;
+				disp.id = info.Obj.id;
+				disp.point = info.point;
+				disp.mouse = info.Mouse;
+				this.send(disp, info.obj.responseHandler.Handler, _ => {
 					console.log("Evoke example callback")
 				});
 			}
@@ -842,7 +649,6 @@
 			Vlt.Mouse.Mode = 'Idle';
 		}
 	}
-
 
 })();
 
