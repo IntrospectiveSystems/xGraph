@@ -1,14 +1,31 @@
 //# sourceURL=Controller.js
 //jshint esversion: 6
 (function Controller() {
-
-	let fs, path;
+	let fs;
+	let path;
+	let async;
 
 	class Controller {
 		Start(com, fun) {
 			fs = this.require('fs');
 			path = this.require('path');
-			fun(null, com);
+			async = this.require('async');
+			let mods = fs.readdirSync('cache');
+			console.log('mods', mods);
+			async.eachSeries(mods, function(mod, func) {
+				console.log('=====Module:' + mod);
+				var modpath = path.join('cache', mod, 'Module.json');
+				console.log('modpath', modpath);
+				var str = fs.readFileSync(modpath).toString();
+				var obj = JSON.parse(str);
+				var keys = Object.keys(obj);
+				console.log('keys', keys);
+				func();
+			}, done);
+
+			function done(err) {
+				fun(null, com);
+			}
 		}
 
 		Register(com, fun){
@@ -16,41 +33,11 @@
 			this.Vlt.Browser = com.Pid;
 			
 			//add some objects to the world
-			let q = {}, obj;
+			let q = {};
+			var obj = [];
 			q.Cmd = "SetObjects";
 			q.Forward = this.Vlt.Browser;
 			q.Objects = [];
-			//add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx < 10; idx++) {
-				obj = {
-					id: idx,
-					geometry: {
-						id: "geom",
-						name: "SphereGeometry",
-						arguments: [1, 64, 64]
-					},
-					mesh: {
-						id: "mesh",
-						name: "MeshPhongMaterial",
-						arguments: {
-							color: 0xFFFFFF * Math.random()
-						}
-					},
-					position: {
-						x: 100 * Math.random(),
-						y: 100 * Math.random(),
-						z: 100 * Math.random()
-					},
-					scale: {
-						x: 10 * Math.random(),
-						y: 10 * Math.random(),
-						z: 10 * Math.random()
-					}
-				};
-				q.Objects.push(obj);
-			}
-			//add a plane
-
 			obj = {
 				id: "plane",
 				geometry: {
