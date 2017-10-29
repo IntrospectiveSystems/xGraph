@@ -24,6 +24,8 @@
 		"Deferred":[
 			"xGraph.Widgets.RootView",
 			"xGraph.Eve.View3D",
+			"xGraph.Eve.Board",
+			"xGraph.Eve.Geometry",
 			"xGraph.Widgets.Mouse",
 			"xGraph.Widgets.Popup"
 		]

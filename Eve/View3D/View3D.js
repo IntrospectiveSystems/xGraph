@@ -5,7 +5,7 @@
 	let dispatch = {
 		Setup,
 		Start,
-		SetObjects,
+		AddUnit,
 		ImageCapture,
 		Resize,
 		Render,
@@ -31,7 +31,7 @@
 			View.Renderer.setClearColor(0xBEDCF7, 1);
 			View.Renderer.setSize(div.width(), div.height());
 			View.Scene = new THREE.Scene();
-			View.Focus = new THREE.Vector3(50.0, 50.0, 0.0);
+			View.Focus = new THREE.Vector3(0.0, 0.0, 0.0);
 			View.Camera = new THREE.PerspectiveCamera(45,
 				div.width / div.height, 0.1, 40000);
 			div.append(View.Renderer.domElement);
@@ -43,8 +43,11 @@
 			var axes = new THREE.AxisHelper(100);
 			axes.position.z = 0.01;
 			View.Scene.add(axes);
-			View.Camera.position.x = 0;
-			View.Camera.position.y = 0;
+			var root = new THREE.Object3D();
+			root.name = 'Root';
+			View.Scene.add(root);
+			View.Camera.position.x = 50;
+			View.Camera.position.y = 50;
 			View.Camera.position.z = 50;
 			View.Camera.up.set(0.0, 0.0, 1.0);
 			View.Camera.lookAt(View.Focus);
@@ -133,229 +136,41 @@
 		});
 	}
 
+	function AddUnit(com, fun) {
+		console.log('--------------------------');
+		console.log('AddUnit', com);
+		var that = this;
+		var unit = com.Unit;
+		var Vlt = this.Vlt;
+		this.genModule(unit.Mod, genmodel);
 
-	async function SetObjects(com, fun) {
-		/**
-		 * 
-		 * the com will contain an Objects key that lists an array of objects
-		 * to be modified on the 3d view. All of the listed attributes need NOT
-		 * exist. Only a unit ID is required.
-		 * 
-		 * 
-		 * com.Objects = [
-		 * 		{
-		 * 			id  = "some Unique ID usually can be a Pid",
-		 * 			geometry: {
-		 * 				id : "specific Geometry id///will be stored for reuse",
-		 * 				name: "SphereGeometry",
-		 * 				arguments: [1,64,64]},
-		 * 			},
-		 * 			mesh: {
-		 * 				id : "specific Mesh id",
-		 * 				name: "MeshBasicMaterial",
-		 * 				arguments: {
-		 * 					color : 0x00ff00,
-		 * 					
-		 * 				}
-		 * 			},
-		 * 			position: {
-		 * 				x: 20,
-		 * 				y: 30,
-		 * 				z: 40
-		 * 			},
-		 * 			scale: {
-						x:1.0,
-						y:2.0,
-						z:3.0
-					},
-		 * 			removed: true,
-		 * 			responseHandler: {
-						Cmd:"Evoke",
-						Handler: this.Par.Pid
-					}
-		 * 		}
-		 * ]
-		 */
-		for (let i = 0; i < com.Objects.length; i++) {
-			let unit = com.Objects[i];
-			if (!unit.id && (unit.id != 0)) {
-				console.log("A unit sent to 3DView/SetObjects did not have an id");
-				continue;
+		function genmodel(err, pid) {
+			if(err) {
+				console.log(' ** ERR:' + err);
+				if(fun)
+					fun(err);
+				return;
 			}
-			let obj = this.Vlt.View.Scene.getObjectByName(unit.id);
-			if (!obj) {
-				unit.new = true;
-				if (!unit.module) {
-					//we're building a 3JS object
-					if (!unit.geometry || !unit.mesh) {
-						console.log("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
-						continue;
-					}
-					let geom, mesh;
-					if ("id" in unit.geometry) {
-						if (unit.geometry.id in this.Vlt.View.Geometries) {
-							geom = this.Vlt.View.Geometries[unit.geometry.id];
-						} else {
-							geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
-							this.Vlt.View.Geometries[unit.geometry.id] = geom;
-						}
-					} else {
-						geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
-					}
-					if ("id" in unit.mesh) {
-						if (unit.mesh.id in this.Vlt.View.Meshs) {
-							mesh = this.Vlt.View.Meshs[unit.mesh.id];
-						} else {
-							mesh = new THREE[unit.mesh.name](unit.mesh.arguments);
-							this.Vlt.View.Meshs[unit.mesh.id] = mesh;
-						}
-					} else {
-						mesh = new THREE[unit.mesh.name](...unit.mesh.arguments);
-					}
-
-					obj = new THREE.Mesh(geom, mesh);
-					obj.name = unit.id;
-				} else {
-					//we're passed a module and need to generate it
-					let mod = {
-						"Module": unit.module,
-						"Par": {
-							"Name": unit.id
-						}
-					};
-					if (unit.position)
-						mod.Par.Position = unit.position;
-					if (unit.model)
-						mod.Par.Model = unit.model;
-					if (unit.axis)
-						mod.Par.Axis = unit.axis;
-					if (unit.angle)
-						mod.Par.Angle = unit.angle;
-					obj = await new Promise((res, rej) => {
-						this.genModule(mod, (err, pidApex) => {
-							let that = this;
-							//save the modules pid in unit.Pid
-							unit.Pid = pidApex;
-							unit.responseHandler = {
-								Cmd: "Evoke",
-								Handler: unit.Pid
-							};
-							var q = {};
-							q.Cmd = 'GetGraph';
-							this.send(q, unit.Pid, scene);
-							function scene(err, r) {
-								console.log('..View3D/scene');
-								Inst = r.Inst;
-								if (err) {
-									console.log(' ** ERR:' + err);
-									if (fun)
-										fun(err);
-									return;
-								}
-
-								async.eachSeries(Inst, instance, done);
-
-								function instance(inst, func) {
-									var q = {};
-									q.Cmd = 'GetModel';
-									q.Instance = inst.Instance;
-									//debugger;
-									that.send(q, unit.Pid, rply);
-
-									function rply(err, x) {
-										if (err) {
-											func(err);
-											return;
-										}
-										if (!('Obj3D' in x)) {
-											var err = 'No model returned';
-											console.log(' ** ERR:' + err);
-											func(err);
-											return;
-										}
-										var objinst = new THREE.Object3D();
-										if ('Position' in inst) {
-											var pos = inst.Position;
-											objinst.position.x = pos[0];
-											objinst.position.y = pos[1];
-											objinst.position.z = pos[2];
-										}
-										if ('Axis' in inst && 'Angle' in inst) {
-											var axis = inst.Axis;
-											var ang = inst.Angle * Math.PI / 180.0;
-											var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
-											objinst.setRotationFromAxisAngle(vec, ang);
-										}
-										var data = {};
-										if ('Role' in inst)
-											data.Role = inst.Role;
-										else
-											data.Role = 'Fixed';
-										data.Pid = inst.Instance;
-										objinst.userData = data;
-										objinst.add(x.Obj3D);
-										res(objinst);
-									}
-								}
-
-								function done() {
-									console.log("Done Generating the Module/Model");
-								}
-							}
-						});
-					});
+			var q = {};
+			q.Cmd = 'GenModel';
+			that.send(q, pid, function(err, r) {
+				if(err) {
+					console.log(' ** ERR:' + err);
+					if(fun)
+						fun(err);
+					return;
 				}
-			}
-			else if (unit.removed) {
-				this.Vlt.View.Scene.remove(obj);
-				continue;
-			}
-			if (unit.position) {
-				if (unit.position.x || (unit.position.x == 0))
-					obj.position.x = Math.round(unit.position.x);
-				if (unit.position.y || (unit.position.y == 0))
-					obj.position.y = Math.round(unit.position.y);
-				if (unit.position.z || (unit.position.z == 0))
-					obj.position.z = Math.round(unit.position.z);
-			}
-			if (unit.elevations) {
-				// add in the known elevations
-				for (let i = 0, l = obj.geometry.vertices.length; i < l; i++) {
-					let row = Math.floor(i / obj.geometry.parameters.width);
-					let col = i - row * obj.geometry.parameters.width;
-					let idx = (obj.geometry.parameters.height - row) * obj.geometry.parameters.width + col;
-					obj.geometry.vertices[i].z = unit.elevations[idx] || Math.random();
-				}
-				obj.geometry.verticesNeedUpdate = true;
-				obj.geometry.elementsNeedUpdate = true;
-				obj.geometry.normalsNeedUpdate = true;
-				obj.updateMatrix();
-			}
-			if (unit.scale) {
-				obj.scale.set(unit.scale.x || 1, unit.scale.y || 1, unit.scale.z || 1);
-			}
-			if (unit.responseHandler) {
-				this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
-			}
-			if (unit.new) {
-				if (unit.parentId) {
-					let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
-					if (parent) {
-						parent.add(obj);
-						obj.matrixWorldNeedsUpdate = true;
-						obj.updateMatrixWorld();
-					} else {
-						console.log("Parent not defined in three.js scene");
-						this.Vlt.View.Scene.add(obj);
-
-					}
-				} else {
-					this.Vlt.View.Scene.add(obj);
-				}
-			}
+				var obj3d = r.Obj3D;
+				obj3d.name = com.Name;
+				var parent = Vlt.View.Scene.getObjectByName(unit.Parent);
+				if(parent)
+					parent.add(obj3d);
+				else
+					console.log(' ** ERR:Cannot find parent', unit.Parent);
+				if(fun)
+					fun(null, com);
+			});
 		}
-		if (fun)
-			fun(null, com);
 	}
 
 	function ImageCapture(com, fun) {

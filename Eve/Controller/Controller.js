@@ -10,6 +10,10 @@
 			fs = this.require('fs');
 			path = this.require('path');
 			async = this.require('async');
+			var Vlt = this.Vlt;
+			var Par = this.Par;
+			Vlt.Model = {};
+			//TBD: Load Eve.json here
 			let mods = fs.readdirSync('cache');
 			console.log('mods', mods);
 			async.eachSeries(mods, function(mod, func) {
@@ -33,53 +37,44 @@
 			this.Vlt.Browser = com.Pid;
 			
 			//add some objects to the world
-			let q = {};
-			var obj = [];
-			q.Cmd = "SetObjects";
-			q.Forward = this.Vlt.Browser;
-			q.Objects = [];
-			obj = {
-				id: "plane",
-				geometry: {
-					id: "PlaneGeom",
-					name: "PlaneGeometry",
-					arguments: [100, 100, 99, 99]
-				},
-				mesh: {
-					id: "planeMesh",
-					name: "MeshPhongMaterial",
-					arguments: {
-						color: 0x333333
-					}
-				},
-				position: {
-					x: 50,
-					y: 50,
-					z: 0
-				}, 
-				elevations:[]
-			};
-			q.Objects.push(obj);
-			// add a module
-			obj = {
-				id: "module",
-				module: "xGraph:Scene/Modelx3D",
-				parentId: "plane",
-				position: {
-					x: 0,
-					y: 0,
-					z: 0
-				},
-				model: "Geo.101Plants.Cactus3",
-				axis: [0, 0, 1],
-				angle: 0
-			};
-			q.Objects.push(obj);
 
-			this.send(q, this.Par.Server, _ =>
-				//callback
+			let board = {};
+			board.Module = 'xGraph.Eve.Board';
+			var par = {};
+			par.Grid = [10, 8, 10];
+			board.Par = par;
+
+			var unit = {};
+			unit.Mod = board;
+			unit.Parent = 'Root';
+			unit.Name = 'Board';
+
+			let q = {};
+			q.Cmd = "AddUnit";
+			q.Forward = this.Vlt.Browser;
+			q.Unit = unit;
+			this.send(q, this.Par.Server, function(err, r) {
 				console.log("we sent the objects to be added to the scene")
-			);
+			});
+
+			let geom = {};
+			geom.Module = 'xGraph.Eve.Geometry';
+			par = {};
+			par.Geometry = ['Cylinder', 5, 5, 10, 32];
+			geom.Par = par;
+
+			unit = {};
+			unit.Mod = geom;
+			unit.Parent = 'Board';
+			unit.Name = 'Artichoke.Mode';
+			q.Cmd = "AddUnit";
+			q.Forward = this.Vlt.Browser;
+			q.Unit = unit;
+			this.send(q, this.Par.Server, function(err, r) {
+				console.log("we sent the objects to be added to the scene")
+			});
+			if(fun)
+				fun(null, com);
 		}
 
 		SaveImage(com, fun){
