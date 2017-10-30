@@ -27,6 +27,9 @@ let unix = false;
 
 let pathOverrides = {};
 
+// $genesis $load('./Nexus/Nexus/Genesis2.js')
+// $nexus $load('./Nexus/Nexus/Nexus2.js')
+
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
 
@@ -36,6 +39,8 @@ let cacheDir = null;
 if(process.argv.length == 1) process.argv[1] = 'help';
 
 processSwitches();
+
+console.log(pathOverrides);
 
 switch(process.argv[1]) {
   case 'run': {
@@ -163,7 +168,7 @@ function applySwitch(str, i) {
   if ((i+1) in process.argv) { // switch has a value
     val = process.argv[i+1];
   }
-  switch(key) {
+  switch(str) {
     case 'config': {
       configFile = val;
       break;
@@ -172,81 +177,12 @@ function applySwitch(str, i) {
       cacheDir = val;
     }
     default: {
-      pathOverrides[key] = val;
+      pathOverrides[str] = val;
     }
   }
 }
 
-//set all command line arguments to ENV variables
-// let arg;
-// for (let iarg = 0; iarg < process.argv.length; iarg++) {
-// 	arg = process.argv[iarg];
-// 	console.log(arg);
-// 	parts = arg.split('=');
-// 	if (parts.length == 2) {
-// 		if (parts[0].toLowerCase() == "xgraph"){
-// 			process.env['XGRAPH'] = parts[1];
-// 		}
-// 		else{
-// 			process.env[parts[0]] = parts[1];
-// 		}
-// 	}
-// }
 
-// process.env.NODE_PATH = "node_modules/";
-// const { spawn } = require('child_process');
-
-// console.log(`\nNexus Path: ${process.env.XGRAPH}/Nexus/Nexus/Nexus.js`);
-// const ls = spawn("node", [process.env.XGRAPH+"/Nexus/Nexus/Nexus.js", ...process.argv], { env: process.env });
-
-// ls.stdout.on('data', (data) => {
-// 	console.log(`${data}`);
-// });
-
-// ls.stderr.on('data', (data) => {
-// 	console.log(`${data}`);
-// });
-
-// ls.on('close', (code) => {
-// 	console.log(`child process exited with code ${code}`);
-// });
-
-function startChildProcess() {
-
-  // set all command line arguments to ENV variables
-  let arg;
-  for (let iarg = 0; iarg < process.argv.length; iarg++) {
-    arg = process.argv[iarg];
-    console.log(arg);
-    parts = arg.split('=');
-    if (parts.length == 2) {
-      if (parts[0].toLowerCase() == "xgraph") {
-        process.env['XGRAPH'] = parts[1];
-      }
-      else {
-        process.env[parts[0]] = parts[1];
-      }
-    }
-  }
-
-  process.env.NODE_PATH = "node_modules/";
-  const { spawn } = require('child_process');
-
-  console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-  const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
-
-  ls.stdout.on('data', (data) => {
-    console.log(`${data}`);
-  });
-
-  ls.stderr.on('data', (data) => {
-    console.log(`${data}`);
-  });
-
-  ls.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-}
 
 
 

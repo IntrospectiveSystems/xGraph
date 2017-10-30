@@ -1,4 +1,6 @@
 (function () {
+	return new Promise((resolve, reject)=>{
+		
 	console.log(`\nInitializing the Compile Engine`);
 	console.time('Genesis Runtime');
 
@@ -276,6 +278,7 @@
 			log.i(`Genesis Compile Stop: ${date.toString()}`);
 			log.i('=================================================\n');
 			console.timeEnd("Genesis Runtime");
+			resolve();
 		}
 	}
 
@@ -586,8 +589,8 @@
 		var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 		var ps = proc.spawn(npm, ['install']);
 
-		ps.stdout.on('data', _ => log.v(_.toString()));
-		ps.stderr.on('data', _ => log.v(_.toString()));
+		ps.stdout.on('data', _=>{process.stdout.write(_)});
+		ps.stderr.on('data', _ =>process.stderr.write(_));
 
 		ps.on('err', function (err) {
 			log.e('Failed to start child process.');
@@ -713,4 +716,5 @@
 		}
 	}
 
+	}); 
 })();

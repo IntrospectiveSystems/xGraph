@@ -1,31 +1,29 @@
-(function () {
+(async function () {
 	console.log(`\nInitializing the Run Engine`);
 	console.time('Nexus Start Time');
 
 	const fs = require('fs');
 	const date = new Date();
-	let Uuid;
-	let CacheDir;						// The location of where the Cache will be stored
-	let Config = {};					// The read config.json
-	let Apex = {};						// {<Name>: <pid of Apex>}
-	let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
-	let ModCache = {};					// {<folder>: <module>}
-	let ApexIndex = {}; 				// {<Apex pid>:<folder>}
-	let SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
-	let EntCache = {};					// {<Entity pid>:<Entity>
-	let ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
-	let packagejson = {};				// The compiled package.json, built from Modules
-	let args = process.argv;			// The input argutments ----- should be removed ??
-	let Params = {};					// The set of Macros for defining paths ---- should be removed??
-	let Nxs = {
+	var Uuid;
+	var CacheDir;						// The location of where the Cache will be stored
+	var Config = {};					// The read config.json
+	var Apex = {};						// {<Name>: <pid of Apex>}
+	var Modules = {};					// {<Name>: <mod desc>} - only in Genesis
+	var ModCache = {};					// {<folder>: <module>}
+	var ApexIndex = {}; 				// {<Apex pid>:<folder>}
+	var SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
+	var EntCache = {};					// {<Entity pid>:<Entity>
+	var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
+	var packagejson = {};				// The compiled package.json, built from Modules
+	var args = process.argv;			// The input argutments ----- should be removed ??
+	var Params = {};					// The set of Macros for defining paths ---- should be removed??
+	var Nxs = {
 		genPid,
-		//genPath,
 		GetModule,
 		genModule,
 		genEntity,
 		deleteEntity,
 		saveEntity,
-		// getParameter,
 		getFile,
 		sendMessage
 	};
@@ -69,11 +67,32 @@
 		}
 	};
 
+	log.i('=================================================');
+	log.i(`Nexus Warming Up:`);
 
 
-	setup();
+
+
+	defineMacros();
+
+	if (!fs.existsSync(CacheDir)) {
+		log.i("Building the Cache");
+		let genesisString = fs.readFileSync(`${Params['xGraph']}/Nexus/Nexus/Genesis2.js`).toString();
+		
+		await eval(genesisString);
+		
+	}
 
 	initiate(run);
+
+
+
+
+
+
+
+
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -83,11 +102,24 @@
 
 
 
-	function setup() {
-		log.i('=================================================');
-		log.i(`Nexus Setup:`);
 
-		defineMacros();
+	//-----------------------------------------------------Initialize
+	function initiate(fun) {
+		log.i('\n--Nexus/Initiate');
+		ApexIndex = {};
+		var Setup = {};
+		var Start = {};
+
+
+
+		loadCache();
+
+		var ipid = -1;
+		var pids = Object.keys(Setup);
+
+		setup(start);
+
+
 
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
@@ -95,26 +127,82 @@
 		//
 		//
 
-		function defineMacros() {
-			// Process input arguments and define macro parameters
-			let arg, parts;
-			for (var iarg = 0; iarg < args.length; iarg++) {
-				arg = args[iarg];
-				log.v(arg);
-				parts = arg.split('=');
-				if (parts.length == 2) {
-					Params[parts[0]] = parts[1];
+
+
+		function loadCache() {
+			var folders = fs.readdirSync(CacheDir);
+
+			for (var ifold = 0; ifold < folders.length; ifold++) {
+				let folder = folders[ifold];
+				let dir = CacheDir + '/' + folder;
+				if (!fs.lstatSync(dir).isDirectory())
+					continue;
+				let path = dir + '/Module.json';
+				let data = fs.readFileSync(path).toString();
+				let mod = JSON.parse(data);
+				parseMod(mod, dir, folder);
+
+
+				function parseMod(mod, dir, folder) {
+					Modules[folder] = mod;
+					var files = fs.readdirSync(dir);
+					for (var ifile = 0; ifile < files.length; ifile++) {
+						var file = files[ifile];
+						if (file.length !== 32)
+							continue;
+						var path = dir + '/' + file;
+						if (fs.lstatSync(path).isDirectory()) {
+							ApexIndex[file] = folder;
+							if ('Setup' in mod)
+								Setup[file] = mod.Setup;
+							if ('Start' in mod)
+								Start[file] = mod.Start;
+						}
+					}
 				}
 			}
 
-			// Use the xGraph path if defined in the process.env
-			// --- should be removed ??
-			if ("XGRAPH" in process.env) Params["xGraph"] = process.env.XGRAPH;
+			log.v('ApexIndex', JSON.stringify(ApexIndex, null, 2));
+			log.v('Setup', JSON.stringify(Setup, null, 2));
+			log.v('Start', JSON.stringify(Start, null, 2));
+		}
 
-			// Define where the cache is located
-			CacheDir = Params.Cache || 'cache';
+
+
+		function setup() {
+			ipid++;
+			if (ipid >= pids.length) {
+				pids = Object.keys(Start);
+				ipid = -1;
+				start();
+				return;
+			}
+			var pid = pids[ipid];
+			var com = {};
+			com.Cmd = Setup[pid];
+			com.Passport = {};
+			com.Passport.To = pids[ipid];
+			com.Passport.Pid = genPid();
+			sendMessage(com, setup);
+		}
+
+
+		function start() {
+			ipid++;
+			if (ipid >= pids.length) {
+				fun();
+				return;
+			}
+			var pid = pids[ipid];
+			var com = {};
+			com.Cmd = Start[pid];
+			com.Passport = {};
+			com.Passport.To = pids[ipid];
+			com.Passport.Pid = genPid();
+			sendMessage(com, start);
 		}
 	}
+
 
 
 	//-----------------------------------------------------Run
@@ -123,29 +211,38 @@
 		if ('send' in process) {
 			process.send('{"Cmd":"Finished"}');
 		}
+		console.timeEnd('Nexus Start Time');
+
 	}
 
 
 
+	function defineMacros() {
+		// Process input arguments and define macro parameters
+		let arg, parts;
+		for (var iarg = 0; iarg < args.length; iarg++) {
+			arg = args[iarg];
+			log.v(arg);
+			parts = arg.split('=');
+			if (parts.length == 2) {
+				Params[parts[0]] = parts[1];
+			}
+		}
+
+		// Use the xGraph path if defined in the process.env
+		// --- should be removed ??
+		if ("XGRAPH" in process.env) Params["xGraph"] = process.env.XGRAPH;
+
+		// Define where the cache is located
+		CacheDir = Params.Cache || 'cache';
+	}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	//
+	//
+	// Helper Functions as well as Entity definition
+	//
+	//
 
 
 	//---------------------------------------------------------genPid
@@ -157,51 +254,6 @@
 		var pid = str.replace(/-/g, '').toUpperCase();
 		return pid;
 	}
-
-	// //---------------------------------------------------------genPath
-	// function genPath(filein) {
-	// 	// EventLog('!!genPath', filein);
-	// 	// if (!filein) {
-	// 	// 	EventLog(' ** ERR:Invalid file name');
-	// 	// 	return '';
-	// 	// }
-	// 	// var cfg = Config;
-	// 	// var path;
-	// 	// var parts;
-	// 	// var file = filein;
-	// 	// if (Config.Redirect) {
-	// 	// 	if (file in Config.Redirect)
-	// 	// 		file = Config.Redirect[file];
-	// 	// }
-	// 	// if (file.charAt(0) == '/')
-	// 	// 	return file;
-	// 	// if (file.charAt(0) == '{') { // Macro
-	// 	// 	parts = file.split('}');
-	// 	// 	if (parts.length != 2) {
-	// 	// 		return;
-	// 	// 	}
-	// 	// 	var name = parts[0].substr(1);
-	// 	// 	if (name in cfg) {
-	// 	// 		path = cfg[name] + '/' + parts[1];
-	// 	// 		return path;
-	// 	// 	} else {
-	// 	// 		EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
-	// 	// 		return;
-	// 	// 	}
-	// 	// }
-	// 	// parts = file.split(':');
-	// 	// if (parts.length == 2) {
-	// 	// 	if (parts[0] in cfg) {
-	// 	// 		path = cfg[parts[0]] + '/' + parts[1];
-	// 	// 	} else {
-	// 	// 		EventLog(' ** ERR:File <' + file + '> prefix not defined');
-	// 	// 		return;
-	// 	// 	}
-	// 	// } else {
-	// 	// 	path = file;
-	// 	// }
-	// 	// return path;
-	// }
 
 	function Macro(str) {
 		let state = 1;
@@ -300,14 +352,7 @@
 		}
 	}
 
-	// //-----------------------------------------------------getParameter
-	// // Retrieve command line parameter
-	// function getParameter(name) {
-	// 	log.v('--Nexus/GetParameter');
-	// 	log.v('Params', JSON.stringify(Params, null, 2));
-	// 	if (name in Params)
-	// 		return Params[name];
-	// }
+
 
 	//-----------------------------------------------------Entity
 	// This is the entity base class that is used to create
@@ -609,8 +654,8 @@
 				return;
 			}
 			let moduleRequest = {
-				Module:folder,
-				Source: SourceIndex[apx]||null
+				Module: folder,
+				Source: SourceIndex[apx] || null
 			};
 			// --- should be removed ??
 			GetModule(moduleRequest, function (err, mod) {
@@ -720,7 +765,7 @@
 		let mod;
 		let ents = [];
 		// The following is for backword compatibility only
-		let modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
 		} else {
@@ -805,7 +850,7 @@
 	function GetModule(modRequest, fun) {
 
 		let modnam = modRequest.Module;
-		if (typeof modRequest !="object"){
+		if (typeof modRequest != "object") {
 			modnam = modRequest;
 			// --- should be removed ???
 		}
@@ -847,88 +892,6 @@
 		});
 	}
 
-	//-----------------------------------------------------Initialize
-	function initiate(fun) {
-		log.i('\n--Nexus/Initiate');
-		Modules = {};
-		ApexIndex = {};
-		var Setup = {};
-		var Start = {};
-		var folders = fs.readdirSync(CacheDir);
 
-		for (var ifold = 0; ifold < folders.length; ifold++) {
-			var folder = folders[ifold];
-			var dir = CacheDir + '/' + folder;
-			if (!fs.lstatSync(dir).isDirectory())
-				continue;
-			var path = dir + '/Module.json';
-			var data = fs.readFileSync(path).toString();
-			var mod = JSON.parse(data);
-			parseMod(mod, dir, folder);
-			
-
-			function parseMod(mod, dir, folder) {
-				Modules[folder] = mod;
-				var files = fs.readdirSync(dir);
-				for (var ifile = 0; ifile < files.length; ifile++) {
-					var file = files[ifile];
-					if (file.length !== 32)
-						continue;
-					var path = dir + '/' + file;
-					if (fs.lstatSync(path).isDirectory()) {
-						ApexIndex[file] = folder;
-						if ('Setup' in mod)
-							Setup[file] = mod.Setup;
-						if ('Start' in mod)
-							Start[file] = mod.Start;
-					}
-				}
-			}
-		}
-
-		log.v('ApexIndex', JSON.stringify(ApexIndex, null, 2));
-		log.v('Setup', JSON.stringify(Setup, null, 2));
-		log.v('Start', JSON.stringify(Start, null, 2));
-
-		// Setup
-		var ipid = -1;
-		var pids = Object.keys(Setup);
-	
-		setup();
-		
-
-		function setup() {
-			ipid++;
-			if (ipid >= pids.length) {
-				pids = Object.keys(Start);
-				ipid = -1;
-				start();
-				return;
-			}
-			var pid = pids[ipid];
-			var com = {};
-			com.Cmd = Setup[pid];
-			com.Passport = {};
-			com.Passport.To = pids[ipid];
-			com.Passport.Pid = genPid();
-			sendMessage(com, setup);
-		}
-
-		// Start
-		function start() {
-			ipid++;
-			if (ipid >= pids.length) {
-				fun();
-				return;
-			}
-			var pid = pids[ipid];
-			var com = {};
-			com.Cmd = Start[pid];
-			com.Passport = {};
-			com.Passport.To = pids[ipid];
-			com.Passport.Pid = genPid();
-			sendMessage(com, start);
-		}
-	}
 
 })();
