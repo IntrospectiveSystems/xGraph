@@ -20,6 +20,7 @@
 	function Setup(com, fun) {
 		this.super(com, (err, cmd) => {
 			console.log('--3DView/Setup');
+			console.log('Mod', this.Mod);
 			let div = this.Vlt.div;
 			this.Vlt.View = {};
 			View = this.Vlt.View;
@@ -52,11 +53,35 @@
 			View.Camera.up.set(0.0, 0.0, 1.0);
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
+	//		TestFont(View, "Hello World");
 			View.RenderLoop = setInterval(_ => {
 				View.Renderer.render(View.Scene, View.Camera);
 			}, 20);
 			fun(null, com);
 		});
+	}
+
+	function TestFont(vew, text) {
+		console.log('--TestFont');
+		var font = __Nexus.getFont('Helvetiker.Bold');
+		var mesh;
+		var size = 0.5;
+		var height = 0.25 * size;
+		var clr = 0x00ff00;
+		var geo = new THREE.TextGeometry(text, {
+			font: font,
+			size: size,
+			height: height
+		});
+		geo.computeBoundingBox();
+		geo.computeVertexNormals();
+		var mat = new THREE.MeshPhongMaterial({ color: clr, shading: THREE.FlatShading });
+		mesh = new THREE.Mesh(geo, mat);
+		var box = geo.boundingBox;
+		mesh.position.x = -0.5 * (box.max.x - box.min.x);
+		mesh.position.y = -0.5 * (box.max.y - box.min.y);
+		mesh.position.z = -0.5 * (box.max.z - box.min.z) + 5.0;
+		vew.Scene.add(mesh);
 	}
 
 	function Start(com, fun) {
@@ -160,16 +185,64 @@
 						fun(err);
 					return;
 				}
+				var inst = new THREE.Object3D();
+				inst.name = unit.Name;
 				var obj3d = r.Obj3D;
-				obj3d.name = com.Name;
+				inst.add(obj3d);
+				if('Title' in unit) {
+					inst.remove(obj3d);
+					var box = new THREE.Box3().setFromObject(inst);
+					console.log('box', box);
+					var title3d = title(box.max.z, unit.Title);
+					if(title3d)
+						inst.add(title3d);
+					else
+						console.log(' ** ERR:Bad title');
+				}
 				var parent = Vlt.View.Scene.getObjectByName(unit.Parent);
 				if(parent)
-					parent.add(obj3d);
+					parent.add(inst);
 				else
 					console.log(' ** ERR:Cannot find parent', unit.Parent);
 				if(fun)
 					fun(null, com);
 			});
+
+			function title(ht, text) {
+				console.log('...title');
+				var font = __Nexus.getFont('Helvetiker.Bold');
+				var mesh;
+				var size = 0.5;
+				var height = 0.25 * size;
+				var clr = 0xFF00FF;
+				var geo = new THREE.TextGeometry(text, {
+					font: font,
+					size: size,
+					height: height
+				});
+				geo.computeBoundingBox();
+				geo.computeVertexNormals();
+				var mat = new THREE.MeshPhongMaterial({ color: clr, shading: THREE.FlatShading });
+				mesh = new THREE.Mesh(geo, mat);
+				var box = geo.boundingBox;
+				console.log('box', box);
+				var pivot = new THREE.Object3D();
+				mesh.position.x = -0.5 * (box.max.x + box.min.x);
+				mesh.position.y = -0.5 * (box.max.y + box.min.y);
+				mesh.position.z = -0.5 * (box.max.z + box.min.z);
+				var rot = new THREE.Object3D();
+				rot.add(mesh);
+				var qz = new THREE.Quaternion();
+				qz.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 3*Math.PI/2);
+				var qy = new THREE.Quaternion();
+				qz.setFromAxisAngle(new THREE.Vector3(0, 1, 1), Math.PI/2);
+				var qt = new THREE.Quaternion();
+				qt.multiplyQuaternions(qy, qz);
+				rot.setRotationFromQuaternion(qt);
+			//	rot.rotateX(Math.PI/2);
+			//	rot.rotateZ(3*Math.PI/2);
+				return rot;
+			}
 		}
 	}
 

@@ -60,13 +60,16 @@
 			let geom = {};
 			geom.Module = 'xGraph.Eve.Geometry';
 			par = {};
-			par.Geometry = ['Cylinder', 5, 5, 10, 32];
+			par.Color = 0xFF0000;
+			par.Type = 'Cylinder';
+			par.Args = [1, 1, 2, 32];
 			geom.Par = par;
 
 			unit = {};
 			unit.Mod = geom;
 			unit.Parent = 'Board';
 			unit.Name = 'Artichoke.Mode';
+			unit.Title = 'Unicorn.Party';
 			q.Cmd = "AddUnit";
 			q.Forward = this.Vlt.Browser;
 			q.Unit = unit;
