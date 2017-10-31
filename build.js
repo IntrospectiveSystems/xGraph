@@ -40,6 +40,8 @@
 
 	fs.writeFileSync('src/gen/xgraph-linux.js', new Preprocessor(fs.readFileSync('src/xgraph.js'), '.').process({ LINUX: true }));
 	doImports('src/gen/xgraph-linux.js');
+	fs.writeFileSync('src/gen/xgraph-linux.js', new Preprocessor(fs.readFileSync('src/gen/xgraph-linux.js'), '.').process({ COMPILED: true }));
+	
 
 	await compile({
 		input: 'src/gen/xgraph-linux.js',
@@ -48,10 +50,10 @@
 		bundle: true
 	});
 
-
 	fs.writeFileSync('src/gen/xgraph-windows.js', new Preprocessor(fs.readFileSync('src/xgraph.js'), '.').process({ WINDOWS: true }));
 	doImports('src/gen/xgraph-windows.js');
-
+	fs.writeFileSync('src/gen/xgraph-windows.js', new Preprocessor(fs.readFileSync('src/gen/xgraph-windows.js'), '.').process({ COMPILED: true }));
+	
 	await compile({
 		input: 'src/gen/xgraph-windows.js',
 		output: 'bin/windows/bin/xgraph.exe',
@@ -61,7 +63,8 @@
 
 	fs.writeFileSync('src/gen/xgraph-mac.js', new Preprocessor(fs.readFileSync('src/xgraph.js'), '.').process({ MAC: true }));
 	doImports('src/gen/xgraph-mac.js');
-
+	fs.writeFileSync('src/gen/xgraph-mac.js', new Preprocessor(fs.readFileSync('src/gen/xgraph-mac.js'), '.').process({ MAC: true }));
+	
 	await compile({
 		input: 'src/gen/xgraph-mac.js',
 		output: 'bin/mac/bin/xgraph',

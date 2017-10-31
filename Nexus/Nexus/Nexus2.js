@@ -1,10 +1,11 @@
 (async function () {
 	console.log(`\nInitializing the Run Engine`);
 	console.time('Nexus Start Time');
+	console.log(process.env.NODE_PATH);
 
 	const fs = require('fs');
 	const date = new Date();
-	var Uuid;
+	var Uuid=require("uuid/v4");
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
 	var Apex = {};						// {<Name>: <pid of Apex>}
@@ -78,9 +79,7 @@
 	if (!fs.existsSync(CacheDir)) {
 		log.i("Building the Cache");
 		let genesisString = fs.readFileSync(`${Params['xGraph']}/Nexus/Nexus/Genesis2.js`).toString();
-		
 		await eval(genesisString);
-		
 	}
 
 	initiate(run);
@@ -219,19 +218,22 @@
 
 	function defineMacros() {
 		// Process input arguments and define macro parameters
-		let arg, parts;
-		for (var iarg = 0; iarg < args.length; iarg++) {
-			arg = args[iarg];
-			log.v(arg);
-			parts = arg.split('=');
-			if (parts.length == 2) {
-				Params[parts[0]] = parts[1];
+		
+		if (!(typeof tar == 'undefined')) {
+			for (key in pathOverrides) {
+				Params[key] = pathOverrides[key];
+			}
+		} else {
+			let arg, parts;
+			for (var iarg = 0; iarg < args.length; iarg++) {
+				arg = args[iarg];
+				log.v(arg);
+				parts = arg.split('=');
+				if (parts.length == 2) {
+					Params[parts[0]] = parts[1];
+				}
 			}
 		}
-
-		// Use the xGraph path if defined in the process.env
-		// --- should be removed ??
-		if ("XGRAPH" in process.env) Params["xGraph"] = process.env.XGRAPH;
 
 		// Define where the cache is located
 		CacheDir = Params.Cache || 'cache';
