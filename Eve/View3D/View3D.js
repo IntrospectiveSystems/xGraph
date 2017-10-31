@@ -26,10 +26,14 @@
 			View = this.Vlt.View;
 			View.Geometries = {};
 			View.Meshs = {};
+			View.Pivots = [];
 			View.ResponseHandlers = {};
 			View.Ray = new THREE.Raycaster();
 			View.Renderer = new THREE.WebGLRenderer({ antialias: true });
-			View.Renderer.setClearColor(0xBEDCF7, 1);
+			var clear;
+			clear = 0xBEDCF7;
+			clear = 0xA0785A;
+			View.Renderer.setClearColor(clear, 1);
 			View.Renderer.setSize(div.width(), div.height());
 			View.Scene = new THREE.Scene();
 			View.Focus = new THREE.Vector3(0.0, 0.0, 0.0);
@@ -53,35 +57,28 @@
 			View.Camera.up.set(0.0, 0.0, 1.0);
 			View.Camera.lookAt(View.Focus);
 			View.Camera.updateProjectionMatrix();
-	//		TestFont(View, "Hello World");
 			View.RenderLoop = setInterval(_ => {
+				let xd = View.Camera.position.x - View.Focus.x;
+				let yd = View.Camera.position.y - View.Focus.y;
+				let zd = View.Camera.position.z - View.Focus.z;
+				let angle = -Math.atan2(xd, yd);
+				let qazm = new THREE.Quaternion();
+				qazm.setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
+				let r = Math.sqrt(xd*xd + yd*yd);
+				let elev = Math.atan2(zd, r);
+				let qelv = new THREE.Quaternion();
+				qelv.setFromAxisAngle(new THREE.Vector3(1, 0, 0), elev);
+				let qbb = new THREE.Quaternion();
+				qbb.multiplyQuaternions(qazm, qelv);
+				for(let i=0; i<View.Pivots.length; i++) {
+					let pivot = View.Pivots[i];
+					pivot.setRotationFromQuaternion(qbb);
+					pivot.updateMatrix();
+				}
 				View.Renderer.render(View.Scene, View.Camera);
 			}, 20);
 			fun(null, com);
 		});
-	}
-
-	function TestFont(vew, text) {
-		console.log('--TestFont');
-		var font = __Nexus.getFont('Helvetiker.Bold');
-		var mesh;
-		var size = 0.5;
-		var height = 0.25 * size;
-		var clr = 0x00ff00;
-		var geo = new THREE.TextGeometry(text, {
-			font: font,
-			size: size,
-			height: height
-		});
-		geo.computeBoundingBox();
-		geo.computeVertexNormals();
-		var mat = new THREE.MeshPhongMaterial({ color: clr, shading: THREE.FlatShading });
-		mesh = new THREE.Mesh(geo, mat);
-		var box = geo.boundingBox;
-		mesh.position.x = -0.5 * (box.max.x - box.min.x);
-		mesh.position.y = -0.5 * (box.max.y - box.min.y);
-		mesh.position.z = -0.5 * (box.max.z - box.min.z) + 5.0;
-		vew.Scene.add(mesh);
 	}
 
 	function Start(com, fun) {
@@ -167,6 +164,7 @@
 		var that = this;
 		var unit = com.Unit;
 		var Vlt = this.Vlt;
+		var View = Vlt.View;
 		this.genModule(unit.Mod, genmodel);
 
 		function genmodel(err, pid) {
@@ -188,14 +186,25 @@
 				var inst = new THREE.Object3D();
 				inst.name = unit.Name;
 				var obj3d = r.Obj3D;
+				if('Location' in unit) {
+					inst.position.x = unit.Location[0];
+					inst.position.y = unit.Location[1];
+				}
 				inst.add(obj3d);
 				if('Title' in unit) {
-					inst.remove(obj3d);
 					var box = new THREE.Box3().setFromObject(inst);
 					console.log('box', box);
 					var title3d = title(box.max.z, unit.Title);
-					if(title3d)
-						inst.add(title3d);
+					if(title3d) {
+						var pivot = new THREE.Object3D();
+						var quat = new THREE.Quaternion();
+						pivot.position.z = 1.2*box.max.z;
+					//	quat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/4);
+					//	pivot.setRotationFromQuaternion(quat);
+						pivot.add(title3d);
+						inst.add(pivot);
+						View.Pivots.push(pivot);
+					}
 					else
 						console.log(' ** ERR:Bad title');
 				}
@@ -209,12 +218,14 @@
 			});
 
 			function title(ht, text) {
+				// Text is constructed centered at origin and facing in the
+				// positive Y direction (due North)
 				console.log('...title');
 				var font = __Nexus.getFont('Helvetiker.Bold');
 				var mesh;
 				var size = 0.5;
 				var height = 0.25 * size;
-				var clr = 0xFF00FF;
+				var clr = 0x000000;
 				var geo = new THREE.TextGeometry(text, {
 					font: font,
 					size: size,
@@ -233,11 +244,11 @@
 				var rot = new THREE.Object3D();
 				rot.add(mesh);
 				var qz = new THREE.Quaternion();
-				qz.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 3*Math.PI/2);
-				var qy = new THREE.Quaternion();
-				qz.setFromAxisAngle(new THREE.Vector3(0, 1, 1), Math.PI/2);
+				qz.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
+				var qx = new THREE.Quaternion();
+				qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI/2);
 				var qt = new THREE.Quaternion();
-				qt.multiplyQuaternions(qy, qz);
+				qt.multiplyQuaternions(qz, qx);
 				rot.setRotationFromQuaternion(qt);
 			//	rot.rotateX(Math.PI/2);
 			//	rot.rotateZ(3*Math.PI/2);

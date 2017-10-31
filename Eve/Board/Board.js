@@ -31,9 +31,15 @@
 		console.log('..Board/GenModel');
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		var geo = new THREE.PlaneGeometry(60, 40, 1, 1);
+		var grid = Par.Grid;
+		var w = grid[0] * grid[2];
+		var h = grid[1] * grid[2];
+		var geo = new THREE.PlaneGeometry(w, h, 1, 1);
 		var opt = {};
-		opt.color = 0x00FFFF;
+		if('Color' in Par)
+			opt.color = Par.Color;
+		else
+			opt.color = 0xDA9100;
 		var mat = new THREE.MeshLambertMaterial(opt);
 		var obj3d = new THREE.Mesh(geo, mat);
 		var mat = new THREE.LineBasicMaterial({
@@ -41,7 +47,7 @@
 		});
 
 		var opt = {};
-		opt.color = 0xFF0000;
+		opt.color = 0x000000;
 		var mat = new THREE.LineBasicMaterial(opt);
 		var geo = new THREE.Geometry();
 		var nx = Par.Grid[0];
