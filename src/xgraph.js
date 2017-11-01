@@ -188,14 +188,8 @@ async function ensureNode() {
 	let node = (execSync('which node').toString());
 
 	if (node != '') {
-<<<<<<< HEAD
     console.log();
     return;
-=======
-		console.log();
-		// fun(true);
-		return;
->>>>>>> b32a518bba80e0d89d539652ef6313c70b870890
 	} else {
 		await install();
 	}
