@@ -80,7 +80,7 @@ xcuserdata/
 
 
 
-**/cache/*.*
+**/cache/**/*.*
 Work/*/css.json
 Work/*/package.json
 Work/*/scripts.json
