@@ -1,25 +1,3 @@
-console.log(process.env.NODE_PATH, typeof process.env.NODE_PATH);
-if (!(process.env.NODE_PATH == './node_modules')) {
-	const { spawn } = require('child_process');
-
-	console.log("try again with node path set");
-
-	let sp = spawn(process.argv[0], process.argv.slice(1), { env: { NODE_PATH: `${cwd}/node_modules` } });
-
-	sp.stdout.on('data', (data) => {
-		console.log(`stdout: ${data}`);
-	});
-
-	sp.stderr.on('data', (data) => {
-		console.log(`stderr: ${data}`);
-	});
-
-	sp.on('close', (code) => {
-		console.log(`child process exited with code ${code}`);
-	});
-}
-
-
 const { execSync } = require('child_process');
 const tar = require('targz');
 const fs = require('fs');
@@ -106,7 +84,6 @@ switch (process.argv[1]) {
 async function init(args) {
 	console.log('init System');
 	console.log('[', ...args, ']');
-
 }
 
 function help() {
@@ -147,7 +124,7 @@ async function deploy() {
 async function run() {
 	try {
 		await ensureNode();
-		if (fs.lstatSync(pathOverrides['cache'] || 'cache').isDirectory()) {
+		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
 			await genesis();
@@ -170,10 +147,18 @@ async function compile() {
 
 function startNexusProcess() {
 
-	process.env.NODE_PATH = "node_modules/";
 	const { spawn } = require('child_process');
-	console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
+
+	// #ifdef LINUX
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :"node_modules/"} });
+	// #endif
+	// #ifdef MAC
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :"node_modules/"} });	
+	// #endif
+	// #ifdef WINDOWS
+	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :"node_modules/"} });	
+	// #endif
+
 	ls.stdout.on('data', _=> process.stdout.write(_));
 	ls.stderr.on('data', _=> process.stderr.write(_));
 

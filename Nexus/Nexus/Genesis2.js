@@ -23,7 +23,7 @@
 
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
+			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
 		};
 		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 		// Levels include:
@@ -85,19 +85,18 @@
 			function defineMacros() {
 				// Process input arguments and define macro parameters
 
-				if (!(typeof tar == 'undefined')) {
-					for (key in pathOverrides) {
-						Params[key] = pathOverrides[key];
+				let arg, parts;
+				for (var iarg = 0; iarg < args.length; iarg++) {
+					arg = args[iarg];
+					log.v(arg);
+					parts = arg.split('=');
+					if (parts.length == 2) {
+						Params[parts[0]] = parts[1];
 					}
-				} else {
-					let arg, parts;
-					for (var iarg = 0; iarg < args.length; iarg++) {
-						arg = args[iarg];
-						log.v(arg);
-						parts = arg.split('=');
-						if (parts.length == 2) {
-							Params[parts[0]] = parts[1];
-						}
+				}
+				if (!(typeof pathOverrides == "undefined")){
+					for (let key in pathOverrides){
+						Params[key]= pathOverrides[key];
 					}
 				}
 			}
@@ -141,6 +140,7 @@
 					// No config was provided. Exit promptly.
 					log.e(' ** No configuration file (config.json) provided');
 					process.exit(1);
+					reject();
 				}
 
 				// Print out the parsed config
@@ -197,6 +197,7 @@
 								if (Modules[folder] != source) {
 									log.e("Broker Mismatch Exception");
 									process.exit(2);
+									reject();
 								}
 							}
 						});
@@ -209,6 +210,7 @@
 							if (Modules[folder] != source) {
 								log.e("Broker Mismatch Exception");
 								process.exit(2);
+								reject();
 							}
 						}
 					}
@@ -221,6 +223,7 @@
 
 			function recursiveBuild() {
 				ifolder++;
+
 				if (ifolder >= nfolders) {
 					refreshSystem(populate);
 					return;
@@ -482,6 +485,7 @@
 			} else {
 				log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
 				process.exit(1);
+				reject();
 				return;
 			}
 			var schema = JSON.parse(mod['schema.json']);
@@ -604,6 +608,7 @@
 				else {
 					log.e('npm process exited with code:' + code);
 					process.exit(1);
+					reject();
 				}
 				log.v('Current working directory: ' + process.cwd());
 				func();

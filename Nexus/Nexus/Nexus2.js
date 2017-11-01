@@ -1,11 +1,10 @@
 (async function () {
 	console.log(`\nInitializing the Run Engine`);
 	console.time('Nexus Start Time');
-	console.log(process.env.NODE_PATH);
 
 	const fs = require('fs');
 	const date = new Date();
-	var Uuid=require("uuid/v4");
+	var Uuid;
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
 	var Apex = {};						// {<Name>: <pid of Apex>}
@@ -72,14 +71,21 @@
 	log.i(`Nexus Warming Up:`);
 
 
-
-
 	defineMacros();
 
 	if (!fs.existsSync(CacheDir)) {
-		log.i("Building the Cache");
+		// #ifndef BUILT
+		if (isBinary()) {
+			// #endif
+			log.e(`No cache exists at ${CacheDir}. Try xgraph run`);
+			process.exit(1);
+			// #ifndef BUILT
+		}
+		else
+			log.i("Building the Cache");
 		let genesisString = fs.readFileSync(`${Params['xGraph']}/Nexus/Nexus/Genesis2.js`).toString();
 		await eval(genesisString);
+		// #endif
 	}
 
 	initiate(run);
@@ -214,19 +220,25 @@
 
 	}
 
-
+	// #ifndef BUILT
+	function isBinary() {
+		return (typeof tar == 'undefined');
+	}
+	// #endif
 
 	function defineMacros() {
 		// Process input arguments and define macro parameters
-		
-		if (!(typeof tar == 'undefined')) {
-			for (key in pathOverrides) {
-				Params[key] = pathOverrides[key];
-			}
-		} else {
-			let arg, parts;
-			for (var iarg = 0; iarg < args.length; iarg++) {
-				arg = args[iarg];
+
+		let arg, parts;
+		for (var iarg = 0; iarg < args.length; iarg++) {
+			arg = args[iarg];
+			try {
+				let jarg = JSON.parse(arg);
+				for( let key in jarg){
+					log.v(`${key}=${jarg[key]}`);
+					Params[key] = jarg[key];
+				}
+			} catch (e) {
 				log.v(arg);
 				parts = arg.split('=');
 				if (parts.length == 2) {

@@ -21,6 +21,10 @@
 		this.super(com, (err, cmd) => {
 			console.log('--3DView/Setup');
 			let div = this.Vlt.div;
+
+			//set live for true for the example of an updating system
+			let live = false;
+			
 			this.Vlt.View = {};
 			View = this.Vlt.View;
 			View.Geometries = {};
@@ -54,7 +58,7 @@
 			View.RenderLoop = setInterval(_ => {
 
 				//For testing of updating elevations
-				if (this.Vlt.Update) {
+				if (this.Vlt.Update||live) {
 					this.Vlt.Update = false;
 					let q = {}
 					q.Cmd = "SetObjects";
@@ -64,6 +68,7 @@
 						elevations: []
 					};
 					q.Objects.push(obj);
+
 					this.send(q, this.Par.Pid, (err, com) => {
 						setTimeout(this.send({ Cmd: "ImageCapture" }, this.Par.Pid), 40);
 					});
@@ -113,68 +118,68 @@
 			q.Cmd = "SetObjects";
 			q.Objects = [];
 
-			// // //add 10 ellipsoids with random location and scales
-			// for (let idx = 0; idx < 100; idx++) {
-			// 	obj = {
-			// 		id: idx,
-			// 		geometry: {
-			// 			id: "geom",
-			// 			name: "SphereGeometry",
-			// 			arguments: [1, 64, 64]
-			// 		},
-			// 		mesh: {
-			// 			id: "mesh",
-			// 			name: "MeshPhongMaterial",
-			// 			arguments: {
-			// 				color: 0xFFFFFF * Math.random()
-			// 			}
-			// 		},
-			// 		position: {
-			// 			x: 100 * Math.random(),
-			// 			y: 100 * Math.random(),
-			// 			z: 100 * Math.random()
-			// 		},
-			// 		scale: {
-			// 			x: 10 * Math.random(),
-			// 			y: 10 * Math.random(),
-			// 			z: 10 * Math.random()
-			// 		},
-			// 		responseHandler: {
-			// 			Cmd: "EvokeExample",
-			// 			Handler: this.Par.Pid
-			// 		}
-			// 	};
-			// 	q.Objects.push(obj);
-			// }
+			// //add 10 ellipsoids with random location and scales
+			for (let idx = 0; idx <20; idx++) {
+				obj = {
+					id: idx,
+					geometry: {
+						id: "geom",
+						name: "SphereGeometry",
+						arguments: [1, 64, 64]
+					},
+					mesh: {
+						id: "mesh",
+						name: "MeshPhongMaterial",
+						arguments: {
+							color: 0xFFFFFF * Math.random()
+						}
+					},
+					position: {
+						x: 100 * Math.random(),
+						y: 100 * Math.random(),
+						z: 100 * Math.random()
+					},
+					scale: {
+						x: 10 * Math.random(),
+						y: 10 * Math.random(),
+						z: 10 * Math.random()
+					},
+					responseHandler: {
+						Cmd: "EvokeExample",
+						Handler: this.Par.Pid
+					}
+				};
+				q.Objects.push(obj);
+			}
 			// add a plane
 
-			// obj = {
-			// 	id: "plane",
-			// 	geometry: {
-			// 		id: "PlaneGeom",
-			// 		name: "PlaneGeometry",
-			// 		arguments: [100, 100, 99, 99]
-			// 	},
-			// 	mesh: {
-			// 		id: "planeMesh",
-			// 		name: "MeshPhongMaterial",
-			// 		arguments: {
-			// 			color: 0x333333
-			// 		}
-			// 	},
-			// 	position: {
-			// 		x: 50,
-			// 		y: 50,
-			// 		z: 0
-			// 	}, 
-			// 	elevations:[],
-			// 	responseHandler: {
-			// 		Cmd: "EvokeExample",
-			// 		Handler: this.Par.Pid
-			// 	}
-			// };
-			// q.Objects.push(obj);
-			// // add a module 
+			obj = {
+				id: "plane",
+				geometry: {
+					id: "PlaneGeom",
+					name: "PlaneGeometry",
+					arguments: [100, 100, 99, 99]
+				},
+				mesh: {
+					id: "planeMesh",
+					name: "MeshPhongMaterial",
+					arguments: {
+						color: 0x333333
+					}
+				},
+				position: {
+					x: 50,
+					y: 50,
+					z: 0
+				},
+				elevations: [],
+				responseHandler: {
+					Cmd: "EvokeExample",
+					Handler: this.Par.Pid
+				}
+			};
+			q.Objects.push(obj);
+			// add a module 
 			obj = {
 				id: "module",
 				module: "xGraph:Scene/Modelx3D",
@@ -337,7 +342,7 @@
 
 			let unit = com.Objects[i];
 
-			if (!unit.id || (unit.id && unit.id != 0)) {
+			if (typeof unit.id == "undefined") {
 				console.log("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}

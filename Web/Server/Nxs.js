@@ -1,6 +1,30 @@
 //# sourceURL=Nxs
-__Nexus = (function() {
+__Nexus = (function () {
 	console.log(' ** Nxs executing');
+
+	window.log = {
+		//grey magenta cyan yellow red
+		i: (..._) => console.log(`%c[INFO] ${_.join(' ')}`, 'color: cyan')
+
+	};
+
+	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+	// Levels include:
+	// v : verbose
+	// d : debug
+	// i : info
+	// w : warn
+	// e : error
+	window.log = {
+		v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
+		d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
+		i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
+		w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
+		e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+	};
+
+
+
 	var SockIO;
 	var Root;
 	var Pid24;
@@ -75,7 +99,7 @@ __Nexus = (function() {
 			if (pid24 == Pid24) {
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
-					if('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
+					if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
 						ent.dispatch(cmd, reply);
 					else
 						ent.dispatch(cmd, () => {
@@ -111,27 +135,27 @@ __Nexus = (function() {
 		var pidmsg = genPid();
 		com.Passport.Pid = pidmsg;
 
-        if (pid) {
-        	if(pid.charAt(0) == '$') {
-        		var sym = pid.substr(1);
-        		if(sym in Root.Global)
-        			pid = Root.Global[sym];
+		if (pid) {
+			if (pid.charAt(0) == '$') {
+				var sym = pid.substr(1);
+				if (sym in Root.Global)
+					pid = Root.Global[sym];
 			}
-            com.Passport.To = pid;
+			com.Passport.To = pid;
 
-            if (pid.charAt(0) != '$') {
-                var pid24 = pid.substr(0, 24);
-                if (pid24 == Pid24) {
-                    if (pid in EntCache) {
-                        var ent = EntCache[pid];
-                        ent.dispatch(com, fun);
-                    } else {
-                        console.log(' ** ERR:Local', pid, 'not in Cache');
-                    }
-                    return;
-                }
-            } else if (pid.substr(1) in SymTab) {
-            	pid = SymTab[pid.substr(1)];
+			if (pid.charAt(0) != '$') {
+				var pid24 = pid.substr(0, 24);
+				if (pid24 == Pid24) {
+					if (pid in EntCache) {
+						var ent = EntCache[pid];
+						ent.dispatch(com, fun);
+					} else {
+						console.log(' ** ERR:Local', pid, 'not in Cache');
+					}
+					return;
+				}
+			} else if (pid.substr(1) in SymTab) {
+				pid = SymTab[pid.substr(1)];
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
 					ent.dispatch(com, fun);
@@ -140,29 +164,29 @@ __Nexus = (function() {
 				}
 				return;
 			}
-        }
-        if (fun) {
+		}
+		if (fun) {
 			//debugger;
-            MsgPool[pidmsg] = fun;
-            MsgFifo.push(pidmsg);
-            if (MsgFifo.length > 100) {
-                var kill = MsgFifo.shift();
-                delete MsgPool[kill];
-            }
-        }
-        var str = JSON.stringify(com);
-        if(__Config.TrackIO)
+			MsgPool[pidmsg] = fun;
+			MsgFifo.push(pidmsg);
+			if (MsgFifo.length > 100) {
+				var kill = MsgFifo.shift();
+				delete MsgPool[kill];
+			}
+		}
+		var str = JSON.stringify(com);
+		if (__Config.TrackIO)
 			console.log(' >> Msg:' + com.Cmd);
 		if (!(silent)) console.log(str)
-        SockIO.send(str);
+		SockIO.send(str);
 
 		// function sendLocal() {
-        //     if (pid in EntCache) {
-        //         var ent = EntCache[pid];
-        //         ent.dispatch(com, fun);
-        //     } else {
-        //         console.log(' ** ERR:Local', pid, 'not in Cache');
-        //     }
+		//     if (pid in EntCache) {
+		//         var ent = EntCache[pid];
+		//         ent.dispatch(com, fun);
+		//     } else {
+		//         console.log(' ** ERR:Local', pid, 'not in Cache');
+		//     }
 		// }
 	}
 
@@ -182,14 +206,14 @@ __Nexus = (function() {
 
 	//--------------------------------------------------------getFont
 	function getFont(font) {
-		if(font in Fonts)
+		if (font in Fonts)
 			return Fonts[font];
 	}
 
 	//--------------------------------------------------------Entity
 	// Entity base class
 	function Entity(nxs, mod, par) {
-	//	var Nxs = nxs;
+		//	var Nxs = nxs;
 		var Par = par;
 		var Mod = mod;
 		var Vlt = {};
@@ -198,13 +222,13 @@ __Nexus = (function() {
 			Par: Par,
 			Mod: Mod,
 			Vlt: Vlt,
-	//		Nxs: Nxs,
+			//		Nxs: Nxs,
 			dispatch: dispatch,
 			send: send,
 			deleteEntity: deleteEntity,
 			getPid: getPid,
 			getFile,
-			genModule :genModule
+			genModule: genModule
 		};
 
 		//-------------------------------------------------dispatch
@@ -222,11 +246,11 @@ __Nexus = (function() {
 				return;
 			}
 			//console.log(com.Cmd + ' unknown');
-			if(fun)
+			if (fun)
 				fun(com.Cmd + ' unknown');
 		}
 
-		function deleteEntity(fun){
+		function deleteEntity(fun) {
 			nxs.delEntity(Par.Pid, fun);
 		}
 
@@ -237,8 +261,8 @@ __Nexus = (function() {
 		}
 
 		//generate a module in the local system
-		function genModule(mod, fun){
-			nxs.genModule(mod,fun);
+		function genModule(mod, fun) {
+			nxs.genModule(mod, fun);
 		}
 
 		function getFile(filename, fun) {
@@ -248,7 +272,7 @@ __Nexus = (function() {
 		//-------------------------------------------------send
 		function send(com, pid, fun) {
 			com.Passport = {};
-			if(fun)
+			if (fun)
 				com.Passport.From = Par.Pid;
 			com.Passport.To = pid;
 			nxs.send(com, pid, fun);
@@ -264,7 +288,7 @@ __Nexus = (function() {
 	//-----------------------------------------------------genNode
 	// Generate node from parameter object
 	function genEntity(par, fun) {
-	//	console.log('--genEntity', par.Entity);
+		//	console.log('--genEntity', par.Entity);
 		var name = par.Entity;
 		if (name in ModCache) {
 			var mod = ModCache[name];
@@ -290,7 +314,7 @@ __Nexus = (function() {
 
 		function done(err, com) {
 			if (!('Mod' in com)) {
-				var errmsg = com.Name +  'module is not available';
+				var errmsg = com.Name + 'module is not available';
 				console.log(' ** ERR:' + errmsg);
 				fun(err);
 			}
@@ -302,9 +326,9 @@ __Nexus = (function() {
 			if (ent) {
 				ModCache[name] = mod;
 				EntCache[pid] = ent;
-//                if (par.$Browser) {
-//                	SymTab[par.$Browser] = pid;
-//                }
+				//                if (par.$Browser) {
+				//                	SymTab[par.$Browser] = pid;
+				//                }
 				fun(null, ent);
 				return;
 			}
@@ -312,9 +336,9 @@ __Nexus = (function() {
 		}
 	}
 
-    //-----------------------------------------------------delEntity
-    // Generate node from parameter object
-    function delEntity(pid, fun) {
+	//-----------------------------------------------------delEntity
+	// Generate node from parameter object
+	function delEntity(pid, fun) {
 		if (EntCache[pid]) {
 			delete EntCache[pid];
 			console.log(pid, ' Deleted');
@@ -324,10 +348,10 @@ __Nexus = (function() {
 		} else {
 			console.log('Entity not found: ', pid);
 			if (fun) {
-				fun(("Entity not found: "+ pid));
+				fun(("Entity not found: " + pid));
 			}
 		}
-    }
+	}
 
 	//------------------------------------------------------genPid
 	// Generate Pid (pseudo-GUID)
@@ -350,10 +374,10 @@ __Nexus = (function() {
 		addModule(mod, setup);
 
 		function setup(err, pid) {
-		//	console.log('pid', pid);
-		//	console.log('Initializers', Initializers);
+			//	console.log('pid', pid);
+			//	console.log('Initializers', Initializers);
 			pidapx = pid;
-			if(err) {
+			if (err) {
 				console.log(' ** genModule:' + err);
 				fun(err);
 				return;
@@ -367,13 +391,13 @@ __Nexus = (function() {
 			}
 		}
 
-		function start(err, r ) {
-			if(err) {
+		function start(err, r) {
+			if (err) {
 				console.log(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
-			if('Start' in Initializers) {
+			if ('Start' in Initializers) {
 				var q = {};
 				q.Cmd = Initializers.Start;
 				send(q, pidapx, pau);
@@ -383,7 +407,7 @@ __Nexus = (function() {
 		}
 
 		function pau(err, r) {
-			if(err) {
+			if (err) {
 				console.log(' ** genModule:' + err);
 			}
 			fun(err, pidapx);
@@ -394,7 +418,7 @@ __Nexus = (function() {
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
 		if (!(silent)) console.log('..addModule');
-		if (!(silent))console.log(JSON.stringify(mod, null, 2));
+		if (!(silent)) console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
 		var q = {};
@@ -408,12 +432,12 @@ __Nexus = (function() {
 			//console.log('..addmod');
 			var module = r.Module;
 			var zipmod = new JSZip();
-			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
+			zipmod.loadAsync(r.Zip, { base64: true }).then(function (zip) {
 				var dir = zipmod.file(/.*./);
-				
-				zip.file('module.json').async('string').then(function(str) {
+
+				zip.file('module.json').async('string').then(function (str) {
 					modjson = JSON.parse(str);
-					ModuleCache[mod.Module]= modjson;
+					ModuleCache[mod.Module] = modjson;
 					var keys = Object.keys(mod);
 					//debugger;
 					styles();
@@ -421,19 +445,19 @@ __Nexus = (function() {
 
 
 				function styles() {
-					if('styles.json' in modjson) {
+					if ('styles.json' in modjson) {
 						var obj = JSON.parse(modjson["styles.json"]);
 						var keys = Object.keys(obj);
 						//debugger;
-						async.eachSeries(keys, function(key, func) {
+						async.eachSeries(keys, function (key, func) {
 							//debugger;
-							
+
 							//this needs to be reworked duplicate names are not loaded
 							// if(Css.indexOf(key) >= 0) {
 							// 	func();
 							// 	return;
 							// }
-							
+
 							Css.push(key);
 							var file = obj[key];
 
@@ -463,11 +487,11 @@ __Nexus = (function() {
 
 				function scripts() {
 					//console.log('..scripts');
-					if('scripts.json' in modjson) {
+					if ('scripts.json' in modjson) {
 						var obj = JSON.parse(modjson["scripts.json"]);
 						var keys = Object.keys(obj);
-						async.eachSeries(keys, function(key, func) {
-							if(Scripts.indexOf(key) >= 0) {
+						async.eachSeries(keys, function (key, func) {
+							if (Scripts.indexOf(key) >= 0) {
 								func();
 								return;
 							}
@@ -475,7 +499,7 @@ __Nexus = (function() {
 							var file = obj[key];
 							let scr = modjson[file];
 							//console.log("loading module from ", module, scr);
-							
+
 							// var tag = document.createElement('script');
 							// tag.setAttribute("data-script-url", key);
 							// tag.setAttribute("type", 'text/javascript');
@@ -492,12 +516,12 @@ __Nexus = (function() {
 				}
 
 				function fonts() {
-				//	console.log('..fonts');
-					if('fonts.json' in modjson) {
+					//	console.log('..fonts');
+					if ('fonts.json' in modjson) {
 						var obj = JSON.parse(modjson["fonts.json"]);
 						var keys = Object.keys(obj);
-						async.eachSeries(keys, function(key, func) {
-							if(key in Fonts) {
+						async.eachSeries(keys, function (key, func) {
+							if (key in Fonts) {
 								func();
 								return;
 							}
@@ -505,7 +529,7 @@ __Nexus = (function() {
 							let str = modjson[file];
 							var json = JSON.parse(str);
 							var font = new THREE.Font(json);
-							if(!silent) console.log('font', font);
+							if (!silent) console.log('font', font);
 							Fonts[key] = font;
 							func();
 						}, schema);
@@ -522,28 +546,28 @@ __Nexus = (function() {
 			});
 
 			function compile(str) {
-			//	console.log('..compile');
+				//	console.log('..compile');
 				var pidapx;
 				var schema = str;
 				ZipCache[module] = zipmod;
 				//debugger;
 				for (let lbl in schema) {
 					var ent = schema[lbl];
-					if('Par' in mod) {
-						for(key in mod.Par) {
+					if ('Par' in mod) {
+						for (key in mod.Par) {
 							ent[key] = mod.Par[key];
 						}
 					}
 					ent.Module = mod.Module;
 					//Note: CurrentModule is only used in initial processing
 					//      of browser.json
-					if(lbl == 'Apex') {
-						if(CurrentModule)
+					if (lbl == 'Apex') {
+						if (CurrentModule)
 							ent.Pid = Root.ApexList[CurrentModule];
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
-					//	console.log('Apex', ent);
+						//	console.log('Apex', ent);
 					} else {
 						ent.Pid = genPid();
 					}
@@ -556,7 +580,7 @@ __Nexus = (function() {
 				nextent();
 
 				function nextent() {
-					if(ikey >= nkey) {
+					if (ikey >= nkey) {
 						fun(null, pidapx);
 						return;
 					}
@@ -603,7 +627,7 @@ __Nexus = (function() {
 					//seems to be duplicate from line 481
 
 					//ZipCache[mod] = zipmod;
-					let str = modjson[ent.Entity]						
+					let str = modjson[ent.Entity]
 					var mod = eval(str);
 					ModCache[modkey] = mod;
 					EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
@@ -612,17 +636,17 @@ __Nexus = (function() {
 
 				function symbol(str) {
 					var esc = str.charAt(0);
-					if(esc == '#') {
+					if (esc == '#') {
 						var lbl = str.substr(1);
-						if(!(lbl in lbls)) {
+						if (!(lbl in lbls)) {
 							var err = ' ** Symbol ' + lbl + ' not defined';
 							throw err;
 						}
 						return lbls[lbl];
 					}
-					if(esc == '$') {
+					if (esc == '$') {
 						var sym = str.substr(1);
-						if(!(sym in Root.ApexList)) {
+						if (!(sym in Root.ApexList)) {
 							var err = ' ** Symbol ' + sym + ' not defined';
 							throw err;
 						}
@@ -645,9 +669,9 @@ __Nexus = (function() {
 		Root.Global = {};
 		Root.Setup = {};
 		Root.Start = {};
-		Root.ApexList = cfg.ApexList||{};
+		Root.ApexList = cfg.ApexList || {};
 		var ikey = 0;
-		if('Scripts' in Config) {
+		if ('Scripts' in Config) {
 			var keys = Object.keys(Config.Scripts);
 			nkeys = keys.length;
 		} else {
@@ -667,8 +691,8 @@ __Nexus = (function() {
 			var q = {};
 			q.Cmd = 'GetFile';
 			q.File = Config.Scripts[key];
-			send(q, Config.pidServer, function(err, r) {
-				if(err) {
+			send(q, Config.pidServer, function (err, r) {
+				if (err) {
 					console.log(' ** ERR:Script error', err);
 					return;
 				}
@@ -690,17 +714,17 @@ __Nexus = (function() {
 		function modules() {
 			var keys = Object.keys(Config.Modules);
 			//debugger;
-			for(var i=0; i<keys.length; i++) {
+			for (var i = 0; i < keys.length; i++) {
 				key = keys[i];
 				Root.ApexList[key] = genPid();
 			}
-			async.eachSeries(keys, function(key, func) {
+			async.eachSeries(keys, function (key, func) {
 				let mod = Config.Modules[key];
 				CurrentModule = key;
 				addModule(mod, addmod);
 
 				function addmod(err, pid) {
-					if(err) {
+					if (err) {
 						console.log(' ** ERR:Cannot add mod <' + r.Module + '>');
 					}
 					//TBD: Might want to bail on err
@@ -714,7 +738,7 @@ __Nexus = (function() {
 		//-------------------------------------------------Setup
 		function Setup(err) {
 			// console.log('--Nexus/Setup');
-			
+
 			CurrentModule = null;
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
@@ -722,7 +746,7 @@ __Nexus = (function() {
 			setup();
 
 			function setup() {
-				if(ipid >= npid) {
+				if (ipid >= npid) {
 					Start();
 					return;
 				}
@@ -748,7 +772,7 @@ __Nexus = (function() {
 			start();
 
 			function start() {
-				if(ipid >= npid) {
+				if (ipid >= npid) {
 					Run();
 					return;
 				}

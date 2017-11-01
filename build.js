@@ -16,7 +16,7 @@
 
 	function load(filename) {
 		return `function(){
-			${fs.readFileSync(filename)}
+			return ${fs.readFileSync(filename)}
 		};`;
 	}
 
@@ -80,47 +80,30 @@
 
 	// copy everything into bin/lib
 	ensureDir('bin/lib')
-	ensureDir('bin/lib/Proxy');
 	ensureDir('bin/lib/Nexus');
 
-	copy('Nexus/Nexus/Nexus.js', 'bin/lib/Nexus/Nexus.js');
-	copy('Nexus/Nexus/package.json', 'bin/lib/Nexus/package.json');
-	copy('Nexus/Proxy/Proxy.js', 'bin/lib/Proxy/Proxy.js');
-	copy('Nexus/Proxy/schema.json', 'bin/lib/Proxy/schema.json');
-
-
+	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('Nexus/Nexus/Nexus2.js'), '.').process({ BUILT: true }));
+	
 	//copy bin/lib into bin/linux/lib
 	ensureDir('bin/linux');
 	ensureDir('bin/linux/lib');
 	ensureDir('bin/linux/lib/Nexus');
-	ensureDir('bin/linux/lib/Proxy');
 
 	copy('bin/lib/Nexus/Nexus.js', 'bin/linux/lib/Nexus/Nexus.js');
-	copy('bin/lib/Nexus/package.json', 'bin/linux/lib/Nexus/package.json');
-	copy('bin/lib/Proxy/Proxy.js', 'bin/linux/lib/Proxy/Proxy.js');
-	copy('bin/lib/Proxy/schema.json', 'bin/linux/lib/Proxy/schema.json');
 
 	//copy bin/lib into bin/windows/lib
 	ensureDir('bin/windows/bin')
 	ensureDir('bin/windows/bin/lib');
 	ensureDir('bin/windows/bin/lib/Nexus');
-	ensureDir('bin/windows/bin/lib/Proxy');
 
 	copy('bin/lib/Nexus/Nexus.js', 'bin/windows/bin/lib/Nexus/Nexus.js');
-	copy('bin/lib/Nexus/package.json', 'bin/windows/bin/lib/Nexus/package.json');
-	copy('bin/lib/Proxy/Proxy.js', 'bin/windows/bin/lib/Proxy/Proxy.js');
-	copy('bin/lib/Proxy/schema.json', 'bin/windows/bin/lib/Proxy/schema.json');
 
 	//copy bin/lib into bin/windows/lib
 	ensureDir('bin/mac')
 	ensureDir('bin/mac/lib');
 	ensureDir('bin/mac/lib/Nexus');
-	ensureDir('bin/mac/lib/Proxy');
 
 	copy('bin/lib/Nexus/Nexus.js', 'bin/mac/lib/Nexus/Nexus.js');
-	copy('bin/lib/Nexus/package.json', 'bin/mac/lib/Nexus/package.json');
-	copy('bin/lib/Proxy/Proxy.js', 'bin/mac/lib/Proxy/Proxy.js');
-	copy('bin/lib/Proxy/schema.json', 'bin/mac/lib/Proxy/schema.json');
 
 
 	//make the tar.gz ... msi ... mac dmg/pkg
@@ -136,39 +119,39 @@
 		}
 	});
 
-	//make for mac
-	var opts = {
-		dir: 'bin/linux', // the contents of this dir will be installed in install Location 
-		installLocation: '/Applications',
-		identifier: 'com.IntrospectiveSystems.xgraph.pkg',
-		title: 'xGraph'
-	}
-	createPackage(opts)
-		.pipe(fs.createWriteStream('bin/xgraph.pkg'))
+	// //make for mac
+	// var opts = {
+	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
+	// 	installLocation: '/Applications',
+	// 	identifier: 'com.IntrospectiveSystems.xgraph.pkg',
+	// 	title: 'xGraph'
+	// }
+	// createPackage(opts)
+	// 	.pipe(fs.createWriteStream('bin/xgraph.pkg'))
 
 
-	//make for windows
-	var options = {
+	// //make for windows
+	// var options = {
 
-		source: 'bin/windows',
-		output: 'bin/xgraph.msi',
-		name: 'xGraph',
-		upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
-		version: '1.0.0',
-		manufacturer: 'IntrospectiveSystems.com',
-		iconPath: 'IS.png',
-		executable: 'xgraph.exe',
+	// 	source: 'bin/windows',
+	// 	output: 'bin/xgraph.msi',
+	// 	name: 'xGraph',
+	// 	upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
+	// 	version: '1.0.0',
+	// 	manufacturer: 'IntrospectiveSystems.com',
+	// 	iconPath: 'IS.png',
+	// 	executable: 'xgraph.exe',
 
-		// optional 
-		description: "install xgraph CLI",
-		arch: 'x64',
-		localInstall: true
-	};
+	// 	// optional 
+	// 	description: "install xgraph CLI",
+	// 	arch: 'x64',
+	// 	localInstall: true
+	// };
 
-	createMsi(options, function (err) {
-		if (err) throw err
-		console.log('Outputed to ' + options.output);
-	});
+	// createMsi(options, function (err) {
+	// 	if (err) throw err
+	// 	console.log('Outputed to ' + options.output);
+	// });
 
 	//https://wiki.gnome.org/msitools/HowTo/CreateMSI
 

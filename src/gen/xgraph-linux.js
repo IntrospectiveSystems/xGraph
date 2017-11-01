@@ -1,25 +1,3 @@
-console.log(process.env.NODE_PATH, typeof process.env.NODE_PATH);
-if (!(process.env.NODE_PATH == './node_modules')) {
-const { spawn } = require('child_process');
-
-console.log("try again with node path set");
-
-let sp = spawn(process.argv[0], process.argv.slice(1), { env: { NODE_PATH: `${cwd}/node_modules` } });
-
-sp.stdout.on('data', (data) => {
-console.log(`stdout: ${data}`);
-});
-
-sp.stderr.on('data', (data) => {
-console.log(`stderr: ${data}`);
-});
-
-sp.on('close', (code) => {
-console.log(`child process exited with code ${code}`);
-});
-}
-
-
 const { execSync } = require('child_process');
 const tar = require('targz');
 const fs = require('fs');
@@ -36,7 +14,7 @@ let unix = true;
 let pathOverrides = {};
 
 let genesis = function(){
-			(function () {
+			return (function () {
 	return new Promise((resolve, reject) => {
 
 		console.log(`\nInitializing the Compile Engine`);
@@ -61,7 +39,7 @@ let genesis = function(){
 
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
+			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
 		};
 		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 		// Levels include:
@@ -123,19 +101,18 @@ let genesis = function(){
 			function defineMacros() {
 				// Process input arguments and define macro parameters
 
-				if (!(typeof tar == 'undefined')) {
-					for (key in pathOverrides) {
-						Params[key] = pathOverrides[key];
+				let arg, parts;
+				for (var iarg = 0; iarg < args.length; iarg++) {
+					arg = args[iarg];
+					log.v(arg);
+					parts = arg.split('=');
+					if (parts.length == 2) {
+						Params[parts[0]] = parts[1];
 					}
-				} else {
-					let arg, parts;
-					for (var iarg = 0; iarg < args.length; iarg++) {
-						arg = args[iarg];
-						log.v(arg);
-						parts = arg.split('=');
-						if (parts.length == 2) {
-							Params[parts[0]] = parts[1];
-						}
+				}
+				if (!(typeof pathOverrides == "undefined")){
+					for (let key in pathOverrides){
+						Params[key]= pathOverrides[key];
 					}
 				}
 			}
@@ -179,6 +156,7 @@ let genesis = function(){
 					// No config was provided. Exit promptly.
 					log.e(' ** No configuration file (config.json) provided');
 					process.exit(1);
+					reject();
 				}
 
 				// Print out the parsed config
@@ -235,6 +213,7 @@ let genesis = function(){
 								if (Modules[folder] != source) {
 									log.e("Broker Mismatch Exception");
 									process.exit(2);
+									reject();
 								}
 							}
 						});
@@ -247,6 +226,7 @@ let genesis = function(){
 							if (Modules[folder] != source) {
 								log.e("Broker Mismatch Exception");
 								process.exit(2);
+								reject();
 							}
 						}
 					}
@@ -259,6 +239,7 @@ let genesis = function(){
 
 			function recursiveBuild() {
 				ifolder++;
+
 				if (ifolder >= nfolders) {
 					refreshSystem(populate);
 					return;
@@ -520,6 +501,7 @@ let genesis = function(){
 			} else {
 				log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
 				process.exit(1);
+				reject();
 				return;
 			}
 			var schema = JSON.parse(mod['schema.json']);
@@ -642,6 +624,7 @@ let genesis = function(){
 				else {
 					log.e('npm process exited with code:' + code);
 					process.exit(1);
+					reject();
 				}
 				log.v('Current working directory: ' + process.cwd());
 				func();
@@ -814,7 +797,6 @@ break;
 async function init(args) {
 console.log('init System');
 console.log('[', ...args, ']');
-
 }
 
 function help() {
@@ -855,7 +837,7 @@ console.log(`ERR: ${e}`);
 async function run() {
 try {
 await ensureNode();
-if (fs.lstatSync(pathOverrides['cache'] || 'cache').isDirectory()) {
+if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 startNexusProcess();
 } else {
 await genesis();
@@ -878,16 +860,12 @@ console.log(`ERR: ${e}`);
 
 function startNexusProcess() {
 
-process.env.NODE_PATH = "node_modules/";
 const { spawn } = require('child_process');
-console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
-ls.stdout.on('data', (data) => {
-console.log(`${data}`);
-});
-ls.stderr.on('data', (data) => {
-console.log(`${data}`);
-});
+
+const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :"node_modules/"} });
+
+ls.stdout.on('data', _=> process.stdout.write(_));
+ls.stderr.on('data', _=> process.stderr.write(_));
 
 ls.on('close', (code) => {
 console.log(`child process exited with code ${code}`);
