@@ -1,0 +1,34 @@
+{
+	"Sources":{
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.Web.Server",
+			"Source": "xGraph",
+			"Par": {
+				"ApexList": {},
+				"Port": 8080,
+				"Url": "Paint"
+			}
+		},
+		"Deferred":[
+			{
+				"Module": "xGraph.Widgets.RootView",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.3DView",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.Mouse",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.Popup",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

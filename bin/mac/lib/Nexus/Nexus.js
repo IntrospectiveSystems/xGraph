@@ -4,6 +4,7 @@
 	var Path = require('path');
 	let log = fs.createWriteStream(process.cwd() + "/EventLog.txt");
 
+<<<<<<< HEAD
 	global.log = {
 		v: (...str) => {
 			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
@@ -22,6 +23,8 @@
 		}
 	}
 
+=======
+>>>>>>> b32a518bba80e0d89d539652ef6313c70b870890
 	var Uuid;
 	var CacheDir;
 	var WorkDir = process.cwd();

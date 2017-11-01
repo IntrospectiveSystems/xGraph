@@ -18,9 +18,9 @@
 		console.log('--Http/Setup');
 
 		fs = this.require('fs');
-		async = this.require('async');
 		jszip = this.require("jszip");
-		
+		async = this.require('async');
+
 		if(fun)
 			fun();
 	}

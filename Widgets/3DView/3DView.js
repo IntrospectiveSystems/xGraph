@@ -113,67 +113,67 @@
 			q.Cmd = "SetObjects";
 			q.Objects = [];
 
-			// //add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx < 100; idx++) {
-				obj = {
-					id: idx,
-					geometry: {
-						id: "geom",
-						name: "SphereGeometry",
-						arguments: [1, 64, 64]
-					},
-					mesh: {
-						id: "mesh",
-						name: "MeshPhongMaterial",
-						arguments: {
-							color: 0xFFFFFF * Math.random()
-						}
-					},
-					position: {
-						x: 100 * Math.random(),
-						y: 100 * Math.random(),
-						z: 100 * Math.random()
-					},
-					scale: {
-						x: 10 * Math.random(),
-						y: 10 * Math.random(),
-						z: 10 * Math.random()
-					},
-					responseHandler: {
-						Cmd: "EvokeExample",
-						Handler: this.Par.Pid
-					}
-				};
-				q.Objects.push(obj);
-			}
+			// // //add 10 ellipsoids with random location and scales
+			// for (let idx = 0; idx < 100; idx++) {
+			// 	obj = {
+			// 		id: idx,
+			// 		geometry: {
+			// 			id: "geom",
+			// 			name: "SphereGeometry",
+			// 			arguments: [1, 64, 64]
+			// 		},
+			// 		mesh: {
+			// 			id: "mesh",
+			// 			name: "MeshPhongMaterial",
+			// 			arguments: {
+			// 				color: 0xFFFFFF * Math.random()
+			// 			}
+			// 		},
+			// 		position: {
+			// 			x: 100 * Math.random(),
+			// 			y: 100 * Math.random(),
+			// 			z: 100 * Math.random()
+			// 		},
+			// 		scale: {
+			// 			x: 10 * Math.random(),
+			// 			y: 10 * Math.random(),
+			// 			z: 10 * Math.random()
+			// 		},
+			// 		responseHandler: {
+			// 			Cmd: "EvokeExample",
+			// 			Handler: this.Par.Pid
+			// 		}
+			// 	};
+			// 	q.Objects.push(obj);
+			// }
 			// add a plane
 
-			obj = {
-				id: "plane",
-				geometry: {
-					id: "PlaneGeom",
-					name: "PlaneGeometry",
-					arguments: [100, 100, 99, 99]
-				},
-				mesh: {
-					id: "planeMesh",
-					name: "MeshPhongMaterial",
-					arguments: {
-						color: 0x333333
-					}
-				},
-				position: {
-					x: 50,
-					y: 50,
-					z: 0
-				}, 
-				elevations:[],
-				responseHandler: {
-					Cmd: "EvokeExample",
-					Handler: this.Par.Pid
-				}
-			};
-			q.Objects.push(obj);
+			// obj = {
+			// 	id: "plane",
+			// 	geometry: {
+			// 		id: "PlaneGeom",
+			// 		name: "PlaneGeometry",
+			// 		arguments: [100, 100, 99, 99]
+			// 	},
+			// 	mesh: {
+			// 		id: "planeMesh",
+			// 		name: "MeshPhongMaterial",
+			// 		arguments: {
+			// 			color: 0x333333
+			// 		}
+			// 	},
+			// 	position: {
+			// 		x: 50,
+			// 		y: 50,
+			// 		z: 0
+			// 	}, 
+			// 	elevations:[],
+			// 	responseHandler: {
+			// 		Cmd: "EvokeExample",
+			// 		Handler: this.Par.Pid
+			// 	}
+			// };
+			// q.Objects.push(obj);
 			// // add a module 
 			obj = {
 				id: "module",
@@ -337,7 +337,7 @@
 
 			let unit = com.Objects[i];
 
-			if (!unit.id && (unit.id != 0)) {
+			if (!unit.id || (unit.id && unit.id != 0)) {
 				console.log("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}

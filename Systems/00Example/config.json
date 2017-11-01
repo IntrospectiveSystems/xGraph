@@ -3,7 +3,7 @@
 	"Cache": "cache",
 	"Modules": {
 		"Nexus": {
-			"Module": "xGraph.Nexus.Nexus"
+			"Module":"xGraph.Nexus.Nexus"
 		},
 		"Server": {
 			"Module": "xGraph.Web.Server",
