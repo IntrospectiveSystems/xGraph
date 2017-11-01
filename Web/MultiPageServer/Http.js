@@ -22,6 +22,7 @@
 
 	function Start(com, fun) {
 		log.v('--Http/Start');
+		var sockio = this.require('socket.io');
 
 		var that = this;
 		fs = this.require('fs');
@@ -30,6 +31,7 @@
 		path = this.require("path");
 		this.Vlt.SSLRedirect = false;
 		let attemptSSL = 'SSL' in this.Par && 'Domain' in this.Par.SSL && 'Email' in this.Par.SSL && 'Port' in this.Par.SSL;
+		let server = null;
 
 		let getCertificate = (le) => {
 			log.v('attempting to retrieve certificates...')
@@ -155,22 +157,21 @@
 			// log.i('WE LISTENIN HTTP');
 			if(attemptSSL)
 				getCertificate(le);
+			else {
+				server = httpServer;
+				finish();
+			}
 			
 		}
 
 		let setupHttps = () => {
 			log.i('\nCertificates Procured, proceeding to HTTPS/1.1 Setup...');
 			var https = this.require('https');
-			var sockio = this.require('socket.io');
 	
-			var port;
+			var port = this.Par.SSL.Port;
 			var Par = this.Par;
 			var Vlt = this.Vlt;
 			Vlt.Session = this.genPid();
-			if ('Port' in this.Par)
-				port = this.Par.Port;
-			else
-				port = 8080;
 
 			//TODO renew every 7500000000 ms (2.8 ish months)
 			var web = https.createServer({
@@ -189,7 +190,15 @@
 				}
 			});
 			web.listen(3443);
-			webSocket(web);
+			server = web;
+			finish();
+		};
+
+		let finish = () => {
+			var Par = this.Par;
+			var Vlt = this.Vlt;
+			
+			webSocket(server);
 			fs.readFile('browser.json', function(err, data) {
 				if(err) {
 					log.i(' ** ERR::Cannot read browser config');
@@ -365,7 +374,7 @@
 					});
 				});
 			}
-		}
+		};
 		
 		setupHttp();
 
@@ -376,7 +385,7 @@
 	// browsers that have subscribed
 	function Publish(com, fun) {
 		// debugger;
-	//	log.i('--Publish', com.Cmd);
+		//	log.i('--Publish', com.Cmd);
 		fun = fun || (() => {});
 
 		var Vlt = this.Vlt;
