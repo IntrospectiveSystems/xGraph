@@ -1,6 +1,6 @@
 //#
 (function Http() {
-	let fs, async, jszip;
+	let async, jszip;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -17,7 +17,6 @@
 	function Setup(com, fun) {
 		console.log('--Http/Setup');
 
-		fs = this.require('fs');
 		jszip = this.require("jszip");
 		async = this.require('async');
 
@@ -51,7 +50,13 @@
 		web.listen(port);
 		webSocket(web);
 		console.log(' ** Spider listening on port', port);
-		fs.readFile('browser.json', function(err, data) {
+		if('Config' in this.Par) {
+			readBrowser(null, this.Par.Config);
+		} else {
+			readBrowser('Config not in Par', null);
+		}
+
+		function readBrowser(err, data) {
 			if(err) {
 				console.log(' ** ERR::Cannot read browser config');
 				fun(err);
@@ -59,7 +64,7 @@
 			}
 			Vlt.Browser = JSON.parse(data.toString());
 			getscripts();
-		});
+		}
 
 		function getscripts() {
 			that.getFile('scripts.json', function(err, data) {
@@ -242,15 +247,11 @@
 			path = './' + url + '.html';
 		}
 		//console.log("Path of Get file is ", path);
-		fs.exists(path, html);
-
-		function html(yes) {
-			if(!yes) {
-				res.writeHead(404);
-				res.end('You are out of your verbial guord');
-				return;
-			}
-			fs.readFile(path, ship);
+		// fs.exists(path, html);
+		if('HTMLFile' in this.Par) {
+			ship(null, this.Par.HTMLFile)
+		} else {
+			ship('HTMLFile not in par');
 		}
 
 		function ship(err, data) {
