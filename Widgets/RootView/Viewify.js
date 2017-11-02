@@ -315,7 +315,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				});
 			}, function() {
 				fun(null, com);
-			})
+			});
 		}
 
 		GetType(com, fun) {
