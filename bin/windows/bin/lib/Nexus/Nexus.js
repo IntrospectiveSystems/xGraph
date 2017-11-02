@@ -8,7 +8,7 @@
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
 	var Apex = {};						// {<Name>: <pid of Apex>}
-	var Modules = {};					// {<Name>: <mod desc>} - only in Genesis
+	//var Modules = {};					// {<Name>: <mod desc>} - only in Genesis
 	var ModCache = {};					// {<folder>: <module>}
 	var ApexIndex = {}; 				// {<Apex pid>:<folder>}
 	var SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
@@ -32,40 +32,44 @@
 	//
 	// Logging Functionality
 	//
+	{
+		// The logging function for writing to xgraph.log to the current working directory
+		const xgraphlog = (...str) => {
+			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
+		};
+		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// Levels include:
+		// v : verbose
+		// d : debug
+		// i : info
+		// w : warn
+		// e : error
+		const log = global.log = {
+			v: (...str) => {
+				console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+				xgraphlog(...str);
+			},
+			d: (...str) => {
+				console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+				xgraphlog(...str);
+			},
+			i: (...str) => {
+				console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+				xgraphlog(...str);
+			},
+			w: (...str) => {
+				console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+				xgraphlog(...str);
+			},
+			e: (...str) => {
+				console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+				xgraphlog(...str);
+			}
+		};
+	}
 
-	// The logging function for writing to xgraph.log to the current working directory
-	const xgraphlog = (...str) => {
-		fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
-	};
-	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
-	// Levels include:
-	// v : verbose
-	// d : debug
-	// i : info
-	// w : warn
-	// e : error
-	const log = global.log = {
-		v: (...str) => {
-			console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-			xgraphlog(...str);
-		},
-		d: (...str) => {
-			console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-			xgraphlog(...str);
-		},
-		i: (...str) => {
-			console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-			xgraphlog(...str);
-		},
-		w: (...str) => {
-			console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
-			xgraphlog(...str);
-		},
-		e: (...str) => {
-			console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-			xgraphlog(...str);
-		}
-	};
+
+
 
 	log.i('=================================================');
 	log.i(`Nexus Warming Up:`);
@@ -78,7 +82,7 @@
 			process.exit(1);
 				}
 
-	initiate(run);
+	initiate();
 
 
 
@@ -95,17 +99,45 @@
 	//
 	//
 
+	/**
+	 * Populates Params {OBJECT} 
+	 * This is populated from both the process.argv array as well as those parsed in the 
+	 * binary file if it was used. 
+	 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
+	 */
+	function defineMacros() {
+		// Process input arguments and define macro parameters
 
+		let arg, parts;
+		for (var iarg = 0; iarg < args.length; iarg++) {
+			arg = args[iarg];
+			try {
+				let jarg = JSON.parse(arg);
+				for (let key in jarg) {
+					log.v(`${key}=${jarg[key]}`);
+					Params[key] = jarg[key];
+				}
+			} catch (e) {
+				log.v(arg);
+				parts = arg.split('=');
+				if (parts.length == 2) {
+					Params[parts[0]] = parts[1];
+				}
+			}
+		}
 
+		// Define where the cache is located
+		CacheDir = Params.Cache || 'cache';
+	}
 
-	//-----------------------------------------------------Initialize
-	function initiate(fun) {
+	/**
+	 *  The main process of starting an xGraph System.
+	 */
+	function initiate() {
 		log.i('\n--Nexus/Initiate');
 		ApexIndex = {};
 		var Setup = {};
 		var Start = {};
-
-
 
 		loadCache();
 
@@ -114,8 +146,6 @@
 
 		setup(start);
 
-
-
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
 		// Only Function Definitions Beyond This Point
@@ -123,7 +153,9 @@
 		//
 
 
-
+		/**
+		 * Load in the cache and 
+		 */
 		function loadCache() {
 			var folders = fs.readdirSync(CacheDir);
 
@@ -137,9 +169,8 @@
 				let mod = JSON.parse(data);
 				parseMod(mod, dir, folder);
 
-
 				function parseMod(mod, dir, folder) {
-					Modules[folder] = mod;
+					//Modules[folder] = mod;
 					var files = fs.readdirSync(dir);
 					for (var ifile = 0; ifile < files.length; ifile++) {
 						var file = files[ifile];
@@ -185,7 +216,7 @@
 		function start() {
 			ipid++;
 			if (ipid >= pids.length) {
-				fun();
+				run();
 				return;
 			}
 			var pid = pids[ipid];
@@ -196,45 +227,26 @@
 			com.Passport.Pid = genPid();
 			sendMessage(com, start);
 		}
-	}
 
-
-
-	//-----------------------------------------------------Run
-	function run() {
-		log.i('\n--Nexus/Run');
-		if ('send' in process) {
-			process.send('{"Cmd":"Finished"}');
-		}
-		console.timeEnd('Nexus Start Time');
-
-	}
-
-	
-	function defineMacros() {
-		// Process input arguments and define macro parameters
-
-		let arg, parts;
-		for (var iarg = 0; iarg < args.length; iarg++) {
-			arg = args[iarg];
-			try {
-				let jarg = JSON.parse(arg);
-				for( let key in jarg){
-					log.v(`${key}=${jarg[key]}`);
-					Params[key] = jarg[key];
-				}
-			} catch (e) {
-				log.v(arg);
-				parts = arg.split('=');
-				if (parts.length == 2) {
-					Params[parts[0]] = parts[1];
-				}
+		/**
+		 * 
+		 */
+		function run() {
+			log.i('\n--Nexus/Run');
+			if ('send' in process) {
+				process.send('{"Cmd":"Finished"}');
 			}
-		}
+			console.timeEnd('Nexus Start Time');
 
-		// Define where the cache is located
-		CacheDir = Params.Cache || 'cache';
+		}
 	}
+
+
+
+
+
+
+
 
 
 	//
@@ -244,16 +256,9 @@
 	//
 
 
-	//---------------------------------------------------------genPid
-	// Create a new PID
-	function genPid() {
-		if (!Uuid)
-			Uuid = require('uuid/v4');
-		var str = Uuid();
-		var pid = str.replace(/-/g, '').toUpperCase();
-		return pid;
-	}
 
+
+	
 	function Macro(str) {
 		let state = 1;
 		let chr;
@@ -287,6 +292,23 @@
 			throw 'Curley brackets not matched in __Macro';
 		return s;
 	}
+
+
+
+
+
+
+	//---------------------------------------------------------genPid
+	// Create a new PID
+	function genPid() {
+		if (!Uuid)
+			Uuid = require('uuid/v4');
+		var str = Uuid();
+		var pid = str.replace(/-/g, '').toUpperCase();
+		return pid;
+	}
+
+
 
 	//-----------------------------------------------------send
 	// Send message to an entity in the current systems (bag)
@@ -389,7 +411,7 @@
 
 		//-------------------------------------------------dispatch
 		// Used by Nexus to dispatch messages
-		function dispatch(com, fun) {
+		function dispatch(com, fun = _ => _) {
 			var disp = Imp.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);

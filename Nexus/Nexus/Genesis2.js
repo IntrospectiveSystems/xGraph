@@ -6,6 +6,7 @@
 
 		const fs = require('fs');
 		const date = new Date();
+		const Path = require('path');
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
 		let Config = {};					// The read config.json
@@ -16,44 +17,44 @@
 		let args = process.argv;			// The input argutments ----- should be removed ??
 		let Params = {};					// The set of Macros for defining paths ---- should be removed??
 
-
 		//
 		// Logging Functionality
 		//
-
-		// The logging function for writing to xgraph.log to the current working directory
-		const xgraphlog = (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
-		};
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
-		// Levels include:
-		// v : verbose
-		// d : debug
-		// i : info
-		// w : warn
-		// e : error
-		const log = {
-			v: (...str) => {
-				console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			d: (...str) => {
-				console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			i: (...str) => {
-				console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			w: (...str) => {
-				console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			e: (...str) => {
-				console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			}
-		};
+		{
+			// The logging function for writing to xgraph.log to the current working directory
+			const xgraphlog = (...str) => {
+				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
+			};
+			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+			// Levels include:
+			// v : verbose
+			// d : debug
+			// i : info
+			// w : warn
+			// e : error
+			const log = {
+				v: (...str) => {
+					console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				d: (...str) => {
+					console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				i: (...str) => {
+					console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				w: (...str) => {
+					console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				e: (...str) => {
+					console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				}
+			};
+		}
 
 		setup();
 
@@ -66,6 +67,12 @@
 		//
 
 
+		/**
+		 * The setup procedures for genesis.
+		 * This includes defining macros and othre Params.
+		 * Parse the config
+		 * and Clean the cache if it currently exists
+		 */
 		function setup() {
 			log.i('=================================================');
 			log.i(`Genesis Setup:`);
@@ -82,6 +89,12 @@
 			//
 			//
 
+			/**
+			 * Read in macros and set Params from process.argv
+			 * these are also set in the birany in pathOverrides
+			 * examples are  xGraph={path to xGraph} 
+			 * in binary they look like --xGraph {path to xGraph}
+			 */
 			function defineMacros() {
 				// Process input arguments and define macro parameters
 
@@ -94,17 +107,28 @@
 						Params[parts[0]] = parts[1];
 					}
 				}
-				if (!(typeof pathOverrides == "undefined")){
-					for (let key in pathOverrides){
-						Params[key]= pathOverrides[key];
+				if (!(typeof pathOverrides == "undefined")) {
+					for (let key in pathOverrides) {
+						Params[key] = pathOverrides[key];
 					}
 				}
 			}
 
+			/**
+			 * Reads in the given config and fills in the Macros
+			 */
 			function parseConfig() {
 				// Read in the provided config.json file
 				// File is passed in Params.Config or defaults to "config.json" in current working directory
-				let cfg = fs.readFileSync(Params.Config || 'config.json');
+				let cfg = undefined;
+
+				try {
+					log.d("Looking for config at ", Params.Config || 'config.json');
+					cfg = fs.readFileSync(Params.Config || 'config.json');
+				} catch (e) {
+					log.e("Specified config.json does not exist");
+					process.exit(1);
+				}
 
 				// Parse the config.json and replace Macros
 				// Store all Macros in Params --- should be removed?
@@ -147,6 +171,9 @@
 				log.v(JSON.stringify(Config, null, 2));
 			}
 
+			/**
+			 *  Remove the cache if it currently exists in the given directory
+			 */
 			function cleanCache() {
 				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 				CacheDir = Params.Cache || "cache"
@@ -160,8 +187,9 @@
 		}
 
 
-		//----------------------------------------------------Genesis
-		// Builds a cache from a config.json
+		/**
+		 * Builds a cache from a config.json. 
+		 */
 		function genesis() {
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
@@ -179,6 +207,9 @@
 			//
 			//
 
+			/**
+			 * Create a list of all required modules and their brokers
+			 */
 			function generateModuleCatalog() {
 				// Create new cache and install high level
 				// module subdirectories. Each of these also
@@ -221,6 +252,10 @@
 				nfolders = moduleKeys.length;
 			}
 
+			/**
+			 * get the modules from the prebuilt catalog
+			 * from the source defined in config
+			 */
 			function recursiveBuild() {
 				ifolder++;
 
@@ -241,6 +276,9 @@
 				});
 			}
 
+			/**
+			 * Write the modules and all instances to the cache
+			 */
 			function populate() {
 				log.v('--populate : Writing Cache to Disk');
 				// Write cache to CacheDir
@@ -294,13 +332,12 @@
 
 
 		/**
-		 * For retrieving modules
-		 * Modules come from memory, a defined broker, or disk depending on the module definition
+		 * For loading modules
+		 * Modules come from a defined broker, or disk depending on the module definition
 		 * @param {Object} modRequest 
-		 * @param {String} modRequest.Module
-		 * @param {String} modRequest.Source
-		 * @param {Function} fun 
-		 * @returns mod
+		 * @param {String} modRequest.Module the dot notation of the module name
+		 * @param {String} modRequest.Source the source Broker or path reference for the module 
+		 * @param {Function} fun  the callback has form (error, module.json)
 		 */
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
@@ -327,7 +364,9 @@
 			//
 			//
 
-
+			/**
+			 * open up a socket to the defined broker and access the module
+			 */
 			function loadModuleFromBroker() {
 				const { Socket } = require('net');
 				const sock = new Socket();
@@ -404,9 +443,11 @@
 						}
 					}
 				});
-
 			}
 
+			/**
+			 * load module from disk
+			 */
 			function loadModuleFromDisk() {
 				let ModPath = genPath(dir);
 				//read the module from path in the local file system
@@ -469,10 +510,17 @@
 		}
 
 		//----------------------------------------------------CompileModule
-		// Generate array of entities from module
-		// Module must be in cache to allow use by both Genesis and
-		// GenModule
-		// The first parameter is the pid assigned to the Apex
+		// 
+
+		/**
+		 * Generate array of entities from module
+		 * Module must be in cache 
+		 * 
+		 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
+		 * @param {object} inst 
+		 * @param {string} inst.Module	The module definition in dot notation
+		 * @param {object} inst.Par		The par object that defines the par of the instance
+		 */
 		function compileInstance(pidapx, inst) {
 			var Local = {};
 			var modnam = inst.Module;
@@ -480,6 +528,7 @@
 			var ents = [];
 			// The following is for backword compatibility only
 			var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+
 			if (modnam in ModCache) {
 				mod = ModCache[modnam];
 			} else {
@@ -541,15 +590,75 @@
 					return Local[sym];
 				if (val.charAt(0) === '\\')
 					return sym;
+				if (val.charAt(0) === '@') {
+					val = val.split(":");
+					let key = val[0].toLocaleLowerCase().trim();
+					let encoding = undefined;
+					if (key.split(",").length == 2) {
+						key = key.split(',')[0].trim();
+						let encoding = key.split(',')[1].trim();
+					}
+					log.d("Key is", key);
+					switch (key) {
+						case "@filename":
+						case "@file": {
+							try {
+								let path = Path.join(Path.resolve(Params["CWD"] || Path.dirname(Params["Config"]) || "./"), val[1].trim());
+								log.d("Looking for file at ", path);
+								return fs.readFileSync(path).toString();
+							} catch (err) {
+								log.e("Error reading file ", path);
+								log.e(`Module ${modnam} may not operate as expected.`);
+							}
+							break;
+						}
+						case "@folder":
+						case "@directory": {
+							try {
+								let dir = Path.join(Path.resolve(Params["CWD"] || Path.dirname(Params["Config"]) || "./"), val[1].trim());
+								log.d("Looking for directory at ", dir);
+								return buildDir(dir);
+
+								function buildDir(path) {
+									let dirObj = {};
+									if (fs.existsSync(path)) {
+										files = fs.readdirSync(path);
+										files.forEach(function (file, index) {
+											var curPath = path + "/" + file;
+											if (fs.lstatSync(curPath).isDirectory()) {
+												// recurse
+												dirObj[file] = buildDir(curPath);
+											} else {
+												dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+											}
+										});
+										return dirObj;
+									}
+
+								}
+							} catch (err) {
+								log.e("Error reading directory ", path);
+								log.e(`Module ${modnam} may not operate as expected.`);
+							}
+							break;
+						}
+						default: {
+
+						}
+					}
+				}
 				return val;
 			}
 		}
 
-		//-----------------------------------------------------refreshSystem
-		// Reconstruct package.json and node_modules
-		// directory by merging package.json of the
-		// individual modules and then running npm
-		// to create node_modules directory for system	
+ 	
+		/**
+		 * Reconstruct package.json and node_modules
+		 * directory by merging package.json of the
+		 * individual modules and then running npm
+		 * to create node_modules directory for system
+		 * @param {function} func what to do next
+		 */
 		function refreshSystem(func) {
 			log.i('--refreshSystems: Updating and installing dependencies\n');
 			var packagejson;
@@ -581,18 +690,19 @@
 			//include Genesis/Nexus required npm modules
 			packagejson.dependencies["uuid"] = "3.1.0";
 			packagejson.dependencies["async"] = "0.9.0";
-			//for old nexus --- should be removed ...
+			//for old nexus --- should be removed ???
 			packagejson.dependencies["node-uuid"] = "~1.4.2";
 
 			var strout = JSON.stringify(packagejson, null, 2);
 			//write the compiled package.json to disk
-			fs.writeFileSync('package.json', strout);
+
+			fs.writeFileSync(Path.join(Path.dirname(Path.resolve(CacheDir)), 'package.json'), strout);
 
 			//call npm install on a childprocess of node
 			const proc = require('child_process');
 
 			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-			var ps = proc.spawn(npm, ['install']);
+			var ps = proc.spawn(npm, ['install'], { cwd: Path.dirname(Path.resolve(CacheDir)) });
 
 			ps.stdout.on('data', _ => { process.stdout.write(_) });
 			ps.stderr.on('data', _ => process.stderr.write(_));
@@ -615,6 +725,10 @@
 			});
 		}
 
+		/**
+		 * replace the macros for local path info
+		 * @param {string} str the string which to return the macro of
+		 */
 		function Macro(str) {
 			let state = 1;
 			let chr;
@@ -649,8 +763,9 @@
 			return s;
 		}
 
-		//---------------------------------------------------------genPid
-		// Create a new PID
+		/**
+		 * generate a 32 character hex pid
+		 */
 		function genPid() {
 			if (!Uuid)
 				Uuid = require('uuid/v4');
@@ -659,7 +774,10 @@
 			return pid;
 		}
 
-		//---------------------------------------------------------genPath
+		/**
+		 * build a path from the file system using defined Macros and Params
+		 * @param {string} filein 
+		 */
 		function genPath(filein) {
 			if (!filein) {
 				log.e(' ** ERR:Invalid file name');
@@ -700,9 +818,13 @@
 			return path;
 		}
 
-		//-----------------------------------------------------remDir
-		// Recursive directory deletion
-		// Used for cache cleanup
+
+	
+		/**
+		 * Recursive directory deletion
+		 * Used for cache cleanup
+		 * @param {*} path the directory to be recursively removed 
+		 */
 		function remDir(path) {
 			var files = [];
 			if (fs.existsSync(path)) {

@@ -47,7 +47,8 @@
 		input: 'src/gen/xgraph-linux.js',
 		output: 'bin/linux/bin/xgraph',
 		target: 'linux-x64-8.4.0',
-		bundle: true
+		bundle: true,
+		fakeArgv: false
 	});
 
 	fs.writeFileSync('src/gen/xgraph-windows.js', new Preprocessor(fs.readFileSync('src/xgraph.js'), '.').process({ WINDOWS: true }));
@@ -58,7 +59,8 @@
 		input: 'src/gen/xgraph-windows.js',
 		output: 'bin/windows/bin/xgraph.exe',
 		target: 'windows-x64-8.4.0',
-		bundle: true
+		bundle: true,
+		fakeArgv: false
 	});
 
 	fs.writeFileSync('src/gen/xgraph-mac.js', new Preprocessor(fs.readFileSync('src/xgraph.js'), '.').process({ MAC: true }));
@@ -69,7 +71,8 @@
 		input: 'src/gen/xgraph-mac.js',
 		output: 'bin/mac/bin/xgraph',
 		target: 'mac-x64-8.4.0',
-		bundle: true
+		bundle: true,
+		fakeArgv: false
 	});
 
 
