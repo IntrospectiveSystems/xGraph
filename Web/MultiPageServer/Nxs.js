@@ -1,6 +1,20 @@
 //# sourceURL=Nxs
 __Nexus = (function () {
 	console.log(' ** Nxs executing');
+	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+	// Levels include:
+	// v : verbose
+	// d : debug
+	// i : info
+	// w : warn
+	// e : error
+	window.log = {
+		v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
+		d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
+		i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
+		w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
+		e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+	};
 	var SockIO;
 	var Root;
 	var Pid24;
