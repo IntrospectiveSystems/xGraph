@@ -123,7 +123,6 @@
 				let cfg = undefined;
 
 				try {
-					log.d("Looking for config at ", Params.Config || 'config.json');
 					cfg = fs.readFileSync(Params.Config || 'config.json');
 				} catch (e) {
 					log.e("Specified config.json does not exist");
@@ -598,14 +597,12 @@
 						key = key.split(',')[0].trim();
 						let encoding = key.split(',')[1].trim();
 					}
-					log.d("Key is", key);
 					switch (key) {
 						case "@filename":
 						case "@file": {
 							try {
 								let path = Path.join(Path.resolve(Params["CWD"] || Path.dirname(Params["Config"]) || "./"), val[1].trim());
-								log.d("Looking for file at ", path);
-								return fs.readFileSync(path).toString();
+								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e("Error reading file ", path);
 								log.e(`Module ${modnam} may not operate as expected.`);
@@ -616,7 +613,6 @@
 						case "@directory": {
 							try {
 								let dir = Path.join(Path.resolve(Params["CWD"] || Path.dirname(Params["Config"]) || "./"), val[1].trim());
-								log.d("Looking for directory at ", dir);
 								return buildDir(dir);
 
 								function buildDir(path) {

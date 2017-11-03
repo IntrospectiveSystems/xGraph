@@ -8,7 +8,6 @@
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
 	var Apex = {};						// {<Name>: <pid of Apex>}
-	//var Modules = {};					// {<Name>: <mod desc>} - only in Genesis
 	var ModCache = {};					// {<folder>: <module>}
 	var ApexIndex = {}; 				// {<Apex pid>:<folder>}
 	var SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
@@ -68,15 +67,13 @@
 		};
 	}
 
-
-
-
 	log.i('=================================================');
 	log.i(`Nexus Warming Up:`);
 
-
 	defineMacros();
 
+	// if called from binary quit or if called from 
+	// the command line and node build cache first
 	if (!fs.existsSync(CacheDir)) {
 		// #ifndef BUILT
 		if (isBinary()) {
@@ -87,19 +84,12 @@
 		}
 		else
 			log.i("Building the Cache");
-		let genesisString = fs.readFileSync(`${Params['xGraph']}/Nexus/Nexus/Genesis2.js`).toString();
+		let genesisString = fs.readFileSync(`${Params['xGraph']}/Nexus/Nexus/Genesis.js`).toString();
 		await eval(genesisString);
 		// #endif
 	}
 
 	initiate();
-
-
-
-
-
-
-
 
 
 
@@ -156,6 +146,7 @@
 
 		setup(start);
 
+
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
 		// Only Function Definitions Beyond This Point
@@ -164,7 +155,7 @@
 
 
 		/**
-		 * Load in the cache and 
+		 * Load in the cache and poulate setup Setup, Start, and ApexIndex {Objects}
 		 */
 		function loadCache() {
 			var folders = fs.readdirSync(CacheDir);
@@ -204,7 +195,9 @@
 		}
 
 
-
+		/**
+		 * Call setup on the required Module Apexes
+		 */
 		function setup() {
 			ipid++;
 			if (ipid >= pids.length) {
@@ -222,7 +215,9 @@
 			sendMessage(com, setup);
 		}
 
-
+		/**
+		 * Call Start on the required Module Apexes
+		 */
 		function start() {
 			ipid++;
 			if (ipid >= pids.length) {
@@ -239,7 +234,7 @@
 		}
 
 		/**
-		 * 
+		 * Send Finished command if the process was generated 
 		 */
 		function run() {
 			log.i('\n--Nexus/Run');
@@ -269,11 +264,19 @@
 
 
 	// #ifndef BUILT
+	/**
+	 * Check if the system is running from binary
+	 */
 	function isBinary() {
 		return (typeof tar == 'undefined');
 	}
 	// #endif
 
+
+	/**
+	 * replace the macros for local path info
+	 * @param {string} str the string which to return the macro of
+	 */
 	function Macro(str) {
 		let state = 1;
 		let chr;
@@ -313,8 +316,9 @@
 
 
 
-	//---------------------------------------------------------genPid
-	// Create a new PID
+	/**
+	 * generate a 32 character hex pid
+	 */
 	function genPid() {
 		if (!Uuid)
 			Uuid = require('uuid/v4');
@@ -325,11 +329,18 @@
 
 
 
-	//-----------------------------------------------------send
-	// Send message to an entity in the current systems (bag)
-	// If call back provided, return to sender
+	/**
+	 * Send a message from an entity to an Apex entity.
+	 * If a callback is provided, return when finished
+	 * @param {object} com 			the message object 
+	 * @param {string} com.Cmd 		the command of the message
+	 * @param {object} com.Passport	the information about the message
+	 * @param {string} com.Passport.To the Pid of the recipient module
+	 * @param {string} com.Passport.Pid the ID of the message
+	 * @param {string=} com.Passport.From the Pid of the sending module
+	 * @callback fun 				the callback function to return to when finished
+	 */
 	function sendMessage(com, fun) {
-		//console.log('--sendMessage', com.Cmd);
 		if (!('Passport' in com)) {
 			log.e(' ** ERR:Message has no Passport, ignored');
 			log.e('    ' + JSON.stringify(com));
@@ -355,12 +366,11 @@
 
 		let pid = com.Passport.To;
 		if (pid in EntCache) {
-			let ent = EntCache[pid];
-			ent.dispatch(com, reply);
+			done(null, EntCache[pid]);
 			return;
 		}
 		if (pid in ApexIndex) {
-			getEntity(pid, pid, done);
+			getEntityContext(pid, pid, done);
 			return;
 		}
 		let apx;
@@ -368,9 +378,9 @@
 			apx = com.Passport.Apex;
 		else
 			apx = pid;
-		getEntity(apx, pid, done);
+		getEntityContext(apx, pid, done);
 
-		function done(err, ent) {
+		function done(err, entContext) {
 			if (err) {
 				log.e(' ** ERR:' + err);
 				log.e(JSON.stringify(com, null, 2));
@@ -378,7 +388,7 @@
 					fun(err, com);
 				return;
 			}
-			ent.dispatch(com, reply);
+			entContext.dispatch(com, reply);
 			return;
 		}
 
@@ -390,9 +400,12 @@
 
 
 
-	//-----------------------------------------------------Entity
-	// This is the entity base class that is used to create
-	// new entities.
+	/**
+	 * The base class for all xGraph Entities
+	 * @param {object} nxs 
+	 * @param {*} imp 
+	 * @param {*} par 
+	 */
 	function Entity(nxs, imp, par) {
 		var Par = par;
 		var Imp = imp;
@@ -407,25 +420,37 @@
 			genEntity,
 			deleteEntity,
 			genPid,
-			//genPath: genPath,
 			send,
 			save,
-			getPid,
 			getFile,
 			require
 		};
 
+		/**
+		 * get a file in the module.json module definition
+		 * @param {string} filename  	The file to get from this module's module.json
+		 * @callback fun 				return the file to caller
+		 */
 		function getFile(filename, fun) {
 			log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
 			nxs.getFile(Par.Module, filename, fun);
 		}
 
+		/**
+		 * Get the module.json for some module
+		 * @param {string} moduleDef 		Module name to get
+		 * @callback fun 
+		 */
 		function getModule(moduleDef, fun) {
 			nxs.GetModule(moduleDef, fun);
 		}
 
-		//-------------------------------------------------dispatch
-		// Used by Nexus to dispatch messages
+		/**
+		 * Route a message to this entity with its context
+		 * @param {object} com		The message to be dispatched in this entities context 
+		 * @param {string} com.Cmd	The actual message we wish to send
+		 * @callback fun 
+		 */
 		function dispatch(com, fun = _ => _) {
 			var disp = Imp.dispatch;
 			if (com.Cmd in disp) {
@@ -440,36 +465,54 @@
 			fun('Nada', com);
 		}
 
-		//-------------------------------------------------genModule
-		// Generate module and return (err, pidapx);
+		/**
+		 * entity access to the genModule command
+		 * @param {object} mod 	the description of the Module to generate
+		 * @param {string} mod.Module the module to generate
+		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
+		 * @callback fun 
+		 */
 		function genModule(mod, fun) {
 			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
 
+		/**
+		 * deletes the current entity
+		 * @callback fun 
+		 */
 		function deleteEntity(fun) {
 			log.v(`Deleting Entity ${Par.Pid}`);
 			nxs.deleteEntity(Par.Apex, Par.Pid, fun);
 		}
 
+		/**
+		 * create an entity in the same module
+		 * @param {object} par the par of the entity to be generated
+		 * @param {string} par.Entity The entity type that will be generated
+		 * @param {string=} par.Pid	the pid to define as the pid of the entity
+		 * @callback fun 
+		 */
 		function genEntity(par, fun) {
 			nxs.genEntity(Par.Apex, par, fun);
 		}
 
+		/**
+		 * create a 32 character hexidecimal pid
+		 */
 		function genPid() {
 			return nxs.genPid();
 		}
 
-		// function genPath(mod) {
-		// 	let path = nxs.genPath(mod);
-		// 	return path;
-		// }
-
-		//-------------------------------------------------send
-		// Send message to another entity which can be in another
-		// bag or browser. Callback when message is returned
+		/**
+		 * Send a message to another entity, you can only send messages to Apexes of modules 
+		 * unless both sender and recipient are in the same module
+		 * @param {object} com  		the message object to send 
+		 * @param {string} com.Cmd		the function to send the message to in the destination entity 
+		 * @param {string} pid 			the pid of the recipient (destination) entity
+		 * @callback fun 
+		 */
 		function send(com, pid, fun) {
-
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -482,36 +525,37 @@
 			nxs.sendMessage(com, fun);
 		}
 
-		//-------------------------------------------------save
-		// Save entity in Cache
+		/**
+		 * save the current entity to cache if not an Apex send the save message to Apex
+		 * if it is an Apex we save it as well as all other relevant information
+		 * @callback fun 
+		 */
 		function save(fun) {
 			nxs.saveEntity(Par.Apex, Par.Pid, fun);
 		}
-
-		//-------------------------------------------------getPid
-		// Return Pid of entity
-		function getPid() {
-			return Par.Pid;
-		}
 	}
 
-	//-----------------------------------------------------genEntity
-	// Create entity from parameter object in current module
-	function genEntity(apx, par, fun) {
-
-		var impkey = ApexIndex[apx] + '/' + par.Entity;
-
-
-		let mod = ModCache[ApexIndex[apx]];
+	/**
+	 * Create an Entity from the given par in the module defined by apx
+	 * The entity is then stored in EntCache
+	 * @param {string} apx 		the Pid of the module Apex in which this entity will be generated
+	 * @param {object} par 		the Par of the entity that will be created
+	 * @param {string} par.Entity The entity type that will be generated
+	 * @param {string=} par.Pid	the pid to define as the pid of the entity
+	 * @callback fun 			the callback to return te pid of the generated entity to
+	 */
+	function genEntity(apx, par, fun = _ => log.e(_)) {
 		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
 		}
 
+		var impkey = ApexIndex[apx] + '/' + par.Entity;
+		var mod = ModCache[ApexIndex[apx]];
+
 		if (!(par.Entity in mod)) {
 			log.e(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
-			if (fun)
-				fun('Null entity');
+			fun('Null entity');
 			return;
 		}
 
@@ -519,23 +563,26 @@
 		par.Module = mod.ModName;
 		par.Apex = apx;
 
+		let imp;
 		if (impkey in ImpCache) {
-			let imp = ImpCache[impkey];
-			let ent = new Entity(Nxs, imp, par);
-			EntCache[par.Pid] = ent;
-			fun(null, par.Pid);
-			return;
+			imp = ImpCache[impkey];
+		} else {
+			imp = (1, eval)(mod[par.Entity]);
+			ImpCache[impkey] = imp;
 		}
 
-		let imp = (1, eval)(mod[par.Entity]);
-		ImpCache[impkey] = imp;
-		let ent = new Entity(Nxs, imp, par);
-		EntCache[par.Pid] = ent;
-
+		EntCache[par.Pid] = new Entity(Nxs, imp, par);
 		fun(null, par.Pid);
 	}
 
-	function deleteEntity(apx, pid, fun) {
+	/**
+	 * Delete an entity file. If the entity is an Apex of a Module,
+	 * then delete all the entities found in that module as well. 
+	 * @param {string} apx 		the pid of the entities apex
+	 * @param {string} pid 		the pid of the entity
+	 * @callback fun  			the callback to return te pid of the generated entity to
+	 */
+	function deleteEntity(apx, pid, fun = _ => _) {
 		let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;
 
 		let rmList = [];
@@ -561,18 +608,24 @@
 			}
 		}
 
-		if (fun)
-			fun(null, pid);
+		fun(null, pid);
 	}
 
-	function saveEntity(apx, pid, fun) {
+	/**
+	 * Save an entity file. Make sure that all nested files exist in the
+	 * cache prior to saving said file
+	 * @param {string} apx 		the pid of the entities apex
+	 * @param {string} pid 		the pid of the entity
+	 * @callback fun  			the callback to return te pid of the generated entity to
+	 */
+	function saveEntity(apx, pid, fun = _ => _) {
 		let modpath = `${CacheDir}/${ApexIndex[apx]}`;
 		let apxpath = `${modpath}/${apx}`;
 		let entpath = `${apxpath}/${pid}.json`;
 
+		//	this function checks to make sure the entities Module.json 
+		// 	file pre-exists or writes it if the entity is the module apex. 
 		let checkModule = (() => {
-			//this function checks to make sure the entities Module.json 
-			// file pre-exists or writes it if the entity is the module apex. 
 			fs.lstat(modpath, function (err, stat) {
 				if (stat) {
 					checkApex();
@@ -601,9 +654,9 @@
 			})
 		});
 
+		//this function checks to make sure the entities Apex directory
+		//pre-exists or writes it if the entity is the module apex. 
 		let checkApex = (() => {
-			//this function checks to make sure the entities Apex directory
-			//pre-exists or writes it if the entity is the module apex. 
 			fs.lstat(apxpath, function (err, stat) {
 				if (stat) {
 					checkEntity();
@@ -642,7 +695,14 @@
 		checkModule();
 	}
 
-	function getFile(module, filename, fun) {
+
+	/**
+	 * Access a file that exists in the module.json
+	 * @param {string} module 		the module to look for the file in
+	 * @param {string} filename 	the name of the file we're looking for
+	 * @callback fun				the callback to return te pid of the generated entity to
+	 */
+	function getFile(module, filename, fun = _ => _) {
 		let mod = ModCache[module];
 		if (filename in mod) {
 			fun(null, mod[filename])
@@ -653,16 +713,22 @@
 		fun(err);
 	}
 
-	//-----------------------------------------------------getEntity
-	function getEntity(apx, pid, fun) {
+
+	/**
+	 * Spin up an entity from cache into memory and retrievd its context 
+	 * otherwise just return it's context from memory
+	 * @param {string} apx 		the pid of the entities apex
+	 * @param {string} pid 		the pid of the entity
+	 * @callback fun  			the callback to return te pid of the generated entity to
+	 */
+	function getEntityContext(apx, pid, fun = _ => _) {
 		let imp;
 		let par;
 		let ent;
 
 		// If entity already cached, just return it
 		if (pid in EntCache) {
-			ent = EntCache[pid];
-			fun(null, ent);
+			fun(null, EntCache[pid]);
 			return;
 		}
 
@@ -676,83 +742,64 @@
 		fs.readFile(path, function (err, data) {
 			if (err) {
 				log.e(' ** ERR:<' + path + '> unavailable');
-				if (fun)
-					fun('Unavailable');
+				fun('Unavailable');
 				return;
 			}
 			let par = JSON.parse(data.toString());
 			let impkey = folder + '/' + par.Entity;
+			let imp;
 			if (impkey in ImpCache) {
-				let imp = ImpCache[impkey];
-				let ent = new Entity(Nxs, imp, par);
-				EntCache[pid] = ent;
-				fun(null, ent);
+				imp = ImpCache[impkey];
+				BuildEnt();
 				return;
 			}
-			let moduleRequest = {
-				Module: folder,
-				Source: SourceIndex[apx] || null
-			};
-			// --- should be removed ??
-			GetModule(moduleRequest, function (err, mod) {
+
+			GetModule(folder, function (err, mod) {
 				if (err) {
 					log.e(' ** ERR:Module <' + folder + '> not available');
-					if (fun)
-						fun('Module not available');
+					fun('Module not available');
 					return;
 				}
 				if (!(par.Entity in mod)) {
 					log.e(' ** ERR:<' + par.Entity + '> not in module <' + folder + '>');
-					if (fun)
-						fun('Null entity');
+					fun('Null entity');
 					return;
 				}
-				let imp = (1, eval)(mod[par.Entity]);
+				imp = (1, eval)(mod[par.Entity]);
 				ImpCache[impkey] = imp;
-				let ent = new Entity(Nxs, imp, par);
-				EntCache[pid] = ent;
-				fun(null, ent);
+				BuildEnt();
 			});
+
+			function BuildEnt() {
+				EntCache[pid] = new Entity(Nxs, imp, par);
+				fun(null, EntCache[pid]);
+			}
 		});
 	}
 
-	//-------------------------------------------------genModule
-	// This is the version used to install modules
-	// after startup, such as web dashboards and such.
-	// It provides for safe setup and start which is
-	// handled by Nxs for modules instantiated initially.
-	// TBD: If modules saved, Initializers will need to be
-	//      added to the Start and Setup lists in Root
-	function genModule(inst, fun) {
+
+	/**
+	 * Starts an instance of a module that exists in the cache.
+	 * After generating, the instance Apex receives a setup and start command synchronously
+	 * @param {Object} inst 		Definition of the instance to be spun up
+	 * @param {string} inst.Module 	The name of te module to spin up
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par	
+	 * @callback fun 				(err, pid of module apex)
+	 */
+	function genModule(inst, fun = _ => _) {
 		let that = this;
-		let modRequest = {
-			Module: inst.Module,
-			Source: inst.Source || undefined
-		};
-		// --- should be removed ??
-		GetModule(modRequest, function (err, mod) {
+
+		GetModule(inst.Module, function (err, mod) {
 			if (err) {
 				console.log(' ** ERR:GenModule err -', err);
-				if (fun)
-					fun(err);
+				fun(err);
 				return;
 			}
 			let modnam = inst.Module;
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
-			let ents = compileInstance(pidapx, inst);
-			ents.forEach(function (par) {
-				let impkey = modnam + par.Entity;
-				let imp;
-				if (impkey in ImpCache) {
-					imp = ImpCache[impkey];
-				} else {
-					imp = (1, eval)(mod[par.Entity]);
-					ImpCache[impkey] = imp;
-				}
-				var ent = new Entity(Nxs, imp, par);
-				EntCache[par.Pid] = ent;
-			});
+			compileInstance(pidapx, inst);
+
 			setup();
 
 			function setup() {
@@ -771,30 +818,26 @@
 			// Start
 			function start() {
 				if (!("Start" in mod)) {
-					if (fun)
-						fun(null, pidapx);
+					fun(null, pidapx);
 					return;
 				}
-
 				var com = {};
 				com.Cmd = mod["Start"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					if (fun) {
-						fun(null, pidapx);
-					}
+					fun(null, pidapx);
 				});
 			}
 		});
 	}
 
-	//----------------------------------------------------=CompileModule
-	// Generate array of entities from module
-	// Module must be in cache to allow use by both Genesis and
-	// GenModule
-	// The first parameter is the pid assigned to the Apex
+	/**
+	 * Build a graph of xGraph Entities 
+	 * @param {*} pidapx 	The apex of the module which requires spinnup
+	 * @param {*} inst 		
+	 */
 	function compileInstance(pidapx, inst) {
 		let Local = {};
 		let modnam = inst.Module;
@@ -811,7 +854,8 @@
 		var schema = JSON.parse(mod['schema.json']);
 		var entkeys = Object.keys(schema);
 
-		for (j = 0; j < entkeys.length; j++) {
+		//assign pids to the entities
+		for (let j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			if (entkey === 'Apex')
 				Local[entkey] = pidapx;
@@ -819,10 +863,12 @@
 				Local[entkey] = genPid();
 		}
 
-		for (j = 0; j < entkeys.length; j++) {
+		for (let j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			let ent = schema[entkey];
 			ent.Pid = Local[entkey];
+			ent.Module = modnam;
+			ent.Apex = pidapx;
 
 			//load module pars into the Apex entity
 			if (entkey == 'Apex' && 'Par' in inst) {
@@ -832,8 +878,6 @@
 					ent[par] = inst.Par[par];
 				}
 			}
-			ent.Module = modnam;
-			ent.Apex = pidapx;
 
 			//load pars from schema
 			let pars = Object.keys(ent);
@@ -844,10 +888,21 @@
 			}
 			ents.push(ent);
 		}
-		return ents;
+
+		ents.forEach(function (par) {
+			let impkey = modnam + par.Entity;
+			let imp;
+			if (impkey in ImpCache) {
+				imp = ImpCache[impkey];
+			} else {
+				imp = (1, eval)(mod[par.Entity]);
+				ImpCache[impkey] = imp;
+			}
+			var ent = new Entity(Nxs, imp, par);
+			EntCache[par.Pid] = ent;
+		});
 
 		function symbol(val) {
-
 			if (typeof val === 'object') {
 				return (Array.isArray(val) ?
 					val.map(v => symbol(v)) :
@@ -879,27 +934,25 @@
 	 * Modules come from memory, a defined broker, or disk depending on the module definition
 	 * @param {Object} modRequest 
 	 * @param {String} modRequest.Module
-	 * @param {String} modRequest.Source
+	 * @param {String=} modRequest.Source
 	 * @param {Function} fun 
 	 * @returns mod
 	 */
-	function GetModule(modRequest, fun) {
+	function GetModule(modRequest, fun = _ => _) {
 
 		let modnam = modRequest.Module;
 		if (typeof modRequest != "object") {
 			modnam = modRequest;
-			// --- should be removed ???
 		}
 		let source = modRequest.Source;
 		let mod = {};
 		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		let dir = ModName.replace('.', ':').replace(/\./g, '/');
 
-
 		//get the module from memory (ModCache) if it has already been retrieved
 		if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
-
+		//get the module from cache
 		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
 		fs.lstat(cachedMod, function (err, stat) {
 			if (err) {
@@ -927,7 +980,4 @@
 			}
 		});
 	}
-
-
-
 })();

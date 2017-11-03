@@ -47,6 +47,20 @@
 				"NODE_PATH": "node_modules",
 				"XGRAPH_ENV": "development"
 			}
+		},		{
+			"name": "AceExample",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}/Systems/AceExample",
+			"program": "${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus2.js",
+			"args": [
+				"Config=config.json",
+				"xGraph=${workspaceRoot}/../xGraph"
+			],
+			"env": {
+				"NODE_PATH": "node_modules",
+				"XGRAPH_ENV": "development"
+			}
 		},
 		{
 			"name": "TableViewTest",

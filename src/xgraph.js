@@ -28,7 +28,7 @@ let unix = false;
 
 let pathOverrides = {};
 
-// $genesis $load('./Nexus/Nexus/Genesis2.js')
+// $genesis $load('./Nexus/Nexus/Genesis.js')
 
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
