@@ -402,27 +402,38 @@
 			genEntity,
 			deleteEntity,
 			genPid,
-			//genPath: genPath,
 			send,
 			save,
-			getPid,
 			getFile,
 			require
 		};
 
+		/**
+		 * get a file in the module.json module definition
+		 * @param {string} filename  	The file to get from this module's module.json
+		 * @callback fun 				return the file to caller
+		 */
 		function getFile(filename, fun) {
 			log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
 			nxs.getFile(Par.Module, filename, fun);
 		}
 
+		/**
+		 * Get the module.json for some module
+		 * @param {string} moduleDef 		Module name to get
+		 * @callback fun 
+		 */
 		function getModule(moduleDef, fun) {
 			nxs.GetModule(moduleDef, fun);
 		}
 
-		//-------------------------------------------------dispatch
-		// Used by Nexus to dispatch messages
+		/**
+		 * Route a message to this entity with its context
+		 * @param {object} com		The message to be dispatched in this entities context 
+		 * @param {string} com.Cmd	The actual message we wish to send
+		 * @callback fun 
+		 */
 		function dispatch(com, fun = _ => _) {
-
 			var disp = Imp.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -436,31 +447,54 @@
 			fun('Nada', com);
 		}
 
-		//-------------------------------------------------genModule
-		// Generate module and return (err, pidapx);
+		/**
+		 * entity access to the genModule command
+		 * @param {object} mod 	the description of the Module to generate
+		 * @param {string} mod.Module the module to generate
+		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
+		 * @callback fun 
+		 */
 		function genModule(mod, fun) {
 			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
 
+		/**
+		 * deletes the current entity
+		 * @callback fun 
+		 */
 		function deleteEntity(fun) {
 			log.v(`Deleting Entity ${Par.Pid}`);
 			nxs.deleteEntity(Par.Apex, Par.Pid, fun);
 		}
 
+		/**
+		 * create an entity in the same module
+		 * @param {object} par the par of the entity to be generated
+		 * @param {string} par.Entity The entity type that will be generated
+		 * @param {string=} par.Pid	the pid to define as the pid of the entity
+		 * @callback fun 
+		 */
 		function genEntity(par, fun) {
 			nxs.genEntity(Par.Apex, par, fun);
 		}
 
+		/**
+		 * create a 32 character hexidecimal pid
+		 */
 		function genPid() {
 			return nxs.genPid();
 		}
 
-		//-------------------------------------------------send
-		// Send message to another entity which can be in another
-		// bag or browser. Callback when message is returned
+		/**
+		 * Send a message to another entity, you can only send messages to Apexes of modules 
+		 * unless both sender and recipient are in the same module
+		 * @param {object} com  		the message object to send 
+		 * @param {string} com.Cmd		the function to send the message to in the destination entity 
+		 * @param {string} pid 			the pid of the recipient (destination) entity
+		 * @callback fun 
+		 */
 		function send(com, pid, fun) {
-
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -473,16 +507,13 @@
 			nxs.sendMessage(com, fun);
 		}
 
-		//-------------------------------------------------save
-		// Save entity in Cache
+		/**
+		 * save the current entity to cache if not an Apex send the save message to Apex
+		 * if it is an Apex we save it as well as all other relevant information
+		 * @callback fun 
+		 */
 		function save(fun) {
 			nxs.saveEntity(Par.Apex, Par.Pid, fun);
-		}
-
-		//-------------------------------------------------getPid
-		// Return Pid of entity
-		function getPid() {
-			return Par.Pid;
 		}
 	}
 
@@ -492,7 +523,7 @@
 	 * @param {string} apx 		the Pid of the module Apex in which this entity will be generated
 	 * @param {object} par 		the Par of the entity that will be created
 	 * @param {string} par.Entity The entity type that will be generated
-	 * @param {string} par.Pid	the pid to define as the pid of the entity
+	 * @param {string=} par.Pid	the pid to define as the pid of the entity
 	 * @callback fun 			the callback to return te pid of the generated entity to
 	 */
 	function genEntity(apx, par, fun = _ => log.e(_)) {
@@ -750,7 +781,7 @@
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
 			compileInstance(pidapx, inst);
-			
+
 			setup();
 
 			function setup() {
@@ -829,7 +860,7 @@
 					ent[par] = inst.Par[par];
 				}
 			}
-			
+
 			//load pars from schema
 			let pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
@@ -885,7 +916,7 @@
 	 * Modules come from memory, a defined broker, or disk depending on the module definition
 	 * @param {Object} modRequest 
 	 * @param {String} modRequest.Module
-	 * @param {String} modRequest.Source
+	 * @param {String=} modRequest.Source
 	 * @param {Function} fun 
 	 * @returns mod
 	 */
@@ -894,13 +925,11 @@
 		let modnam = modRequest.Module;
 		if (typeof modRequest != "object") {
 			modnam = modRequest;
-			// --- should be removed ???
 		}
 		let source = modRequest.Source;
 		let mod = {};
 		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 		let dir = ModName.replace('.', ':').replace(/\./g, '/');
-
 
 		//get the module from memory (ModCache) if it has already been retrieved
 		if (ModName in ModCache) return fun(null, ModCache[ModName]);
@@ -933,7 +962,4 @@
 			}
 		});
 	}
-
-
-
 })();
