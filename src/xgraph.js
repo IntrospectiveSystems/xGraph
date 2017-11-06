@@ -146,15 +146,15 @@ async function compile() {
 
 function startNexusProcess() {
 	const { spawn } = require('child_process');
-
+	console.log("NODE PATH SET TO", path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/"));
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./")),"node_modules/")} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./")),"node_modules/")} });	
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });	
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./")),"node_modules/")} });	
+	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });	
 	// #endif
 
 	ls.stdout.on('data', _=> process.stdout.write(_));

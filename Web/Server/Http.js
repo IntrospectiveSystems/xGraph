@@ -241,7 +241,7 @@
 			let arr = url.split('/');
 			arr = arr.slice(1);
 
-			let store = Par.Static;
+			let store = Par.Static||{};
 
 			ship(...subSearch(arr, store));
 

@@ -11,7 +11,9 @@
 					"Controller":"$Controller"
 				},				
 				"Port": 8080,
-				"Url": "Paint"
+				"Url": "Paint",
+				"HTML": "@file: Paint.html",
+				"Config": "@file: browser.json"
 			}
 		},
 		"Controller": {

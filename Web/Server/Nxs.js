@@ -370,7 +370,7 @@ __Nexus = (function () {
 	// handled by Nxs for modules instantiated initially.
 	function genModule(mod, fun) {
 		var pidapx;
-		let Initializers = {};
+		Initializers = {};
 		addModule(mod, setup);
 
 		function setup(err, pid) {
