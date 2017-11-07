@@ -47,7 +47,7 @@ let genesis = function(){
 			// i : info
 			// w : warn
 			// e : error
-			const log = {
+			const log = global.log = {
 				v: (...str) => {
 					console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
 					xgraphlog(...str);
@@ -293,18 +293,66 @@ let genesis = function(){
 			/**
 			 * Write the modules and all instances to the cache
 			 */
-			function populate() {
+			async function populate() {
 				log.v('--populate : Writing Cache to Disk');
 				// Write cache to CacheDir
-				fs.mkdirSync(CacheDir);
+
+				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					var mod = ModCache[folder];
-					var dir = CacheDir + '/' + folder;
+					let mod = ModCache[folder];
+					let dir = CacheDir + '/' + folder;
 					fs.mkdirSync(dir);
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
+
+					npmDependenciesArray.push(new Promise((resolve, reject) => {
+						let packagejson;
+						let mod = ModCache[folder];
+						if ('package.json' in mod) {
+							packagejson = JSON.parse(mod['package.json']);
+						} else {
+							resolve();
+							return;
+						}
+
+						log.i(`${folder}: Updating and installing dependencies`);
+						let strout = JSON.stringify(packagejson, null, 2);
+						console.log(strout);
+						//write the compiled package.json to disk
+
+						fs.writeFileSync(Path.join(dir, 'package.json'), strout);
+
+						//call npm install on a childprocess of node
+						const proc = require('child_process');
+
+						let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+						let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
+
+						ps.stdout.on('data', _ => { process.stdout.write(`${folder}: ${_} `) });
+						ps.stderr.on('data', _ => process.stderr.write(`${folder}: ${_} `));
+
+						ps.on('err', function (err) {
+							log.e('Failed to start child process.');
+							log.e('err:' + err);
+							reject(err);
+						});
+
+						ps.on('exit', function (code) {
+							if (code == 0)
+								log.i(`${folder}: dependencies installed correctly`);
+							else {
+								log.e(`${folder}: npm process exited with code: ${code}`);
+								process.exit(1);
+								reject();
+							}
+							fs.unlinkSync(Path.join(dir, 'package.json'));
+							resolve();
+						});
+					}));
 				}
+
+				await Promise.all(npmDependenciesArray);
 
 				// Assign pids to all instance in Config.Modules
 				for (let instname in Config.Modules) {
@@ -441,7 +489,7 @@ let genesis = function(){
 							Buf += data.toString('utf8', i1, i2);
 							State = 0;
 							let response = JSON.parse(Buf);
-
+							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 							const jszip = require("jszip");
 							const zipmod = new jszip();
 
@@ -612,15 +660,12 @@ let genesis = function(){
 						key = key.split(',')[0].trim();
 						let encoding = key.split(',')[1].trim();
 					}
-					log.d(`at switch ${key}`);
 					switch (key) {
 						case "@filename":
 						case "@file": {
 							try {
-								let systemPath = Params["CWD"] ||Path.dirname(Params["Config"]|| "./confg.json");
-								log.d(`system path is set to ${systemPath}`);
-								let path = Path.join( Path.resolve(systemPath), val[1].trim());
-								log.d("Path is ", path);
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								let path = Path.join(Path.resolve(systemPath), val[1].trim());
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e("Error reading file ", path);
@@ -631,8 +676,8 @@ let genesis = function(){
 						case "@folder":
 						case "@directory": {
 							try {
-								let systemPath = Params["CWD"] ||Path.dirname(Params["Config"] || "./config.json");
-								let dir = Path.join( Path.resolve(systemPath), val[1].trim());
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./config.json");
+								let dir = Path.join(Path.resolve(systemPath), val[1].trim());
 								return buildDir(dir);
 
 								function buildDir(path) {
@@ -667,58 +712,34 @@ let genesis = function(){
 			}
 		}
 
- 	
+
 		/**
 		 * Reconstruct package.json and node_modules
 		 * directory by merging package.json of the
 		 * individual modules and then running npm
 		 * to create node_modules directory for system
-		 * @param {function} func what to do next
+		 * @callback func what to do next
 		 */
 		function refreshSystem(func) {
 			log.i('--refreshSystems: Updating and installing dependencies\n');
-			var packagejson;
-			for (let folder in ModCache) {
-				let mod = ModCache[folder];
-				if ('package.json' in mod) {
-					obj = JSON.parse(mod['package.json']);
-					if (!packagejson) {
-						packagejson = obj;
-						continue;
-					}
-					if (obj.dependencies) {
-						if (!packagejson.dependencies) packagejson.dependencies = {};
-						for (key in obj.dependencies) {
-							if (!(key in packagejson.dependencies))
-								packagejson.dependencies[key] = obj.dependencies[key];
-						}
-					}
-					if (obj.devDependencies) {
-						if (!packagejson.devDependencies) packagejson.devDependencies = {};
-						for (key in obj.devDependencies) {
-							if (!(key in packagejson.devDependencies))
-								packagejson.devDependencies[key] = obj.devDependencies[key];
-						}
-					}
-				}
-			}
+			var packagejson = {};
+
+			if (!packagejson.dependencies) packagejson.dependencies = {};
 
 			//include Genesis/Nexus required npm modules
 			packagejson.dependencies["uuid"] = "3.1.0";
 			packagejson.dependencies["async"] = "0.9.0";
-			//for old nexus --- should be removed ???
-			packagejson.dependencies["node-uuid"] = "~1.4.2";
 
 			var strout = JSON.stringify(packagejson, null, 2);
 			//write the compiled package.json to disk
-
-			fs.writeFileSync(Path.join(Path.dirname(Path.resolve(CacheDir)), 'package.json'), strout);
+			fs.mkdirSync(CacheDir);
+			fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
 
 			//call npm install on a childprocess of node
 			const proc = require('child_process');
 
 			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-			var ps = proc.spawn(npm, ['install'], { cwd: Path.dirname(Path.resolve(CacheDir)) });
+			var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
 			ps.stdout.on('data', _ => { process.stdout.write(_) });
 			ps.stderr.on('data', _ => process.stderr.write(_));
@@ -736,7 +757,7 @@ let genesis = function(){
 					process.exit(1);
 					reject();
 				}
-				log.v('Current working directory: ' + process.cwd());
+				fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
 				func();
 			});
 		}
@@ -783,8 +804,10 @@ let genesis = function(){
 		 * generate a 32 character hex pid
 		 */
 		function genPid() {
-			if (!Uuid)
+			if (!Uuid) {
+				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 				Uuid = require('uuid/v4');
+			}
 			var str = Uuid();
 			var pid = str.replace(/-/g, '').toUpperCase();
 			return pid;
@@ -835,7 +858,7 @@ let genesis = function(){
 		}
 
 
-	
+
 		/**
 		 * Recursive directory deletion
 		 * Used for cache cleanup
