@@ -3,11 +3,11 @@
 	console.time('Nexus Start Time');
 
 	const fs = require('fs');
+	const Path = require('path');
 	const date = new Date();
 	var Uuid;
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
-	var Apex = {};						// {<Name>: <pid of Apex>}
 	var ModCache = {};					// {<folder>: <module>}
 	var ApexIndex = {}; 				// {<Apex pid>:<folder>}
 	var SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
@@ -24,6 +24,7 @@
 		deleteEntity,
 		saveEntity,
 		getFile,
+		loadDependency,
 		sendMessage
 	};
 
@@ -162,6 +163,9 @@
 
 			for (var ifold = 0; ifold < folders.length; ifold++) {
 				let folder = folders[ifold];
+				log.d(folder);
+				if (folder == 'node_modules')
+					continue;
 				let dir = CacheDir + '/' + folder;
 				if (!fs.lstatSync(dir).isDirectory())
 					continue;
@@ -320,8 +324,10 @@
 	 * generate a 32 character hex pid
 	 */
 	function genPid() {
-		if (!Uuid)
+		if (!Uuid) {
+			module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 			Uuid = require('uuid/v4');
+		}
 		var str = Uuid();
 		var pid = str.replace(/-/g, '').toUpperCase();
 		return pid;
@@ -340,61 +346,58 @@
 	 * @param {string=} com.Passport.From the Pid of the sending module
 	 * @callback fun 				the callback function to return to when finished
 	 */
-	function sendMessage(com, fun) {
+	function sendMessage(com, fun = _ => _) {
 		if (!('Passport' in com)) {
-			log.e(' ** ERR:Message has no Passport, ignored');
-			log.e('    ' + JSON.stringify(com));
-			if (fun)
-				fun('No Passport');
+			log.w(' ** ERR:Message has no Passport, ignored');
+			log.w('    ' + JSON.stringify(com));
+			fun('No Passport');
 			return;
 		}
 		if (!('To' in com.Passport) || !com.Passport.To) {
-			log.e(' ** ERR:Message has no destination entity, ignored');
-			log.e('    ' + JSON.stringify(com));
+			log.w(' ** ERR:Message has no destination entity, ignored');
+			log.w('    ' + JSON.stringify(com));
 			console.trace();
-			if (fun)
-				fun('No recipient in message', com);
+			fun('No recipient in message', com);
 			return;
 		}
 		if (!('Pid' in com.Passport)) {
-			log.e(' ** ERR:Message has no message id, ignored');
-			log.e('    ' + JSON.stringify(com));
-			if (fun)
-				fun('No message id', com);
+			log.w(' ** ERR:Message has no message id, ignored');
+			log.w('    ' + JSON.stringify(com));
+			fun('No message id', com);
 			return;
 		}
 
 		let pid = com.Passport.To;
+		let apx = com.Passport.Apex || pid;
 		if (pid in EntCache) {
 			done(null, EntCache[pid]);
 			return;
+		} else {
+			getEntityContext(apx, pid, done);
 		}
-		if (pid in ApexIndex) {
-			getEntityContext(pid, pid, done);
-			return;
-		}
-		let apx;
-		if ('Apex' in com.Passport)
-			apx = com.Passport.Apex;
-		else
-			apx = pid;
-		getEntityContext(apx, pid, done);
 
 		function done(err, entContext) {
 			if (err) {
-				log.e(' ** ERR:' + err);
-				log.e(JSON.stringify(com, null, 2));
-				if (fun)
-					fun(err, com);
+				log.w(' ** ERR:' + err);
+				log.w(JSON.stringify(com, null, 2));
+				fun(err, com);
 				return;
 			}
-			entContext.dispatch(com, reply);
-			return;
-		}
 
+			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
+				entContext.dispatch(com, reply);
+				return;
+			} else {
+				let err = ' ** ERR: Trying to send a message to a non-Apex'
+					+ 'entity outside of the sending module';
+				log.w(err);
+				log.w(JSON.stringify(com, null, 2));
+				fun(err, com);
+				return;
+			}
+		}
 		function reply(err, q) {
-			if (fun)
-				fun(err, q);
+			fun(err, q);
 		}
 	}
 
@@ -402,9 +405,9 @@
 
 	/**
 	 * The base class for all xGraph Entities
-	 * @param {object} nxs 
-	 * @param {*} imp 
-	 * @param {*} par 
+	 * @param {object} nxs 	the nxs context to give the entity acess too
+	 * @param {object} imp 	the evaled Entity functionality returned by the dispatch table
+	 * @param {object} par	the par of the entity 
 	 */
 	function Entity(nxs, imp, par) {
 		var Par = par;
@@ -425,6 +428,14 @@
 			getFile,
 			require
 		};
+
+		/**
+		 * load a dependency for a moduel
+		 * @param {string} string 	the string of the module to require/load
+		 */
+		function require(string){
+			return nxs.loadDependency(Par.Apex, Par.Pid, string);
+		}
 
 		/**
 		 * get a file in the module.json module definition
@@ -713,6 +724,22 @@
 		fun(err);
 	}
 
+	/**
+	 * load a dependency for a module
+	 * @param {string} apx 		pid of the entities apex
+	 * @param {string} pid 		the pid of the entity
+	 * @param {string} str 			the string of the module to require
+	 */
+	function loadDependency(apx,pid,str){
+		//load fresh from file
+		delete require.cache[require.resolve(str)];
+
+		let folder = ApexIndex[apx];
+		let path = CacheDir + '/' + folder + '/node_modules/';
+		module.paths = [path];
+		return require(str);
+	}
+
 
 	/**
 	 * Spin up an entity from cache into memory and retrievd its context 
@@ -726,17 +753,23 @@
 		let par;
 		let ent;
 
-		// If entity already cached, just return it
-		if (pid in EntCache) {
-			fun(null, EntCache[pid]);
-			return;
-		}
-
 		// Check to see if Apex entity in this system
 		if (!(apx in ApexIndex)) {
 			fun('Not available');
 			return;
 		}
+
+		// If entity already cached, just return it
+		if (pid in EntCache) {
+			if (apx == EntCache[pid].Par.Apex) {
+				fun(null, EntCache[pid]);
+				return;
+			} else {
+				fun('Not available');
+				return;
+			}
+		}
+
 		let folder = ApexIndex[apx];
 		let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
 		fs.readFile(path, function (err, data) {
@@ -917,8 +950,6 @@
 			if (typeof val !== 'string')
 				return val;
 			var sym = val.substr(1);
-			if (val.charAt(0) === '$' && sym in Apex)
-				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
 			if (val.charAt(0) === '\\')
