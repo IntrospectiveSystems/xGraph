@@ -660,12 +660,17 @@ let genesis = function(){
 						key = key.split(',')[0].trim();
 						let encoding = key.split(',')[1].trim();
 					}
+					val = val.slice(1).join(':').trim();
 					switch (key) {
 						case "@filename":
 						case "@file": {
 							try {
+								let path;
 								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
-								let path = Path.join(Path.resolve(systemPath), val[1].trim());
+								if (val[0] == '/')
+									path = val;
+								else
+									path = Path.join(Path.resolve(systemPath), val[1].trim());
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e("Error reading file ", path);
@@ -676,8 +681,12 @@ let genesis = function(){
 						case "@folder":
 						case "@directory": {
 							try {
-								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./config.json");
-								let dir = Path.join(Path.resolve(systemPath), val[1].trim());
+								let path;
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								if (val[0] == '/')
+									path = val;
+								else
+									path = Path.join(Path.resolve(systemPath), val[1].trim());
 								return buildDir(dir);
 
 								function buildDir(path) {
@@ -1005,7 +1014,7 @@ console.log(`ERR: ${e}`);
 
 function startNexusProcess() {
 const { spawn } = require('child_process');
-console.log("NODE PATH SET TO", path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/"));
+
 const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });
 
 ls.stdout.on('data', _=> process.stdout.write(_));

@@ -645,12 +645,17 @@
 						key = key.split(',')[0].trim();
 						let encoding = key.split(',')[1].trim();
 					}
+					val = val.slice(1).join(':').trim();
 					switch (key) {
 						case "@filename":
 						case "@file": {
 							try {
+								let path;
 								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
-								let path = Path.join(Path.resolve(systemPath), val[1].trim());
+								if (val[0] == '/')
+									path = val;
+								else
+									path = Path.join(Path.resolve(systemPath), val[1].trim());
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e("Error reading file ", path);
@@ -661,8 +666,12 @@
 						case "@folder":
 						case "@directory": {
 							try {
-								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./config.json");
-								let dir = Path.join(Path.resolve(systemPath), val[1].trim());
+								let path;
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								if (val[0] == '/')
+									path = val;
+								else
+									path = Path.join(Path.resolve(systemPath), val[1].trim());
 								return buildDir(dir);
 
 								function buildDir(path) {

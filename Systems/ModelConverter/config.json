@@ -1,18 +1,15 @@
 {
-  "xGraph": "{xGraph}",
-  "Cache": "cache",
-   "Modules": {
-	 "Nexus": {
-	   "Module": "xGraph:Nexus/Nexus",
-	   "Par": {
-	   }
-	 },
-	 "Model": {
-	   "Module":"xGraph:Scene/ModelConverter",
-	   "Par":{
-		 "Models":"c:/S3/X3D/LightGreen02",
-		 "Models":"c:/S3/X3D/PalmsGreen"
-	   }
-	 }
-   }
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Model": {
+			"Module": "xGraph:Scene/ModelConverter",
+			"Source": "xGraph",
+			"Par": {
+				"Models": "c:/S3/X3D/LightGreen02",
+				"Models": "c:/S3/X3D/PalmsGreen"
+			}
+		}
+	}
 }

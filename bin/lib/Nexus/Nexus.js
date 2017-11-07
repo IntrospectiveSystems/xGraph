@@ -153,7 +153,6 @@
 
 			for (var ifold = 0; ifold < folders.length; ifold++) {
 				let folder = folders[ifold];
-				log.d(folder);
 				if (folder == 'node_modules')
 					continue;
 				let dir = CacheDir + '/' + folder;
@@ -415,7 +414,7 @@
 		 * load a dependency for a moduel
 		 * @param {string} string 	the string of the module to require/load
 		 */
-		function require(string){
+		function require(string) {
 			return nxs.loadDependency(Par.Apex, Par.Pid, string);
 		}
 
@@ -712,12 +711,15 @@
 	 * @param {string} pid 		the pid of the entity
 	 * @param {string} str 			the string of the module to require
 	 */
-	function loadDependency(apx,pid,str){
+	function loadDependency(apx, pid, str) {
 		//load fresh from file
-		delete require.cache[require.resolve(str)];
+		try {
+			delete require.cache[require.resolve(str)];
+		} catch (e) { }
 
 		let folder = ApexIndex[apx];
 		let path = CacheDir + '/' + folder + '/node_modules/';
+
 		module.paths = [path];
 		return require(str);
 	}
