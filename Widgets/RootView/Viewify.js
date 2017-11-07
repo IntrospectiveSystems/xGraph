@@ -231,7 +231,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let that = this;
 			let vlt = this.Vlt
 			let selector = com.Selector;
-			if (selector == "" || selector == ":root") {
+			if (selector.indexOf(':root') > -1) { // if we have :root in our thing, just replace it with the id thing.
+				selector = selector.replace(/:root/g, '');
+			} else if (selector == "" || selector == ":root") {
 				selector = '#' + this.Vlt.div.attr('id');
 			} else {
 				selector = '#' + this.Vlt.div.attr('id') + " " + selector;
