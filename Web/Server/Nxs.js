@@ -23,7 +23,7 @@ __Nexus = (_ => {
 	var Nxs = {
 		genPid,
 		genEntity,
-		delEntity,
+		deleteEntity,
 		genModule,
 		getFile,
 		send,
@@ -217,23 +217,20 @@ __Nexus = (_ => {
 
 	//--------------------------------------------------------Entity
 	// Entity base class
-	function Entity(nxs, mod, par) {
-		//	var Nxs = nxs;
+	function Entity(nxs, imp, par) {
 		var Par = par;
-		var Mod = mod;
+		var Imp = imp;
 		var Vlt = {};
 
 		return {
-			Par: Par,
-			Mod: Mod,
-			Vlt: Vlt,
-			//		Nxs: Nxs,
-			dispatch: dispatch,
-			send: send,
-			deleteEntity: deleteEntity,
-			getPid: getPid,
+			Par,
+			Vlt,
+			dispatch,
+			send,
+			deleteEntity,
+			getPid,
 			getFile,
-			genModule: genModule
+			genModule
 		};
 
 		//-------------------------------------------------dispatch
@@ -256,7 +253,7 @@ __Nexus = (_ => {
 		}
 
 		function deleteEntity(fun) {
-			nxs.delEntity(Par.Pid, fun);
+			nxs.deleteEntity(Par.Pid, fun);
 		}
 
 		//-------------------------------------------------getPid
@@ -341,9 +338,9 @@ __Nexus = (_ => {
 		}
 	}
 
-	//-----------------------------------------------------delEntity
+	//-----------------------------------------------------deleteEntity
 	// Generate node from parameter object
-	function delEntity(pid, fun) {
+	function deleteEntity(pid, fun) {
 		if (EntCache[pid]) {
 			delete EntCache[pid];
 			console.log(pid, ' Deleted');

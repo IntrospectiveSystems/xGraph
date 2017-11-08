@@ -291,6 +291,7 @@
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
 
+					//install npm dependencies
 					npmDependenciesArray.push(new Promise((resolve, reject) => {
 						let packagejson;
 						let mod = ModCache[folder];
@@ -352,7 +353,7 @@
 					var inst = Config.Modules[instname];
 					log.v(instname, JSON.stringify(inst, null, 2));
 					var pidinst = Apex[instname];
-					var ents = compileInstance(pidinst, inst);
+					var ents = await compileInstance(pidinst, inst);
 					folder = inst.Module;
 					// The following is for backword compatibility only
 					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
@@ -568,7 +569,7 @@
 		 * @param {string} inst.Module	The module definition in dot notation
 		 * @param {object} inst.Par		The par object that defines the par of the instance
 		 */
-		function compileInstance(pidapx, inst) {
+		async function compileInstance(pidapx, inst) {
 			var Local = {};
 			var modnam = inst.Module;
 			var mod;
@@ -586,6 +587,8 @@
 			}
 			var schema = JSON.parse(mod['schema.json']);
 			var entkeys = Object.keys(schema);
+
+			//set Pids for each entity in the schema
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
 				if (entkey === 'Apex')
@@ -593,10 +596,13 @@
 				else
 					Local[entkey] = genPid();
 			}
+
+			//unpack the par of each ent
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
+				//unpack the config pars to the par of the apex of the instance
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
 					for (var ipar = 0; ipar < pars.length; ipar++) {
@@ -604,6 +610,7 @@
 						ent[par] = inst.Par[par];
 					}
 				}
+
 				ent.Module = modnam;
 				ent.Apex = pidapx;
 				var pars = Object.keys(ent);
@@ -611,6 +618,9 @@
 					var par = pars[ipar];
 					var val = ent[par];
 					ent[par] = symbol(val);
+					if (par === "Config") {
+						ent["Cache"] = await GenTemplate(ent["Config"]);
+					}
 				}
 				ents.push(ent);
 			}
@@ -875,6 +885,169 @@
 				fs.rmdirSync(path);
 				log.v(`Removing the directory ${path}`);
 			}
+		}
+
+		function GenTemplate(config) {
+			return new Promise((resolve, reject) => {
+				
+				let ifolder, moduleKeys, nfolders;
+				let Config = {};
+
+				parseConfig(config);
+
+				generateModuleCatalog();
+
+				recursiveBuild();
+
+
+				////////////////////////////////////////////////////////////////////////////////////////////////
+				//
+				// Only Function Definitions Beyond This Point
+				//
+				//
+
+				/**
+				 * Create a list of all required modules and their brokers
+				 */
+				function generateModuleCatalog() {
+					// Create new cache and install high level
+					// module subdirectories. Each of these also
+					// has a link to the source of that module (Module.json).
+					var keys = Object.keys(Config.Modules);
+					for (let i = 0; i < keys.length; i++) {
+						let key = keys[i];
+						if (key == 'Deferred') {
+							var arr = Config.Modules[key];
+							arr.forEach(function (mod) {
+								let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+								let source = mod.Source;
+								if (!(folder in Modules)) {
+									Modules[folder] = source;
+								} else {
+									if (Modules[folder] != source) {
+										log.e("Broker Mismatch Exception");
+										process.exit(2);
+										reject();
+									}
+								}
+							});
+						} else {
+							let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
+							let source = Config.Modules[key].Source;
+							if (!(folder in Modules)) {
+								Modules[folder] = source;
+							} else {
+								if (Modules[folder] != source) {
+									log.e("Broker Mismatch Exception");
+									process.exit(2);
+									reject();
+								}
+							}
+						}
+					}
+					//prepare for looping over the module catalog
+					ifolder = -1;
+					moduleKeys = Object.keys(Modules);
+					nfolders = moduleKeys.length;
+				}
+
+				/**
+				 * get the modules from the prebuilt catalog
+				 * from the source defined in config
+				 */
+				function recursiveBuild() {
+					ifolder++;
+
+					if (ifolder >= nfolders) {
+						refreshSystem(populate);
+						return;
+					}
+
+					let folder = moduleKeys[ifolder];
+					let modrequest = {
+						"Module": folder,
+						"Source": Modules[folder]
+					};
+
+					GetModule(modrequest, function (err, mod) {
+						ModCache[folder] = mod;
+						recursiveBuild();
+					});
+				}
+
+				/**
+				 * Write the modules and all instances to the cache
+				 */
+				async function populate() {
+					log.v('--populate : Writing Cache to Disk');
+					// Write cache to CacheDir
+
+					for (let folder in ModCache) {
+						let mod = ModCache[folder];
+						let dir = CacheDir + '/' + folder;
+						fs.mkdirSync(dir);
+						log.v(`Writing Module ${folder} to ${CacheDir}`);
+						let path = dir + '/Module.json';
+						fs.writeFileSync(path, JSON.stringify(mod, null, 2));
+
+					}
+
+					// Assign pids to all instance in Config.Modules
+					for (let instname in Config.Modules) {
+						Apex[instname] = genPid();
+					}
+					log.v('Apex', JSON.stringify(Apex, null, 2));
+
+					// Now populate all of the modules from config.json
+					for (let instname in Config.Modules) {
+						if (instname === 'Deferred')
+							continue;
+						var inst = Config.Modules[instname];
+						log.v(instname, JSON.stringify(inst, null, 2));
+						var pidinst = Apex[instname];
+						var ents = await compileInstance(pidinst, inst);
+						folder = inst.Module;
+						// The following is for backword compatibility only
+						var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
+						var dirinst = CacheDir + '/' + folder + '/' + pidinst;
+						fs.mkdirSync(dirinst);
+						ents.forEach(function (ent) {
+							let path = dirinst + '/' + ent.Pid + '.json';
+							fs.writeFileSync(path, JSON.stringify(ent, null, 2));
+						});
+					}
+
+
+					/**
+						* Read in the given config and fill in the Macros
+						*/
+					function parseConfig(cfg) {
+						// Parse the config.json and replace Macros
+						// Store all Macros in Params --- should be removed?
+						let val, sources, subval;
+						var ini = JSON.parse(cfg);
+						for (let key in ini) {
+							val = ini[key];
+							if (key == "Sources") {
+								Config.Sources = {};
+								sources = ini["Sources"];
+								for (let subkey in sources) {
+									subval = sources[subkey];
+									if (typeof subval == 'string') {
+										Config.Sources[subkey] = Macro(subval);
+									} else {
+										Config.Sources[subkey] = subval;
+									}
+								}
+							} else {
+								Config[key] = val;
+							}
+
+						}
+
+
+					}
+				});
 		}
 
 	});

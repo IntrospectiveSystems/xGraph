@@ -413,7 +413,6 @@
 			Vlt,
 			dispatch,
 			genModule,
-			getModule,
 			genEntity,
 			deleteEntity,
 			genPid,
@@ -439,15 +438,6 @@
 		function getFile(filename, fun) {
 			log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
 			nxs.getFile(Par.Module, filename, fun);
-		}
-
-		/**
-		 * Get the module.json for some module
-		 * @param {string} moduleDef 		Module name to get
-		 * @callback fun 
-		 */
-		function getModule(moduleDef, fun) {
-			nxs.GetModule(moduleDef, fun);
 		}
 
 		/**

@@ -306,6 +306,7 @@ let genesis = function(){
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
 
+					//install npm dependencies
 					npmDependenciesArray.push(new Promise((resolve, reject) => {
 						let packagejson;
 						let mod = ModCache[folder];
@@ -367,7 +368,7 @@ let genesis = function(){
 					var inst = Config.Modules[instname];
 					log.v(instname, JSON.stringify(inst, null, 2));
 					var pidinst = Apex[instname];
-					var ents = compileInstance(pidinst, inst);
+					var ents = await compileInstance(pidinst, inst);
 					folder = inst.Module;
 					// The following is for backword compatibility only
 					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
@@ -583,7 +584,7 @@ let genesis = function(){
 		 * @param {string} inst.Module	The module definition in dot notation
 		 * @param {object} inst.Par		The par object that defines the par of the instance
 		 */
-		function compileInstance(pidapx, inst) {
+		async function compileInstance(pidapx, inst) {
 			var Local = {};
 			var modnam = inst.Module;
 			var mod;
@@ -601,6 +602,8 @@ let genesis = function(){
 			}
 			var schema = JSON.parse(mod['schema.json']);
 			var entkeys = Object.keys(schema);
+
+			//set Pids for each entity in the schema
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
 				if (entkey === 'Apex')
@@ -608,10 +611,13 @@ let genesis = function(){
 				else
 					Local[entkey] = genPid();
 			}
+
+			//unpack the par of each ent
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
+				//unpack the config pars to the par of the apex of the instance
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
 					for (var ipar = 0; ipar < pars.length; ipar++) {
@@ -619,6 +625,7 @@ let genesis = function(){
 						ent[par] = inst.Par[par];
 					}
 				}
+
 				ent.Module = modnam;
 				ent.Apex = pidapx;
 				var pars = Object.keys(ent);
@@ -626,9 +633,13 @@ let genesis = function(){
 					var par = pars[ipar];
 					var val = ent[par];
 					ent[par] = symbol(val);
+					if (par === "Config"){
+						ent["Cache"] = await GenTemplate(ent["Config"]);
+					}
 				}
 				ents.push(ent);
 			}
+			log.d(ents);
 			return ents;
 
 			function symbol(val) {
@@ -890,6 +901,47 @@ let genesis = function(){
 				fs.rmdirSync(path);
 				log.v(`Removing the directory ${path}`);
 			}
+		}
+
+		function GenTemplate(config) {
+			return new Promise((resolve, reject) => {
+
+				let Config = {};
+				parseConfig(config);
+
+
+				/**
+		 		* Read in the given config and fill in the Macros
+		 		*/
+				function parseConfig(cfg) {
+					// Parse the config.json and replace Macros
+					// Store all Macros in Params --- should be removed?
+					let val, sources, subval;
+					var ini = JSON.parse(cfg);
+					for (let key in ini) {
+						val = ini[key];
+						if (key == "Sources") {
+							Config.Sources = {};
+							sources = ini["Sources"];
+							for (let subkey in sources) {
+								subval = sources[subkey];
+								if (typeof subval == 'string') {
+									Config.Sources[subkey] = Macro(subval);
+								} else {
+									Config.Sources[subkey] = subval;
+								}
+							}
+						} else {
+							Config[key] = val;
+						}
+
+					}
+
+					// Print out the parsed config
+					log.d(JSON.stringify(Config, null, 2));
+					resolve(JSON.stringify(Config, null, 2));
+				}
+			});
 		}
 
 	});

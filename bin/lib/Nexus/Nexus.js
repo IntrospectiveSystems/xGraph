@@ -1,6 +1,5 @@
 (async function () {
 	console.log(`\nInitializing the Run Engine`);
-	console.time('Nexus Start Time');
 
 	const fs = require('fs');
 	const Path = require('path');
@@ -234,8 +233,6 @@
 			if ('send' in process) {
 				process.send('{"Cmd":"Finished"}');
 			}
-			console.timeEnd('Nexus Start Time');
-
 		}
 	}
 
@@ -252,8 +249,6 @@
 	// Helper Functions as well as Entity definition
 	//
 	//
-
-
 
 
 	
@@ -400,7 +395,6 @@
 			Vlt,
 			dispatch,
 			genModule,
-			getModule,
 			genEntity,
 			deleteEntity,
 			genPid,
@@ -426,15 +420,6 @@
 		function getFile(filename, fun) {
 			log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
 			nxs.getFile(Par.Module, filename, fun);
-		}
-
-		/**
-		 * Get the module.json for some module
-		 * @param {string} moduleDef 		Module name to get
-		 * @callback fun 
-		 */
-		function getModule(moduleDef, fun) {
-			nxs.GetModule(moduleDef, fun);
 		}
 
 		/**
@@ -808,7 +793,7 @@
 
 		GetModule(inst.Module, function (err, mod) {
 			if (err) {
-				console.log(' ** ERR:GenModule err -', err);
+				log.w(' ** ERR:GenModule err -', err);
 				fun(err);
 				return;
 			}
