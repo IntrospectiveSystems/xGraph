@@ -1,19 +1,21 @@
 {
-	"xGraph": "{xGraph}",
-	"Cache": "cache",
-	"Sources":{
-
+	"Sources": {
+		"xGraph": "{xGraph}"
 	},
 	"Modules": {
-		"Nexus": {
-			"Module": "xGraph.Nexus.Nexus"
-		},
 		"Server": {
 			"Module": "xGraph.ValidateModule",
+			"Source": "xGraph",
 			"Par": {
-				"TestModule" : "xGraph:Web/Server"
+				"TestModule": "xGraph.Web.Router",
+				"TestJson" :"@file: /home/trevor/xGraph/Web/Router/test.json"
 			}
 		},
-		"Deferred":["xGraph.Web.Server"]
+		"Deferred": [
+			{
+				"Module": "xGraph.Web.Router",
+				"Source": "xGraph"
+			}
+		]
 	}
 }

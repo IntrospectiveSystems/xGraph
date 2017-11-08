@@ -88,7 +88,7 @@
 				angle: 0
 			};
 			q.Objects.push(obj);
-			debugger;
+			//debugger;
 			
 			this.send(q, this.Par.Server, _ =>
 				//callback

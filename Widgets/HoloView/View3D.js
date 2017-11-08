@@ -56,7 +56,7 @@
 	}
 
 	function DOMLoaded(com, fun) {
-		this.vlt.div.on("keydown", "canvas", (function(evt) {
+		this.Vlt.div.on("keydown", "canvas", (function(evt) {
 			console.log("Keydown event", evt.code)
 			switch(evt.code) {
 				case 'F2':
