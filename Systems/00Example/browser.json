@@ -1,0 +1,15 @@
+{
+	"Modules": {
+		"RootView": {
+			"Module": "xGraph:Widgets/RootView",
+			"Par": {
+				"Layout": "$3DView"
+			}
+		},
+		"3DView": {
+			"Module":"xGraph:Widgets/3DView",
+			"Par": {
+			}
+		}
+	}
+}

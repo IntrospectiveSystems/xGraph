@@ -1,0 +1,69 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph:Web/Server",
+			"Source": "xGraph",
+			"Par": {
+				"ApexList": {
+					"Scene": "$World"
+				},
+				"Port": 8080,
+				"Url": "Paint",
+				"HTML": "@file: Paint.html",
+				"Config": "@file: browser.json",
+				"Static": {
+					"sand-12.jpg": "@file: sand-12.jpg"
+				}
+			}
+		},
+		"World": {
+			"Module": "xGraph:Scene/World",
+			"Source": "xGraph",
+			"Par": {
+				"View": "$Server",
+				"Terrain": "$Terrain",
+				"Inst": []
+			}
+		},
+		"Terrain": {
+			"Module": "xGraph:Scene/Flatland",
+			"Source": "xGraph",
+			"Par": {
+				"Size": [
+					100,
+					100
+				],
+				"TextureSize": [
+					25,
+					25
+				],
+				"Texture": "sand-12.jpg"
+			}
+		},
+		"Palette": {
+			"Module": "xGraph:Scene/Palette",
+			"Source": "xGraph",
+			"Par": {
+				"Scene": "$World",
+				"Spacing": 10
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Scene.Model",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.RootView",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.HoloView",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

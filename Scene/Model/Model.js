@@ -1,6 +1,6 @@
+// #sourcsURL='Model.js'
 (function Model() {
-	var async = require('async');
-	var fs = require('fs');
+	var async, fs;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -20,6 +20,8 @@
 
 	function Setup(com, fun) {
 		console.log('--Model/Setup');
+		async = this.require('async');
+		fs = this.require('fs')
 		this.Vlt.Graph = [];
 		if(fun)
 			fun();
@@ -56,26 +58,11 @@
 			com.Inst.push(inst);
 		}
 		fun(null, com);
-/*		console.log(JSON.stringify(com));
-		com.Graph[0].Inst.push(inst);
-		if(!('Inst' in Par)) {
-			fun();
-			return;
-		}
-		var links = Par.Inst;
-		var q = {};
-		q.Cmd = 'AddInstance';
-		q.Inst = inst.Inst;
-		q.Scene = com.Scene;
-		async.eachSeries(links, instance, fun);
-
-		function instance(pid, func) {
-			that.send(q, pid, func);
-		} */
 	}
 
 	//-----------------------------------------------------GetModel
 	function GetModel(com, fun) {
+		debugger;
 		console.log('..Model/GetModel');
 		var Par = this.Par;
 		if(!'Name' in Par) {

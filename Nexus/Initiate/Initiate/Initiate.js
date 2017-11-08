@@ -26,8 +26,8 @@
 	function Start(com, fun) {
 		console.log('Initiate::Start');
 		var that = this;
-		var async = require('async');
-		var proc = require('child_process');
+		var async = this.require('async');
+		var proc = this.require('child_process');
 
 
 		if ('System' in com) {

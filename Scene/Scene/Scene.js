@@ -1,6 +1,6 @@
-(function scene() {
-	var async = require('async');
-	var fs = require('fs');
+(function Scene() {
+	var async = this.require('async');
+	var fs = this.require('fs');
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {

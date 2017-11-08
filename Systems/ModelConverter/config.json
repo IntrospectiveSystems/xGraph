@@ -1,0 +1,15 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Model": {
+			"Module": "xGraph:Scene/ModelConverter",
+			"Source": "xGraph",
+			"Par": {
+				"Models": "c:/S3/X3D/LightGreen02",
+				"Models": "c:/S3/X3D/PalmsGreen"
+			}
+		}
+	}
+}

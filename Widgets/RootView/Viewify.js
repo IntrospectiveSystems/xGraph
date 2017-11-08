@@ -1,32 +1,53 @@
 //# sourceURL=Viewify.js
 // debugger;
+let debug = ((new URL(location.href)).searchParams.get('debug'))!=null
+if(debug) console.warn('Debug is turned on!!');
+md5 = function(){
+		var k = [], i = 0;
+		for(; i < 64; ) k[i] = 0|(Math.abs(Math.sin(++i)) * 4294967296);
+		function calcMD5(str){ var b, c, d, j, x = [], str2 = unescape(encodeURI(str)),
+			a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
+			for(; i <= a; ) x[i >> 2] |= (str2.charCodeAt(i)||128) << 8 * (i++ % 4);
+			x[str = (a + 8 >> 6) * 16 + 14] = a * 8; i = 0; for(; i < str; i += 16){
+				a = h; j = 0; for(; j < 64; ) a = [ d = a[3], ((b = a[1]|0) + ((d = ((a[0] +
+					[b & (c = a[2]) | ~b&d,d & b | ~d & c,b ^ c ^ d,c ^ (b | ~d)][a = j >> 4])
+					+ (k[j] + (x[[j, 5 * j + 1, 3 * j + 5, 7 * j][a] % 16 + i]|0)))) << (a = [
+					7, 12, 17, 22, 5,  9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
+					]) | d >>> 32 - a)), b, c]; for(j = 4; j; ) h[--j] = h[j] + a[j]; } str = '';
+			for(; j < 32; ) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
+			return str;} return calcMD5; }();
+function hslToRgb([h, s, l]){
+	var r, g, b;
+	if(s == 0){
+		r = g = b = l; // achromatic
+	}else{
+		var hue2rgb = function hue2rgb(p, q, t){
+			if(t < 0) t += 1;
+			if(t > 1) t -= 1;
+			if(t < 1/6) return p + (q - p) * 6 * t;
+			if(t < 1/2) return q;
+			if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+			return p;
+		}
+		var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		var p = 2 * l - q;
+		r = hue2rgb(p, q, h + 1/3);
+		g = hue2rgb(p, q, h);
+		b = hue2rgb(p, q, h - 1/3);
+	}
+	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
 // DIV, IMG, and STYLE are shorthand for making elements, wrapped in jquery
-
-/* ********************************************************************************
-	Setup core Viewify functionality. The following functions are attached to the
-	window so that they can be used by the View modules.
-	These functions are:
-		window.DIV
-		window.STYLE
-		window.EmptyImage
-		window.IMG
-		window.Viewify
-
- */
-
-/*  window.DIV creates and returns a <div> element. window.DIV accepts a selector parameter. selector
-	may	be a single class as a String, or an array of classes and Ids, with the proper
-	selector symbols (.forClass or #forId)
-*/
-if (window.DIV == undefined) window.DIV = function DIV(selector) {
+if (window.DIV == undefined) window.DIV = function DIV(selectorish) {
 	let elem = $(document.createElement('div'));
-
-	if (selector) {
-		if (selector.search(/[#\.]/) == -1) {
-			elem.addClass(selector);
+	// debugger;
+	if (selectorish) {
+		if (selectorish.search(/[#\.]/) == -1) {
+			elem.addClass(selectorish);
 			return elem;
 		}
-		let params = selector.split(/(?=\.)/g);
+		let params = selectorish.split(/(?=\.)/g);
 		for (let i in params) {
 			if (params[i].startsWith('#')) elem.attr('id', params[i].substr(1));
 			else if (params[i].startsWith('.')) elem.addClass(params[i].substr(1));
@@ -35,19 +56,10 @@ if (window.DIV == undefined) window.DIV = function DIV(selector) {
 	return elem;
 };
 
-
-/*
-	window.STYLE creates and returns a <style> element.
- */
 if (window.STYLE == undefined) window.STYLE = function STYLE() {
 	return $(document.createElement('style'));
 };
 
-
-/*
-	window.emptyImage creates an returns an empty <img> element. Used to set a
-	placeholder image for empty images.
- */
 if (window.emptyImage == undefined) window.emptyImage = function emptyImage() {
 	let emptyImage;
 	emptyImage = $('#THISISANEMPTYIMAGEANDAUNIQUEIDPLSNOREUSE');
@@ -62,10 +74,7 @@ if (window.emptyImage == undefined) window.emptyImage = function emptyImage() {
 };
 
 
-/*
-	window.IMG creates and returns an <img> element. window.IMG accepts a
-	width, height, and src parameter.
- */
+
 if (window.IMG == undefined) window.IMG = function IMG(width, height, src) {
 
 	let elem = $(document.createElement('img'));
@@ -84,12 +93,10 @@ if (window.IMG == undefined) window.IMG = function IMG(width, height, src) {
 	return elem;
 };
 
-/*
-	$Obj.cssVar takes a CSS Variable String and converts it to an integer representation. This is necessary
-	 for applications that use three.js or pixi.js, and may be useful for other graphical libraries.
- */
+// get root level cssVars
 $.fn.extend({
 	cssVar: function (name) {
+		// debugger;
 
 		let color = com.Vlt.div.css('--text').trim().replace('#', '');
 		// color = 'C0FFEE';
@@ -107,37 +114,58 @@ $.fn.extend({
 	}
 });
 
-/*
-	window.Viewify holds the main Viewify function. window.Viewify accepts a parameter
-	_class. _class can either be a JavaScript Class Prototype or a dispatch table representing
-	the View module subclass.
- */
-if (!window.Viewify) window.Viewify = function Viewify(_class) {
+class ViewNotInitializedError extends Error {
+	
+}
 
-	// set the child or subclass View, by setting it's dispatch table or prototype
+//Viewify
+if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
+	class SemVer {
+		constructor(str) {
+			if(!str) {
+				console.warn('View version not specified, assuming 3.0 for compatibility.');
+				str = '3.0.0';
+			}
+			let parts = str.split('.');
+			let version = [];
+			if(parts.length > 0 && parts.length < 4);
+			for(let i = 0; i < parts.length; i ++) {
+				let thing = parseInt(parts[i]);
+				if(thing === thing) {
+					version.push(thing);
+				}
+			}
+			while(version.length < 3) {
+				version.push(0);
+			}
+
+			[this.major, this.minor, this.patch] = version;
+			// debugger;
+			
+		}
+
+		valueOf() {
+			return (this.major * 1e6) + (this.minor * 1e3) + (this.patch);
+		}
+	}
+
+	const version = new SemVer(versionString);
+	// will scan either a prototype of dispatch table
 	let child = typeof _class == 'function' ? _class.prototype : _class;
 
-	// The View base class
 	class View {
-
-        //-----------------------------------------------------Setup
-		/*
-			Setup the new View. Pass base class context to the child class.
-			Creates a new <div> to hold the View, with a titlebar <div>.
-			Set base styles.
-			Save everything to this.Vlt.
-
-		 */
 		Setup(com, fun) {
-			console.time('View');
-
-			// build view
+			// debugger;
+			// console.time('View');
 			let vlt = this.Vlt;
 			vlt.titleBarHeight = 20;
-			vlt.type = "view";
+			// vlt.type = this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1).replace(".js", "");
+			// debugger;
+			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
 			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
-			vlt.div = DIV("#Z" + this.Par.Pid.substr(24));
+			vlt.div = DIV();
+			// debugger;
 			vlt.root = DIV(vlt.rootID);
 			vlt.root.data('ent', this);
 			vlt.root.attr('viewPid', this.Par.Pid);
@@ -146,19 +174,24 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			this.Vlt.disableTitleBar = this.Vlt.disableTitleBar || true;
 			vlt.titleBar.text(this.titleBarText);
 
-			// set base styles
 			vlt.root.css('height', '100%');
 			vlt.root.css('display', 'block');
 			vlt.root.css('box-sizing', 'border-box');
 			vlt.root.css('overflow', 'hidden');
+			// vlt.root.css('padding', '2px');
 
 			vlt.div.css('height', 'calc(100% - ' + (vlt.titleBarHeight + 1) + 'px)');
 			vlt.div.css('display', 'block');
 			vlt.div.css('position', 'relative');
 			vlt.div.css('box-sizing', 'border-box');
 			vlt.div.css('overflow', 'hidden');
+			if(version >= new SemVer("3.1"))
+				vlt.div.addClass(vlt.type);
+			if('ID' in this.Par && version >= new SemVer("3.1")) vlt.ID = this.Par.ID;
+			else vlt.ID = `Z${this.Par.Pid}`;
+			vlt.div.attr('id', this.Vlt.ID);
+			// debugger;
 
-			// setup title bar
 			vlt.titleBar.css('display', 'inline-block');
 			vlt.titleBar.css('width', '100%');
 			vlt.titleBar.css('height', '' + vlt.titleBarHeight + 'px');
@@ -171,61 +204,59 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			vlt.titleBar.css('vertical-align', 'top');
 			vlt.titleBar.css('word-break', 'break-all');
 
-			// set the view color from CSS Variables
+			// vlt.div.css('padding', '2px');
 			this.dispatch({
 				Cmd: 'SetColor',
 				Value: "var(--view-color)"
+				// Border: "var(--view-border-color)"
 			}, () => { });
-
-			// set view name and append everything to the root
 			vlt.name = com.Name || this.Par.Name || "Untitled View";
 			vlt.root.append(vlt.styletag);
 			vlt.root.append(vlt.titleBar);
 			vlt.root.append(vlt.div);
-
+			// debugger;
 			vlt.viewDivs = [];
 
-			// check to see if title bar should be disabled and do so
+			console.time('View');
+			
 			if (vlt.disableTitleBar) {
+				//oh okay, thats cool. i guess.
 				vlt.div.css('height', '100%');
 				vlt.titleBar.detach();
 			}
 
-			console.timeEnd('View');
+			if (vlt.type == "Panel") {
+				// debugger;
+			}
 
+			// com.dispatch({ Cmd: 'Style', Selector: '#' });
+
+			// console.timeEnd('View');
+			// debugger;
 			fun(null, com);
 		}
 
-		//-----------------------------------------------------GetViewRoot
-		/*
-			GetViewRoot saves the Root <div> of the View in com.Div.
-		 */
 		GetViewRoot(com, fun) {
+			// debugger;
+			if(!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before its setup!`);
 			com.Div = this.Vlt.root;
-			fun(null, com);
+			// debugger;
+			fun(new ViewNotInitializedError(), com);
 		}
 
-		//-----------------------------------------------------GetViewDiv
-		/*
-			GetViewDiv saves the View's main <div> in com.Div.
-		 */
 		GetViewDiv(com, fun) {
 			com.Div = this.Vlt.div;
 			fun(null, com);
 		}
 
-
-        //-----------------------------------------------------Style
-		/*
-			Style adds styles to this View and it's children (by cascade).
-			Style expects a command with the following parameters:
-				com.Selector: A string CSS selector for the styles.
-				- for one style only -
-				com.Rule: A CSS property
-				com.Value: A CSS value for the defined property
-				- for multiple styles -
-				com.Rules: An object with CSS properties as keys and CSS values as values.
-		 */
+		/// used to add styles to this View & children
+		/// com format: 
+		/// com.Selector = The css selector to apply rules to
+		/// com.Rules = Associative array where keys are rules and values are css values.
+		/// OR for only one rule
+		/// com.Selector = same
+		/// com.Rule = CSS rule name
+		/// com.Value = CSS rule value
 		Style(com, fun) {
 			let that = this;
 			let vlt = this.Vlt
@@ -257,21 +288,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			fun(null, com);
 		}
 
-        //-----------------------------------------------------DisableTitleBar
-		/*
-			DisableTitleBar detaches the View's title bar and sets disableTitleBar flag to true.
-		 */
-		DisableTitleBar(com, fun) {
+		DisableTitleBar() {
 			this.Vlt.titleBar.detach();
 			this.Vlt.disableTitleBar = true;
-            fun(null, com);
 		}
 
-        //-----------------------------------------------------Clear
-		/*
-			Clear detaches all children from the View's <div>, then detach the View's <div>
-			from it's root, then re-attach the View's title bar and the View's <div>.
-		 */
 		Clear(com, fun) {
 			this.Vlt.div.children().detach();
 			this.Vlt.root.children().detach();
@@ -280,14 +301,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			this.Vlt.root.append(this.Vlt.div);
 			fun(null, com);
 		}
-
-        //-----------------------------------------------------SetColor
-		/*
-			SetColor sets border color and background color. SetColor expects a command with
-			 parameters com.Border for the border color, and com.Value or com.Color for the
-			 background color. If a border color is not provided, SetColor sets the border to
-			 the same color as the background. SetColor saves the background color to this.Vlt._color.
-		 */
+		/// com.Value = CSS parsable color as string
 		SetColor(com, fun) {
 			let value = com.Value || com.Color;
 			let border = com.Border || value;
@@ -296,71 +310,68 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			// this.Vlt.root.css('border', '1px solid ' + border);
 			fun(null, com);
 		}
+		async ChildDestroyed(com, fun) {
+			this.Vlt.views.splice(this.Vlt.views.indexOf(com.Pid), 1);
+			let views = this.Vlt.views.slice(0);
+			
+			this.Vlt.viewDivs = [];
+			for(let pid of views)
+				await this.ascend('AddView', {View: pid}, this.Par.Pid);
+			
+			
+			await this.ascend('Render', {}, this.Par.Pid);
 
-        //-----------------------------------------------------SetView
-		/*
-			SetView expects a command with the parameter com.View as a View's PID. SetView
-			 adds com.View to this.Vlt.views as an array. Then SetView Renders the views.
-		 */
+			fun(null, com);
+			
+		}
+		/// com.View = View PID
 		SetView(com, fun) {
 			let that = this;
 			this.Vlt.views = [com.View];
+			//debugger;
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				that.Vlt.viewDivs = [cmd.Div];
-				// debugger;
-				com.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
+				if(version >= new SemVer("3.3")) // get ChildDestroyed on ... yknow, child destroyed.
+					this.send({ Cmd: "RegisterDestroyListener" }, com.View, (err, cmd) => {});
+					
+				//debugger;
+				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
-
-        //-----------------------------------------------------AddView
-		/*
-			AddView expects a command with the parameter this.View as a View's PID.
-			 AddView adds com.View to the this.Vlt.views array. Then the View's root is added
-			 to the this.Vlt.viewDivs array. Then Render the views.
-		 */
-		AddView(com, fun) {
-
+		// test change
+		/// com.View = PID of view
+		AddView(com, fun) { // this.div.css(rule, value);
+			// debugger;
 			let that = this;
 			let vlt = this.Vlt;
 			if (!('views' in vlt)) vlt.views = [];
 			vlt.views.push(com.View);
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
+				// debugger;
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
-
-        //-----------------------------------------------------InsertView
-		/*
-			InsertView expects a command with the parameters com.Index as the current
-			 index of the View and com.View as the PID of the view to insert. The View
-			 is removed from this.Vlt.views at the index. Then View's root is retrieved,
-			 and the View is inserted into this.Vlt.viewDivs at the index, and then the
-			 views are Rendered.
-
-		 */
-		InsertView(com, fun) {
+		/// com.View = PID of view
+		/// com.Index
+		InsertView(com, fun) { // this.div.css(rule, value);
+			// debugger;
 			let that = this;
 			let vlt = this.Vlt;
 			this.Vlt.views.splice(com.Index, 0, com.View);
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
+				// that.Vlt.viewDivs.push(com.View);
 				vlt.viewDivs.splice(com.Index, 0, cmd.Div);
+				// debugger;
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
-
-        //-----------------------------------------------------SetviewDivs
-		/*
-			SetviewDivs expects a command with the parameter com.viewDivs. SetviewDivs is
-			 saved in this.Vlt.views. This View is then cleared, and each View in this.Vlt.views
-			 is added to this.Vlt.viewDivs. When all the Views have been added, the Views are Rendered.
-		 */
 		SetviewDivs(com, fun) {
 			let that = this;
 			let vlt = this.Vlt;
 			vlt.views = com.viewDivs;
 			this.dispatch({ Cmd: 'Clear' }, (err, cmd) => {
-				async.eachSeries(com.viewDivs, function (item, next) {
+				async.eachSeries(com.viewDivs,  (item, next)=> {
 					this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 						vlt.viewDivs.push(cmd.Div);
 					});
@@ -371,14 +382,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 				});
 			});
 		}
-
-        //-----------------------------------------------------Render
-		/*
-			Render sends the Render command to each view in this.Vlt.views.
-		 */
 		Render(com, fun) {
 			let that = this;
-			async.each(this.Vlt.views, function(pid, next) {
+			async.each(this.Vlt.views, (pid, next)=> {
 				that.send({Cmd: 'Render'}, pid, () => {
 					next();
 				});
@@ -387,42 +393,28 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			})
 		}
 
-		//-----------------------------------------------------GetType
-		/*
-			GetType saves this.Vlt.type to the command parameter com.Type.
-		 */
 		GetType(com, fun) {
 			com.Type = this.Vlt.type;
 			fun(null, com);
 		}
 
-		//-----------------------------------------------------Focus
-		/*
-            Focus adds the 'Focus' class to this View's root.
-		 */
 		Focus(com, fun) {
 			this.Vlt.root.addClass('Focus');
 			if (!this.Vlt.disableTitleBar) this.Vlt.titleBar.css('border-bottom', '1px solid var(--accent-color)');
 			fun(null, com);
 		}
 
-        //-----------------------------------------------------Blur
-        /*
-            Blur removes the 'Focus' class from the View's root.
-         */
 		Blur(com, fun) {
 			this.Vlt.root.removeClass('Focus');
 			if (!this.Vlt.disableTitleBar) this.Vlt.titleBar.css('border-bottom', '1px solid var(--view-border-color)');
 			fun(null, com);
 		}
 
-        //-----------------------------------------------------DOMLoaded
-        /*
-            DOMLoaded sends the DOMLoaded command to the Views stored in this.Vlt.views.
-         */
 		DOMLoaded(com, fun) {
+			// debugger;
+			//console.log('DOMLoaded - ' + this.Vlt.type);
 			let that = this;
-			async.eachSeries(this.Vlt.views, function (item, next) {
+			async.eachSeries(this.Vlt.views,  (item, next)=> {
 				that.send({ Cmd: 'DOMLoaded' }, item, () => {
 					next();
 				});
@@ -431,18 +423,12 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			});
 		}
 
-		//-----------------------------------------------------Resize
-        /*
-            Resize sets the command parameters com.width to this.Vlt.div.width(), com.height to this.Vlt.div.height(),
-             com.aspect to the ratio between this.Vlt.div.width() and this.Vlt.div.height(). Then Resize sends the
-             Resize command to all the Views in this.Vlt.views.
-         */
 		Resize(com, fun) {
 			com.width = this.Vlt.div.width();
 			com.height = this.Vlt.div.height();
 			com.aspect = 1 / (this.Vlt.div.height() / this.Vlt.div.width());
 			var that = this;
-			async.each(this.Vlt.views, function (item, next) {
+			async.each(this.Vlt.views,  (item, next)=>{
 				that.send({
 					Cmd: 'Resize'
 				}, item, (err, cmd) => {
@@ -454,14 +440,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			});
 		}
 
-        //-----------------------------------------------------ShowHierarchy
-        /*
-            ShowHierarchy displays the rootID for this View and for all child Views.
-         */
 		ShowHierarchy(com, fun) {
 			var that = this;
 			console.group(this.Vlt.rootID);
-			async.forEach(this.Vlt.views, function (item, next) {
+		
+			async.forEach(this.Vlt.views,  (item, next)=>{
 				that.send({ Cmd: "ShowHierarchy" }, item, (err, cmd) => {
 					next();
 				});
@@ -471,32 +454,21 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 			});
 		}
 
-        //-----------------------------------------------------Drop
-        /*
-            Drop can be overridden for the purpose of creating drag and drop functionality.
-         */
 		Drop(com, fun) {
 			console.log('DROPPED', com);
-            fun(null, com);
 		}
 
-        //-----------------------------------------------------AttachDragListener
-        /*
-            AttachDragListener enables drag functionality on a View. AttachDragListener expects a command with
-             parameters com.To as the element to be dragged, com.Data and com.Datatype as data required for the
-             drag event. First, AttachDragListener adds the 'draggable' tag to the View's root div. Next, create a
-             temporary <div> to hold the item to be dragged. Finally, the drag event listeners dragstart, drag, and
-             dragend are attached to the View's root.
-         */
 		AttachDragListener(com, fun) {
 			let that = this;
-			let root = com.To;
-			let data = com.Data;
-			let datatype = com.Datatype;
-
+			let root = com.To || (console.log('com.To: <Native HTMLElement> is required!'));
+			if(!com.To) return fun('com.To: <Native HTMLElement> is required!', com);
+			let data = com.Data || {};
+			let datatype = com.Datatype || "HTMLElement";
+			// debugger;
 			$(root).attr('draggable', 'true');
-
-			let createDragDom = com.CreateDragDom || function () {
+			let createDragDom;
+			if(version > new SemVer('3.1')) createDragDom = com.CreateDragDom || null;
+			else createDragDom = com.CreateDragDom || function () {
 				div = $(document.createElement('div'));
 				div.css('width', '200px');
 				div.css('height', '200px');
@@ -504,82 +476,148 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 				return div;
 			};
 
-			/*
-			    Add the 'dragstart' listener to the View's root.
-			    When the 'dragstart' event is triggered, a placeholder <div>
-			    is created and fixed to the cursor position. This provides a
-			    visual signifier for users.
-			 */
 			let div;
 			root.addEventListener('dragstart', function (evt) {
+				// debugger;
+				if(createDragDom) {
+					console.log(evt.dataTransfer.setDragImage(emptyImage(), 0, 0));
+					div = createDragDom();
 
-				console.log(evt.dataTransfer.setDragImage(emptyImage(), 0, 0));
-				event = evt;
-
-				div = createDragDom();
-
-				div.css('pointer-events', 'none');
-				div.css('opacity', '.6');
-				div.css('position', 'fixed');
-				div.css('top', (evt.pageY + 20) + 'px');
-				div.css('left', (evt.pageX - (div.width() / 2)) + 'px');
-				$(document.body).append(div);
-
+					event = evt;
+					// debugger;
+					div.css('pointer-events', 'none');
+					div.css('opacity', '.6');
+					div.css('position', 'fixed');
+					div.css('top', (evt.pageY + 20) + 'px');
+					div.css('left', (evt.pageX - (div.width() / 2)) + 'px');
+					$(document.body).append(div);
+				}
 			});
-
-            /*
-                Add the 'drag' listener to the View's root.
-                When the 'drag' event is triggered, the placeholder <div>
-                is repositioned to follow the cursor.
-             */
 			root.addEventListener('drag', function (evt) {
-				console.log("DRAG!");
-				let pivotX = (div.width() / 2);
-				let pivotY = 20;
-				div.css('top', (evt.pageY + pivotY) + 'px');
-				div.css('left', (evt.pageX - pivotX) + 'px');
+				// console.log("DRAG!", evt.pageX, evt.pageY);
+				if(evt.pageX == 0 && evt.pageY == 0) {
+					// console.log('RIDICULOUS');
+					return;
+				}
+				if(div) {
+					let pivotX = (div.width() / 2);
+					let pivotY = 20;
+					div.css('top', (evt.pageY + pivotY) + 'px');
+					div.css('left', (evt.pageX - pivotX) + 'px');
+				}
 			});
-
-            /*
-                 Add the 'dragend' listener to the View's root.
-                 When the 'dragend' event is triggered, the placeholder <div>
-                 is removed, the View's root is found, and the 'Drop' command
-                 is sent to the View sub-class.
-             */
 			root.addEventListener('dragend', function (evt) {
-				div.remove();
-				console.log('LOOKING FOR ');
+				if(div)
+					div.remove();
+				// console.log('LOOKING FOR ');
 
 				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
-				while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
-					elem = elem.parent();
+				if(version > new SemVer('3.1')) {
+					// console.log('new thing');
+					while(elem.hasClass('dropArea') == null) {
+						elem = elem.parent();
+					}
+
+					let dropArea = elem;
+
+					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+						elem = elem.parent();
+					}
+					if (elem.attr('viewpid') == undefined) return;
+					let viewpid = elem.attr('viewpid');
+					that.send({
+						Cmd: "Drop",
+						Data: data,
+						Datatype: datatype,
+						PageX: evt.pageX,
+						PageY: evt.pageY,
+						DropArea: dropArea,
+						DivX: evt.pageX - elem.position().left,
+						DivY: evt.pageY - elem.position().top
+					}, viewpid, () => { });
+
+				} else {
+					// console.log('old thing');
+					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+						elem = elem.parent();
+					}
+					if (elem.attr('viewpid') == undefined) return;
+					let viewpid = elem.attr('viewpid');
+					that.send({
+						Cmd: "Drop",
+						Data: data,
+						Datatype: datatype,
+						PageX: evt.pageX,
+						PageY: evt.pageY,
+						DivX: evt.pageX - elem.position().left,
+						DivY: evt.pageY - elem.position().top
+					}, viewpid, () => { });
 				}
+				
 
-				if (elem.attr('viewpid') == undefined) return;
-				let viewpid = elem.attr('viewpid');
-
-				that.send({
-					Cmd: "Drop",
-					Data: data,
-					Datatype: datatype,
-					PageX: evt.pageX,
-					PageY: evt.pageY,
-					DivX: evt.pageX - elem.position().left,
-					DivY: evt.pageY - elem.position().top
-				}, viewpid, () => { });
 
 			});
+
+			fun(null, com);
+
+		}
+
+		Destroy(com, fun) {
+			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
+			// debugger;
+			if(this.Par.Destroying) {
+				console.log('This is a duplicate destroy, no action made.');
+				return fun(null, com);
+			}
+			this.Par.Destroying = true;
+			// debugger;
+			async.eachSeries(this.Vlt.views, (item, next) =>{
+				this.send({ Cmd: 'Destroy' }, item, () => {
+					next();
+				});
+			}, () => {
+				this.send({ Cmd: 'Cleanup' }, this.Par.Pid, () => {
+					this.deleteEntity((err) => {
+						if(err) console.error(err);
+						fun(null, com);
+					});
+				});
+			});
+
+		}
+
+		Cleanup(com, fun) {
+			// debugger;
+			console.log("SUPER CLEANUP");
+			if('DestroyListeners' in this.Par && version >= new SemVer('3.3'))
+				for(let pid of this.Par.DestroyListeners)
+					this.send({Cmd: 'ChildDestroyed', Pid: this.Par.Pid}, pid, _=>_);
+			this.Vlt.root.remove();
+			fun(null, com);
+		}
+
+		RegisterDestroyListener(com, fun) {
+			let pid = com.Passport.From;
+			if('DestroyListeners' in this.Par) this.Par.DestroyListeners.push(pid);
+			else this.Par.DestroyListeners = [pid];
+			fun(null, com);
+		}
+
+		PrepareBuffer(com, fun) {
+			if(!('onScreenBuffer' in this.Vlt) || this.Vlt.onScreenBuffer == undefined) this.Vlt.onScreenBuffer = this.Vlt.div;
+			
+			//either way, we should reset the div to our last saved on screen buffer
+			this.Vlt.div = this.Vlt.buffer.onScreenBuffer.clone();
+		}
+
+		SwapBuffer(com, fun) {
 
 		}
 	}
 
-    //-----------------------------------------------------Command
-	/*
-		Takes all commands and routes commands to subclasses when necessary.
-	 */
 	function Command(com, fun) {
-
-
+		// console.log(' >> ', com.Cmd);
+		fun = fun || (()=>{});
 		if (com.Cmd == 'Setup' || !('super' in this)) {
 			let that = this;
 			this.super = function (com, fun) {
@@ -590,12 +628,60 @@ if (!window.Viewify) window.Viewify = function Viewify(_class) {
 				}
 
 			}
+			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
+				// debugger;
+				this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => {
+					// console.log(`ERROR: ${err}`);
+					// if(err) debugger;
+					if(err) {
+						if(version >= new SemVer("3.3"))
+							reject([err, cmd]);
+						else reject(err);
+					}
+					else resolve(cmd);
+				});
+			});
+			// heh
+			this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (0x1F4A3 & 0b1111111111)).toString(16) + "\"");
 		}
+
+		let timeTag, color, id;
+		if(debug) {
+			timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
+			color = md5(timeTag).substr(0, 6);
+			id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
+		}
+
+
+		if(debug) console.group(id);
+		if(debug) console.log(`%c${timeTag} ${com.Cmd}`,
+		// `background-color: #${color};
+		// text-shadow:
+		// 	rgba(0, 0, 0, 1) 0px 0px 1px, 
+		// 	rgba(0, 0, 0, 1) 0px 0px 1px, 
+		// 	rgba(0, 0, 0, 1) 0px 0px 4px,  
+		// 	rgba(0, 0, 0, 1) 0px 0px 4px; 
+		// padding: 2px 6px; color: white;`);
+		`color: #${color};
+		text-shadow: rgba(255, 255, 255, .4) 0px 0px 5px;
+		padding: 2px 6px;`);
+
 		if (com.Cmd in child) {
-			child[com.Cmd].call(this, com, fun);
+			// console.time(timeTag);
+			child[com.Cmd].call(this, com, () => {
+				
+				if(debug) console.groupEnd(id);
+				fun(null, com);
+			});
 		} else if (com.Cmd in View.prototype) {
-			View.prototype[com.Cmd].call(this, com, fun);
+			View.prototype[com.Cmd].call(this, com, () => {
+				
+				if(debug) console.groupEnd(id);
+				fun(null, com);
+			});
 		} else {
+			console.warn('Command <' + com.Cmd + '> not Found');
+			if(debug) console.groupEnd(id);
 			fun('Command <' + com.Cmd + '> not Found', com);
 		}
 	}

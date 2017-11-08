@@ -4,47 +4,83 @@
 
 	class Wobbler {
 		Setup(com, fun) {
+			debugger;
 			this.super(com, (err, cmd) => {
 				this.Vlt.k = 1
 				window.wobble = this;
-				fun(com, null);
+				let size = 101;
+				this.send({ Cmd: "Subscribe", Pid: this.Par.Pid }, "12345678");
+				
+
+				{ // 
+
+					if (this.Vlt.k <= 6) {
+						this.Vlt.renderer = new THREE.WebGLRenderer({
+							preserveDrawingBuffer: true,
+							antialias: true
+						});
+					} else {
+						this.Vlt.renderer = new THREE.CanvasRenderer();
+					}
+
+					this.Vlt.div.append($(this.Vlt.renderer.domElement));
+					this.Vlt.camera = new THREE.PerspectiveCamera(45, 100 / 100, 0.1, 1000);
+					var light = new THREE.AmbientLight(0x404040); // soft white light
+					var dirLight = new THREE.DirectionalLight(0xffffff, 2);
+					dirLight.position.set(0, 100, 80);
+					dirLight.castShadow = false;
+
+					this.Vlt.scene = new THREE.Scene();
+					this.Vlt.scene.add(dirLight);
+					this.Vlt.scene.add(light);
+					this.Vlt.scene.add(this.Vlt.camera);
+
+					
+				}
+				
+				this.send({Cmd: 'Resize'}, this.Par.Pid, () => {});
+				
+				fun(null, com);
 			});
 		}
 		Resize(com, fun) {
-			// debugger;
-			let canvas = $(this.Vlt.renderer.domElement);
-			let width = window.innerWidth, height = window.innerHeight; // size of the actual view area. TODO change this to account for view div.
-			let viewAspect = width / height;
-			let k = this.Vlt.k, dw = 960 * k, dh = 540 * k; // desired width, desired height. k = resolution. 2k = FHD, 4k = UHD, 8k, 1.33333k = HD, 2.66666k = QHD
-			let wz = width / dw, hz = height / dh; // width zoom and height zoom. the bigger zoom is fill, the smaller is fit.
-			let fit = Math.min(wz, hz);
-			let fill = Math.max(wz, hz);
-			let scale = fit;
-			let aspect = dw / dh;
-			if (viewAspect > aspect) {
-				//bars on the left and right
-				let excess = width - (scale * dw);
-				let left = Math.floor(excess / (2 * scale));
-				canvas.css('position', 'relative');
-				canvas.css('left', left + 'px');
-			} else {
-				//bars on thetop and bottom
-				let excess = height - (scale * dh);
-				let top = Math.floor(excess / (2 * scale));
-				canvas.css('position', 'relative');
-				canvas.css('top', top + 'px');
-			}
-			this.Vlt.renderer.setSize(dw, dh);
-			canvas.css('zoom', scale);
-			canvas.css('-moz-transform', 'scale(' + scale + ', ' + scale + ')');
-			canvas.css('-moz-transform-origin', 'left center');
-			this.Vlt.camera.aspect = aspect;
-			this.Vlt.camera.updateProjectionMatrix();
 			this.super(com, () => {
+				//debugger;
+
+				let canvas = $(this.Vlt.renderer.domElement);
+				let width = com.width, height = com.height; // size of the actual view area. TODO change this to account for view div.
+				let viewAspect = width / height;
+				let k = this.Vlt.k, dw = 960 * k, dh = 540 * k; // desired width, desired height. k = resolution. 2k = FHD, 4k = UHD, 8k, 1.33333k = HD, 2.66666k = QHD
+				let wz = width / dw, hz = height / dh; // width zoom and height zoom. the bigger zoom is fill, the smaller is fit.
+				let fit = Math.min(wz, hz);
+				let fill = Math.max(wz, hz);
+				let scale = fit;
+				let aspect = dw / dh;
+				if (viewAspect > aspect) {
+					//bars on the left and right
+					let excess = width - (scale * dw);
+					let left = Math.floor(excess / (2 * scale));
+					canvas.css('position', 'relative');
+					canvas.css('left', left + 'px');
+				} else {
+					//bars on thetop and bottom
+					let excess = height - (scale * dh);
+					let top = Math.floor(excess / (2 * scale));
+					canvas.css('position', 'relative');
+					canvas.css('top', top + 'px');
+				}
+				this.Vlt.renderer.setSize(dw, dh);
+				canvas.css('zoom', scale);
+				canvas.css('-moz-transform', 'scale(' + scale + ', ' + scale + ')');
+				canvas.css('-moz-transform-origin', 'left center');
+				this.Vlt.camera.aspect = aspect;
+				this.Vlt.camera.updateProjectionMatrix();
+			
 				fun(null, com);
 			});
 		}
 		CreateMesh(com, fun) {
+			debugger;
 			let size = com.Size;
 			function choice(arr) {
 				return arr[Math.floor(Math.random() * arr.length)];
@@ -66,6 +102,7 @@
 			fun(null, com);
 		}
 		Idle(com, fun) {
+			debugger;
 			let that = this;
 			let still = com.Still || false;
 			function idlefunc() {
@@ -92,6 +129,7 @@
 			fun(null, com);
 		}
 		StopIdle(com, fun) {
+			debugger;
 			cancelAnimationFrame(this.Vlt.idle);
 
 			requestAnimationFrame(() => {
@@ -100,76 +138,31 @@
 			
 		}
 		Render(com, fun) {
+			// debugger;
+			if (!("planeGeometry" in this.Vlt)){
+				fun(null, com);
+				return;
+			}
+
 			// write all the dat points into the mesh
-			// console.time('data');
 			for (var i = 0, l = this.Vlt.planeGeometry.vertices.length; i < l; i++) {
 				this.Vlt.plane.geometry.vertices[i].z = (5 * this.Vlt.dat[i]);
-				// that.Vlt.wireframe.geometry.vertices[i].z = (5 * dat[i]);
 			}
-			// console.timeEnd('data');
-
-			// console.time('other');
+			
 			// tell it, it needs to update the mesh
 			this.Vlt.plane.geometry.dynamic = true;
 			this.Vlt.plane.geometry.__dirtyVertices = true;
 			this.Vlt.plane.geometry.verticesNeedUpdate = true;
-			// console.timeEnd('other');
-
-			// console.time('render');
+			
 			this.Vlt.renderer.render(this.Vlt.scene, this.Vlt.camera);
 			this.Vlt.plane.geometry.computeVertexNormals();
 			this.Vlt.renderer.render(this.Vlt.scene, this.Vlt.camera);
-			// console.timeEnd('render');
 
 			fun(null, com);
 		}
-		Start(com, fun) {
-			let that = this;
-			this.super(com, (err, cmd) => {
-				let size = 101;
-				this.send({ Cmd: "Subscribe", Pid: this.Par.Pid }, "12345678");
-				
-
-				{ // 
-
-					if (that.Vlt.k <= 6) {
-						this.Vlt.renderer = new THREE.WebGLRenderer({
-							preserveDrawingBuffer: true,
-							antialias: true
-						});
-					} else {
-						this.Vlt.renderer = new THREE.CanvasRenderer();
-					}
-
-					// this.Vlt.renderer.clearColor(0xffffff, 1);
-					// this.Vlt.renderer = new THREE.CanvasRenderer();
-					this.Vlt.div.append($(this.Vlt.renderer.domElement));
-					this.Vlt.camera = new THREE.PerspectiveCamera(45, 100 / 100, 0.1, 1000);
-					var light = new THREE.AmbientLight(0x404040); // soft white light
-					var dirLight = new THREE.DirectionalLight(0xffffff, 2);
-					dirLight.position.set(0, 100, 80);
-					dirLight.castShadow = false;
-
-					this.Vlt.scene = new THREE.Scene();
-					// this.Vlt.scene.background = new THREE.Color(0xffffff);
-					this.Vlt.scene.add(dirLight);
-					this.Vlt.scene.add(light);
-					// this.Vlt.scene.add(new THREE.AxisHelper(50));
-					this.Vlt.scene.add(this.Vlt.camera);
-
-					// var geometry = new THREE.SphereGeometry(1, 32, 32);
-					// var material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-					// this.Vlt.sphere = new THREE.Mesh(geometry, material);
-					// this.Vlt.scene.add(this.Vlt.sphere);
-				}
-				
-				this.send({Cmd: 'Resize'}, this.Par.Pid, () => {});
-				
-				fun(null, com);
-			});
-		}
+		
 		BeginMovie(com, fun) {
-			// debugger;
+			debugger;
 			fun = fun || (() => {});
 			let fps = com.FrameRate || com.FPS || 30;
 			let size = 101;
@@ -195,11 +188,13 @@
 
 		}
 		DOMLoaded(com, fun) {
+			debugger;
 			let that = this;
 			this.Vlt.button = $(document.createElement('button'));
 			this.Vlt.button.css('padding', '8px');
 			this.Vlt.button.css('background-color', 'white');
 			this.Vlt.button.css('position', 'absolute');
+			this.Vlt.button.css('right', '100px');
 			this.Vlt.button.css('color', 'black');
 			this.Vlt.button.html('SAVE');
 			this.Vlt.button.on('click', window.screencap = function (event) {
@@ -226,6 +221,7 @@
 			// this.Vlt.text.css('padding', '8px');
 			// this.Vlt.text.css('background-color', 'white');
 			this.Vlt.text.css('position', 'absolute');
+			this.Vlt.text.css('right', '100px');
 			this.Vlt.text.css('top', '82px');
 			// this.Vlt.text.css('z-index', '500');
 			this.Vlt.text.css('color', 'black');
@@ -242,6 +238,7 @@
 			this.Vlt.submitbutton.css('padding', '8px');
 			this.Vlt.submitbutton.css('background-color', 'white');
 			this.Vlt.submitbutton.css('position', 'fixed');
+			this.Vlt.submitbutton.css('right','100px');
 			this.Vlt.submitbutton.css('color', 'black');
 			this.Vlt.submitbutton.css('top', '41px');
 			this.Vlt.submitbutton.html('QUEUE');
@@ -260,6 +257,7 @@
 			this.Vlt.resolution.attr('value', this.Vlt.k);
 			this.Vlt.resolution.attr('max', 6);
 			this.Vlt.resolution.css('position', 'absolute');
+			this.Vlt.resolution.css('right','100px');
 			this.Vlt.resolution.css('top', '110px');
 			this.Vlt.resolution.on('change input', () => {
 				console.log('asdfasdfasdfasdfasdfadfasdf');
@@ -408,7 +406,7 @@
 
 		}
 		FrameData(com, fun) {
-			// debugger;
+			debugger;
 			let that = this;
 			this.send({Cmd: 'CreateMesh', Size: com.Size}, this.Par.Pid, () => {
 
@@ -445,6 +443,6 @@
 		}
 	}
 
-	return Viewify(Wobbler);
+	return Viewify(Wobbler, "3.1");
 
 })();

@@ -1,0 +1,39 @@
+{
+  "xGraph": "{xGraph}",
+  "Cache": "cache",
+  "Modules": {
+	"Nexus": {
+	  "Module": "xGraph:Nexus/Nexus",
+	  "Par": {
+	  }
+	},
+	"Server": {
+	  "Module": "xGraph:Web/Server",
+	  "Par": {
+		"ApexList":{
+		  "Scene":"$World"
+		},
+		"Nxs":"{xGraph}Web/Server/Nxs.js",
+		"Port": 8080,
+		"Url": "Paint"
+	  }
+	},
+	"World":{
+	  "Module":"xGraph:Scene/World",
+	  "Par":{
+		"View":"$Server",
+		"Terrain":"$Terrain",
+		"Inst":[
+		]
+	  }
+	},
+	"Terrain": {
+	  "Module":"xGraph:Scene/Flatland",
+	  "Par":{
+		"Size":[100, 100],
+		"TextureSize":[25,25],
+		"Texture":"sand-12.jpg"
+	  }
+	}
+  }
+}

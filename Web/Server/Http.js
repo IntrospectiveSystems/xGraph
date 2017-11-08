@@ -1,8 +1,6 @@
-//#
+//# sourceURL=server/http
 (function Http() {
-	var fs = require('fs');
-	var async = require('async');
-	var jszip = require("jszip");
+	let async, jszip;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -17,17 +15,20 @@
 	};
 
 	function Setup(com, fun) {
-		console.log('--Http/Setup');
-		if(fun)
+		log.v('--Http/Setup');
+
+		async = this.require('async');
+		jszip = this.require("jszip");
+
+		if (fun)
 			fun();
 	}
 
 	function Start(com, fun) {
-		console.log('--Http/Start');
+		log.v('--Http/Start');
 		var that = this;
-		var fs = require('fs');
-		var http = require('http');
-		var sockio = require('socket.io');
+		var http = this.require('http');
+		var sockio = this.require('socket.io');
 		var port;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
@@ -35,33 +36,39 @@
 		if ('Port' in this.Par)
 			port = this.Par.Port;
 		else
-			port = 80;
+			port = 8080;
 		var web = http.createServer(function (req, res) {
-		//	console.log(req.method + ':' + req.url);
+			//	console.log(req.method + ':' + req.url);
 			switch (req.method) {
-			case 'POST':
-				break;
-			case 'GET':
-				Get(that, req, res);
-				break;
+				case 'POST':
+					break;
+				case 'GET':
+					Get(that, req, res);
+					break;
 			}
 		});
 		web.listen(port);
 		webSocket(web);
 		console.log(' ** Spider listening on port', port);
-		fs.readFile('browser.json', function(err, data) {
-			if(err) {
+		if ('Config' in this.Par) {
+			readBrowser(null, this.Par.Config);
+		} else {
+			readBrowser('Config not in Par', null);
+		}
+
+		function readBrowser(err, data) {
+			if (err) {
 				console.log(' ** ERR::Cannot read browser config');
 				fun(err);
 				return;
 			}
 			Vlt.Browser = JSON.parse(data.toString());
 			getscripts();
-		});
+		}
 
 		function getscripts() {
-			fs.readFile('scripts.json', function(err, data) {
-				if(err) {
+			that.getFile('scripts.json', function (err, data) {
+				if (err) {
 					console.log(' ** ERR:Cannot read script.json');
 					fun(err);
 					return;
@@ -72,9 +79,9 @@
 		}
 
 		function getnxs() {
-			var path = genPath(Par.Module + '/Nxs.js');
-			fs.readFile(path, function(err, data) {
-				if(err) {
+
+			that.getFile('Nxs.js', function (err, data) {
+				if (err) {
 					console.log(' ** ERR:Cannot read Nxs file');
 					return;
 				}
@@ -92,7 +99,7 @@
 			listener.sockets.on('connection', function (socket) {
 				// console.log('sock/connection');
 				var pidsock = '';
-				for(var i=0; i<3; i++)
+				for (var i = 0; i < 3; i++)
 					pidsock += that.genPid().substr(24);
 				var obj = {};
 				obj.Socket = socket;
@@ -103,8 +110,7 @@
 				var cfg = Vlt.Browser;
 				cfg.Pid24 = pidsock;
 				cfg.PidServer = Par.Pid;
-				if('Apex' in Par)
-					cfg.Apex = Par.Apex;
+				cfg.ApexList = Par.ApexList || {};
 				var str = JSON.stringify(cfg);
 				socket.send(str);
 
@@ -119,17 +125,18 @@
 				});
 
 				socket.on('message', function (msg) {
+					//debugger;
 					var com = JSON.parse(msg);
-					// console.log('>>Msg:' + com.Cmd);
+					//console.log('>>Msg:' + JSON.stringify(com));
 					if (!com) {
 						console.log(' ** onMessage: Invalid message');
 						return;
 					}
-					if(com.Cmd == 'GetFile') {
+					if (com.Cmd == 'GetFile') {
 						getfile();
 						return;
 					}
-					if(com.Cmd == 'Subscribe') {
+					if (com.Cmd == 'Subscribe') {
 						obj.User.Publish = com.Pid;
 						return;
 					}
@@ -139,15 +146,22 @@
 					}
 
 					// debugger;
-				//	com.Passport.User = obj.User;
+					//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
 						// debugger;
-						that.Vlt.messages[com.Passport.Pid](null, com)
+						if (com.Passport.Pid in that.Vlt.messages) {
+							that.Vlt.messages[com.Passport.Pid](null, com);
+							delete that.Vlt.messages[com.Passport.Pid];
+						}
 						return;
 					}
+					//debugger;
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
+						// console.log("--HttpReply");
+						// console.log(JSON.stringify(cmd));
+						// console.log(JSON.stringify(com));
 						if (cmd) {
 							com = cmd;
 						}
@@ -159,61 +173,21 @@
 					//.....................................getfile
 					/// Read file from local directory
 					function getfile() {
+						//debugger;
 						var path = com.File;
-						fs.readFile(path, function(err, data) {
-							if(err) {
+						that.getFile(path, function (err, data) {
+							if (err) {
 								console.log(' ** ERR', err);
 								return;
 							}
 							com.Data = data.toString('utf8');
 							var str = com.Data;
-							if('Passport' in com)
+							if ('Passport' in com)
 								com.Passport.Reply = true;
 							var str = JSON.stringify(com);
 							socket.send(str);
 						});
 					}
-
-					//-----------------------------------------------------getModule
-					// Retrieve module from module server
-					// For now is retrieved from local file system
-					function getmodule(com, fun) {
-						console.log('--Page/getModule');
-						var that = this;
-						var zip = new jszip();
-						var dir = that.genPath(com.Module);
-						var man = [];
-						fs.readdir(dir, function(err, files) {
-							if(err) {
-								console.log(' ** ERR:Cannot read module directory');
-								if(fun)
-									fun('Cannot read module directlry');
-								return;
-							}
-							async.eachSeries(files, build, ship);
-						})
-
-						function build(file, func) {
-							var path = dir + '/' + file;
-							fs.readFile(path, add);
-
-							function add(err, data) {
-								var str = data.toString();
-								zip.file(file, str);
-								man.push(file);
-								func();
-							}
-						}
-
-						function ship() {
-							zip.file('manifest.json', JSON.stringify(man));
-							zip.generateAsync({type:'base64'}).then(function(data) {
-								com.Zip = data;
-								fun(null, com);
-							});
-						}
-					}
-
 				});
 			});
 		}
@@ -223,31 +197,31 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
-		// debugger;
-	//	console.log('--Publish', com.Cmd);
-		fun = fun || (() => {});
+		//debugger;
+		// console.log('--Publish', com.Cmd);
+		fun = fun || (() => { });
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
 		var keys = Object.keys(socks);
-		for(var i=0; i<keys.length; i++) {
+		for (var i = 0; i < keys.length; i++) {
 			var obj = socks[keys[i]];
 			var sock = obj.Socket;
 			var user = obj.User;
-			if('Publish' in user) {
+			if ('Publish' in user) {
 				com.Passport.To = user.Publish;
-				if(fun) {
+				if (fun) {
 					com.Passport.Disp = 'Query';
 				}
-				if ('Forward' in com) {
-					com.Passport.To = com.Forward;
-					if(fun) {
-						if (!('messages' in this.Vlt)) this.Vlt.messages = {};
-						this.Vlt.messages[com.Passport.Pid] = fun;
-					}
-				}
-				var str = JSON.stringify(com);
-				sock.send(str);
 			}
+			if ('Forward' in com) {
+				com.Passport.To = com.Forward;
+				if (fun) {
+					if (!('messages' in this.Vlt)) this.Vlt.messages = {};
+					this.Vlt.messages[com.Passport.Pid] = fun;
+				}
+			}
+			var str = JSON.stringify(com);
+			sock.send(str);
 		}
 	}
 
@@ -255,27 +229,51 @@
 	// Process GET request including authentication and
 	// validation if required. If anything looks fishy, simply
 	// ignore the request to confuse the hackers.
+
+	//any HTTP Get accessible files should be stored in a ./static/ directory
 	function Get(that, req, res) {
-		console.log('--Get', req.url);
-		var fs = require('fs');
+		log.v('--Get', req.url);
 		var Par = that.Par;
 		var url = req.url;
-		if (url.charAt(0) == '/')
-			url = url.substr(1);
-		var path = './' + url + '.html';
-		fs.exists(path, html);
+		let path = null;
 
-		function html(yes) {
-			if(!yes) {
+		if (url.split(".").length > 1) {
+			let arr = url.split('/');
+			arr = arr.slice(1);
+
+			let store = Par.Static||{};
+
+			ship(...subSearch(arr, store));
+
+			function subSearch(ar, st) {
+				if (ar[0] in st) {
+					if (ar.length == 1) {
+						return [null, st[ar[0]]];
+					}
+					else {
+						return subSearch(arr.slice(1), st[ar[0]]);
+					}
+				}else{
+					let err = `${url} does not exist in Par.Static`;
+					log.w(err);
+					return [err];
+				}
+			}
+			
+		} else {
+			if (url.charAt(0) == '/')
+				url = url.substr(1);
+			if (url==Par.Url)
+				ship(null, Par.HTML);
+			else{
 				res.writeHead(404);
 				res.end('You are out of your verbial guord');
 				return;
 			}
-			fs.readFile(path, ship);
 		}
 
 		function ship(err, data) {
-			if(err) {
+			if (err) {
 				res.writeHead(404);
 				res.end(err);
 				return;
@@ -290,41 +288,36 @@
 	// Retrieve module from module server
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
-		console.log('--Http/getModule', com.Module);
+		log.v('--Http/GetModule', com.Module);
+		//console.log(JSON.stringify(com));
 		var that = this;
 		var zip = new jszip();
-		var dir = that.genPath(com.Module);
+		//var dir = that.genPath(com.Module);
 		var man = [];
-		fs.readdir(dir, function(err, files) {
-			if(err) {
+		this.getModule(com.Module, function (err, mod) {
+			if (err) {
 				console.log(' ** ERR:Cannot read module directory');
-				if(fun)
+				if (fun)
 					fun('Cannot read module directlry');
 				return;
 			}
-			async.eachSeries(files, build, ship);
-		});
 
-		function build(file, func) {
-			var path = dir + '/' + file;
-			fs.readFile(path, add);
-
-			function add(err, data) {
-				var str = data.toString();
-				zip.file(file, str);
-				man.push(file);
-				func();
-			}
-		}
-
-		function ship() {
-			// console.log('Manifest', JSON.stringify(man, null, 2));
-			zip.file('manifest.json', JSON.stringify(man));
-			zip.generateAsync({type:'base64'}).then(function(data) {
+			var str = JSON.stringify(mod);
+			//console.log("mod is ", Object.keys(mod));
+			zip.file('module.json', str, {
+				date: new Date("December 25, 2007 00:00:01")
+				//the date is required for zip consistency
+			});
+			man.push('module.json');
+			zip.file('manifest.json', JSON.stringify(man), {
+				date: new Date("December 25, 2007 00:00:01")
+				//the date is required for zip consistency
+			});
+			zip.generateAsync({ type: 'base64' }).then(function (data) {
 				com.Zip = data;
 				fun(null, com);
 			});
-		}
+		});
 	}
 
 })();

@@ -22,10 +22,10 @@
 		console.log('ModuleServer:Setup');
 		var that = this;
 		if ('ModuleCache' in that.Par) {
-			fun();
+			this.send({Cmd:"Setup", ModuleStorage: this.Par.ModuleStorage}, this.Par.FileManager, fun);
 		} else {
 			that.Par.ModuleCache = {};
-			fun();
+			this.send({Cmd:"Setup", ModuleStorage: this.Par.ModuleStorage}, this.Par.FileManager, fun);
 		}
 	}
 
@@ -38,22 +38,24 @@
 					console.log('Tests Finished');
 				});
 			}
-			fun();
+			this.send({Cmd:"Start"}, this.Par.FileManager, fun);
 			return;
 		}
 
-		var async = require('async');
-		var JSZip = require('jszip');
+
+		var async = this.require('async');
+		var fs = this.require('fs');
+		var JSZip = this.require('jszip');
 
 		// Read Module import directory
-		fs.readdir(Nxs.genPath(that.Par.Modules), function(err, files) {
+		fs.readdir(this.genPath(that.Par.Modules), function(err, files) {
 			if (err) {
 				console.log(' ** ERR:Project file err:' + err);
 				return;
 			}
 			// Iterate through modules in module import directory and read each
 			async.eachSeries(files, (file, func) => {
-				readModule(Nxs.genPath(that.Par.Modules + '/' + file), func);
+				readModule(that.genPath(that.Par.Modules + '/' + file), func);
 			}, function(err) {
 				console.log('Finished scanning module folder');
 				that.Par.bInitialized = true;
@@ -71,14 +73,14 @@
 			var zip = new JSZip();
 			var ModuleInfo = {};
 			scanModule(dir, function() {
-				console.log('Finished scanning module');
+				//console.log('Finished scanning module');
 				fs.readdir(dir, (err, files) => {
 					async.eachSeries(files, (file, func) => {
 						zipModule(file, '', func);
 					}, function() {
 						//console.log(zip);
 						that.send({Cmd:'AddModule', Module:zip, ModuleStorage:that.Par.ModuleStorage, Info: ModuleInfo}, that.Par.FileManager, function(err, com) {
-							console.log('Module Saved');
+							//console.log('Module Saved');
 							callback();
 						})
 					})
@@ -95,6 +97,7 @@
 					}
 					async.eachSeries(files, (file, func) => {
 						if (file === 'module.json') {
+							//console.log("Path is ", dir+"/"+file);
 							fs.readFile(dir + '/' + file, (err, data) => {
 								if (err) {
 									console.log(' ** ERR:' + err);
@@ -147,10 +150,10 @@
 							callback();
 						});
 					}
-				})
+				});
 			}
 		}
-		fun();
+		this.send({Cmd:"Start"}, this.Par.FileManager, fun);
 	}
 
 	// Pull a module from another ModuleServer into this one.
@@ -160,7 +163,7 @@
 	// Returns:
 	//	Nothing
 	function DownloadModule(com, fun) {
-		console.log('DDDDDDDDOOOOOOOOOOOOWWWWWWWWWNNNNNNNLLLLLLLLOOOOOOOOOAAAAAAAAAAADDDDDDDDDDDD');
+		//console.log('DDDDDDDDOOOOOOOOOOOOWWWWWWWWWNNNNNNNLLLLLLLLOOOOOOOOOAAAAAAAAAAADDDDDDDDDDDD');
 		let otherModuleServer = com.From;
 		let name = com.Module;
 		let that = this;
@@ -184,9 +187,9 @@
 	//	com.Name,
 	// Returns zipped module in base64 in com.Module
 	function GetModule(com, fun) {
-		debugger;
+		//debugger;
 		console.log('ModuleServer:GetModule');
-		var async = require('async');
+		var async = this.require('async');
 		var that = this;
 		if (!'Name' in com) {
 			fun(null, com);
@@ -226,13 +229,13 @@
 	// 	com.Name as named in module.json
 	function AddModule(com, fun) {
 		console.log('ModuleServer:AddModule');
-		debugger;
+		//debugger;
 		var that = this;
 		if ('Module' in com) {
-			console.log(com.Module);
+			//console.log(com.Module);
 			let buf = Buffer.from(com.Module, 'base64');
 			com.Module = buf;
-			console.log('asdf');
+			//console.log('asdf');
 
 			that.send(com, that.Par.ModuleData, function(err, com) {
 				if (err) {
@@ -267,12 +270,13 @@
 	function Query(com, fun) {
 		console.log('ModuleServer:Query');
 		var that = this;
-		var async = require('async');
+		var async = this.require('async');
 		com.Info = [];
 		if ('Filters' in com) {
 
 			// Async through moduleCache and check filter properties
 			async.forEach(Object.keys(that.Par.ModuleCache), (module, func) => {
+				//debugger;
 				CheckFilters(that.Par.ModuleCache[module], com.Filters, (err, bMatch) => {
 					if(bMatch) {
 						let modInfo = JSON.parse(JSON.stringify(that.Par.ModuleCache[module]));
@@ -300,7 +304,7 @@
 
 		function CheckFilters(Mod, Filters, callback) {
 			let bMatch = true;
-			console.log('CheckFilters');
+			//console.log('CheckFilters');
 			//console.log(Filters);
 			// Iterate through filters
 			// Check against each property in module

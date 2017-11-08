@@ -1,6 +1,7 @@
 //# sourceURL=Nxs
-__Nexus = (function() {
+__Nexus = (_ => {
 	console.log(' ** Nxs executing');
+
 	var SockIO;
 	var Root;
 	var Pid24;
@@ -13,18 +14,20 @@ __Nexus = (function() {
 	var Initializers = {};
 	var EntCache = {};
 	var ModCache = {};
+	var ModuleCache = {};
 	var ZipCache = {};
 	var SymTab = {};
 	var Css = [];
 	var Scripts = [];
 	var Fonts = {};
 	var Nxs = {
-		genPid: genPid,
-		genEntity: genEntity,
-		delEntity: delEntity,
-		genModule: genModule,
-		send: send,
-		getFont: getFont
+		genPid,
+		genEntity,
+		delEntity,
+		genModule,
+		getFile,
+		send,
+		getFont
 	};
 	var MsgFifo = [];
 	var MsgPool = {};
@@ -33,6 +36,34 @@ __Nexus = (function() {
 	__Config.TrackIO = false;
 	__Share = {};
 	let silent = true;
+
+
+
+
+
+
+	//
+	// Logging Functionality
+	//
+	{
+		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// Levels include:
+		// v : verbose
+		// d : debug
+		// i : info
+		// w : warn
+		// e : error
+		window.log = {
+			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
+			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
+			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
+			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
+			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+		};
+	}
+
+
+
 
 	return {
 		start: start,
@@ -50,11 +81,12 @@ __Nexus = (function() {
 		SockIO = sockio;
 		SockIO.removeListener('message');
 		SockIO.on('message', function (data) {
-			// debugger;
+			//debugger;
 			var cmd = JSON.parse(data);
 			if (!silent) console.log(' << Msg:' + cmd.Cmd);
 			if ('Passport' in cmd && cmd.Passport.Reply) {
 				var pid = cmd.Passport.Pid;
+				//debugger;
 				var ixmsg = MsgFifo.indexOf(pid);
 				if (ixmsg >= 0) {
 					var func = MsgPool[pid];
@@ -72,7 +104,7 @@ __Nexus = (function() {
 			if (pid24 == Pid24) {
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
-					if('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
+					if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
 						ent.dispatch(cmd, reply);
 					else
 						ent.dispatch(cmd, () => {
@@ -108,27 +140,27 @@ __Nexus = (function() {
 		var pidmsg = genPid();
 		com.Passport.Pid = pidmsg;
 
-        if (pid) {
-        	if(pid.charAt(0) == '$') {
-        		var sym = pid.substr(1);
-        		if(sym in Root.Global)
-        			pid = Root.Global[sym];
+		if (pid) {
+			if (pid.charAt(0) == '$') {
+				var sym = pid.substr(1);
+				if (sym in Root.Global)
+					pid = Root.Global[sym];
 			}
-            com.Passport.To = pid;
+			com.Passport.To = pid;
 
-            if (pid.charAt(0) != '$') {
-                var pid24 = pid.substr(0, 24);
-                if (pid24 == Pid24) {
-                    if (pid in EntCache) {
-                        var ent = EntCache[pid];
-                        ent.dispatch(com, fun);
-                    } else {
-                        console.log(' ** ERR:Local', pid, 'not in Cache');
-                    }
-                    return;
-                }
-            } else if (pid.substr(1) in SymTab) {
-            	pid = SymTab[pid.substr(1)];
+			if (pid.charAt(0) != '$') {
+				var pid24 = pid.substr(0, 24);
+				if (pid24 == Pid24) {
+					if (pid in EntCache) {
+						var ent = EntCache[pid];
+						ent.dispatch(com, fun);
+					} else {
+						console.log(' ** ERR:Local', pid, 'not in Cache');
+					}
+					return;
+				}
+			} else if (pid.substr(1) in SymTab) {
+				pid = SymTab[pid.substr(1)];
 				if (pid in EntCache) {
 					var ent = EntCache[pid];
 					ent.dispatch(com, fun);
@@ -137,40 +169,56 @@ __Nexus = (function() {
 				}
 				return;
 			}
-        }
-        if (fun) {
-            MsgPool[pidmsg] = fun;
-            MsgFifo.push(pidmsg);
-            if (MsgFifo.length > 100) {
-                var kill = MsgFifo.shift();
-                delete MsgPool[kill];
-            }
-        }
-        var str = JSON.stringify(com);
-        if(__Config.TrackIO)
-            console.log(' >> Msg:' + com.Cmd);
-        SockIO.send(str);
-
-		function sendLocal() {
-            if (pid in EntCache) {
-                var ent = EntCache[pid];
-                ent.dispatch(com, fun);
-            } else {
-                console.log(' ** ERR:Local', pid, 'not in Cache');
-            }
 		}
+		if (fun) {
+			//debugger;
+			MsgPool[pidmsg] = fun;
+			MsgFifo.push(pidmsg);
+			if (MsgFifo.length > 100) {
+				var kill = MsgFifo.shift();
+				delete MsgPool[kill];
+			}
+		}
+		var str = JSON.stringify(com);
+		if (__Config.TrackIO)
+			console.log(' >> Msg:' + com.Cmd);
+		if (!(silent)) console.log(str)
+		SockIO.send(str);
+
+		// function sendLocal() {
+		//     if (pid in EntCache) {
+		//         var ent = EntCache[pid];
+		//         ent.dispatch(com, fun);
+		//     } else {
+		//         console.log(' ** ERR:Local', pid, 'not in Cache');
+		//     }
+		// }
 	}
+
+
+	function getFile(module, filename, fun) {
+		let mod = ModuleCache[module];
+		//console.log(Object.keys(ModCache[module]));
+		if (filename in mod) {
+			fun(null, mod[filename])
+			return;
+		}
+		let err = `Error: File ${filename} does not exist in module ${module}`;
+		fun(err);
+	}
+
+
 
 	//--------------------------------------------------------getFont
 	function getFont(font) {
-		if(font in Fonts)
+		if (font in Fonts)
 			return Fonts[font];
 	}
 
 	//--------------------------------------------------------Entity
 	// Entity base class
 	function Entity(nxs, mod, par) {
-	//	var Nxs = nxs;
+		//	var Nxs = nxs;
 		var Par = par;
 		var Mod = mod;
 		var Vlt = {};
@@ -179,11 +227,13 @@ __Nexus = (function() {
 			Par: Par,
 			Mod: Mod,
 			Vlt: Vlt,
-	//		Nxs: Nxs,
+			//		Nxs: Nxs,
 			dispatch: dispatch,
 			send: send,
+			deleteEntity: deleteEntity,
 			getPid: getPid,
-			genModule :genModule
+			getFile,
+			genModule: genModule
 		};
 
 		//-------------------------------------------------dispatch
@@ -201,8 +251,12 @@ __Nexus = (function() {
 				return;
 			}
 			//console.log(com.Cmd + ' unknown');
-			if(fun)
+			if (fun)
 				fun(com.Cmd + ' unknown');
+		}
+
+		function deleteEntity(fun) {
+			nxs.delEntity(Par.Pid, fun);
 		}
 
 		//-------------------------------------------------getPid
@@ -212,14 +266,18 @@ __Nexus = (function() {
 		}
 
 		//generate a module in the local system
-		function genModule(mod, fun){
-			nxs.genModule(mod,fun);
+		function genModule(mod, fun) {
+			nxs.genModule(mod, fun);
+		}
+
+		function getFile(filename, fun) {
+			nxs.getFile(Par.Module, filename, fun);
 		}
 
 		//-------------------------------------------------send
 		function send(com, pid, fun) {
 			com.Passport = {};
-			if(fun)
+			if (fun)
 				com.Passport.From = Par.Pid;
 			com.Passport.To = pid;
 			nxs.send(com, pid, fun);
@@ -235,7 +293,7 @@ __Nexus = (function() {
 	//-----------------------------------------------------genNode
 	// Generate node from parameter object
 	function genEntity(par, fun) {
-	//	console.log('--genEntity', par.Entity);
+		//	console.log('--genEntity', par.Entity);
 		var name = par.Entity;
 		if (name in ModCache) {
 			var mod = ModCache[name];
@@ -261,7 +319,7 @@ __Nexus = (function() {
 
 		function done(err, com) {
 			if (!('Mod' in com)) {
-				var errmsg = com.Name +  'module is not available';
+				var errmsg = com.Name + 'module is not available';
 				console.log(' ** ERR:' + errmsg);
 				fun(err);
 			}
@@ -273,9 +331,9 @@ __Nexus = (function() {
 			if (ent) {
 				ModCache[name] = mod;
 				EntCache[pid] = ent;
-//                if (par.$Browser) {
-//                	SymTab[par.$Browser] = pid;
-//                }
+				//                if (par.$Browser) {
+				//                	SymTab[par.$Browser] = pid;
+				//                }
 				fun(null, ent);
 				return;
 			}
@@ -283,9 +341,9 @@ __Nexus = (function() {
 		}
 	}
 
-    //-----------------------------------------------------delEntity
-    // Generate node from parameter object
-    function delEntity(pid, fun) {
+	//-----------------------------------------------------delEntity
+	// Generate node from parameter object
+	function delEntity(pid, fun) {
 		if (EntCache[pid]) {
 			delete EntCache[pid];
 			console.log(pid, ' Deleted');
@@ -294,8 +352,11 @@ __Nexus = (function() {
 			}
 		} else {
 			console.log('Entity not found: ', pid);
+			if (fun) {
+				fun(("Entity not found: " + pid));
+			}
 		}
-    }
+	}
 
 	//------------------------------------------------------genPid
 	// Generate Pid (pseudo-GUID)
@@ -306,6 +367,13 @@ __Nexus = (function() {
 			pid += hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
 		return pid;
 	}
+	// async function genPid() {
+	// 	const pidBuffer=  await crypto.subtle.digest("SHA-1",new TextEncoder("utf-8").encode(date.toString()));
+	// 	const pid = Array.from(new Uint8Array(pidBuffer)).map(b => ('00' + b.toString(16)).slice(-2)).join('');
+	// 	log.d(pid);
+
+	// 	return pid;
+	// }
 
 	//-------------------------------------------------genModule
 	// This is the version used to install modules
@@ -318,10 +386,10 @@ __Nexus = (function() {
 		addModule(mod, setup);
 
 		function setup(err, pid) {
-		//	console.log('pid', pid);
-		//	console.log('Initializers', Initializers);
+			//	console.log('pid', pid);
+			//	console.log('Initializers', Initializers);
 			pidapx = pid;
-			if(err) {
+			if (err) {
 				console.log(' ** genModule:' + err);
 				fun(err);
 				return;
@@ -335,13 +403,13 @@ __Nexus = (function() {
 			}
 		}
 
-		function start(err, r ) {
-			if(err) {
+		function start(err, r) {
+			if (err) {
 				console.log(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
-			if('Start' in Initializers) {
+			if ('Start' in Initializers) {
 				var q = {};
 				q.Cmd = Initializers.Start;
 				send(q, pidapx, pau);
@@ -351,7 +419,7 @@ __Nexus = (function() {
 		}
 
 		function pau(err, r) {
-			if(err) {
+			if (err) {
 				console.log(' ** genModule:' + err);
 			}
 			fun(err, pidapx);
@@ -361,147 +429,157 @@ __Nexus = (function() {
 
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
-	//	console.log('..addModule');
-	//	console.log(JSON.stringify(mod, null, 2));
+		if (!(silent)) console.log('..addModule');
+		if (!(silent)) console.log(JSON.stringify(mod, null, 2));
 		var ents = {};
 		var lbls = {};
 		var q = {};
+		let modjson = null
 		q.Cmd = 'GetModule';
 		q.Module = mod.Module;
-		console.log(q);
+		if (!(silent)) console.log(q);
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
-		//	console.log('..addmod');
-			var module = com.Module;
+			//console.log('..addmod');
+			var module = r.Module;
 			var zipmod = new JSZip();
-			zipmod.loadAsync(r.Zip, {base64: true}).then(function(zip){
+			zipmod.loadAsync(r.Zip, { base64: true }).then(function (zip) {
 				var dir = zipmod.file(/.*./);
-				styles();
+
+				zip.file('module.json').async('string').then(function (str) {
+					modjson = JSON.parse(str);
+					ModuleCache[mod.Module] = modjson;
+					var keys = Object.keys(mod);
+					//debugger;
+					styles();
+				});
+
 
 				function styles() {
-					if(zipmod.file('styles.json')) {
-						zip.file('styles.json').async('string').then(function(str) {
-							var obj = JSON.parse(str);
-							var keys = Object.keys(obj);
-							async.eachSeries(keys, function(key, func) {
-								if(Css.indexOf(key) >= 0) {
-									func();
-									return;
-								}
-								Css.push(key);
-								var file = obj[key];
-								zip.file(file).async('string').then(function(css) {
-									var tag = document.createElement('style');
-									tag.setAttribute("data-css-url", key);
-									tag.setAttribute("type", 'text/css');
-									tag.innerHTML = css;
-									document.head.appendChild(tag);
-									// var txt = document.createTextNode(css);
-									// tag.appendChild(txt);
-									// document.head.appendChild(tag);
+					if ('styles.json' in modjson) {
+						var obj = JSON.parse(modjson["styles.json"]);
+						var keys = Object.keys(obj);
+						//debugger;
+						async.eachSeries(keys, function (key, func) {
+							//debugger;
 
-									/*	var tag = document.createElement('script');
-									 tag.setAttribute("data-script-url", key);
-									 tag.setAttribute("type", 'text/javascript');
-									 var txt = document.createTextNode(scr);
-									 tag.appendChild(txt);
-									 document.head.appendChild(tag); */
-									func();
-								});
-							}, scripts);
-						});
+							//this needs to be reworked duplicate names are not loaded
+							// if(Css.indexOf(key) >= 0) {
+							// 	func();
+							// 	return;
+							// }
+
+							Css.push(key);
+							var file = obj[key];
+
+							let css = modjson[file];
+							//console.log("Css is ", css);
+							var tag = document.createElement('style');
+							tag.setAttribute("data-css-url", key);
+							tag.setAttribute("type", 'text/css');
+							tag.innerHTML = css;
+							document.head.appendChild(tag);
+							// var txt = document.createTextNode(css);
+							// tag.appendChild(txt);
+							// document.head.appendChild(tag);
+
+							/*	var tag = document.createElement('script');
+								tag.setAttribute("data-script-url", key);
+								tag.setAttribute("type", 'text/javascript');
+								var txt = document.createTextNode(scr);
+								tag.appendChild(txt);
+								document.head.appendChild(tag); */
+							func();
+						}, scripts);
 					} else {
 						scripts();
 					}
 				}
 
 				function scripts() {
-				//	console.log('..scripts');
-					if(zipmod.file('scripts.json')) {
-						zip.file('scripts.json').async('string').then(function(str) {
-							var obj = JSON.parse(str);
-							var keys = Object.keys(obj);
-							async.eachSeries(keys, function(key, func) {
-								if(Scripts.indexOf(key) >= 0) {
-									func();
-									return;
-								}
-								Scripts.push(key);
-								var file = obj[key];
-								zip.file(file).async('string').then(function(scr) {
-									// var tag = document.createElement('script');
-									// tag.setAttribute("data-script-url", key);
-									// tag.setAttribute("type", 'text/javascript');
-									// var txt = document.createTextNode(scr);
-									// tag.appendChild(txt);
-									// document.head.appendChild(tag);
-									eval(scr);
-									func();
-								});
-							}, fonts);
-						});
+					//console.log('..scripts');
+					if ('scripts.json' in modjson) {
+						var obj = JSON.parse(modjson["scripts.json"]);
+						var keys = Object.keys(obj);
+						async.eachSeries(keys, function (key, func) {
+							if (Scripts.indexOf(key) >= 0) {
+								func();
+								return;
+							}
+							Scripts.push(key);
+							var file = obj[key];
+							let scr = modjson[file];
+							//console.log("loading module from ", module, scr);
+
+							// var tag = document.createElement('script');
+							// tag.setAttribute("data-script-url", key);
+							// tag.setAttribute("type", 'text/javascript');
+							// var txt = document.createTextNode(scr);
+							// tag.appendChild(txt);
+							// document.head.appendChild(tag);
+							eval(scr);
+							console.log("Evaled scr", file);
+							func();
+						}, fonts);
 					} else {
 						fonts();
 					}
 				}
 
 				function fonts() {
-				//	console.log('..fonts');
-					if(zipmod.file('fonts.json')) {
-						zip.file('fonts.json').async('string').then(function(str) {
-							var obj = JSON.parse(str);
-							var keys = Object.keys(obj);
-							async.eachSeries(keys, function(key, func) {
-								if(key in Fonts) {
-									func();
-									return;
-								}
-								var file = obj[key];
-								zip.file(file).async('string').then(function(str) {
-									var json = JSON.parse(str);
-									var font = new THREE.Font(json);
-									if(!silent) console.log('font', font);
-									Fonts[key] = font;
-									func();
-								});
-							}, schema);
-						});
+					//	console.log('..fonts');
+					if ('fonts.json' in modjson) {
+						var obj = JSON.parse(modjson["fonts.json"]);
+						var keys = Object.keys(obj);
+						async.eachSeries(keys, function (key, func) {
+							if (key in Fonts) {
+								func();
+								return;
+							}
+							var file = obj[key];
+							let str = modjson[file];
+							var json = JSON.parse(str);
+							var font = new THREE.Font(json);
+							if (!silent) console.log('font', font);
+							Fonts[key] = font;
+							func();
+						}, schema);
 					} else {
 						schema();
 					}
 				}
 
 				function schema() {
-				//	console.log('..schema');
-					zip.file('schema.json').async('string').then(function(str){
-						compile(str);
-					});
+					//console.log('..schema');
+					let str = JSON.parse(modjson["schema.json"]);
+					compile(str);
 				}
 			});
 
 			function compile(str) {
-			//	console.log('..compile');
+				//	console.log('..compile');
 				var pidapx;
-				var schema = JSON.parse(str);
+				var schema = str;
 				ZipCache[module] = zipmod;
+				//debugger;
 				for (let lbl in schema) {
 					var ent = schema[lbl];
-					if('Par' in mod) {
-						for(key in mod.Par) {
+					if ('Par' in mod) {
+						for (key in mod.Par) {
 							ent[key] = mod.Par[key];
 						}
 					}
 					ent.Module = mod.Module;
 					//Note: CurrentModule is only used in initial processing
 					//      of browser.json
-					if(lbl == 'Apex') {
-						if(CurrentModule)
-							ent.Pid = Root.Apex[CurrentModule];
+					if (lbl == 'Apex') {
+						if (CurrentModule)
+							ent.Pid = Root.ApexList[CurrentModule];
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
-					//	console.log('Apex', ent);
+						//	console.log('Apex', ent);
 					} else {
 						ent.Pid = genPid();
 					}
@@ -514,7 +592,7 @@ __Nexus = (function() {
 				nextent();
 
 				function nextent() {
-					if(ikey >= nkey) {
+					if (ikey >= nkey) {
 						fun(null, pidapx);
 						return;
 					}
@@ -561,31 +639,30 @@ __Nexus = (function() {
 					//seems to be duplicate from line 481
 
 					//ZipCache[mod] = zipmod;
-					zipmod.file(ent.Entity).async('string').then(function(str){
-						var mod = eval(str);
-						ModCache[modkey] = mod;
-						EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
-						nextent();
-					});
+					let str = modjson[ent.Entity]
+					var mod = eval(str);
+					ModCache[modkey] = mod;
+					EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
+					nextent();
 				}
 
 				function symbol(str) {
 					var esc = str.charAt(0);
-					if(esc == '#') {
+					if (esc == '#') {
 						var lbl = str.substr(1);
-						if(!(lbl in lbls)) {
+						if (!(lbl in lbls)) {
 							var err = ' ** Symbol ' + lbl + ' not defined';
 							throw err;
 						}
 						return lbls[lbl];
 					}
-					if(esc == '$') {
+					if (esc == '$') {
 						var sym = str.substr(1);
-						if(!(sym in Root.Apex)) {
+						if (!(sym in Root.ApexList)) {
 							var err = ' ** Symbol ' + sym + ' not defined';
 							throw err;
 						}
-						return Root.Apex[sym];
+						return Root.ApexList[sym];
 					}
 					return str;
 				}
@@ -604,12 +681,9 @@ __Nexus = (function() {
 		Root.Global = {};
 		Root.Setup = {};
 		Root.Start = {};
-		if('Apex' in cfg)
-			Root.Apex = cfg.Apex;
-		else
-			Root.Apex = {};
+		Root.ApexList = cfg.ApexList || {};
 		var ikey = 0;
-		if('Scripts' in Config) {
+		if ('Scripts' in Config) {
 			var keys = Object.keys(Config.Scripts);
 			nkeys = keys.length;
 		} else {
@@ -629,8 +703,8 @@ __Nexus = (function() {
 			var q = {};
 			q.Cmd = 'GetFile';
 			q.File = Config.Scripts[key];
-			send(q, Config.pidServer, function(err, r) {
-				if(err) {
+			send(q, Config.pidServer, function (err, r) {
+				if (err) {
 					console.log(' ** ERR:Script error', err);
 					return;
 				}
@@ -651,17 +725,18 @@ __Nexus = (function() {
 		//.................................................modules
 		function modules() {
 			var keys = Object.keys(Config.Modules);
-			for(var i=0; i<keys.length; i++) {
+			//debugger;
+			for (var i = 0; i < keys.length; i++) {
 				key = keys[i];
-				Root.Apex[key] = genPid();
+				Root.ApexList[key] = genPid();
 			}
-			async.eachSeries(keys, function(key, func) {
+			async.eachSeries(keys, function (key, func) {
 				let mod = Config.Modules[key];
 				CurrentModule = key;
 				addModule(mod, addmod);
 
 				function addmod(err, pid) {
-					if(err) {
+					if (err) {
 						console.log(' ** ERR:Cannot add mod <' + r.Module + '>');
 					}
 					//TBD: Might want to bail on err
@@ -675,13 +750,15 @@ __Nexus = (function() {
 		//-------------------------------------------------Setup
 		function Setup(err) {
 			// console.log('--Nexus/Setup');
+
+			CurrentModule = null;
 			var pids = Object.keys(Root.Setup);
 			var npid = pids.length;
 			var ipid = 0;
 			setup();
 
 			function setup() {
-				if(ipid >= npid) {
+				if (ipid >= npid) {
 					Start();
 					return;
 				}
@@ -707,7 +784,8 @@ __Nexus = (function() {
 			start();
 
 			function start() {
-				if(ipid >= npid) {
+				if (ipid >= npid) {
+					Run();
 					return;
 				}
 				var pid8 = pids[ipid];
@@ -715,9 +793,11 @@ __Nexus = (function() {
 				var q = {};
 				q.Cmd = Root.Start[pid8];
 				var pid = Pid24 + pid8;
+				//console.log("start ", pid);
 				send(q, pid, done);
 
 				function done(err, r) {
+					//console.log("Return start ", pid);
 					start();
 				}
 			}
@@ -726,7 +806,6 @@ __Nexus = (function() {
 		//-------------------------------------------------Run
 		function Run() {
 			console.log('--Nxs/Run');
-			CurrentModule = null;
 		}
 	}
 

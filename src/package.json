@@ -1,0 +1,15 @@
+{
+  "name": "xgraph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "xgraph.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "merge-dirs": "^0.2.1",
+    "targz": "^1.0.1"
+  }
+}

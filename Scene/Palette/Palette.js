@@ -1,5 +1,5 @@
-(function scene() {
-	var async = require('async');
+(function Palette() {
+	var async, fs;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -13,6 +13,9 @@
 
 	function Setup(com, fun) {
 		console.log('--Palette/Setup');
+		async = this.require('async');
+		fs = this.require('fs');
+		
 		this.Vlt.Graph = [];
 		if(fun)
 			fun();

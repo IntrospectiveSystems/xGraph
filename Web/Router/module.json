@@ -1,0 +1,61 @@
+{
+  "input": {
+    "required":[
+		{
+			"Cmd":"Start"
+		}
+	],
+    "opts":[
+		{
+			"Cmd":"*"
+		},
+		{
+			"Cmd":"Subscribe", 
+			"Attributes":{
+				"required":{
+					"Name":"moduleName",
+					"Pid":"xGraphPid"
+				}
+			}
+		}
+	]
+  },
+  "output":{
+    "required":[
+		{
+			"par":"Server",
+			"Command":[
+				{
+					"Cmd":"Subscribe", 
+					"Attributes":{
+						"required":{
+							"Pid":"xGraphPid"
+						}
+					}
+				}
+			]	
+		}
+	],
+    "opts":[]
+  },
+  "par": {
+    "required":[
+		{
+			"key":"Server", 
+			"format":"xGraphPid"
+		},
+		{
+			"key":"Table", 
+			"format":{
+				"moduleName":"xGraphPid"
+			}
+		}
+	],
+    "opts":[]
+  },
+  "name": "Router",
+  "icon": null,
+  "doc": null,
+  "info":{"author":"TrevrGionet"},
+  "src": "xGraph:Web/Router"
+}
