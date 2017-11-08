@@ -1,6 +1,5 @@
 (async function () {
 	console.log(`\nInitializing the Run Engine`);
-	console.time('Nexus Start Time');
 
 	const fs = require('fs');
 	const Path = require('path');
@@ -244,8 +243,6 @@
 			if ('send' in process) {
 				process.send('{"Cmd":"Finished"}');
 			}
-			console.timeEnd('Nexus Start Time');
-
 		}
 	}
 
@@ -262,8 +259,6 @@
 	// Helper Functions as well as Entity definition
 	//
 	//
-
-
 
 
 	// #ifndef BUILT
@@ -693,13 +688,13 @@
 
 		let checkEntity = (() => {
 			if (!(pid in EntCache)) {
-				if (fun) fun('pid has not been loaded to EntCache...' + pid);
+				fun('pid has not been loaded to EntCache...' + pid);
 				return;
 			}
 			ent = EntCache[pid];
 			fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
 			log.v("Saved 'ent'.json at " + entpath);
-			if (fun) fun(null);
+			fun(null);
 		});
 
 		checkModule();
@@ -826,7 +821,7 @@
 
 		GetModule(inst.Module, function (err, mod) {
 			if (err) {
-				console.log(' ** ERR:GenModule err -', err);
+				log.w(' ** ERR:GenModule err -', err);
 				fun(err);
 				return;
 			}

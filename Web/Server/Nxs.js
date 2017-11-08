@@ -1,29 +1,6 @@
 //# sourceURL=Nxs
-__Nexus = (function () {
+__Nexus = (_ => {
 	console.log(' ** Nxs executing');
-
-	window.log = {
-		//grey magenta cyan yellow red
-		i: (..._) => console.log(`%c[INFO] ${_.join(' ')}`, 'color: cyan')
-
-	};
-
-	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
-	// Levels include:
-	// v : verbose
-	// d : debug
-	// i : info
-	// w : warn
-	// e : error
-	window.log = {
-		v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
-		d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
-		i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
-		w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
-		e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
-	};
-
-
 
 	var SockIO;
 	var Root;
@@ -44,13 +21,13 @@ __Nexus = (function () {
 	var Scripts = [];
 	var Fonts = {};
 	var Nxs = {
-		genPid: genPid,
-		genEntity: genEntity,
-		delEntity: delEntity,
-		genModule: genModule,
+		genPid,
+		genEntity,
+		delEntity,
+		genModule,
 		getFile,
-		send: send,
-		getFont: getFont
+		send,
+		getFont
 	};
 	var MsgFifo = [];
 	var MsgPool = {};
@@ -59,6 +36,34 @@ __Nexus = (function () {
 	__Config.TrackIO = false;
 	__Share = {};
 	let silent = true;
+
+
+
+
+
+
+	//
+	// Logging Functionality
+	//
+	{
+		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// Levels include:
+		// v : verbose
+		// d : debug
+		// i : info
+		// w : warn
+		// e : error
+		window.log = {
+			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
+			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
+			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
+			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
+			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+		};
+	}
+
+
+
 
 	return {
 		start: start,
@@ -362,6 +367,13 @@ __Nexus = (function () {
 			pid += hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
 		return pid;
 	}
+	// async function genPid() {
+	// 	const pidBuffer=  await crypto.subtle.digest("SHA-1",new TextEncoder("utf-8").encode(date.toString()));
+	// 	const pid = Array.from(new Uint8Array(pidBuffer)).map(b => ('00' + b.toString(16)).slice(-2)).join('');
+	// 	log.d(pid);
+
+	// 	return pid;
+	// }
 
 	//-------------------------------------------------genModule
 	// This is the version used to install modules

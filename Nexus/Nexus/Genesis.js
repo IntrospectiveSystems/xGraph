@@ -655,7 +655,7 @@
 								if (val[0] == '/')
 									path = val;
 								else
-									path = Path.join(Path.resolve(systemPath), val[1].trim());
+									path = Path.join(Path.resolve(systemPath), val);
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e("Error reading file ", path);
@@ -671,7 +671,7 @@
 								if (val[0] == '/')
 									path = val;
 								else
-									path = Path.join(Path.resolve(systemPath), val[1].trim());
+									path = Path.join(Path.resolve(systemPath), val);
 								return buildDir(dir);
 
 								function buildDir(path) {
