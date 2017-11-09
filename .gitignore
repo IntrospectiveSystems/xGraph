@@ -86,4 +86,5 @@ Work/*/package.json
 Work/*/scripts.json
 Work/*/*.js
 bin/**/*.*
+bin/*.*
 src/gen/**/*.*
