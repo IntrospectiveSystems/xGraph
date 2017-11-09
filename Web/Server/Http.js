@@ -1,6 +1,6 @@
-//#
+//# sourceURL=server/http
 (function Http() {
-	let fs, async, jszip;
+	let async, jszip;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -15,18 +15,17 @@
 	};
 
 	function Setup(com, fun) {
-		console.log('--Http/Setup');
+		log.v('--Http/Setup');
 
-		fs = this.require('fs');
-		jszip = this.require("jszip");
 		async = this.require('async');
+		jszip = this.require("jszip");
 
-		if(fun)
+		if (fun)
 			fun();
 	}
 
 	function Start(com, fun) {
-		console.log('--Http/Start');
+		log.v('--Http/Start');
 		var that = this;
 		var http = this.require('http');
 		var sockio = this.require('socket.io');
@@ -39,31 +38,37 @@
 		else
 			port = 8080;
 		var web = http.createServer(function (req, res) {
-		//	console.log(req.method + ':' + req.url);
+			//	console.log(req.method + ':' + req.url);
 			switch (req.method) {
-			case 'POST':
-				break;
-			case 'GET':
-				Get(that, req, res);
-				break;
+				case 'POST':
+					break;
+				case 'GET':
+					Get(that, req, res);
+					break;
 			}
 		});
 		web.listen(port);
 		webSocket(web);
 		console.log(' ** Spider listening on port', port);
-		fs.readFile('browser.json', function(err, data) {
-			if(err) {
+		if ('Config' in this.Par) {
+			readBrowser(null, this.Par.Config);
+		} else {
+			readBrowser('Config not in Par', null);
+		}
+
+		function readBrowser(err, data) {
+			if (err) {
 				console.log(' ** ERR::Cannot read browser config');
 				fun(err);
 				return;
 			}
 			Vlt.Browser = JSON.parse(data.toString());
 			getscripts();
-		});
+		}
 
 		function getscripts() {
-			that.getFile('scripts.json', function(err, data) {
-				if(err) {
+			that.getFile('scripts.json', function (err, data) {
+				if (err) {
 					console.log(' ** ERR:Cannot read script.json');
 					fun(err);
 					return;
@@ -74,9 +79,9 @@
 		}
 
 		function getnxs() {
-			
-			that.getFile('Nxs.js', function(err, data) {
-				if(err) {
+
+			that.getFile('Nxs.js', function (err, data) {
+				if (err) {
 					console.log(' ** ERR:Cannot read Nxs file');
 					return;
 				}
@@ -94,7 +99,7 @@
 			listener.sockets.on('connection', function (socket) {
 				// console.log('sock/connection');
 				var pidsock = '';
-				for(var i=0; i<3; i++)
+				for (var i = 0; i < 3; i++)
 					pidsock += that.genPid().substr(24);
 				var obj = {};
 				obj.Socket = socket;
@@ -105,7 +110,7 @@
 				var cfg = Vlt.Browser;
 				cfg.Pid24 = pidsock;
 				cfg.PidServer = Par.Pid;
-				cfg.ApexList = Par.ApexList||{};
+				cfg.ApexList = Par.ApexList || {};
 				var str = JSON.stringify(cfg);
 				socket.send(str);
 
@@ -127,11 +132,11 @@
 						console.log(' ** onMessage: Invalid message');
 						return;
 					}
-					if(com.Cmd == 'GetFile') {
+					if (com.Cmd == 'GetFile') {
 						getfile();
 						return;
 					}
-					if(com.Cmd == 'Subscribe') {
+					if (com.Cmd == 'Subscribe') {
 						obj.User.Publish = com.Pid;
 						return;
 					}
@@ -144,7 +149,7 @@
 					//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
 						// debugger;
-						if (com.Passport.Pid in that.Vlt.messages){
+						if (com.Passport.Pid in that.Vlt.messages) {
 							that.Vlt.messages[com.Passport.Pid](null, com);
 							delete that.Vlt.messages[com.Passport.Pid];
 						}
@@ -170,14 +175,14 @@
 					function getfile() {
 						//debugger;
 						var path = com.File;
-						that.getFile(path, function(err, data) {
-							if(err) {
+						that.getFile(path, function (err, data) {
+							if (err) {
 								console.log(' ** ERR', err);
 								return;
 							}
 							com.Data = data.toString('utf8');
 							var str = com.Data;
-							if('Passport' in com)
+							if ('Passport' in com)
 								com.Passport.Reply = true;
 							var str = JSON.stringify(com);
 							socket.send(str);
@@ -194,23 +199,23 @@
 	function Publish(com, fun) {
 		//debugger;
 		// console.log('--Publish', com.Cmd);
-		fun = fun || (() => {});
+		fun = fun || (() => { });
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
 		var keys = Object.keys(socks);
-		for(var i=0; i<keys.length; i++) {
+		for (var i = 0; i < keys.length; i++) {
 			var obj = socks[keys[i]];
 			var sock = obj.Socket;
 			var user = obj.User;
-			if('Publish' in user) {
+			if ('Publish' in user) {
 				com.Passport.To = user.Publish;
-				if(fun) {
+				if (fun) {
 					com.Passport.Disp = 'Query';
 				}
 			}
 			if ('Forward' in com) {
 				com.Passport.To = com.Forward;
-				if(fun) {
+				if (fun) {
 					if (!('messages' in this.Vlt)) this.Vlt.messages = {};
 					this.Vlt.messages[com.Passport.Pid] = fun;
 				}
@@ -227,34 +232,48 @@
 
 	//any HTTP Get accessible files should be stored in a ./static/ directory
 	function Get(that, req, res) {
-		//debugger;
-		console.log('--Get', req.url);
+		log.v('--Get', req.url);
 		var Par = that.Par;
 		var url = req.url;
 		let path = null;
 
-		if (url.split(".").length>1){
-			//console.log("Split by '.'");
-			path = './static'+url;
-		}else{
+		if (url.split(".").length > 1) {
+			let arr = url.split('/');
+			arr = arr.slice(1);
+
+			let store = Par.Static||{};
+
+			ship(...subSearch(arr, store));
+
+			function subSearch(ar, st) {
+				if (ar[0] in st) {
+					if (ar.length == 1) {
+						return [null, st[ar[0]]];
+					}
+					else {
+						return subSearch(arr.slice(1), st[ar[0]]);
+					}
+				}else{
+					let err = `${url} does not exist in Par.Static`;
+					log.w(err);
+					return [err];
+				}
+			}
+			
+		} else {
 			if (url.charAt(0) == '/')
 				url = url.substr(1);
-			path = './' + url + '.html';
-		}
-		//console.log("Path of Get file is ", path);
-		fs.exists(path, html);
-
-		function html(yes) {
-			if(!yes) {
+			if (url==Par.Url)
+				ship(null, Par.HTML);
+			else{
 				res.writeHead(404);
 				res.end('You are out of your verbial guord');
 				return;
 			}
-			fs.readFile(path, ship);
 		}
 
 		function ship(err, data) {
-			if(err) {
+			if (err) {
 				res.writeHead(404);
 				res.end(err);
 				return;
@@ -269,20 +288,20 @@
 	// Retrieve module from module server
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
-		console.log('--Http/GetModule', com.Module);
+		log.v('--Http/GetModule', com.Module);
 		//console.log(JSON.stringify(com));
 		var that = this;
 		var zip = new jszip();
 		//var dir = that.genPath(com.Module);
 		var man = [];
-		this.getModule(com.Module, function(err, mod) {
-			if(err) {
+		this.getModule(com.Module, function (err, mod) {
+			if (err) {
 				console.log(' ** ERR:Cannot read module directory');
-				if(fun)
+				if (fun)
 					fun('Cannot read module directlry');
 				return;
 			}
-			
+
 			var str = JSON.stringify(mod);
 			//console.log("mod is ", Object.keys(mod));
 			zip.file('module.json', str, {
@@ -294,7 +313,7 @@
 				date: new Date("December 25, 2007 00:00:01")
 				//the date is required for zip consistency
 			});
-			zip.generateAsync({type:'base64'}).then(function(data) {
+			zip.generateAsync({ type: 'base64' }).then(function (data) {
 				com.Zip = data;
 				fun(null, com);
 			});

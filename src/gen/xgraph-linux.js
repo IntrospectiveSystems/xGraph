@@ -1,31 +1,8 @@
-console.log(process.env.NODE_PATH, typeof process.env.NODE_PATH);
-if (!(process.env.NODE_PATH == './node_modules')) {
-const { spawn } = require('child_process');
-
-console.log("try again with node path set");
-
-let sp = spawn(process.argv[0], process.argv.slice(1), { env: { NODE_PATH: `${cwd}/node_modules` } });
-
-sp.stdout.on('data', (data) => {
-console.log(`stdout: ${data}`);
-});
-
-sp.stderr.on('data', (data) => {
-console.log(`stderr: ${data}`);
-});
-
-sp.on('close', (code) => {
-console.log(`child process exited with code ${code}`);
-});
-}
-
-
 const { execSync } = require('child_process');
 const tar = require('targz');
 const fs = require('fs');
+const path = require('path');
 const mergedirs = require('merge-dirs').default;
-
-
 
 let system = 'linux';
 let linux = true;
@@ -73,7 +50,7 @@ async function init(args) {
   console.log('[', ...args, ']');
 =======
 let genesis = function(){
-			(function () {
+			return (function () {
 	return new Promise((resolve, reject) => {
 
 		console.log(`\nInitializing the Compile Engine`);
@@ -81,6 +58,7 @@ let genesis = function(){
 
 		const fs = require('fs');
 		const date = new Date();
+		const Path = require('path');
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
 		let Config = {};					// The read config.json
@@ -91,44 +69,44 @@ let genesis = function(){
 		let args = process.argv;			// The input argutments ----- should be removed ??
 		let Params = {};					// The set of Macros for defining paths ---- should be removed??
 
-
 		//
 		// Logging Functionality
 		//
-
-		// The logging function for writing to xgraph.log to the current working directory
-		const xgraphlog = (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
-		};
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
-		// Levels include:
-		// v : verbose
-		// d : debug
-		// i : info
-		// w : warn
-		// e : error
-		const log = {
-			v: (...str) => {
-				console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			d: (...str) => {
-				console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			i: (...str) => {
-				console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			w: (...str) => {
-				console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			},
-			e: (...str) => {
-				console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-				xgraphlog(...str);
-			}
-		};
+		{
+			// The logging function for writing to xgraph.log to the current working directory
+			const xgraphlog = (...str) => {
+				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
+			};
+			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+			// Levels include:
+			// v : verbose
+			// d : debug
+			// i : info
+			// w : warn
+			// e : error
+			const log = global.log = {
+				v: (...str) => {
+					console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				d: (...str) => {
+					console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				i: (...str) => {
+					console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				w: (...str) => {
+					console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				},
+				e: (...str) => {
+					console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
+					xgraphlog(...str);
+				}
+			};
+		}
 
 		setup();
 
@@ -141,6 +119,12 @@ let genesis = function(){
 		//
 
 
+		/**
+		 * The setup procedures for genesis.
+		 * This includes defining macros and othre Params.
+		 * Parse the config
+		 * and Clean the cache if it currently exists
+		 */
 		function setup() {
 			log.i('=================================================');
 			log.i(`Genesis Setup:`);
@@ -157,30 +141,45 @@ let genesis = function(){
 			//
 			//
 
+			/**
+			 * Read in macros and set Params from process.argv
+			 * these are also set in the birany in pathOverrides
+			 * examples are  xGraph={path to xGraph} 
+			 * in binary they look like --xGraph {path to xGraph}
+			 */
 			function defineMacros() {
 				// Process input arguments and define macro parameters
 
-				if (!(typeof tar == 'undefined')) {
-					for (key in pathOverrides) {
-						Params[key] = pathOverrides[key];
+				let arg, parts;
+				for (var iarg = 0; iarg < args.length; iarg++) {
+					arg = args[iarg];
+					log.v(arg);
+					parts = arg.split('=');
+					if (parts.length == 2) {
+						Params[parts[0]] = parts[1];
 					}
-				} else {
-					let arg, parts;
-					for (var iarg = 0; iarg < args.length; iarg++) {
-						arg = args[iarg];
-						log.v(arg);
-						parts = arg.split('=');
-						if (parts.length == 2) {
-							Params[parts[0]] = parts[1];
-						}
+				}
+				if (!(typeof pathOverrides == "undefined")) {
+					for (let key in pathOverrides) {
+						Params[key] = pathOverrides[key];
 					}
 				}
 			}
 
+			/**
+			 * Reads in the given config and fills in the Macros
+			 */
 			function parseConfig() {
 				// Read in the provided config.json file
 				// File is passed in Params.Config or defaults to "config.json" in current working directory
-				let cfg = fs.readFileSync(Params.Config || 'config.json');
+				let cfg = undefined;
+
+				try {
+					cfg = fs.readFileSync(Params.Config || 'config.json');
+				} catch (e) {
+					log.e("Specified config.json does not exist");
+					process.exit(1);
+				}
 
 				// Parse the config.json and replace Macros
 				// Store all Macros in Params --- should be removed?
@@ -216,12 +215,16 @@ let genesis = function(){
 					// No config was provided. Exit promptly.
 					log.e(' ** No configuration file (config.json) provided');
 					process.exit(1);
+					reject();
 				}
 
 				// Print out the parsed config
 				log.v(JSON.stringify(Config, null, 2));
 			}
 
+			/**
+			 *  Remove the cache if it currently exists in the given directory
+			 */
 			function cleanCache() {
 				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 				CacheDir = Params.Cache || "cache"
@@ -235,8 +238,9 @@ let genesis = function(){
 		}
 
 
-		//----------------------------------------------------Genesis
-		// Builds a cache from a config.json
+		/**
+		 * Builds a cache from a config.json. 
+		 */
 		function genesis() {
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
@@ -254,6 +258,9 @@ let genesis = function(){
 			//
 			//
 
+			/**
+			 * Create a list of all required modules and their brokers
+			 */
 			function generateModuleCatalog() {
 				// Create new cache and install high level
 				// module subdirectories. Each of these also
@@ -272,6 +279,7 @@ let genesis = function(){
 								if (Modules[folder] != source) {
 									log.e("Broker Mismatch Exception");
 									process.exit(2);
+									reject();
 								}
 							}
 						});
@@ -284,6 +292,7 @@ let genesis = function(){
 							if (Modules[folder] != source) {
 								log.e("Broker Mismatch Exception");
 								process.exit(2);
+								reject();
 							}
 						}
 					}
@@ -294,8 +303,13 @@ let genesis = function(){
 				nfolders = moduleKeys.length;
 			}
 
+			/**
+			 * get the modules from the prebuilt catalog
+			 * from the source defined in config
+			 */
 			function recursiveBuild() {
 				ifolder++;
+
 				if (ifolder >= nfolders) {
 					refreshSystem(populate);
 					return;
@@ -313,18 +327,69 @@ let genesis = function(){
 				});
 			}
 
-			function populate() {
+			/**
+			 * Write the modules and all instances to the cache
+			 */
+			async function populate() {
 				log.v('--populate : Writing Cache to Disk');
 				// Write cache to CacheDir
-				fs.mkdirSync(CacheDir);
+
+				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					var mod = ModCache[folder];
-					var dir = CacheDir + '/' + folder;
+					let mod = ModCache[folder];
+					let dir = CacheDir + '/' + folder;
 					fs.mkdirSync(dir);
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
+
+					npmDependenciesArray.push(new Promise((resolve, reject) => {
+						let packagejson;
+						let mod = ModCache[folder];
+						if ('package.json' in mod) {
+							packagejson = JSON.parse(mod['package.json']);
+						} else {
+							resolve();
+							return;
+						}
+
+						log.i(`${folder}: Updating and installing dependencies`);
+						let strout = JSON.stringify(packagejson, null, 2);
+						console.log(strout);
+						//write the compiled package.json to disk
+
+						fs.writeFileSync(Path.join(dir, 'package.json'), strout);
+
+						//call npm install on a childprocess of node
+						const proc = require('child_process');
+
+						let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+						let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
+
+						ps.stdout.on('data', _ => { process.stdout.write(`${folder}: ${_} `) });
+						ps.stderr.on('data', _ => process.stderr.write(`${folder}: ${_} `));
+
+						ps.on('err', function (err) {
+							log.e('Failed to start child process.');
+							log.e('err:' + err);
+							reject(err);
+						});
+
+						ps.on('exit', function (code) {
+							if (code == 0)
+								log.i(`${folder}: dependencies installed correctly`);
+							else {
+								log.e(`${folder}: npm process exited with code: ${code}`);
+								process.exit(1);
+								reject();
+							}
+							fs.unlinkSync(Path.join(dir, 'package.json'));
+							resolve();
+						});
+					}));
 				}
+
+				await Promise.all(npmDependenciesArray);
 
 				// Assign pids to all instance in Config.Modules
 				for (let instname in Config.Modules) {
@@ -366,13 +431,12 @@ let genesis = function(){
 
 
 		/**
-		 * For retrieving modules
-		 * Modules come from memory, a defined broker, or disk depending on the module definition
+		 * For loading modules
+		 * Modules come from a defined broker, or disk depending on the module definition
 		 * @param {Object} modRequest 
-		 * @param {String} modRequest.Module
-		 * @param {String} modRequest.Source
-		 * @param {Function} fun 
-		 * @returns mod
+		 * @param {String} modRequest.Module the dot notation of the module name
+		 * @param {String} modRequest.Source the source Broker or path reference for the module 
+		 * @param {Function} fun  the callback has form (error, module.json)
 		 */
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
@@ -399,7 +463,9 @@ let genesis = function(){
 			//
 			//
 
-
+			/**
+			 * open up a socket to the defined broker and access the module
+			 */
 			function loadModuleFromBroker() {
 				const { Socket } = require('net');
 				const sock = new Socket();
@@ -460,7 +526,7 @@ let genesis = function(){
 							Buf += data.toString('utf8', i1, i2);
 							State = 0;
 							let response = JSON.parse(Buf);
-
+							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 							const jszip = require("jszip");
 							const zipmod = new jszip();
 
@@ -476,9 +542,11 @@ let genesis = function(){
 						}
 					}
 				});
-
 			}
 
+			/**
+			 * load module from disk
+			 */
 			function loadModuleFromDisk() {
 				let ModPath = genPath(dir);
 				//read the module from path in the local file system
@@ -541,10 +609,17 @@ let genesis = function(){
 		}
 
 		//----------------------------------------------------CompileModule
-		// Generate array of entities from module
-		// Module must be in cache to allow use by both Genesis and
-		// GenModule
-		// The first parameter is the pid assigned to the Apex
+		// 
+
+		/**
+		 * Generate array of entities from module
+		 * Module must be in cache 
+		 * 
+		 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
+		 * @param {object} inst 
+		 * @param {string} inst.Module	The module definition in dot notation
+		 * @param {object} inst.Par		The par object that defines the par of the instance
+		 */
 		function compileInstance(pidapx, inst) {
 			var Local = {};
 			var modnam = inst.Module;
@@ -552,11 +627,13 @@ let genesis = function(){
 			var ents = [];
 			// The following is for backword compatibility only
 			var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+
 			if (modnam in ModCache) {
 				mod = ModCache[modnam];
 			} else {
 				log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
 				process.exit(1);
+				reject();
 				return;
 			}
 			var schema = JSON.parse(mod['schema.json']);
@@ -612,58 +689,94 @@ let genesis = function(){
 					return Local[sym];
 				if (val.charAt(0) === '\\')
 					return sym;
+				if (val.charAt(0) === '@') {
+					val = val.split(":");
+					let key = val[0].toLocaleLowerCase().trim();
+					let encoding = undefined;
+					if (key.split(",").length == 2) {
+						key = key.split(',')[0].trim();
+						let encoding = key.split(',')[1].trim();
+					}
+					switch (key) {
+						case "@filename":
+						case "@file": {
+							try {
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								let path = Path.join(Path.resolve(systemPath), val[1].trim());
+								return fs.readFileSync(path).toString(encoding);
+							} catch (err) {
+								log.e("Error reading file ", path);
+								log.w(`Module ${modnam} may not operate as expected.`);
+							}
+							break;
+						}
+						case "@folder":
+						case "@directory": {
+							try {
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./config.json");
+								let dir = Path.join(Path.resolve(systemPath), val[1].trim());
+								return buildDir(dir);
+
+								function buildDir(path) {
+									let dirObj = {};
+									if (fs.existsSync(path)) {
+										files = fs.readdirSync(path);
+										files.forEach(function (file, index) {
+											var curPath = path + "/" + file;
+											if (fs.lstatSync(curPath).isDirectory()) {
+												// recurse
+												dirObj[file] = buildDir(curPath);
+											} else {
+												dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+											}
+										});
+										return dirObj;
+									}
+
+								}
+							} catch (err) {
+								log.e("Error reading directory ", path);
+								log.w(`Module ${modnam} may not operate as expected.`);
+							}
+							break;
+						}
+						default: {
+							log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
+						}
+					}
+				}
 				return val;
 			}
 		}
 
-		//-----------------------------------------------------refreshSystem
-		// Reconstruct package.json and node_modules
-		// directory by merging package.json of the
-		// individual modules and then running npm
-		// to create node_modules directory for system	
+
+		/**
+		 * Reconstruct package.json and node_modules
+		 * directory by merging package.json of the
+		 * individual modules and then running npm
+		 * to create node_modules directory for system
+		 * @callback func what to do next
+		 */
 		function refreshSystem(func) {
 			log.i('--refreshSystems: Updating and installing dependencies\n');
-			var packagejson;
-			for (let folder in ModCache) {
-				let mod = ModCache[folder];
-				if ('package.json' in mod) {
-					obj = JSON.parse(mod['package.json']);
-					if (!packagejson) {
-						packagejson = obj;
-						continue;
-					}
-					if (obj.dependencies) {
-						if (!packagejson.dependencies) packagejson.dependencies = {};
-						for (key in obj.dependencies) {
-							if (!(key in packagejson.dependencies))
-								packagejson.dependencies[key] = obj.dependencies[key];
-						}
-					}
-					if (obj.devDependencies) {
-						if (!packagejson.devDependencies) packagejson.devDependencies = {};
-						for (key in obj.devDependencies) {
-							if (!(key in packagejson.devDependencies))
-								packagejson.devDependencies[key] = obj.devDependencies[key];
-						}
-					}
-				}
-			}
+			var packagejson = {};
+
+			if (!packagejson.dependencies) packagejson.dependencies = {};
 
 			//include Genesis/Nexus required npm modules
 			packagejson.dependencies["uuid"] = "3.1.0";
 			packagejson.dependencies["async"] = "0.9.0";
-			//for old nexus --- should be removed ...
-			packagejson.dependencies["node-uuid"] = "~1.4.2";
 
 			var strout = JSON.stringify(packagejson, null, 2);
 			//write the compiled package.json to disk
-			fs.writeFileSync('package.json', strout);
+			fs.mkdirSync(CacheDir);
+			fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
 
 			//call npm install on a childprocess of node
 			const proc = require('child_process');
 
 			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-			var ps = proc.spawn(npm, ['install']);
+			var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
 			ps.stdout.on('data', _ => { process.stdout.write(_) });
 			ps.stderr.on('data', _ => process.stderr.write(_));
@@ -679,12 +792,17 @@ let genesis = function(){
 				else {
 					log.e('npm process exited with code:' + code);
 					process.exit(1);
+					reject();
 				}
-				log.v('Current working directory: ' + process.cwd());
+				fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
 				func();
 			});
 		}
 
+		/**
+		 * replace the macros for local path info
+		 * @param {string} str the string which to return the macro of
+		 */
 		function Macro(str) {
 			let state = 1;
 			let chr;
@@ -719,17 +837,23 @@ let genesis = function(){
 			return s;
 		}
 
-		//---------------------------------------------------------genPid
-		// Create a new PID
+		/**
+		 * generate a 32 character hex pid
+		 */
 		function genPid() {
-			if (!Uuid)
+			if (!Uuid) {
+				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 				Uuid = require('uuid/v4');
+			}
 			var str = Uuid();
 			var pid = str.replace(/-/g, '').toUpperCase();
 			return pid;
 		}
 
-		//---------------------------------------------------------genPath
+		/**
+		 * build a path from the file system using defined Macros and Params
+		 * @param {string} filein 
+		 */
 		function genPath(filein) {
 			if (!filein) {
 				log.e(' ** ERR:Invalid file name');
@@ -770,9 +894,13 @@ let genesis = function(){
 			return path;
 		}
 
-		//-----------------------------------------------------remDir
-		// Recursive directory deletion
-		// Used for cache cleanup
+
+
+		/**
+		 * Recursive directory deletion
+		 * Used for cache cleanup
+		 * @param {*} path the directory to be recursively removed 
+		 */
 		function remDir(path) {
 			var files = [];
 			if (fs.existsSync(path)) {
@@ -851,8 +979,11 @@ break;
 async function init(args) {
 console.log('init System');
 console.log('[', ...args, ']');
+<<<<<<< HEAD
 >>>>>>> b32a518bba80e0d89d539652ef6313c70b870890
 
+=======
+>>>>>>> origin/working-tjg
 }
 
 function help() {
@@ -1050,7 +1181,7 @@ function startChildProcess() {
 =======
 try {
 await ensureNode();
-if (fs.lstatSync(pathOverrides['cache'] || 'cache').isDirectory()) {
+if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 startNexusProcess();
 } else {
 await genesis();
@@ -1072,17 +1203,12 @@ console.log(`ERR: ${e}`);
 
 
 function startNexusProcess() {
-
-process.env.NODE_PATH = "node_modules/";
 const { spawn } = require('child_process');
-console.log(`\nNexus Path: ${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`);
-const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv], { env: process.env });
-ls.stdout.on('data', (data) => {
-console.log(`${data}`);
-});
-ls.stderr.on('data', (data) => {
-console.log(`${data}`);
-});
+console.log("NODE PATH SET TO", path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/"));
+const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });
+
+ls.stdout.on('data', _=> process.stdout.write(_));
+ls.stderr.on('data', _=> process.stderr.write(_));
 
 ls.on('close', (code) => {
 console.log(`child process exited with code ${code}`);

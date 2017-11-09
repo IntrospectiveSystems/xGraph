@@ -2,10 +2,6 @@
 //Makes a texteditor view. 
 
 
-/****************************
-We will likely need to provide access to the other script files in the build
-
-*/
 (function AceEditorView() {
 
 	let dispatch = {
@@ -19,7 +15,7 @@ We will likely need to provide access to the other script files in the build
 	return Viewify(dispatch, "3.1");
 
 	function Setup(com, fun) {
-		console.log("-Ace-code-editor/Setup");
+		log.v("-Ace-code-editor/Setup");
 		//we hoist the setup command to View.js in the viewif script.
 		this.super(com, (err, cmd) => {
 			//we access the existing div
@@ -27,8 +23,11 @@ We will likely need to provide access to the other script files in the build
 			let Vlt = this.Vlt;
 
 			var editor = ace.edit(div);
+			editor.$blockScrolling = Infinity;
 			editor.setTheme("ace/theme/monokai");
 			editor.getSession().setMode("ace/mode/javascript");
+			this.getFile
+			editor.setValue("//\n//\n//\n//\n//Load code here!");
 
 			if (fun) {
 				fun(null, com);
@@ -37,7 +36,7 @@ We will likely need to provide access to the other script files in the build
 	}
 
 	function Start(com, fun) {
-		console.log("--Ace/Start");
+		log.v("--Ace/Start");
 		
 		if (fun)
 			fun(null, com);
