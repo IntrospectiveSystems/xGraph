@@ -596,7 +596,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					}
 				});
 			};
+			this.cdnImportCss = (url) => {
+				$(document.head).append($(`<link href="${url}" rel="stylesheet">`));
+			};
 		}
+
 		// heh
 		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
 	}
