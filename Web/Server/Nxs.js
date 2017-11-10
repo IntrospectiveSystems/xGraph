@@ -60,28 +60,28 @@ __Nexus = (_ => {
 		};
 	}
 
-
-
-
 	return {
-		start: start,
-		// genPid: genPid,
-		// genModule: genModule,
-		// send: send,
-		// getFont: getFont
+		start
 	};
 
 	function start(sockio, cfg) {
 		if (!silent) log.i('--Nxs/start');
-		Config = JSON.parse(cfg.Config);
-		if (!silent) log.v('Config', JSON.stringify(Config, null, 2));
-		PidNxs = cfg.Pid;
+		if (!silent) //log.v('cfg', JSON.stringify(cfg, null, 2));
+		Pid24 = cfg.Pid24;
 		PidServer = cfg.PidServer;
 		SockIO = sockio;
 		SockIO.removeListener('message');
 
 		SockIO.on('message', function (data) {
 			var cmd = JSON.parse(data);
+
+			if (Array.isArray(cmd)) {
+				// if its an array, its probs a reply...
+				// so, you should split it up.
+				var [err, cmd] = cmd;
+				// if(cmd.Cmd == 'Evoke') debugger;
+			}
+
 			if (!silent) console.log(' << Msg:' + cmd.Cmd);
 
 			//if the message is a reply pair it with its callback
@@ -93,7 +93,7 @@ __Nexus = (_ => {
 					delete MsgPool[pid];
 					MsgFifo.splice(ixmsg, 1);
 					if (func) {
-						func(null, cmd);
+						func(err || null, cmd);
 					}
 				}
 				return;
@@ -118,11 +118,16 @@ __Nexus = (_ => {
 					return;
 				if ('Passport' in cmd) {
 					cmd.Passport.Reply = true;
-					var str = JSON.stringify(cmd);
+					var str = JSON.stringify([err, cmd]);
 					SockIO.send(str);
 				}
 			}
 		});
+
+		SockIO.on('connect', () => {
+			location.href = location.href;
+		});
+
 		Genesis(cfg);
 	}
 
@@ -167,8 +172,8 @@ __Nexus = (_ => {
 				return;
 			}
 		}
+
 		if (fun) {
-			//debugger;
 			MsgPool[pidmsg] = fun;
 			MsgFifo.push(pidmsg);
 			if (MsgFifo.length > 100) {
@@ -176,6 +181,7 @@ __Nexus = (_ => {
 				delete MsgPool[kill];
 			}
 		}
+
 		var str = JSON.stringify(com);
 		if (__Config.TrackIO)
 			console.log(' >> Msg:' + com.Cmd);
@@ -193,7 +199,7 @@ __Nexus = (_ => {
 	}
 
 	function getFile(module, filename, fun) {
-		let mod = ModuleCache[module];
+		let mod = ModCache[module];
 		//console.log(Object.keys(ModCache[module]));
 		if (filename in mod) {
 			fun(null, mod[filename])
@@ -253,6 +259,7 @@ __Nexus = (_ => {
 		//-------------------------------------------------getPid
 		// Return Pid of entity
 		function getPid() {
+			log.w("getPid() is deprecated and will be removed. \n Use Par.Pid");
 			return Par.Pid;
 		}
 
@@ -272,12 +279,6 @@ __Nexus = (_ => {
 				com.Passport.From = Par.Pid;
 			com.Passport.To = pid;
 			nxs.send(com, pid, fun);
-		}
-
-		//-------------------------------------------------reply
-		// Reply to a message previously received
-		function reply(com, fun) {
-
 		}
 	}
 
@@ -311,20 +312,18 @@ __Nexus = (_ => {
 		function done(err, com) {
 			if (!('Mod' in com)) {
 				var errmsg = com.Name + 'module is not available';
-				console.log(' ** ERR:' + errmsg);
+				log.e(' ** ERR:' + errmsg);
 				fun(err);
 			}
 			var pid = genPid();
 			par.Pid = pid;
-			// if
+			
 			var mod = eval(com.Mod);
 			var ent = new Entity(Nxs, mod, par);
 			if (ent) {
 				ModCache[name] = mod;
 				EntCache[pid] = ent;
-				//                if (par.$Browser) {
-				//                	SymTab[par.$Browser] = pid;
-				//                }
+
 				fun(null, ent);
 				return;
 			}
@@ -334,18 +333,17 @@ __Nexus = (_ => {
 
 	//-----------------------------------------------------deleteEntity
 	// Generate node from parameter object
-	function deleteEntity(pid, fun) {
+	function deleteEntity(pid, fun = _ => _) {
 		if (EntCache[pid]) {
 			delete EntCache[pid];
-			console.log(pid, ' Deleted');
-			if (fun) {
-				fun(null)
-			}
+			log.v(pid, ' Deleted');
+			fun(null)
+
 		} else {
-			console.log('Entity not found: ', pid);
-			if (fun) {
-				fun(("Entity not found: " + pid));
-			}
+			log.w('Entity not found: ', pid);
+
+			fun(("Entity not found: " + pid));
+
 		}
 	}
 
@@ -375,7 +373,7 @@ __Nexus = (_ => {
 			//	console.log('Initializers', Initializers);
 			pidapx = pid;
 			if (err) {
-				console.log(' ** genModule:' + err);
+				if (!silent) log.e(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
@@ -390,7 +388,7 @@ __Nexus = (_ => {
 
 		function start(err, r) {
 			if (err) {
-				console.log(' ** genModule:' + err);
+				if (!silent) log.e(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
@@ -405,7 +403,7 @@ __Nexus = (_ => {
 
 		function pau(err, r) {
 			if (err) {
-				console.log(' ** genModule:' + err);
+				if (!silent) log.e(' ** genModule:' + err);
 			}
 			fun(err, pidapx);
 		}
@@ -830,7 +828,7 @@ __Nexus = (_ => {
 				}
 			}
 
-			function getModule(modRequest, fun){
+			function getModule(modRequest, fun) {
 				let modnam = modRequest.Module;
 				let source = modRequest.Source;
 				let mod = {};
@@ -854,7 +852,7 @@ __Nexus = (_ => {
 
 					});
 
-					
+
 				});
 			}
 		}
@@ -920,6 +918,6 @@ __Nexus = (_ => {
 	function Run() {
 		console.log('--Nxs/Run');
 	}
-}
+
 
 }) ();

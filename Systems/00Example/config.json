@@ -11,7 +11,7 @@
 				"Port": 8080,
 				"Url": "Paint",
 				"HTML": "@file: Paint.html",
-				"Config": "@file: browser.json"
+				"Paint": "@system: browser.json"
 			}
 		}
 	}
