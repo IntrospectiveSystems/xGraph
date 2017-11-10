@@ -24,7 +24,7 @@
 		log.v('--Http/Start');
 		var sockio = this.require('socket.io');
 
-		var that = this;
+		let that = this;
 		fs = this.require('fs');
 		async = this.require('async');
 		jszip = this.require("jszip");
@@ -99,7 +99,7 @@
 	
 				rsaKeySize: 2048,
 	
-				debug: true
+				// debug: true
 			};
 	
 			let handlers = {
@@ -153,7 +153,7 @@
 			});
 			// log.i(' ** Spider listening on port 8080');
 			httpServer.listen(this.Par.Port || 8080);
-			log.i(`Created HTTP/1.1 Server with ${this.Par.HTMLFile}.html`);
+			log.i(`Created HTTP/1.1 Server`);
 			// log.i('WE LISTENIN HTTP');
 			if(attemptSSL)
 				getCertificate(le);
@@ -199,15 +199,15 @@
 			var Vlt = this.Vlt;
 			
 			webSocket(server);
-			fs.readFile('browser.json', function(err, data) {
+			(function (err, data) {
 				if(err) {
-					log.i(' ** ERR::Cannot read browser config');
+					log.w(err);
 					fun(err, com);
 					return;
 				}
 				Vlt.Browser = JSON.parse(data.toString());
 				getscripts();
-			});
+			})(...('Config' in this.Par ? [null, this.Par.Config] : ['Config not found in MultipageServer Par', null]));
 	
 			function getscripts() {
 				that.getFile('scripts.json', function(err, data) {
@@ -290,7 +290,7 @@
 						}
 	
 						// debugger;
-					//	com.Passport.User = obj.User;
+						//	com.Passport.User = obj.User;
 						if ('Reply' in com.Passport && com.Passport.Reply) {
 							if('messages' in that.Vlt && com.Passport.Pid in that.Vlt.messages) {
 								that.Vlt.messages[com.Passport.Pid](err, com);
@@ -324,7 +324,7 @@
 							
 							// socket.send(str);
 	
-							fs.readFile(path + '.json', function(err, data) {
+							(function(err, data) {
 								if(err) {
 									log.i(' ** ERR', err);
 									return;
@@ -334,24 +334,18 @@
 								cfg.PidServer = Par.Pid;
 								cfg.ApexList = Par.ApexList||{};
 								
-	
+
 								let page = JSON.parse(data.toString('utf8'));
 	
 								for(let key in page.Modules) {
 									cfg.Modules[key] = page.Modules[key];
 								}
-
-								cfg.DEBUGINFO = JSON.parse(JSON.stringify({
-									VltBrowser: Vlt.Browser,
-									Path: path,
-									PathData: data.toString('utf8'),
-									PathDataParsed: page
-								}));
 	
 								var str = JSON.stringify(cfg);
 	
 								socket.send(str);
-							});
+							})(...('Pages' in that.Par && path in that.Par.Pages ? [null, that.Par.Pages[path]] : [`${path} not in MultipageServer's Par.Pages`, null]));
+							// log.d(JSON.stringify(that.Par, null, 2));
 						}
 	
 						//.....................................getfile
@@ -430,59 +424,45 @@
 	// validation if Prequired. If anything looks fishy, simply
 	// ignore the request to confuse the hackers.
 	function Get(that, req, res) {
-		// debugger;
-		// log.i();
-		// log.i('--Get', req.url);
-		var Par = that.Par;
-		var url = Par.HTMLFile;
-		// log.i("LOOOOOK HEEREEE!!! (o).(o)"+url);
-		// log.i(req.url);
+		let type = 'text/html';
+
 		if(req.url == '/manifest.json' && 'Manifest' in that.Par) {
 			res.writeHead(200); 
-			// log.i(`"${JSON.stringify(that.Par.Manifest, null, 2)}"`);
 			res.end(JSON.stringify(that.Par.Manifest, null, 2));
 			return;
 		}
 
-		let path = null;
-		let type = null;
-		// debugger;
-		let splitUrl = req.url.split(".");
-		// log.i("LOOOOOK HEEREEE!!! (o).(o)"+url);
-		// check if the url has file a type.
-		// If the url doesn't have a file type,
-		// 	load it as an .html file
-		if (splitUrl.length>1){
-			//log.i("Split by '.'");
-			path = './static'+req.url;
-			// log.i("LOOOOOK HEEREEE!!! (o).(o)"+splitUrl[splitUrl.length-1]);
-			switch (splitUrl[splitUrl.length-1]){
-				case 'css':
-					type = 'text/css';
-					break;
-				case 'html':
-					type = 'text/html';
-					break;
-				default:
-					type = 'text/html';
-			}
-		}else {
-			if (url.charAt(0) == '/')
-				url = url.substr(1);
-			path = './' + url + '.html';
-			type = 'text/html';
+		if(req.url.split('.').length > 1) {
+			let arr = req.url.split('/');
+			arr = arr.slice(1);
 
-		}
-		fs.exists(path, html);
 
-		function html(yes) {
-			if(!yes) {
-				res.writeHead(404);
-				res.end('You are out of your verbial guord');
-				return;
+			let store = that.Par.Static || {};
+
+			return ship(...subSearch(arr, store));
+
+			function subSearch(ar, st) {
+				log.v(arr.join(', '));
+				if (ar[0] in st) {
+					if (ar.length == 1){
+						switch(ar[0].substr(ar[0].lastIndexOf('.') + 1)) {
+							case 'css': type = '	text/css'; break;
+							default: /* no */ break;
+						}
+						return [null, st[ar[0]]];
+					}
+					else {
+						return subSearch(arr.slice(1), st[ar[0]]);
+					}
+				}else{
+					let err = `${req.url} does not exist in Par.Static`;
+					log.w(err);
+					return [err];
+				}
 			}
-			fs.readFile(path, ship);
 		}
+
+		ship(...('HTML' in that.Par ? [null, that.Par.HTML] : ['HTML not in MultipageServer Par', null]))
 
 		function ship(err, data) {
 			if(err) {
@@ -492,7 +472,7 @@
 			}
 			var page = data.toString();
 
-
+			// log.v(`shipping ${path}`);
 			res.setHeader('Content-Type', type);
 			res.end(page);
 		}

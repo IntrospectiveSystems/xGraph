@@ -241,7 +241,7 @@
 		 * Send Finished command if the process was generated 
 		 */
 		function run() {
-			log.i('\n--Nexus/Run');
+			log.i(' --Nexus/Run');
 			if ('send' in process) {
 				process.send('{"Cmd":"Finished"}');
 			}
@@ -426,14 +426,18 @@
 			send,
 			save,
 			getFile,
-			require
+			require: internalRequire
 		};
+
+
+
 
 		/**
 		 * load a dependency for a moduel
 		 * @param {string} string 	the string of the module to require/load
 		 */
-		function require(string){
+		function internalRequire(string){
+			log.v(`Requiring ${string}`);
 			return nxs.loadDependency(Par.Apex, Par.Pid, string);
 		}
 
@@ -732,11 +736,13 @@
 	 */
 	function loadDependency(apx,pid,str){
 		//load fresh from file
-		delete require.cache[require.resolve(str)];
-
+		// log.d(`dependencies????`);
+		require.cache = {};
+		// log.d(`DELETEDDDD`);
 		let folder = ApexIndex[apx];
 		let path = CacheDir + '/' + folder + '/node_modules/';
 		module.paths = [path];
+		log.v(`modules path ${path}`);
 		return require(str);
 	}
 

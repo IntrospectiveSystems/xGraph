@@ -56,10 +56,15 @@
 			};
 		}
 
-		setup();
 
-		genesis();
-
+		try {
+			setup();
+			genesis();
+		}catch(e) {
+			log.e(e.toString());
+			log.e((new Error().stack));
+			reject(e);
+		}
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
 		// Only Function Definitions Beyond This Point
@@ -134,6 +139,11 @@
 				let val, sources, subval;
 				if (cfg) {
 					var ini = JSON.parse(cfg);
+					if(typeof ini['Sources'] === 'undefined') {
+						log.w('You have not defined Config.Sources.');
+						log.w('this will likely break the compile process');
+						log.w('')
+					}
 					for (let key in ini) {
 						val = ini[key];
 						if (typeof val == 'string') {
@@ -219,6 +229,12 @@
 					if (key == 'Deferred') {
 						var arr = Config.Modules[key];
 						arr.forEach(function (mod) {
+							log.v(`Defferring ${mod.Module || mod}`);
+							if(typeof mod == 'string') {
+								log.w('Adding Module names directly to Defferred is deprecated');
+								log.w(`Defferring { Module: '${mod}' } instead`);
+								mod = {Module: mod};
+							}
 							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
 							let source = mod.Source;
 							if (!(folder in Modules)) {
@@ -232,6 +248,11 @@
 							}
 						});
 					} else {
+						log.v(`Compiling ${Config.Modules[key].Module}`);
+						if(typeof Config.Modules[key].Module != 'string') {
+							log.e('Malformed Module Definition');
+							log.e(JSON.stringify(Config.Modules[key], null, 2))
+						}
 						let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
 						let source = Config.Modules[key].Source;
 						if (!(folder in Modules)) {
@@ -569,6 +590,7 @@
 		 * @param {object} inst.Par		The par object that defines the par of the instance
 		 */
 		function compileInstance(pidapx, inst) {
+			log.v('compileInstance', pidapx, inst);
 			var Local = {};
 			var modnam = inst.Module;
 			var mod;
