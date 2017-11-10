@@ -14,7 +14,7 @@
 
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
-		console.log('--Flatland/Setup');
+		log.v('--Flatland/Setup');
 		var jszip = this.require("jszip");
 		var fs = this.require("fs");
 		var text;
