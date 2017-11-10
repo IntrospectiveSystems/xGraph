@@ -121,13 +121,18 @@
 				log.v(arg);
 				parts = arg.split('=');
 				if (parts.length == 2) {
+					if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
 					Params[parts[0]] = parts[1];
 				}
 			}
 		}
 
 		// Define where the cache is located
-		CacheDir = Params.Cache || 'cache';
+		//set CWD
+		CWD = Path.resolve(Params.CWD) || Path.resolve('.');
+		log.v(`CWD set to ${CWD}`);
+
+		CacheDir = Params.Cache || Path.join(CWD, 'cache');
 	}
 
 	/**
