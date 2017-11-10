@@ -496,7 +496,7 @@
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let dir = ModName.replace('.', ':').replace(/\./g, '/');				
+				let dir = ModName.replace('.', ':').replace(/\./g, '/');
 				let ModPath = genPath(dir);
 				//read the module from path in the local file system
 				//create the Module.json and add it to ModCache
@@ -617,16 +617,16 @@
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					ent[par] = symbol(val);
-					if (par === "Config") {
-						ent["Cache"] = await GenTemplate(ent["Config"]);
-					}
+					ent[par] = await symbol(val);
+					// if (par === "Config") {
+					// 	ent["Cache"] = await GenTemplate(ent["Config"]);
+					// }
 				}
 				ents.push(ent);
 			}
 			return ents;
 
-			function symbol(val) {
+			async function symbol(val) {
 				if (typeof val === 'object') {
 					return (Array.isArray(val) ?
 						val.map(v => symbol(v)) :
@@ -703,6 +703,24 @@
 								}
 							} catch (err) {
 								log.e("Error reading directory ", path);
+								log.w(`Module ${modnam} may not operate as expected.`);
+							}
+							break;
+						}
+						case "@system": {
+							try {
+								let path, config;
+								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								if (val[0] == '/')
+									path = val;
+								else
+									path = Path.join(Path.resolve(systemPath), val);
+								config = fs.readFileSync(path).toString(encoding);
+
+								return await GenTemplate(config);
+								
+							} catch (err) {
+								log.e("Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
 							}
 							break;
@@ -998,7 +1016,10 @@
 							//the date is required for zip consistency
 						});
 						zip.generateAsync({ type: 'base64' }).then(function (data) {
-							resolve(data);
+							resolve({
+								"Config": Config,
+								"Cache": data
+							});
 						});
 
 					}
@@ -1028,15 +1049,10 @@
 						} else {
 							Config[key] = val;
 						}
-
 					}
-
-
 				}
-
 			});
 		}
-
 	});
 
 })();

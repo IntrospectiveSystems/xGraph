@@ -24,15 +24,12 @@
 		var that = this;
 		var http = this.require('http');
 		var sockio = this.require('socket.io');
-		var port;
+		var port = this.Par.Port || 8080;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		if ('Port' in this.Par)
-			port = this.Par.Port;
-		else
-			port = 8080;
+
 		var web = http.createServer(function (req, res) {
-			//	console.log(req.method + ':' + req.url);
+			log.i('[HTTP] ' + req.url);
 			switch (req.method) {
 				case 'POST':
 					break;
@@ -43,25 +40,10 @@
 		});
 		web.listen(port);
 		webSocket(web);
-		
+
 		log.v(' ** Spider listening on port', port);
 		Vlt.Browser = {};
-		
-		if ('Config' in Par) {
-			Vlt.Browser.Config = Par.Config;
-		} else {
-			log.e(' ** ERR::Cannot read browser config');
-			fun("Config Not in Server Par");
-			return;
-		}
 
-		if ("Cache" in Par) {
-		Vlt.Browser.Cache = Par.Cache;
-		}else{
-			log.e(' ** ERR::Cannot read browser cache');
-			fun("cache not in http Par");
-			return;
-		} 
 		getscripts();
 
 		function getscripts() {
@@ -100,13 +82,6 @@
 				obj.User.Pid = that.genPid();
 				Sockets[obj.User.Pid] = obj;
 
-				var cfg = Vlt.Browser;
-				cfg.Pid = obj.User.Pid;
-				cfg.PidServer = Par.Pid;
-				cfg.ApexList = Par.ApexList || {};
-				var str = JSON.stringify(cfg);
-				socket.send(str);
-
 				socket.on('disconnect', function () {
 					delete Sockets[obj.User.Pid];
 				});
@@ -116,10 +91,12 @@
 				});
 
 				socket.on('message', function (msg) {
-					var com = JSON.parse(msg);
-					//console.log('>>Msg:' + JSON.stringify(com));
+					let err, com = JSON.parse(msg);
+					if (Array.isArray(com))
+						[err, com] = com; // deconstruct the array in com, if it is one.
+
 					if (!com) {
-						console.log(' ** onMessage: Invalid message');
+						log.e(' ** onMessage: Invalid message');
 						return;
 					}
 					if (com.Cmd == 'GetFile') {
@@ -130,17 +107,19 @@
 						obj.User.Publish = com.Pid;
 						return;
 					}
+					if (com.Cmd == 'GetConfig') {
+						getConfig();
+						return;
+					}
 					if (!('Passport' in com)) {
 						console.log(' ** ERR:No Passport in routed msg');
 						return;
 					}
 
-					//	com.Passport.User = obj.User;
 					if ('Reply' in com.Passport && com.Passport.Reply) {
-						// debugger;
-						if (com.Passport.Pid in that.Vlt.messages) {
-							that.Vlt.messages[com.Passport.Pid](null, com);
-							delete that.Vlt.messages[com.Passport.Pid];
+						if ('messages' in that.Vlt && com.Passport.Pid in that.Vlt.messages) {
+							that.Vlt.messages[com.Passport.Pid](err, com);
+							return;
 						}
 						return;
 					}
@@ -148,21 +127,18 @@
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
-						// console.log("--HttpReply");
-						// console.log(JSON.stringify(cmd));
-						// console.log(JSON.stringify(com));
+
 						if (cmd) {
 							com = cmd;
 						}
 						com.Passport.Reply = true;
-						var str = JSON.stringify(com);
+						var str = JSON.stringify([err, com]);
 						socket.send(str);
 					}
 
 					//.....................................getfile
 					/// Read file from local directory
 					function getfile() {
-						//debugger;
 						var path = com.File;
 						that.getFile(path, function (err, data) {
 							if (err) {
@@ -176,6 +152,30 @@
 							var str = JSON.stringify(com);
 							socket.send(str);
 						});
+					}
+
+					function getConfig() {
+						var path = com.Path;
+						let page;
+						path = path.charAt(0).toUpperCase() + path.slice(1);
+
+						var cfg = Vlt.Browser;
+						cfg.Pid = obj.User.Pid;
+						cfg.PidServer = Par.Pid;
+						cfg.ApexList = Par.ApexList || {};
+						
+						if (path in Par) {
+							page = Par[path];
+						} else {
+							log.w(`The page you're looking for (${page}) can't be found.`);
+							return;
+						}
+
+						for (let key in page) cfg[key] = page[key];
+
+						var str = JSON.stringify(cfg);
+
+						socket.send(str);
 					}
 				});
 			});
