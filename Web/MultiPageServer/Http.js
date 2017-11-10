@@ -15,36 +15,43 @@
 	};
 
 	function Setup(com, fun) {
-		console.log('--Http/Setup');
+		log.v('--Http/Setup');
 		if(fun)
 			fun();
 	}
 
 	function Start(com, fun) {
-		console.log('--Http/Start');
+		log.v('--Http/Start');
+		var sockio = this.require('socket.io');
+
 		var that = this;
-		 fs = this.require('fs');
-		 async = this.require('async');
-		 jszip = this.require("jszip");
-		 path = this.require("path");
+		fs = this.require('fs');
+		async = this.require('async');
+		jszip = this.require("jszip");
+		path = this.require("path");
+		this.Vlt.SSLRedirect = false;
+		let attemptSSL = 'SSL' in this.Par && 'Domain' in this.Par.SSL && 'Email' in this.Par.SSL && 'Port' in this.Par.SSL;
+		let server = null;
 
 		let getCertificate = (le) => {
-			
+			log.v('attempting to retrieve certificates...')
+
+
 			let next = (certs) => {
-				// console.log('OKAY SOMETHING HAPPENED');
+				// log.i('OKAY SOMETHING HAPPENED');
 				// Note: you must have a webserver running
 				// and expose handlers.getChallenge to it
 				// in order to pass validation
 				// See letsencrypt-cli and or letsencrypt-express
 				// console.error('[Error]: node-letsencrypt/examples/standalone');
 				// console.error(err.stack);
-				steupHttps();
+				setupHttps();
 			}
 
 																																	// checks :conf/renewal/:hostname.conf
 			le.register({                                               // and either renews or registers
-				domains: ['planit.xgraphdev.com'],                        // CHANGE TO YOUR DOMAIN
-				email: 'marcus.gosselin@introspectivesystems.com',        // CHANGE TO YOUR EMAIL
+				domains: [this.Par.SSL.Domain],                           // CHANGE TO YOUR DOMAIN
+				email: this.Par.SSL.Email,                                // CHANGE TO YOUR EMAIL
 				agreeTos: true,                                           // set to true to automatically accept an agreement
 				rsaKeySize: 2048																					// which you have pre-approved (not recommended)
 			}).then(next);
@@ -61,15 +68,13 @@
 	
 			let leHttpChallenge = this.require('le-challenge-fs').create({
 				webrootPath: path.join(process.cwd(), 'LE/'),                      // or template string such as 
-				debug: true                                            // '/srv/www/:hostname/.well-known/acme-challenge' 
+				// debug: true                                            // '/srv/www/:hostname/.well-known/acme-challenge' 
 			});
-
-
 			let leSniChallenge = this.require('le-challenge-sni').create({
-				debug: true
+				// debug: true
 			});
 			let leDnsChallenge = this.require('le-challenge-dns').create({
-				debug: true
+				// debug: true
 			});
 	
 			let config = {
@@ -100,7 +105,7 @@
 			let handlers = {
 				setChallenge: function (opts, hostname, key, val, cb) {   // called during the ACME server handshake, before validation
 	
-					console.log('[SET_CHALLENGE]', opts, hostname, key, val, cb, '\n');
+					log.i('[SET_CHALLENGE]', opts, hostname, key, val, cb, '\n');
 	
 	
 					db[key] = {
@@ -127,29 +132,46 @@
 			let le = LE.create(config, handlers);
 			
 			let httpServer = http.createServer(function (req, res) {
-				console.log('[HTTP ] ' + req.url)
-				console.log(le.middleware()(req, res));
+				log.v('[HTTP ] ' + req.url);
 
+				if(!req.url.startsWith('.well-known/acme-challenge')) {
+					// this probably isnt a challenge....
+					if(that.Vlt.SSLRedirect) {
+						// upgrade to SSL if we can
+						res.writeHead(301, {Location: `https://${req.headers.host}${req.url}`});
+					}else {
+						// otherwise just handle it
+						if (req.method == 'GET')
+							Get(that, req, res);
+						else (res.writeHead(404), res.end());
+					}
+				} else {
+					//THIS IS A CHALLENGE. ALERT, THIS. IS. NOT. A. DRILL
+					le.middleware()(req, res);
+					log.v("responded to ACME challenge");
+				}
 			});
-			console.log(' ** Spider listening on port 8080');
-			httpServer.listen(8080);
-			// console.log('WE LISTENIN HTTP');
-			getCertificate(le);
+			// log.i(' ** Spider listening on port 8080');
+			httpServer.listen(this.Par.Port || 8080);
+			log.i(`Created HTTP/1.1 Server with ${this.Par.HTMLFile}.html`);
+			// log.i('WE LISTENIN HTTP');
+			if(attemptSSL)
+				getCertificate(le);
+			else {
+				server = httpServer;
+				finish();
+			}
+			
 		}
 
-		let steupHttps = () => {
-			console.log('\nCertificates Procured, proceeding to HTTPS Setup...');
+		let setupHttps = () => {
+			log.i('\nCertificates Procured, proceeding to HTTPS/1.1 Setup...');
 			var https = this.require('https');
-			var sockio = this.require('socket.io');
 	
-			var port;
+			var port = this.Par.SSL.Port;
 			var Par = this.Par;
 			var Vlt = this.Vlt;
 			Vlt.Session = this.genPid();
-			if ('Port' in this.Par)
-				port = this.Par.Port;
-			else
-				port = 8080;
 
 			//TODO renew every 7500000000 ms (2.8 ish months)
 			var web = https.createServer({
@@ -157,7 +179,7 @@
 				cert: fs.readFileSync('SSL/cert.pem')
 				// ca: fs.readFileSync('SSL/chain.pem')
 			}, function (req, res) {
-				console.log('[HTTPS] ' + req.url)
+				log.i('[HTTPS] ' + req.url)
 				
 				switch (req.method) {
 				case 'POST':
@@ -168,12 +190,19 @@
 				}
 			});
 			web.listen(3443);
-			webSocket(web);
-			console.log(' ** Spider listening on port', port);
+			server = web;
+			finish();
+		};
+
+		let finish = () => {
+			var Par = this.Par;
+			var Vlt = this.Vlt;
+			
+			webSocket(server);
 			fs.readFile('browser.json', function(err, data) {
 				if(err) {
-					console.log(' ** ERR::Cannot read browser config');
-					fun(err);
+					log.i(' ** ERR::Cannot read browser config');
+					fun(err, com);
 					return;
 				}
 				Vlt.Browser = JSON.parse(data.toString());
@@ -183,8 +212,8 @@
 			function getscripts() {
 				that.getFile('scripts.json', function(err, data) {
 					if(err) {
-						console.log(' ** ERR:Cannot read script.json');
-						fun(err);
+						log.i(' ** ERR:Cannot read script.json');
+						fun(err, com);
 						return;
 					}
 					Vlt.Browser.Scripts = JSON.parse(data.toString());
@@ -195,7 +224,7 @@
 			function getnxs() {
 				that.getFile('Nxs.js', function(err, data) {					
 					if(err) {
-						console.log(' ** ERR:Cannot read Nxs file');
+						log.i(' ** ERR:Cannot read Nxs file');
 						return;
 					}
 					Vlt.Browser.Nxs = data.toString();
@@ -210,7 +239,7 @@
 				var Sockets = Vlt.Sockets;
 	
 				listener.sockets.on('connection', function (socket) {
-					// console.log('sock/connection');
+					// log.i('sock/connection');
 					var pidsock = '';
 					for(var i=0; i<3; i++)
 						pidsock += that.genPid().substr(24);
@@ -221,12 +250,12 @@
 					Sockets[pidsock] = obj;
 	
 					socket.on('disconnect', function () {
-						// console.log(' >> Socket', pidsock, 'disconnected');
+						// log.i(' >> Socket', pidsock, 'disconnected');
 						delete Sockets[pidsock];
 					});
 	
 					socket.on('error', function (err) {
-						// console.log(' >> Socket', pidsock, '**ERR:' + err);
+						// log.i(' >> Socket', pidsock, '**ERR:' + err);
 						delete Sockets[pidsock];
 					});
 	
@@ -236,10 +265,10 @@
 						if(Array.isArray(com))
 							[err, com] = com; // deconstruct the array in com, if it is one.
 
-						// console.log(' |> Http::Msg:' + com.Cmd);
-						// console.log(JSON.stringify(com, null, 2));
+						// log.i(' |> Http::Msg:' + com.Cmd);
+						// log.i(JSON.stringify(com, null, 2));
 						if (!com) {
-							console.log(' ** onMessage: Invalid message');
+							log.i(' ** onMessage: Invalid message');
 							return;
 						}
 						if(com.Cmd == 'GetFile') {
@@ -256,7 +285,7 @@
 							return;
 						}
 						if (!('Passport' in com)) {
-							console.log(' ** ERR:No Passport in routed msg');
+							log.i(' ** ERR:No Passport in routed msg');
 							return;
 						}
 	
@@ -297,7 +326,7 @@
 	
 							fs.readFile(path + '.json', function(err, data) {
 								if(err) {
-									console.log(' ** ERR', err);
+									log.i(' ** ERR', err);
 									return;
 								}
 	
@@ -331,7 +360,7 @@
 							var path = com.File;
 							that.getFile(path, function(err, data) {
 								if(err) {
-									console.log(' ** ERR', err);
+									log.i(' ** ERR', err);
 									return;
 								}
 								com.Data = data.toString('utf8');
@@ -345,7 +374,7 @@
 					});
 				});
 			}
-		}
+		};
 		
 		setupHttp();
 
@@ -356,7 +385,7 @@
 	// browsers that have subscribed
 	function Publish(com, fun) {
 		// debugger;
-	//	console.log('--Publish', com.Cmd);
+		//	log.i('--Publish', com.Cmd);
 		fun = fun || (() => {});
 
 		var Vlt = this.Vlt;
@@ -378,14 +407,14 @@
 				var user = obj.User;
 				// debugger;
 				if('Publish' in user) {
-					console.log(`sm pids [${user.Publish.join(', ')}]`);
+					log.i(`sm pids [${user.Publish.join(', ')}]`);
 					for(let idek of user.Publish) {
 						com.Passport.To = idek; //user.Publish;
 						if(fun) {
 							com.Passport.Disp = 'Query';
 						}
 						var str = JSON.stringify(com);
-						console.log(JSON.stringify(com, null, 2));
+						log.i(JSON.stringify(com, null, 2));
 						sock.send(str);
 					}
 				}
@@ -402,15 +431,15 @@
 	// ignore the request to confuse the hackers.
 	function Get(that, req, res) {
 		// debugger;
-		console.log();
-		// console.log('--Get', req.url);
+		// log.i();
+		// log.i('--Get', req.url);
 		var Par = that.Par;
 		var url = Par.HTMLFile;
-		// console.log("LOOOOOK HEEREEE!!! (o).(o)"+url);
-		console.log(req.url);
+		// log.i("LOOOOOK HEEREEE!!! (o).(o)"+url);
+		// log.i(req.url);
 		if(req.url == '/manifest.json' && 'Manifest' in that.Par) {
 			res.writeHead(200); 
-			// console.log(`"${JSON.stringify(that.Par.Manifest, null, 2)}"`);
+			// log.i(`"${JSON.stringify(that.Par.Manifest, null, 2)}"`);
 			res.end(JSON.stringify(that.Par.Manifest, null, 2));
 			return;
 		}
@@ -419,14 +448,14 @@
 		let type = null;
 		// debugger;
 		let splitUrl = req.url.split(".");
-		// console.log("LOOOOOK HEEREEE!!! (o).(o)"+url);
+		// log.i("LOOOOOK HEEREEE!!! (o).(o)"+url);
 		// check if the url has file a type.
 		// If the url doesn't have a file type,
 		// 	load it as an .html file
 		if (splitUrl.length>1){
-			//console.log("Split by '.'");
+			//log.i("Split by '.'");
 			path = './static'+req.url;
-			// console.log("LOOOOOK HEEREEE!!! (o).(o)"+splitUrl[splitUrl.length-1]);
+			// log.i("LOOOOOK HEEREEE!!! (o).(o)"+splitUrl[splitUrl.length-1]);
 			switch (splitUrl[splitUrl.length-1]){
 				case 'css':
 					type = 'text/css';
@@ -473,22 +502,22 @@
 	// Retrieve module from module server
 	// For now is retrieved from local file system
 	function GetModule(com, fun) {
-		// console.log('--Http/GetModule', com.Module);
-		//console.log(JSON.stringify(com));
+		// log.i('--Http/GetModule', com.Module);
+		//log.i(JSON.stringify(com));
 		var that = this;
 		var zip = new jszip();
 		//var dir = that.genPath(com.Module);
 		var man = [];
 		this.getModule(com.Module, function(err, mod) {
 			if(err) {
-				console.log(' ** ERR:Cannot read module directory');
+				log.i(' ** ERR:Cannot read module directory');
 				if(fun)
 					fun('Cannot read module directlry');
 				return;
 			}
 			
 			var str = JSON.stringify(mod);
-			//console.log("mod is ", Object.keys(mod));
+			//log.i("mod is ", Object.keys(mod));
 			zip.file('module.json', str);
 			man.push('module.json');
 			zip.file('manifest.json', JSON.stringify(man));
