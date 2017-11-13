@@ -7,6 +7,8 @@
 	const createPackage = require('osx-pkg');
 	var createMsi = require('msi-packager');
 
+	ensureDir('bin');
+	ensureDir('src/gen');
 	ensureDir('bin/linux');
 	ensureDir('bin/linux/bin');
 	ensureDir('bin/mac');
