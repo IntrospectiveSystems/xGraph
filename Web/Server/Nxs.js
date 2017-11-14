@@ -862,7 +862,7 @@ __Nexus = (_ => {
 				});
 			}
 		}
-		function parseConfig() {
+		function parseCfg() {
 			let val, sources, subval;
 			if (cfg) {
 				var ini = JSON.parse(cfg);

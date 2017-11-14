@@ -168,7 +168,6 @@
 						} else {
 							Config[key] = val;
 						}
-
 					}
 				} else {
 					// No config was provided. Exit promptly.
@@ -700,12 +699,12 @@
 						case "@folder":
 						case "@directory": {
 							try {
-								let path;
+								let dir;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 								if (val[0] == '/')
-									path = val;
+									dir = val;
 								else
-									path = Path.join(Path.resolve(systemPath), val);
+									dir = Path.join(Path.resolve(systemPath), val);
 								return buildDir(dir);
 
 								function buildDir(path) {
