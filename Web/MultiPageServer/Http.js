@@ -239,7 +239,7 @@
 				var Sockets = Vlt.Sockets;
 	
 				listener.sockets.on('connection', function (socket) {
-					// log.i('sock/connection');
+					log.d('socket!!!');
 					var pidsock = '';
 					for(var i=0; i<3; i++)
 						pidsock += that.genPid().substr(24);
@@ -262,6 +262,7 @@
 					socket.on('message', function (msg) {
 						// debugger;
 						let err, com = JSON.parse(msg);
+						log.d('msg', err, com);
 						if(Array.isArray(com))
 							[err, com] = com; // deconstruct the array in com, if it is one.
 
