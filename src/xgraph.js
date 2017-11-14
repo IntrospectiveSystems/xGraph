@@ -39,13 +39,13 @@ processSwitches();
 
 
 switch (process.argv[1]) {
-	case 'r':
-	case 'run': {
+	case 'x':
+	case 'execute': {
 		run();
 		break;
 	}
 
-	case 'rr':
+	case 'r':
 	case 'reset': {
 		reset();
 		break;
@@ -69,8 +69,9 @@ switch (process.argv[1]) {
 		break;
 	}
 	case 'g':
+	case 'generate':
 	case 'init': {
-		init(process.argv.slice(2));
+		generate(process.argv.slice(2));
 		break;
 	}
 	default: {
@@ -80,9 +81,20 @@ switch (process.argv[1]) {
 	}
 }
 
-async function init(args) {
-	console.log('init System');
-	console.log('[', ...args, ']');
+async function generate(args) {
+	console.log(`Generate: ${args}`);
+	switch(args[0]){
+		case 'system':
+		case 's': {
+			console.log(`Create systems with names: ${args.slice(1)}`);
+			break;
+		}
+		case 'module':
+		case 'm':{
+			console.log(`Create modules with names: ${args.slice(1)}`);			
+			break;
+		}
+	}
 }
 
 function help() {
@@ -148,17 +160,17 @@ function startNexusProcess() {
 	const { spawn } = require('child_process');
 
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });	
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: {NODE_PATH :path.join(path.dirname(path.resolve(pathOverrides["Cache"]||"./cache")),"node_modules/")} });	
+	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
 	// #endif
 
-	ls.stdout.on('data', _=> process.stdout.write(_));
-	ls.stderr.on('data', _=> process.stderr.write(_));
+	ls.stdout.on('data', _ => process.stdout.write(_));
+	ls.stderr.on('data', _ => process.stderr.write(_));
 
 	ls.on('close', (code) => {
 		console.log(`child process exited with code ${code}`);
@@ -171,8 +183,8 @@ async function ensureNode() {
 	let node = (execSync('which node').toString());
 
 	if (node != '') {
-    console.log();
-    return;
+		console.log();
+		return;
 	} else {
 		await install();
 	}
@@ -235,10 +247,14 @@ function processSwitches() {
 
 function applySwitch(str, i) {
 	let val = null;
+	if (str == "debug") {
+		console.log("Doing the debug thing");
+		return;
+	}
 	if ((i + 1) in process.argv) { // switch has a value
 		val = process.argv[i + 1];
 	}
-	pathOverrides[str] = val;
+	pathOverrides[str.toLowerCase()] = val;
 }
 
 

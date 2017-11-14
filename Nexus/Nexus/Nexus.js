@@ -84,7 +84,7 @@
 		}
 		else
 			log.i("Building the Cache");
-		let genesisString = fs.readFileSync(`${Params['xGraph']}/Nexus/Nexus/Genesis.js`).toString();
+		let genesisString = fs.readFileSync(`${Params.xgraph}/Nexus/Nexus/Genesis.js`).toString();
 		await eval(genesisString);
 		// #endif
 	}
@@ -122,17 +122,18 @@
 				parts = arg.split('=');
 				if (parts.length == 2) {
 					if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
-					Params[parts[0]] = parts[1];
+					Params[parts[0].toLowerCase()] = parts[1];
 				}
 			}
 		}
 
 		// Define where the cache is located
 		//set CWD
-		CWD = Path.resolve(Params.CWD) || Path.resolve('.');
+		CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
 		log.v(`CWD set to ${CWD}`);
 
-		CacheDir = Params.Cache || Path.join(CWD, 'cache');
+		//set Cache location
+		CacheDir = Params.cache || Path.join(CWD, 'cache');
 	}
 
 	/**
