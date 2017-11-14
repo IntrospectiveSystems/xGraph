@@ -181,7 +181,7 @@
 				if (fs.existsSync(CacheDir)) {
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
-					log.v(`Removed cacheDir: "{CacheDir}"`);					
+					log.v(`Removed cacheDir: "{CacheDir}"`);
 				}
 			}
 		}
@@ -719,7 +719,7 @@
 								config = fs.readFileSync(path).toString(encoding);
 
 								return await GenTemplate(config);
-								
+
 							} catch (err) {
 								log.e("Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
@@ -764,11 +764,11 @@
 
 			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 			var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
-		
-			module.paths=[];
+
+			module.paths = [];
 			module.paths.push([Path.resolve(CacheDir)]);
 
-			ps.stdout.on('data', _ => {process.stdout.write(_)});
+			ps.stdout.on('data', _ => { process.stdout.write(_) });
 			ps.stderr.on('data', _ => process.stderr.write(_));
 
 			ps.on('err', function (err) {
@@ -811,7 +811,7 @@
 						break;
 					case 2:
 						if (chr == '}') {
-							param=param.toLowerCase();
+							param = param.toLowerCase();
 							if (param in Params)
 								s += Params[param];
 							else
@@ -876,7 +876,7 @@
 			if (parts.length == 2) {
 				let key = parts[0].toLowerCase();
 				if (key in Params) {
-					path = Path.join(Params[key],parts[1]);
+					path = Path.join(Params[key], parts[1]);
 				} else {
 					log.e(' ** ERR:File <' + file + '> prefix not defined');
 					return;
@@ -990,11 +990,10 @@
 								else res(ModCache[folder] = mod);
 							});
 						}));
-
-						await Promise.all(modArray)
-
-						populate();
 					}
+					await Promise.all(modArray)
+
+					populate();
 
 					/**
 					 * Write the modules.json to a zipped cache and set as Par.System 

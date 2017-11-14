@@ -53,7 +53,7 @@
 					fun(err);
 					return;
 				}
-				Vlt.Browser.Scripts = data.toString();
+				Vlt.Browser.Scripts = data;
 				getnxs();
 			})
 		}
@@ -64,7 +64,7 @@
 					log.e(' ** ERR:Cannot read Nxs file');
 					return;
 				}
-				Vlt.Browser.Nxs = data.toString();
+				Vlt.Browser.Nxs = data;
 				fun();
 			});
 		}

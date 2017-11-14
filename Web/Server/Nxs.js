@@ -7,9 +7,11 @@ __Nexus = (_ => {
 	var PidServer;
 	var PidNxs;
 	var Config = {};
+	var Cache;
 	var EntCache = {};
 	var ModCache = {};
 	var Modules = {};
+	var Scripts = {};
 
 	var PidTop;
 	var PidStart;
@@ -20,7 +22,6 @@ __Nexus = (_ => {
 	var ZipCache = {};
 	var SymTab = {};
 	var Css = [];
-	var Scripts = [];
 	var Fonts = {};
 	var Nxs = {
 		genPid,
@@ -61,13 +62,12 @@ __Nexus = (_ => {
 	}
 
 	return {
-		start
+		boot
 	};
 
-	function start(sockio, cfg) {
+	async function boot(sockio, cfg) {
 		if (!silent) log.i('--Nxs/start');
-		Pid24 = cfg.Pid24;
-		PidServer = cfg.PidServer;
+
 		SockIO = sockio;
 		SockIO.removeListener('message');
 
@@ -127,8 +127,470 @@ __Nexus = (_ => {
 			location.href = location.href;
 		});
 
-		Genesis(cfg);
+		await setup(cfg);
+
+		genesis();
 	}
+
+
+	async function setup(cfg) {
+		if (!silent) log.i('--Nxs/Genesis');
+
+		Root = {};
+		Root.Global = {};
+		Root.Setup = {};
+		Root.Start = {};
+		Root.ApexList = {};
+
+		parseCfg();
+
+		await loadScripts();
+
+
+		function parseCfg() {
+			let val, sources, subval;
+			if (typeof cfg != "object")
+				cfg = JSON.parse(cfg);
+
+			for (let key in cfg) {
+				log.v(`Processing cfg key: ${key}`);
+				switch (key) {
+					case "Pid": {
+						PidNxs = cfg.Pid
+						break;
+					}
+					case "PidServer": {
+						PidServer = cfg.PidServer;
+						break;
+					}
+					case "ApexList": {
+						Root.ApexList = cfg.ApexList;
+						break;
+					}
+					case "Scripts": {
+						Scripts = cfg.Scripts;
+						Scripts = (typeof Scripts == "object")? Scripts:JSON.parse(Scripts);
+						break;
+					}
+					case "Nxs": {
+						delete cfg.Nxs;
+						break;
+					}
+					case "Config": {
+						Config = cfg.Config;
+						break;
+					}
+					case "Cache": {
+						Cache = cfg.Cache;
+						break;
+					}
+					default: {
+						log.w(`Not sure how to process cfg variable ${key}`);
+					}
+				}
+			}
+
+			// Print out the parsed config
+			log.v(`Browser Config is:\n ${JSON.stringify(Config, null, 2)}`);
+		}
+
+		async function loadScripts() {
+			let scriptsPromises = [];
+
+			for (let key in Scripts) {
+				scriptsPromises.push(new Promise((resolve, reject) => {
+					let q = {};
+					q.Cmd = 'GetFile';
+					q.File = Scripts[key];
+					send(q, Config.pidServer, function (err, r) {
+						if (err) {
+							log.v(' ** ERR:Script error', err);
+							reject(err);
+							return;
+						}
+						script(key, r.Data);
+					});
+					function script(url, data) {
+						var tag = document.createElement('script');
+						tag.setAttribute("data-script-url", url);
+						tag.setAttribute("type", 'text/javascript');
+						var txt = document.createTextNode(data);
+						tag.appendChild(txt);
+						document.head.appendChild(tag);
+
+						resolve();
+					}
+				}));
+			}
+
+			await Promise.all(scriptsPromises);
+		}
+	}
+
+
+	async function genesis() {
+
+		generateModuleCatalog();
+
+		await recursiveBuild();
+
+		populate();
+
+		/**
+		 * Create a list of all required modules and their brokers
+		 */
+		function generateModuleCatalog() {
+			// Create new cache and install high level
+			// module subdirectories. Each of these also
+			// has a link to the source of that module (Module.json).
+			var keys = Object.keys(Config.Modules);
+			for (let i = 0; i < keys.length; i++) {
+				let key = keys[i];
+				if (key == 'Deferred') {
+					var arr = Config.Modules[key];
+					arr.forEach(function (mod) {
+						logModule(mod);
+					});
+				} else {
+					logModule(Config.Modules[key]);
+				}
+
+				function logModule(mod) {
+					let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+					let source = mod.Source;
+					if (!(folder in Modules)) {
+						Modules[folder] = source;
+					} else {
+						if (Modules[folder] != source) {
+							log.e("Broker Mismatch Exception");
+						}
+					}
+				}
+			}
+		}
+
+		/**
+		 * get the modules from the prebuilt catalog
+		 * from the source defined in config
+		 */
+		async function recursiveBuild() {
+			let modArray = [];
+			let moduleKeys = Object.keys(Modules);
+
+			//loop over module keys to build Promise array 
+			for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
+				modArray.push(new Promise((res, rej) => {
+					let folder = moduleKeys[ifolder];
+
+					let modrequest = {
+						"Module": folder,
+						"Source": Modules[folder]
+					};
+
+					getModule(modrequest, function (err, mod) {
+						if (err) { rej(err); reject(err); }
+						else res(ModCache[folder] = mod);
+					});
+				}));
+			}
+
+			await Promise.all(modArray)
+			log.d("keys of modcache", Object.keys(ModCache));
+		}
+
+		function getModule(modRequest, fun) {
+			log.d(`getMod ${JSON.stringify(modRequest, null, 2)}`);
+			let modnam = modRequest.Module;
+			let source = modRequest.Source;
+			let mod = {};
+			let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+
+			//get the module from memory (ModCache) if it has already been retrieved
+			if (ModName in ModCache) return fun(null, ModCache[ModName]);
+
+			//unpack the zipped cache put all modules inot the ModCache
+			const zipmod = new JSZip();
+
+			zipmod.loadAsync(Cache, { base64: true }).then(function (zip) {
+
+				zip.file('manifest.json').async('string').then((cacheArray) => {
+
+					console.log(cacheArray)
+
+					//need to store all of these moduels in the ModuleCache/somewhere
+					// log.d(`Cache contains these files ${JSON.parse(str)}`);
+
+					// zip.file('module.json').then(function (str) {
+					// 	modjson = JSON.parse(str);
+					// 	ModuleCache[mod.Module] = modjson;
+					// });
+
+				});
+
+
+			});
+		}
+
+		async function populate() {
+			// Assign pids to all instance in Config.Modules
+			for (let instname in Config.Modules) {
+				if (instname == "Deferred")
+					continue;
+				Root.ApexList[instname] = genPid();
+			}
+			log.v('ApexList', JSON.stringify(Root.ApexList, null, 2));
+
+			// Now populate all of the modules from config.json
+			for (let instname in Config.Modules) {
+				if (instname === 'Deferred')
+					continue;
+				var inst = Config.Modules[instname];
+				log.v(instname, JSON.stringify(inst, null, 2));
+				var pidinst = Root.ApexList[instname];
+				var ents = await compileInstance(pidinst, inst);
+			}
+		}
+	}
+
+
+	//-------------------------------------------------Setup
+	function Setup(err) {
+		// log.v('--Nexus/Setup');
+
+		CurrentModule = null;
+		var pids = Object.keys(Root.Setup);
+		var npid = pids.length;
+		var ipid = 0;
+		setup();
+
+		function setup() {
+			if (ipid >= npid) {
+				Start();
+				return;
+			}
+			var pid8 = pids[ipid];
+			ipid++;
+			var q = {};
+			q.Cmd = Root.Setup[pid8];
+			var pid = Pid24 + pid8;
+			send(q, pid, done);
+
+			function done(err, r) {
+				setup();
+			}
+		}
+	}
+
+	//-----------------------------------------------------Start
+	function Start() {
+		log.v('--Nxs/Start');
+		var pids = Object.keys(Root.Start);
+		var npid = pids.length;
+		var ipid = 0;
+		start();
+
+		function start() {
+			if (ipid >= npid) {
+				Run();
+				return;
+			}
+			var pid8 = pids[ipid];
+			ipid++;
+			var q = {};
+			q.Cmd = Root.Start[pid8];
+			var pid = Pid24 + pid8;
+			//log.v("start ", pid);
+			send(q, pid, done);
+
+			function done(err, r) {
+				//log.v("Return start ", pid);
+				start();
+			}
+		}
+	}
+
+	//-------------------------------------------------Run
+	function Run() {
+		log.v('--Nxs/Run');
+	}
+
+
+	/**
+	 * Generate array of entities from module
+	 * Module must be in cache 
+	 * 
+	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
+	 * @param {object} inst 
+	 * @param {string} inst.Module	The module definition in dot notation
+	 * @param {object} inst.Par		The par object that defines the par of the instance
+	 */
+	async function compileInstance(pidapx, inst) {
+		console.log(inst, pidapx);
+		var Local = {};
+		var modnam = inst.Module;
+		var mod;
+		var ents = [];
+		// The following is for backword compatibility only
+
+		if (modnam in ModCache) {
+			mod = ModCache[modnam];
+		} else {
+			log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+			process.exit(1);
+			reject();
+			return;
+		}
+		var schema = JSON.parse(mod['schema.json']);
+		var entkeys = Object.keys(schema);
+
+		//set Pids for each entity in the schema
+		for (j = 0; j < entkeys.length; j++) {
+			let entkey = entkeys[j];
+			if (entkey === 'Apex')
+				Local[entkey] = pidapx;
+			else
+				Local[entkey] = genPid();
+		}
+
+		//unpack the par of each ent
+		for (j = 0; j < entkeys.length; j++) {
+			let entkey = entkeys[j];
+			let ent = schema[entkey];
+			ent.Pid = Local[entkey];
+			//unpack the config pars to the par of the apex of the instance
+			if (entkey == 'Apex' && 'Par' in inst) {
+				var pars = Object.keys(inst.Par);
+				for (var ipar = 0; ipar < pars.length; ipar++) {
+					var par = pars[ipar];
+					ent[par] = inst.Par[par];
+				}
+			}
+
+			ent.Module = modnam;
+			ent.Apex = pidapx;
+			var pars = Object.keys(ent);
+			for (ipar = 0; ipar < pars.length; ipar++) {
+				var par = pars[ipar];
+				var val = ent[par];
+				ent[par] = await symbol(val);
+				// if (par === "Config") {
+				// 	ent["Cache"] = await GenTemplate(ent["Config"]);
+				// }
+			}
+			ents.push(ent);
+		}
+		return ents;
+
+		async function symbol(val) {
+			if (typeof val === 'object') {
+				return (Array.isArray(val) ?
+					val.map(v => symbol(v)) :
+					Object.entries(val).map(([key, val]) => {
+						return [key, symbol(val)];
+					}).reduce((prev, curr) => {
+						prev[curr[0]] = curr[1];
+						return prev;
+					}, {})
+				);
+			}
+			if (typeof val !== 'string')
+				return val;
+			var sym = val.substr(1);
+			if (val.charAt(0) === '$' && sym in Apex)
+				return Apex[sym];
+			if (val.charAt(0) === '#' && sym in Local)
+				return Local[sym];
+			if (val.charAt(0) === '\\')
+				return sym;
+			if (val.charAt(0) === '@') {
+				val = val.split(":");
+				let key = val[0].toLocaleLowerCase().trim();
+				let encoding = undefined;
+				if (key.split(",").length == 2) {
+					key = key.split(',')[0].trim();
+					let encoding = key.split(',')[1].trim();
+				}
+				val = val.slice(1).join(':').trim();
+				switch (key) {
+					case "@filename":
+					case "@file": {
+						try {
+							let path;
+							let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+							if (val[0] == '/')
+								path = val;
+							else
+								path = Path.join(Path.resolve(systemPath), val);
+							return fs.readFileSync(path).toString(encoding);
+						} catch (err) {
+							log.e("Error reading file ", path);
+							log.w(`Module ${modnam} may not operate as expected.`);
+						}
+						break;
+					}
+					case "@folder":
+					case "@directory": {
+						try {
+							let dir;
+							let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+							if (val[0] == '/')
+								dir = val;
+							else
+								dir = Path.join(Path.resolve(systemPath), val);
+							return buildDir(dir);
+
+							function buildDir(path) {
+								let dirObj = {};
+								if (fs.existsSync(path)) {
+									files = fs.readdirSync(path);
+									files.forEach(function (file, index) {
+										var curPath = path + "/" + file;
+										if (fs.lstatSync(curPath).isDirectory()) {
+											// recurse
+											dirObj[file] = buildDir(curPath);
+										} else {
+											dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+										}
+									});
+									return dirObj;
+								}
+
+							}
+						} catch (err) {
+							log.e("Error reading directory ", path);
+							log.w(`Module ${modnam} may not operate as expected.`);
+						}
+						break;
+					}
+					case "@system": {
+						try {
+							let path, config;
+							let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+							if (val[0] == '/')
+								path = val;
+							else
+								path = Path.join(Path.resolve(systemPath), val);
+							config = fs.readFileSync(path).toString(encoding);
+
+							return await GenTemplate(config);
+
+						} catch (err) {
+							log.e("Error reading file ", path);
+							log.w(`Module ${modnam} may not operate as expected.`);
+						}
+						break;
+					}
+					default: {
+						log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
+					}
+				}
+			}
+			return val;
+		}
+	}
+
+
+
 
 	//-----------------------------------------------------send
 	// Can be called with 1, 2, or three arguments.
@@ -316,7 +778,7 @@ __Nexus = (_ => {
 			}
 			var pid = genPid();
 			par.Pid = pid;
-			
+
 			var mod = eval(com.Mod);
 			var ent = new Entity(Nxs, mod, par);
 			if (ent) {
@@ -348,12 +810,11 @@ __Nexus = (_ => {
 
 	//------------------------------------------------------genPid
 	// Generate Pid (pseudo-GUID)
-	async function genPid() {
-		const pidBuffer = await crypto.subtle.digest("SHA-1", new TextEncoder("utf-8").encode(date.toString()));
-		const pid = Array.from(new Uint8Array(pidBuffer)).map(b => ('00' + b.toString(16)).slice(-2)).join('').slice(8);
-
-		log.d(pid, pid.length);
-
+	function genPid() {
+		var hexDigits = "0123456789ABCDEF";
+		let pid = "";
+		for (var i = 0; i < 32; i++)
+			pid += hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
 		return pid;
 	}
 
@@ -384,7 +845,6 @@ __Nexus = (_ => {
 				start();
 			}
 		}
-
 		function start(err, r) {
 			if (err) {
 				if (!silent) log.e(' ** genModule:' + err);
@@ -399,14 +859,12 @@ __Nexus = (_ => {
 				pau();
 			}
 		}
-
 		function pau(err, r) {
 			if (err) {
 				if (!silent) log.e(' ** genModule:' + err);
 			}
 			fun(err, pidapx);
 		}
-
 	}
 
 	//-------------------------------------------------addModule
@@ -652,311 +1110,4 @@ __Nexus = (_ => {
 		}
 	}
 
-	//-----------------------------------------------------Genesis
-	// Create cache if it does nto exist and populate
-	// This is called only once when a new systems is
-	// first instantiated
-	function Genesis(cfg) {
-		if (!silent) log.i('--Nxs/Genesis');
-
-		Root = {};
-		Root.Global = {};
-		Root.Setup = {};
-		Root.Start = {};
-		Root.ApexList = cfg.ApexList || {};
-
-		parseCfg();
-
-
-
-
-		var ikey = 0;
-		if ('Scripts' in cfg) {
-			cfg.Scripts = JSON.parse(cfg.Scripts);
-			var keys = Object.keys(cfg.Scripts);
-			log.d(keys);
-			nkeys = keys.length;
-		} else {
-			nkeys = 0;
-		}
-		if (!silent) log.v('Scripts', nkeys, cfg.Scripts);
-		nextscript();
-
-		function nextscript() {
-			if (ikey >= nkeys) {
-				modules();
-				return;
-			}
-			var key = keys[ikey];
-			ikey++;
-			var q = {};
-			q.Cmd = 'GetFile';
-			q.File = Config.Scripts[key];
-			send(q, Config.pidServer, function (err, r) {
-				if (err) {
-					log.v(' ** ERR:Script error', err);
-					return;
-				}
-				script(key, r.Data);
-			});
-
-			function script(url, data) {
-				var tag = document.createElement('script');
-				tag.setAttribute("data-script-url", url);
-				tag.setAttribute("type", 'text/javascript');
-				var txt = document.createTextNode(data);
-				tag.appendChild(txt);
-				document.head.appendChild(tag);
-				nextscript();
-			}
-		}
-
-		//.................................................modules
-		function modules() {
-			var keys = Object.keys(Config.Modules);
-
-			generateModuleCatalog();
-
-			recursiveBuild();
-
-			for (var i = 0; i < keys.length; i++) {
-				key = keys[i];
-				Root.ApexList[key] = genPid();
-			}
-
-			let instArray = []
-			async.eachSeries(keys, function (key, func) {
-				let mod = Config.Modules[key];
-				CurrentModule = key;
-				addModule(mod, addmod);
-
-				function addmod(err, pid) {
-					if (err) {
-						log.v(' ** ERR:Cannot add mod <' + r.Module + '>');
-					}
-					//TBD: Might want to bail on err
-					log.v('Apex', key, '<=', pid);
-					func();
-				}
-			}, Setup);
-
-
-			/**
-			 * Create a list of all required modules and their brokers
-			 */
-			function generateModuleCatalog() {
-				// Create new cache and install high level
-				// module subdirectories. Each of these also
-				// has a link to the source of that module (Module.json).
-				var keys = Object.keys(Config.Modules);
-				for (let i = 0; i < keys.length; i++) {
-					let key = keys[i];
-					if (key == 'Deferred') {
-						var arr = Config.Modules[key];
-						arr.forEach(function (mod) {
-							logModule(mod);
-						});
-					} else {
-						logModule(Config.Modules[key]);
-					}
-
-					function logModule(mod) {
-						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
-						let source = mod.Source;
-						if (!(folder in Modules)) {
-							Modules[folder] = source;
-						} else {
-							if (Modules[folder] != source) {
-								log.e("Broker Mismatch Exception");
-							}
-						}
-					}
-				}
-			}
-
-			/**
-			 * get the modules from the prebuilt catalog
-			 * from the source defined in config
-			 */
-			async function recursiveBuild() {
-				let modArray = [];
-				let moduleKeys = Object.keys(Modules);
-
-				//loop over module keys to build Promise array 
-				for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
-					modArray.push(new Promise((res, rej) => {
-						let folder = moduleKeys[ifolder];
-
-						let modrequest = {
-							"Module": folder,
-							"Source": Modules[folder]
-						};
-
-						getModule(modrequest, function (err, mod) {
-							if (err) { rej(err); reject(err); }
-							else res(ModCache[folder] = mod);
-						});
-					}));
-
-					await Promise.all(modArray)
-
-				}
-
-				/**
-				 * Write the modules.json to a zipped cache and set as Par.System 
-				 */
-				function populate() {
-					const jszip = require("jszip");
-					var zip = new jszip();
-					var man = [];
-					zip.folder("cache");
-					for (let folder in ModCache) {
-						let mod = ModCache[folder];
-						if (typeof mod == "object")
-							mod = JSON.stringify(mod);
-						let dir = "cache/" + folder;
-						zip.folder(dir);
-						let path = dir + '/Module.json';
-						man.push(path);
-						zip.file(path, mod, {
-							date: new Date("December 25, 2007 00:00:01")
-							//the date is required for zip consistency
-						});
-					}
-					zip.file('manifest.json', JSON.stringify(man), {
-						date: new Date("December 25, 2007 00:00:01")
-						//the date is required for zip consistency
-					});
-					zip.generateAsync({ type: 'base64' }).then(function (data) {
-						resolve(data);
-					});
-
-				}
-			}
-
-			function getModule(modRequest, fun) {
-				let modnam = modRequest.Module;
-				let source = modRequest.Source;
-				let mod = {};
-				let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
-
-				//get the module from memory (ModCache) if it has already been retrieved
-				if (ModName in ModCache) return fun(null, ModCache[ModName]);
-
-				//unpack the zipped cache put all modules inot the ModCache
-				const zipmod = new JSZip();
-				zipmod.loadAsync(cfg.Cache, { base64: true }).then(function (zip) {
-					zip.file('manifest.json').async('string').then((str) => {
-
-
-						log.d(`Cache contains these files ${JSON.parse(str)}`);
-
-						zip.file('module.json').async('string').then(function (str) {
-							modjson = JSON.parse(str);
-							ModuleCache[mod.Module] = modjson;
-						});
-
-					});
-
-
-				});
-			}
-		}
-		function parseCfg() {
-			let val, sources, subval;
-			if (cfg) {
-				var ini = JSON.parse(cfg);
-				for (let key in ini) {
-					val = ini[key];
-					if (key == "Sources") {
-						Config.Sources = {};
-						sources = ini["Sources"];
-						for (let subkey in sources) {
-							subval = sources[subkey];
-							if (typeof subval == 'string') {
-								Config.Sources[subkey] = Macro(subval);
-								//Params[subkey] = Config[subkey];
-							} else {
-								Config.Sources[subkey] = subval;
-							}
-						}
-					} else {
-						Config[key] = val;
-					}
-
-				}
-			} else {
-				// No config was provided. Exit promptly.
-				log.e(' ** No configuration file (config.json) provided');
-				process.exit(1);
-				reject();
-			}
-
-			// Print out the parsed config
-			log.v(JSON.stringify(Config, null, 2));
-		}
-	}
-
-	//-------------------------------------------------Setup
-	function Setup(err) {
-		// log.v('--Nexus/Setup');
-
-		CurrentModule = null;
-		var pids = Object.keys(Root.Setup);
-		var npid = pids.length;
-		var ipid = 0;
-		setup();
-
-		function setup() {
-			if (ipid >= npid) {
-				Start();
-				return;
-			}
-			var pid8 = pids[ipid];
-			ipid++;
-			var q = {};
-			q.Cmd = Root.Setup[pid8];
-			var pid = Pid24 + pid8;
-			send(q, pid, done);
-
-			function done(err, r) {
-				setup();
-			}
-		}
-	}
-
-	//-----------------------------------------------------Start
-	function Start() {
-		log.v('--Nxs/Start');
-		var pids = Object.keys(Root.Start);
-		var npid = pids.length;
-		var ipid = 0;
-		start();
-
-		function start() {
-			if (ipid >= npid) {
-				Run();
-				return;
-			}
-			var pid8 = pids[ipid];
-			ipid++;
-			var q = {};
-			q.Cmd = Root.Start[pid8];
-			var pid = Pid24 + pid8;
-			//log.v("start ", pid);
-			send(q, pid, done);
-
-			function done(err, r) {
-				//log.v("Return start ", pid);
-				start();
-			}
-		}
-	}
-
-	//-------------------------------------------------Run
-	function Run() {
-		log.v('--Nxs/Run');
-	}
-
-
-}) ();
+})();
