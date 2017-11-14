@@ -317,12 +317,12 @@ __Nexus = (_ => {
 
 					console.log(cacheArray)
 
-					//need to store all of these moduels in the ModuleCache/somewhere
+					//need to store all of these moduels in the ModCache/somewhere
 					// log.d(`Cache contains these files ${JSON.parse(str)}`);
 
 					// zip.file('module.json').then(function (str) {
 					// 	modjson = JSON.parse(str);
-					// 	ModuleCache[mod.Module] = modjson;
+					// 	ModCache[mod.Module] = modjson;
 					// });
 
 				});
