@@ -98,6 +98,7 @@
 			 */
 			function defineMacros() {
 				// Process input arguments and define macro parameters
+				// All macros are stored case insensitive in the Params array
 
 				let arg, parts;
 				for (var iarg = 0; iarg < args.length; iarg++) {
@@ -106,7 +107,7 @@
 					parts = arg.split('=');
 					if (parts.length == 2) {
 						if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
-						Params[parts[0]] = parts[1];
+						Params[parts[0].toLowerCase()] = parts[1];
 					}
 				}
 				if (!(typeof pathOverrides == "undefined")) {
@@ -125,11 +126,11 @@
 				let cfg = undefined;
 
 				//set CWD
-				CWD = Path.resolve(Params.CWD) || Path.resolve('.');
+				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
 				log.v(`CWD set to ${CWD}`);
 
 				try {
-					cfg = fs.readFileSync(Params.Config || Path.join(CWD, 'config.json'));
+					cfg = fs.readFileSync(Params.config || Path.join(CWD, 'config.json'));
 				} catch (e) {
 					log.e("Specified config.json does not exist");
 					process.exit(1);
@@ -175,12 +176,13 @@
 			 */
 			function cleanCache() {
 				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-				CacheDir = Params.Cache || Path.join(CWD, "cache");
+				CacheDir = Params.cache || Path.join(CWD, "cache");
 
 				// Remove the provided cache directory
 				if (fs.existsSync(CacheDir)) {
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
+					log.v(`Removed cacheDir: "{CacheDir}"`);					
 				}
 			}
 		}
@@ -661,7 +663,7 @@
 						case "@file": {
 							try {
 								let path;
-								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 								if (val[0] == '/')
 									path = val;
 								else
@@ -677,7 +679,7 @@
 						case "@directory": {
 							try {
 								let path;
-								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 								if (val[0] == '/')
 									path = val;
 								else
@@ -710,7 +712,7 @@
 						case "@system": {
 							try {
 								let path, config;
-								let systemPath = Params["CWD"] || Path.dirname(Params["Config"] || "./confg.json");
+								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 								if (val[0] == '/')
 									path = val;
 								else
@@ -763,8 +765,11 @@
 
 			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 			var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
+		
+			module.paths=[];
+			module.paths.push([Path.resolve(CacheDir)]);
 
-			ps.stdout.on('data', _ => { process.stdout.write(_) });
+			ps.stdout.on('data', _ => {process.stdout.write(_)});
 			ps.stderr.on('data', _ => process.stderr.write(_));
 
 			ps.on('err', function (err) {
@@ -807,6 +812,7 @@
 						break;
 					case 2:
 						if (chr == '}') {
+							param=param.toLowerCase();
 							if (param in Params)
 								s += Params[param];
 							else
@@ -852,14 +858,15 @@
 
 			if (file.charAt(0) == '/')
 				return file;
+
 			if (file.charAt(0) == '{') { // Macro
 				parts = file.split('}');
 				if (parts.length != 2) {
 					return;
 				}
-				var name = parts[0].substr(1);
-				if (name in cfg) {
-					path = cfg[name] + '/' + parts[1];
+				var name = parts[0].substr(1).toLowerCase();
+				if (name in Params) {
+					path = Path.join(Params[name], parts[1]);
 					return path;
 				} else {
 					log.e(' ** ERR:File <' + file + '> {' + name + '} not found');
@@ -868,8 +875,9 @@
 			}
 			parts = file.split(':');
 			if (parts.length == 2) {
-				if (parts[0] in cfg) {
-					path = cfg[parts[0]] + '/' + parts[1];
+				let key = parts[0].toLowerCase();
+				if (key in Params) {
+					path = Path.join(Params[key],parts[1]);
 				} else {
 					log.e(' ** ERR:File <' + file + '> prefix not defined');
 					return;
@@ -902,7 +910,6 @@
 					}
 				});
 				fs.rmdirSync(path);
-				log.v(`Removing the directory ${path}`);
 			}
 		}
 
