@@ -3,6 +3,7 @@ const tar = require('targz');
 const fs = require('fs');
 const path = require('path');
 const mergedirs = require('merge-dirs').default;
+let state = 'production';
 
 // #ifdef LINUX
 let system = 'linux';
@@ -107,14 +108,15 @@ function help() {
       run: Starts a system from config or cache
         Example: xgraph run --config config.json
                  xgraph run --cache cache/
-        
+    
   `);
 }
 
 async function reset() {
 	try {
 		await ensureNode();
-		await genesis('develop');
+		state = 'develop';
+		await genesis();
 		startNexusProcess();
 	} catch (e) {
 		console.log(`ERR: ${e}`);
@@ -125,7 +127,6 @@ async function deploy() {
 	try {
 		await ensureNode();
 		startNexusProcess();
-
 
 	} catch (e) {
 		console.log(`ERR: ${e}`);
@@ -138,7 +139,8 @@ async function execute() {
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
-			await genesis('develop');
+			state = 'develop'; 
+			await genesis();
 			startNexusProcess();
 		}
 	} catch (e) {
@@ -149,6 +151,7 @@ async function execute() {
 async function compile() {
 	try {
 		await ensureNode();
+		state = 'production';		
 		await genesis();
 	} catch (e) {
 		console.log(`ERR: ${e}`);

@@ -1,5 +1,7 @@
-(function (state = 'production') {
-	return new Promise((resolve, reject) => {
+(function () {
+	return new Promise(async (resolve, reject) => {
+		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
+		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--develop") > -1) state = 'develop';
 
 		console.log(`\nInitializing the Compile Engine in ${state} Mode`);
 		console.time('Genesis Runtime');
@@ -24,7 +26,11 @@
 		{
 			// The logging function for writing to xgraph.log to the current working directory
 			const xgraphlog = (...str) => {
-				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
+				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => {
+					if (err) {
+						console.error(err); process.exit(1); reject();
+					}
+				});
 			};
 			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 			// Levels include:
@@ -61,7 +67,7 @@
 		try {
 			setup();
 			await genesis();
-		}catch(e) {
+		} catch (e) {
 			log.e(e.toString());
 			log.e((new Error().stack));
 			reject(e);
@@ -87,7 +93,7 @@
 
 			parseConfig();
 
-			cleanCache();
+			if (state == 'production') cleanCache();
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
@@ -146,7 +152,7 @@
 				let val, sources, subval;
 				if (cfg) {
 					var ini = JSON.parse(cfg);
-					if(typeof ini['Sources'] === 'undefined') {
+					if (typeof ini['Sources'] === 'undefined') {
 						log.w('You have not defined Config.Sources.');
 						log.w('this will likely break the compile process');
 						log.w('')
@@ -231,10 +237,10 @@
 						var arr = Config.Modules[key];
 						arr.forEach(function (mod) {
 							log.v(`Defferring ${mod.Module || mod}`);
-							if(typeof mod == 'string') {
+							if (typeof mod == 'string') {
 								log.w('Adding Module names directly to Defferred is deprecated');
 								log.w(`Defferring { Module: '${mod}' } instead`);
-								mod = {Module: mod};
+								mod = { Module: mod };
 							}
 							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
 							let source = mod.Source;
@@ -250,7 +256,7 @@
 						});
 					} else {
 						log.v(`Compiling ${Config.Modules[key].Module}`);
-						if(typeof Config.Modules[key].Module != 'string') {
+						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2))
 						}
@@ -280,19 +286,19 @@
 			function recursiveBuild() {
 				return new Promise(async (resolve, reject) => {
 					ifolder++;
-	
+
 					if (ifolder >= nfolders) {
 						await refreshSystem();
 						await populate();
 						return;
 					}
-	
+
 					let folder = moduleKeys[ifolder];
 					let modrequest = {
 						"Module": folder,
 						"Source": Modules[folder]
 					};
-	
+
 					GetModule(modrequest, async function (err, mod) {
 						ModCache[folder] = mod;
 						await recursiveBuild();
@@ -601,7 +607,6 @@
 			var modnam = inst.Module;
 			var mod;
 			var ents = [];
-			// The following is for backword compatibility only
 			var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
 
 			if (modnam in ModCache) {
@@ -629,6 +634,9 @@
 				let entkey = entkeys[j];
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
+				ent.Module = modnam;
+				ent.Apex = pidapx;
+
 				//unpack the config pars to the par of the apex of the instance
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
@@ -638,19 +646,13 @@
 					}
 				}
 
-				ent.Module = modnam;
-				ent.Apex = pidapx;
+				//load pars from schema
 				var pars = Object.keys(ent);
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					// log.d(par, val);
 					let asdf = symbol(val);
 					ent[par] = await asdf;
-					// log.d(`${par}: ${JSON.stringify(ent[par], null, 2)}`);
-					// if (par === "Config") {
-					// 	ent["Cache"] = await GenTemplate(ent["Config"]);
-					// }
 				}
 				ents.push(ent);
 			}
@@ -660,11 +662,11 @@
 				// debugger;
 				if (typeof val === 'object') {
 					// log.d('object');
-					if(Array.isArray(val)){
+					if (Array.isArray(val)) {
 						val.map(v => symbol(v));
 						val = await Promise.all(val);
 					} else {
-						for(let key in val) {
+						for (let key in val) {
 							val[key] = await symbol(val[key]);
 						}
 					}
@@ -797,11 +799,11 @@
 
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
-			
-				module.paths=[];
+
+				module.paths = [];
 				module.paths.push([Path.resolve(CacheDir)]);
 
-				ps.stdout.on('data', _ => {process.stdout.write(_)});
+				ps.stdout.on('data', _ => { process.stdout.write(_) });
 				ps.stderr.on('data', _ => process.stderr.write(_));
 
 				ps.on('err', function (err) {
