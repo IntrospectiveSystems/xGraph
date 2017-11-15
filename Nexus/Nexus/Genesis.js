@@ -1,7 +1,7 @@
-(function () {
+(function (state = 'production') {
 	return new Promise((resolve, reject) => {
 
-		console.log(`\nInitializing the Compile Engine`);
+		console.log(`\nInitializing the Compile Engine in ${state} Mode`);
 		console.time('Genesis Runtime');
 
 		const fs = require('fs');

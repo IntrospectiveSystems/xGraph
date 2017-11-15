@@ -41,7 +41,7 @@ processSwitches();
 switch (process.argv[1]) {
 	case 'x':
 	case 'execute': {
-		run();
+		execute();
 		break;
 	}
 
@@ -114,7 +114,7 @@ function help() {
 async function reset() {
 	try {
 		await ensureNode();
-		await genesis();
+		await genesis('develop');
 		startNexusProcess();
 	} catch (e) {
 		console.log(`ERR: ${e}`);
@@ -132,13 +132,13 @@ async function deploy() {
 	}
 }
 
-async function run() {
+async function execute() {
 	try {
 		await ensureNode();
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
-			await genesis();
+			await genesis('develop');
 			startNexusProcess();
 		}
 	} catch (e) {
