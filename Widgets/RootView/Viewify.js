@@ -368,7 +368,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
-		ShowHierarchy(com, fun) {
+		async ShowHierarchy(com, fun) {
 			
 			var that = this;
 			console.group(this.Vlt.rootID);
