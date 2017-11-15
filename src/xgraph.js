@@ -25,6 +25,7 @@ let windows = true;
 let mac = false;
 let unix = false;
 // #endif
+let nodeVersion = "8.9.1";
 
 let pathOverrides = {};
 
@@ -171,23 +172,24 @@ async function ensureNode() {
 	let node = (execSync('which node').toString());
 
 	if (node != '') {
-		console.log();
-		// fun(true);
+		console.log(`Node appears to be installed.  If you have problems we recommend you have Node v${nodeVersion} installed.`);
+
 		return;
 	} else {
 		await install();
 	}
 	// #else
-	console.error(`System ${system} is not yet supported`);
+	console.error(`System ${system} is not yet supported.  You will need to install Node v${nodeVersion} manually.`);
 	// #endif
 }
 
 function install() {
+	// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
 	return new Promise((resolve) => {
 		// #ifdef LINUX
 		require('https').get({
 			host: 'nodejs.org',
-			path: '/dist/v8.4.0/node-v8.4.0-linux-x64.tar.gz'
+			path: '/dist/v' + nodeVersion + '/node-v' +  nodeVersion + '-linux-x64.tar.gz'
 		}, (response) => {
 			let body = '';
 			response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
@@ -199,10 +201,10 @@ function install() {
 				}, function () {
 					// console.log(mergedirs);
 					try {
-						mergedirs('node-v8.4.0-linux-x64/bin', '/usr/bin', 'overwrite');
-						mergedirs('node-v8.4.0-linux-x64/include', '/usr/include', 'overwrite');
-						mergedirs('node-v8.4.0-linux-x64/lib', '/usr/lib', 'overwrite');
-						mergedirs('node-v8.4.0-linux-x64/share', '/usr/share', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-linux-x64/bin', '/usr/bin', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-linux-x64/include', '/usr/include', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-linux-x64/lib', '/usr/lib', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-linux-x64/share', '/usr/share', 'overwrite');
 						//TODO RIMRAF THE ZIP AND EXTRACTED FILES
 						// console.log('dun');
 						resolve();
@@ -216,6 +218,7 @@ function install() {
 				});
 			});
 		});
+		// #
 		// #else
 		console.error(`System ${system} is not yet supported`);
 		//node-msi.fetch.start

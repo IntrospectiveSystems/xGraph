@@ -125,7 +125,7 @@
 	// //make for mac
 	// var opts = {
 	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
-	// 	installLocation: '/Applications',
+	// 	installLocation: '/usr/bin',
 	// 	identifier: 'com.IntrospectiveSystems.xgraph.pkg',
 	// 	title: 'xGraph'
 	// }
