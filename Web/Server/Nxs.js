@@ -698,14 +698,20 @@ __Nexus = (_ => {
 		}
 	}
 
-	function getFile(module, filename, fun) {
+	/**
+	 * Access a file that exists in the module.json
+	 * @param {string} module 		the module to look for the file in
+	 * @param {string} filename 	the name of the file we're looking for
+	 * @callback fun				the callback to return te pid of the generated entity to
+	 */
+	function getFile(module, filename, fun = _ => _) {
 		let mod = ModCache[module];
-		//log.v(Object.keys(ModCache[module]));
 		if (filename in mod) {
 			fun(null, mod[filename])
 			return;
 		}
 		let err = `Error: File ${filename} does not exist in module ${module}`;
+		log.e(err);
 		fun(err);
 	}
 
@@ -838,42 +844,61 @@ __Nexus = (_ => {
 
 
 
-	//-----------------------------------------------------genNode
-	// Generate node from parameter object
-	function genEntity(par, fun) {
-		//	log.v('--genEntity', par.Entity);
-		var name = par.Entity;
-		if (name in ModCache) {
-			var mod = ModCache[name];
-			var pid = genPid();
-			par.Pid = pid;
-			ent = new Entity(Nxs, mod, par);
-			if (ent) {
-				EntCache[pid] = ent;
-				if (par.$Browser) {
-					SymTab[par.$Browser] = pid;
-				}
-				fun(null, ent);
-				return;
-			}
-			fun('genEntity failed');
+	/**
+	 * Create an Entity from the given par in the module defined by apx
+	 * The entity is then stored in EntCache
+	 * @param {string} apx 		the Pid of the module Apex in which this entity will be generated
+	 * @param {object} par 		the Par of the entity that will be created
+	 * @param {string} par.Entity The entity type that will be generated
+	 * @param {string=} par.Pid	the pid to define as the pid of the entity
+	 * @callback fun 			the callback to return te pid of the generated entity to
+	 */
+	function genEntity(apx, par, fun = _ => log.e(_)) {
+		if (!("Entity" in par)) {
+			fun("No Entity defined in Par");
 			return;
 		}
+
+		var impkey = ApexIndex[apx] + '/' + par.Entity;
+		var mod = ModCache[ApexIndex[apx]];
+
+		if (!(par.Entity in mod)) {
+			log.e(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
+			fun('Null entity');
+			return;
+		}
+
+		par.Pid = par.Pid || genPid();
+		par.Module = mod.ModName;
+		par.Apex = apx;
+
+		let imp;
+		if (impkey in ImpCache) {
+			imp = ImpCache[impkey];
+		} else {
+			imp = (1, eval)(mod[par.Entity]);
+			ImpCache[impkey] = imp;
+		}
+
+		EntCache[par.Pid] = new Entity(Nxs, imp, par);
+		fun(null, par.Pid);
 	}
 
-	//-----------------------------------------------------deleteEntity
-	// Generate node from parameter object
-	function deleteEntity(pid, fun = _ => _) {
+	/**
+	 * Delete an entity file. If the entity is an Apex of a Module,
+	 * then delete all the entities found in that module as well. 
+	 * @param {string} apx 		the pid of the entities apex
+	 * @param {string} pid 		the pid of the entity
+	 * @callback fun  			the callback to return te pid of the generated entity to
+	 */
+	function deleteEntity(apx, pid, fun = _ => _) {
 		if (EntCache[pid]) {
 			delete EntCache[pid];
 			log.v(pid, ' Deleted');
-			fun(null)
-
+			fun(null);
 		} else {
 			log.w('Entity not found: ', pid);
-
 			fun(("Entity not found: " + pid));
-
 		}
 	}
 
