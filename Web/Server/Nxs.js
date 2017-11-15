@@ -287,9 +287,9 @@ __Nexus = (_ => {
 						"Source": Modules[folder]
 					};
 
-					getModule(modrequest, function (err, mod) {
-						if (err) { rej(err); reject(err); }
-						else res(ModCache[folder] = mod);
+					await loadModule(modrequest, function (err, mod) {
+						if (err) rej(err);  
+						else res(mod);
 					});
 				}));
 			}
@@ -298,7 +298,7 @@ __Nexus = (_ => {
 			log.d("keys of modcache", Object.keys(ModCache));
 		}
 
-		function getModule(modRequest, fun) {
+		async function loadModule(modRequest, fun) {
 			log.d(`getMod ${JSON.stringify(modRequest, null, 2)}`);
 			let modnam = modRequest.Module;
 			let source = modRequest.Source;
@@ -314,20 +314,23 @@ __Nexus = (_ => {
 			zipmod.loadAsync(Cache, { base64: true }).then(function (zip) {
 
 				zip.file('manifest.json').async('string').then((cacheArray) => {
-
+					//unpack all of the modules into the ModCache
 					console.log(cacheArray)
+					let promiseArray=[];
 
-					//need to store all of these moduels in the ModCache/somewhere
-					// log.d(`Cache contains these files ${JSON.parse(str)}`);
-
-					// zip.file('module.json').then(function (str) {
-					// 	modjson = JSON.parse(str);
-					// 	ModCache[mod.Module] = modjson;
-					// });
-
+					for (let idx=0; idx<cacheArray.length; idx++){
+						promiseArray.push(new Promise((res, rej)=>{
+							zip.file(cacheArray[idx]).then((str)=>{
+								ModCache[ModName]=JSON.parse(str);
+								res();
+							});
+						}));
+					}
+					
+					await Promise.all(promiseArray);
+					
+					fun(null, ModCache[ModName]);
 				});
-
-
 			});
 		}
 
