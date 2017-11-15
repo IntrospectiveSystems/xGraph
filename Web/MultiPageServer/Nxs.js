@@ -1,35 +1,45 @@
 //# sourceURL=Nxs
-__Nexus = (_ => {
+__Nexus = (function () {
 	console.log(' ** Nxs executing');
-
+	// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+	// Levels include:
+	// v : verbose
+	// d : debug
+	// i : info
+	// w : warn
+	// e : error
+	window.log = {
+		v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
+		d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
+		i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
+		w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
+		e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+	};
 	var SockIO;
 	var Root;
+	var Pid24;
 	var PidServer;
 	var PidNxs;
-	var Config = {};
-	var EntCache = {};
-	var ModCache = {};
-	var Modules = {};
-
 	var PidTop;
 	var PidStart;
+	var Config;
 	var CurrentModule;
 	var Initializers = {};
-
-	var ModuleCache = {};
+	var EntCache = {};
+	window.entCache = EntCache;
+	var ModCache = {};
 	var ZipCache = {};
 	var SymTab = {};
 	var Css = [];
 	var Scripts = [];
 	var Fonts = {};
 	var Nxs = {
-		genPid,
-		genEntity,
-		deleteEntity,
-		genModule,
-		getFile,
-		send,
-		getFont
+		genPid: genPid,
+		genEntity: genEntity,
+		delEntity: delEntity,
+		genModule: genModule,
+		send: send,
+		getFont: getFont
 	};
 	var MsgFifo = [];
 	var MsgPool = {};
@@ -37,53 +47,33 @@ __Nexus = (_ => {
 	__Config = {};
 	__Config.TrackIO = false;
 	__Share = {};
-	let silent = false;
-
-
-	//
-	// Logging Functionality
-	//
-	{
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
-		// Levels include:
-		// v : verbose
-		// d : debug
-		// i : info
-		// w : warn
-		// e : error
-		window.log = {
-			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
-			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
-			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
-			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
-			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
-		};
-	}
+	let silent = true;
 
 	return {
-		start
+		start: start,
+		genPid: genPid,
+		genModule: genModule,
+		send: send,
+		getFont: getFont
 	};
 
 	function start(sockio, cfg) {
-		if (!silent) log.i('--Nxs/start');
+		if (!silent) console.log('--Nxs/start');
+		if (!silent) console.log('cfg', JSON.stringify(cfg, null, 2));
 		Pid24 = cfg.Pid24;
 		PidServer = cfg.PidServer;
 		SockIO = sockio;
 		SockIO.removeListener('message');
-
 		SockIO.on('message', function (data) {
 			var cmd = JSON.parse(data);
-
-			if (Array.isArray(cmd)) {
+			if(Array.isArray(cmd)) {
 				// if its an array, its probs a reply...
 				// so, you should split it up.
 				var [err, cmd] = cmd;
 				// if(cmd.Cmd == 'Evoke') debugger;
 			}
-
-			if (!silent) log.v(' << Msg:' + cmd.Cmd);
-
-			//if the message is a reply pair it with its callback
+			// debugger;
+			if (!silent) console.log(' << Msg:' + cmd.Cmd);
 			if ('Passport' in cmd && cmd.Passport.Reply) {
 				var pid = cmd.Passport.Pid;
 				var ixmsg = MsgFifo.indexOf(pid);
@@ -97,20 +87,23 @@ __Nexus = (_ => {
 				}
 				return;
 			}
-
-			// Try to dispatch on browser
+			// Not reply, try to dispatch on browser
 			var pid = cmd.Passport.To;
-			if (pid in EntCache) {
-				var ent = EntCache[pid];
-				if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
-					ent.dispatch(cmd, reply);
-				else
-					ent.dispatch(cmd, _ => _);
-			} else {
-				log.v(' ** ERR:Local', pid, 'not in Cache');
-			}
-			return;
+			var pid24 = pid.substr(0, 24);
+			if (pid24 == Pid24) {
+				if (pid in EntCache) {
+					var ent = EntCache[pid];
+					if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
+						ent.dispatch(cmd, reply);
+					else
+						ent.dispatch(cmd, () => {
 
+						});
+				} else {
+					console.warn(` ** ERR:Local ${pid} not in Cache. Ignoring...`);
+				}
+				return;
+			}
 
 			function reply(err, cmd) {
 				if (cmd == null)
@@ -118,15 +111,14 @@ __Nexus = (_ => {
 				if ('Passport' in cmd) {
 					cmd.Passport.Reply = true;
 					var str = JSON.stringify([err, cmd]);
+
 					SockIO.send(str);
 				}
 			}
 		});
-
 		SockIO.on('connect', () => {
 			location.href = location.href;
 		});
-
 		Genesis(cfg);
 	}
 
@@ -156,7 +148,7 @@ __Nexus = (_ => {
 						var ent = EntCache[pid];
 						ent.dispatch(com, fun);
 					} else {
-						log.v(' ** ERR:Local', pid, 'not in Cache');
+						console.error(' ** ERR:Local', pid, 'not in Cache');
 					}
 					return;
 				}
@@ -166,12 +158,11 @@ __Nexus = (_ => {
 					var ent = EntCache[pid];
 					ent.dispatch(com, fun);
 				} else {
-					log.v(' ** ERR:Local', pid, 'not in Cache');
+					console.error(' ** ERR:Local', pid, 'not in Cache');
 				}
 				return;
 			}
 		}
-
 		if (fun) {
 			MsgPool[pidmsg] = fun;
 			MsgFifo.push(pidmsg);
@@ -180,32 +171,12 @@ __Nexus = (_ => {
 				delete MsgPool[kill];
 			}
 		}
-
 		var str = JSON.stringify(com);
 		if (__Config.TrackIO)
-			log.v(' >> Msg:' + com.Cmd);
-		if (!(silent)) log.v(str)
+			if (!silent) console.log(' >> Msg:' + com.Cmd);
 		SockIO.send(str);
 
-		// function sendLocal() {
-		//     if (pid in EntCache) {
-		//         var ent = EntCache[pid];
-		//         ent.dispatch(com, fun);
-		//     } else {
-		//         log.v(' ** ERR:Local', pid, 'not in Cache');
-		//     }
-		// }
-	}
 
-	function getFile(module, filename, fun) {
-		let mod = ModCache[module];
-		//log.v(Object.keys(ModCache[module]));
-		if (filename in mod) {
-			fun(null, mod[filename])
-			return;
-		}
-		let err = `Error: File ${filename} does not exist in module ${module}`;
-		fun(err);
 	}
 
 	//--------------------------------------------------------getFont
@@ -216,20 +187,22 @@ __Nexus = (_ => {
 
 	//--------------------------------------------------------Entity
 	// Entity base class
-	function Entity(nxs, imp, par) {
+	function Entity(nxs, mod, par) {
+		//	var Nxs = nxs;
 		var Par = par;
-		var Imp = imp;
+		var Mod = mod;
 		var Vlt = {};
 
 		return {
-			Par,
-			Vlt,
-			dispatch,
-			send,
-			deleteEntity,
-			getPid,
-			getFile,
-			genModule
+			Par: Par,
+			Mod: Mod,
+			Vlt: Vlt,
+			//		Nxs: Nxs,
+			dispatch: dispatch,
+			send: send,
+			deleteEntity: deleteEntity,
+			getPid: getPid,
+			genModule: genModule
 		};
 
 		//-------------------------------------------------dispatch
@@ -246,29 +219,24 @@ __Nexus = (_ => {
 				disp['*'].call(this, com, fun);
 				return;
 			}
-			//log.v(com.Cmd + ' unknown');
+			//console.log(com.Cmd + ' unknown');
 			if (fun)
 				fun(com.Cmd + ' unknown');
 		}
 
 		function deleteEntity(fun) {
-			nxs.deleteEntity(Par.Pid, fun);
+			nxs.delEntity(Par.Pid, fun);
 		}
 
 		//-------------------------------------------------getPid
 		// Return Pid of entity
 		function getPid() {
-			log.w("getPid() is deprecated and will be removed. \n Use Par.Pid");
 			return Par.Pid;
 		}
 
 		//generate a module in the local system
 		function genModule(mod, fun) {
 			nxs.genModule(mod, fun);
-		}
-
-		function getFile(filename, fun) {
-			nxs.getFile(Par.Module, filename, fun);
 		}
 
 		//-------------------------------------------------send
@@ -279,12 +247,18 @@ __Nexus = (_ => {
 			com.Passport.To = pid;
 			nxs.send(com, pid, fun);
 		}
+
+		//-------------------------------------------------reply
+		// Reply to a message previously received
+		function reply(com, fun) {
+
+		}
 	}
 
 	//-----------------------------------------------------genNode
 	// Generate node from parameter object
 	function genEntity(par, fun) {
-		//	log.v('--genEntity', par.Entity);
+		//	console.log('--genEntity', par.Entity);
 		var name = par.Entity;
 		if (name in ModCache) {
 			var mod = ModCache[name];
@@ -311,18 +285,20 @@ __Nexus = (_ => {
 		function done(err, com) {
 			if (!('Mod' in com)) {
 				var errmsg = com.Name + 'module is not available';
-				log.e(' ** ERR:' + errmsg);
+				console.error(' ** ERR:' + errmsg);
 				fun(err);
 			}
 			var pid = genPid();
 			par.Pid = pid;
-			
+			// if
 			var mod = eval(com.Mod);
 			var ent = new Entity(Nxs, mod, par);
 			if (ent) {
 				ModCache[name] = mod;
 				EntCache[pid] = ent;
-
+				//                if (par.$Browser) {
+				//                	SymTab[par.$Browser] = pid;
+				//                }
 				fun(null, ent);
 				return;
 			}
@@ -330,30 +306,29 @@ __Nexus = (_ => {
 		}
 	}
 
-	//-----------------------------------------------------deleteEntity
+	//-----------------------------------------------------delEntity
 	// Generate node from parameter object
-	function deleteEntity(pid, fun = _ => _) {
+	function delEntity(pid, fun) {
 		if (EntCache[pid]) {
 			delete EntCache[pid];
-			log.v(pid, ' Deleted');
-			fun(null)
-
+			if (!silent) console.log(pid, ' Deleted');
+			if (fun) {
+				fun(null)
+			}
 		} else {
-			log.w('Entity not found: ', pid);
-
-			fun(("Entity not found: " + pid));
-
+			if (!silent) console.log('Entity not found: ', pid);
+			if (fun) {
+				fun(("Entity not found: " + pid));
+			}
 		}
 	}
-
 	//------------------------------------------------------genPid
 	// Generate Pid (pseudo-GUID)
-	async function genPid() {
-		const pidBuffer = await crypto.subtle.digest("SHA-1", new TextEncoder("utf-8").encode(date.toString()));
-		const pid = Array.from(new Uint8Array(pidBuffer)).map(b => ('00' + b.toString(16)).slice(-2)).join('').slice(8);
-
-		log.d(pid, pid.length);
-
+	function genPid() {
+		var pid = Pid24;
+		var hexDigits = "0123456789ABCDEF";
+		for (var i = 0; i < 8; i++)
+			pid += hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
 		return pid;
 	}
 
@@ -368,11 +343,11 @@ __Nexus = (_ => {
 		addModule(mod, setup);
 
 		function setup(err, pid) {
-			//	log.v('pid', pid);
-			//	log.v('Initializers', Initializers);
+			//	console.log('pid', pid);
+			//	console.log('Initializers', Initializers);
 			pidapx = pid;
 			if (err) {
-				if (!silent) log.e(' ** genModule:' + err);
+				if (!silent) console.log(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
@@ -387,7 +362,7 @@ __Nexus = (_ => {
 
 		function start(err, r) {
 			if (err) {
-				if (!silent) log.e(' ** genModule:' + err);
+				if (!silent) console.log(' ** genModule:' + err);
 				fun(err);
 				return;
 			}
@@ -402,28 +377,38 @@ __Nexus = (_ => {
 
 		function pau(err, r) {
 			if (err) {
-				if (!silent) log.e(' ** genModule:' + err);
+				if (!silent) console.log(' ** genModule:' + err);
 			}
 			fun(err, pidapx);
 		}
 
 	}
 
+	function asyncGenModule(mod) {
+		return new Promise((resolve, reject) => {
+			genModule(mod, (err, apx) => {
+				if (err) reject(err);
+				else resolve(apx);
+			})
+		});
+	}
+
 	//-------------------------------------------------addModule
 	function addModule(mod, fun) {
-		if (!(silent)) log.v('..addModule');
-		if (!(silent)) log.v(JSON.stringify(mod, null, 2));
+		//	console.log('..addModule');
+		//	console.log(JSON.stringify(mod, null, 2));
+		// debugger;
 		var ents = {};
 		var lbls = {};
 		var q = {};
-		let modjson = null
+		let modjson = null;
 		q.Cmd = 'GetModule';
 		q.Module = mod.Module;
-		if (!(silent)) log.v(q);
+		if (!silent) console.log(q);
 		send(q, PidServer, addmod);
 
 		function addmod(err, r) {
-			//log.v('..addmod');
+			//	console.log('..addmod');
 			var module = r.Module;
 			var zipmod = new JSZip();
 			zipmod.loadAsync(r.Zip, { base64: true }).then(function (zip) {
@@ -431,9 +416,7 @@ __Nexus = (_ => {
 
 				zip.file('module.json').async('string').then(function (str) {
 					modjson = JSON.parse(str);
-					ModuleCache[mod.Module] = modjson;
 					var keys = Object.keys(mod);
-					//debugger;
 					styles();
 				});
 
@@ -456,7 +439,7 @@ __Nexus = (_ => {
 							var file = obj[key];
 
 							let css = modjson[file];
-							//log.v("Css is ", css);
+							//console.log("Css is ", css);
 							var tag = document.createElement('style');
 							tag.setAttribute("data-css-url", key);
 							tag.setAttribute("type", 'text/css');
@@ -480,7 +463,7 @@ __Nexus = (_ => {
 				}
 
 				function scripts() {
-					//log.v('..scripts');
+					//console.log('..scripts');
 					if ('scripts.json' in modjson) {
 						var obj = JSON.parse(modjson["scripts.json"]);
 						var keys = Object.keys(obj);
@@ -492,7 +475,7 @@ __Nexus = (_ => {
 							Scripts.push(key);
 							var file = obj[key];
 							let scr = modjson[file];
-							//log.v("loading module from ", module, scr);
+							//console.log("loading module from ", module, scr);
 
 							// var tag = document.createElement('script');
 							// tag.setAttribute("data-script-url", key);
@@ -501,7 +484,7 @@ __Nexus = (_ => {
 							// tag.appendChild(txt);
 							// document.head.appendChild(tag);
 							eval(scr);
-							log.v("Evaled scr", file);
+							if(!silent) console.log("Evaled scr", file);
 							func();
 						}, fonts);
 					} else {
@@ -510,7 +493,7 @@ __Nexus = (_ => {
 				}
 
 				function fonts() {
-					//	log.v('..fonts');
+					//	console.log('..fonts');
 					if ('fonts.json' in modjson) {
 						var obj = JSON.parse(modjson["fonts.json"]);
 						var keys = Object.keys(obj);
@@ -523,7 +506,7 @@ __Nexus = (_ => {
 							let str = modjson[file];
 							var json = JSON.parse(str);
 							var font = new THREE.Font(json);
-							if (!silent) log.v('font', font);
+							if (!silent) console.log('font', font);
 							Fonts[key] = font;
 							func();
 						}, schema);
@@ -533,18 +516,17 @@ __Nexus = (_ => {
 				}
 
 				function schema() {
-					//log.v('..schema');
+					//console.log('..schema');
 					let str = JSON.parse(modjson["schema.json"]);
 					compile(str);
 				}
 			});
 
 			function compile(str) {
-				//	log.v('..compile');
+				//	console.log('..compile');
 				var pidapx;
 				var schema = str;
 				ZipCache[module] = zipmod;
-				//debugger;
 				for (let lbl in schema) {
 					var ent = schema[lbl];
 					if ('Par' in mod) {
@@ -561,7 +543,7 @@ __Nexus = (_ => {
 						else
 							ent.Pid = genPid();
 						pidapx = ent.Pid;
-						//	log.v('Apex', ent);
+						//	console.log('Apex', ent);
 					} else {
 						ent.Pid = genPid();
 					}
@@ -657,32 +639,25 @@ __Nexus = (_ => {
 	// This is called only once when a new systems is
 	// first instantiated
 	function Genesis(cfg) {
-		if (!silent) log.i('--Nxs/Genesis');
-
+		if (!silent) console.log('--Nxs/Genesis');
+		Config = cfg;
 		Root = {};
 		Root.Global = {};
 		Root.Setup = {};
 		Root.Start = {};
 		Root.ApexList = cfg.ApexList || {};
-
-		parseCfg();
-
-
-
-
 		var ikey = 0;
-		if ('Scripts' in cfg) {
-			cfg.Scripts = JSON.parse(cfg.Scripts);
-			var keys = Object.keys(cfg.Scripts);
-			log.d(keys);
+		if ('Scripts' in Config) {
+			var keys = Object.keys(Config.Scripts);
 			nkeys = keys.length;
 		} else {
 			nkeys = 0;
 		}
-		if (!silent) log.v('Scripts', nkeys, cfg.Scripts);
+		if (!silent) console.log('Scripts', nkeys, Config.Scripts);
 		nextscript();
 
 		function nextscript() {
+			//	console.log('..nextscript');
 			if (ikey >= nkeys) {
 				modules();
 				return;
@@ -694,7 +669,7 @@ __Nexus = (_ => {
 			q.File = Config.Scripts[key];
 			send(q, Config.pidServer, function (err, r) {
 				if (err) {
-					log.v(' ** ERR:Script error', err);
+					console.error(' ** ERR:Script error', err);
 					return;
 				}
 				script(key, r.Data);
@@ -714,17 +689,10 @@ __Nexus = (_ => {
 		//.................................................modules
 		function modules() {
 			var keys = Object.keys(Config.Modules);
-
-			generateModuleCatalog();
-
-			recursiveBuild();
-
 			for (var i = 0; i < keys.length; i++) {
 				key = keys[i];
 				Root.ApexList[key] = genPid();
 			}
-
-			let instArray = []
 			async.eachSeries(keys, function (key, func) {
 				let mod = Config.Modules[key];
 				CurrentModule = key;
@@ -732,231 +700,93 @@ __Nexus = (_ => {
 
 				function addmod(err, pid) {
 					if (err) {
-						log.v(' ** ERR:Cannot add mod <' + r.Module + '>');
+						console.error(' ** ERR:Cannot add mod <' + r.Module + '>');
 					}
 					//TBD: Might want to bail on err
-					log.v('Apex', key, '<=', pid);
+					if (!silent) console.log('Apex', key, '<=', pid);
 					func();
 				}
 			}, Setup);
 
+		}
 
-			/**
-			 * Create a list of all required modules and their brokers
-			 */
-			function generateModuleCatalog() {
-				// Create new cache and install high level
-				// module subdirectories. Each of these also
-				// has a link to the source of that module (Module.json).
-				var keys = Object.keys(Config.Modules);
-				for (let i = 0; i < keys.length; i++) {
-					let key = keys[i];
-					if (key == 'Deferred') {
-						var arr = Config.Modules[key];
-						arr.forEach(function (mod) {
-							logModule(mod);
-						});
-					} else {
-						logModule(Config.Modules[key]);
-					}
+		//-------------------------------------------------Setup
+		function Setup(err) {
+			console.log('\n--Nexus/Setup');
+			CurrentModule = null;
+			var pids = Object.keys(Root.Setup);
+			var npid = pids.length;
+			var ipid = 0;
+			setup();
 
-					function logModule(mod) {
-						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
-						let source = mod.Source;
-						if (!(folder in Modules)) {
-							Modules[folder] = source;
-						} else {
-							if (Modules[folder] != source) {
-								log.e("Broker Mismatch Exception");
-							}
-						}
-					}
+			function setup() {
+				if (ipid >= npid) {
+					Start();
+					return;
 				}
-			}
+				var pid8 = pids[ipid];
+				ipid++;
+				var q = {};
+				q.Cmd = Root.Setup[pid8];
+				var pid = Pid24 + pid8;
+				send(q, pid, done);
 
-			/**
-			 * get the modules from the prebuilt catalog
-			 * from the source defined in config
-			 */
-			async function recursiveBuild() {
-				let modArray = [];
-				let moduleKeys = Object.keys(Modules);
-
-				//loop over module keys to build Promise array 
-				for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
-					modArray.push(new Promise((res, rej) => {
-						let folder = moduleKeys[ifolder];
-
-						let modrequest = {
-							"Module": folder,
-							"Source": Modules[folder]
-						};
-
-						getModule(modrequest, function (err, mod) {
-							if (err) { rej(err); reject(err); }
-							else res(ModCache[folder] = mod);
-						});
-					}));
-
-					await Promise.all(modArray)
-
+				function done(err, r) {
+					setup();
 				}
-
-				/**
-				 * Write the modules.json to a zipped cache and set as Par.System 
-				 */
-				function populate() {
-					const jszip = require("jszip");
-					var zip = new jszip();
-					var man = [];
-					zip.folder("cache");
-					for (let folder in ModCache) {
-						let mod = ModCache[folder];
-						if (typeof mod == "object")
-							mod = JSON.stringify(mod);
-						let dir = "cache/" + folder;
-						zip.folder(dir);
-						let path = dir + '/Module.json';
-						man.push(path);
-						zip.file(path, mod, {
-							date: new Date("December 25, 2007 00:00:01")
-							//the date is required for zip consistency
-						});
-					}
-					zip.file('manifest.json', JSON.stringify(man), {
-						date: new Date("December 25, 2007 00:00:01")
-						//the date is required for zip consistency
-					});
-					zip.generateAsync({ type: 'base64' }).then(function (data) {
-						resolve(data);
-					});
-
-				}
-			}
-
-			function getModule(modRequest, fun) {
-				let modnam = modRequest.Module;
-				let source = modRequest.Source;
-				let mod = {};
-				let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
-
-				//get the module from memory (ModCache) if it has already been retrieved
-				if (ModName in ModCache) return fun(null, ModCache[ModName]);
-
-				//unpack the zipped cache put all modules inot the ModCache
-				const zipmod = new JSZip();
-				zipmod.loadAsync(cfg.Cache, { base64: true }).then(function (zip) {
-					zip.file('manifest.json').async('string').then((str) => {
-
-
-						log.d(`Cache contains these files ${JSON.parse(str)}`);
-
-						zip.file('module.json').async('string').then(function (str) {
-							modjson = JSON.parse(str);
-							ModuleCache[mod.Module] = modjson;
-						});
-
-					});
-
-
-				});
 			}
 		}
-		function parseCfg() {
-			let val, sources, subval;
-			if (cfg) {
-				var ini = JSON.parse(cfg);
-				for (let key in ini) {
-					val = ini[key];
-					if (key == "Sources") {
-						Config.Sources = {};
-						sources = ini["Sources"];
-						for (let subkey in sources) {
-							subval = sources[subkey];
-							if (typeof subval == 'string') {
-								Config.Sources[subkey] = Macro(subval);
-								//Params[subkey] = Config[subkey];
-							} else {
-								Config.Sources[subkey] = subval;
-							}
-						}
-					} else {
-						Config[key] = val;
-					}
 
+		//-----------------------------------------------------Start
+		function Start() {
+			console.log('\n--Nxs/Start');
+			var pids = Object.keys(Root.Start);
+			var npid = pids.length;
+			var ipid = 0;
+			start();
+
+			function start() {
+				if (ipid >= npid) {
+					Run();
+					return;
 				}
-			} else {
-				// No config was provided. Exit promptly.
-				log.e(' ** No configuration file (config.json) provided');
-				process.exit(1);
-				reject();
-			}
+				var pid8 = pids[ipid];
+				ipid++;
+				var q = {};
+				q.Cmd = Root.Start[pid8];
+				var pid = Pid24 + pid8;
+				send(q, pid, done);
 
-			// Print out the parsed config
-			log.v(JSON.stringify(Config, null, 2));
+				function done(err, r) {
+					start();
+				}
+			}
+		}
+
+		//-------------------------------------------------Run
+		function Run() {
+			console.log('\n--Nxs/Run');
 		}
 	}
 
-	//-------------------------------------------------Setup
-	function Setup(err) {
-		// log.v('--Nexus/Setup');
-
-		CurrentModule = null;
-		var pids = Object.keys(Root.Setup);
-		var npid = pids.length;
-		var ipid = 0;
-		setup();
-
-		function setup() {
-			if (ipid >= npid) {
-				Start();
-				return;
-			}
-			var pid8 = pids[ipid];
-			ipid++;
-			var q = {};
-			q.Cmd = Root.Setup[pid8];
-			var pid = Pid24 + pid8;
-			send(q, pid, done);
-
-			function done(err, r) {
-				setup();
-			}
-		}
-	}
-
-	//-----------------------------------------------------Start
-	function Start() {
-		log.v('--Nxs/Start');
-		var pids = Object.keys(Root.Start);
-		var npid = pids.length;
-		var ipid = 0;
-		start();
-
-		function start() {
-			if (ipid >= npid) {
-				Run();
-				return;
-			}
-			var pid8 = pids[ipid];
-			ipid++;
-			var q = {};
-			q.Cmd = Root.Start[pid8];
-			var pid = Pid24 + pid8;
-			//log.v("start ", pid);
-			send(q, pid, done);
-
-			function done(err, r) {
-				//log.v("Return start ", pid);
-				start();
-			}
-		}
-	}
-
-	//-------------------------------------------------Run
-	function Run() {
-		log.v('--Nxs/Run');
-	}
+})();
 
 
-}) ();
+
+
+// --------------------------------
+// this is a complete hack, to 
+// give me easy cookie access
+// TODO create actual Nxs functionality
+// for accessing cookies
+// --------------------------------
+
+// API for future reference: 
+// Cookies('a', 3); sets a to 3
+// Cookies('a'); returns a: 3
+// Cookies('a', undefined); deletes a
+
+!function(e,t){"use strict";var o=function(e){if("object"!=typeof e.document)throw new Error("Cookies.js requires a `window` with a `document` object");var t=function(e,o,n){return 1===arguments.length?t.get(e):t.set(e,o,n)};return t._document=e.document,t._cacheKeyPrefix="cookey.",t._maxExpireDate=new Date("Fri, 31 Dec 9999 23:59:59 UTC"),t.defaults={path:"/",secure:!1},t.get=function(e){t._cachedDocumentCookie!==t._document.cookie&&t._renewCache();var o=t._cache[t._cacheKeyPrefix+e];return void 0===o?void 0:decodeURIComponent(o)},t.set=function(e,o,n){return n=t._getExtendedOptions(n),n.expires=t._getExpiresDate(void 0===o?-1:n.expires),t._document.cookie=t._generateCookieString(e,o,n),t},t.expire=function(e,o){return t.set(e,void 0,o)},t._getExtendedOptions=function(e){return{path:e&&e.path||t.defaults.path,domain:e&&e.domain||t.defaults.domain,expires:e&&e.expires||t.defaults.expires,secure:e&&void 0!==e.secure?e.secure:t.defaults.secure}},t._isValidDate=function(e){return"[object Date]"===Object.prototype.toString.call(e)&&!isNaN(e.getTime())},t._getExpiresDate=function(e,o){if(o=o||new Date,"number"==typeof e?e=e===1/0?t._maxExpireDate:new Date(o.getTime()+1e3*e):"string"==typeof e&&(e=new Date(e)),e&&!t._isValidDate(e))throw new Error("`expires` parameter cannot be converted to a valid Date instance");return e},t._generateCookieString=function(e,t,o){var n=(e=(e=e.replace(/[^#$&+\^`|]/g,encodeURIComponent)).replace(/\(/g,"%28").replace(/\)/g,"%29"))+"="+(t=(t+"").replace(/[^!#$&-+\--:<-\[\]-~]/g,encodeURIComponent));return n+=(o=o||{}).path?";path="+o.path:"",n+=o.domain?";domain="+o.domain:"",n+=o.expires?";expires="+o.expires.toUTCString():"",n+=o.secure?";secure":""},t._getCacheFromString=function(e){for(var o={},n=e?e.split("; "):[],r=0;r<n.length;r++){var i=t._getKeyValuePairFromCookieString(n[r]);void 0===o[t._cacheKeyPrefix+i.key]&&(o[t._cacheKeyPrefix+i.key]=i.value)}return o},t._getKeyValuePairFromCookieString=function(e){var t=e.indexOf("=");t=t<0?e.length:t;var o,n=e.substr(0,t);try{o=decodeURIComponent(n)}catch(e){console&&"function"==typeof console.error&&console.error('Could not decode cookie with key "'+n+'"',e)}return{key:o,value:e.substr(t+1)}},t._renewCache=function(){t._cache=t._getCacheFromString(t._document.cookie),t._cachedDocumentCookie=t._document.cookie},t._areEnabled=function(){var e="1"===t.set("cookies.js",1).get("cookies.js");return t.expire("cookies.js"),e},t.enabled=t._areEnabled(),t},n=e&&"object"==typeof e.document?o(e):o;"function"==typeof define&&define.amd?define(function(){return n}):"object"==typeof exports?("object"==typeof module&&"object"==typeof module.exports&&(exports=module.exports=n),exports.Cookies=n):e.Cookies=n}("undefined"==typeof window?this:window);
+
+
+// --------------------------------------- end cookies hack
