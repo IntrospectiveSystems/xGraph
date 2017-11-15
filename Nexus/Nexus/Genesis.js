@@ -57,10 +57,15 @@
 			};
 		}
 
-		setup();
 
-		genesis();
-
+		try {
+			setup();
+			await genesis();
+		}catch(e) {
+			log.e(e.toString());
+			log.e((new Error().stack));
+			reject(e);
+		}
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
 		// Only Function Definitions Beyond This Point
@@ -141,6 +146,11 @@
 				let val, sources, subval;
 				if (cfg) {
 					var ini = JSON.parse(cfg);
+					if(typeof ini['Sources'] === 'undefined') {
+						log.w('You have not defined Config.Sources.');
+						log.w('this will likely break the compile process');
+						log.w('')
+					}
 					for (let key in ini) {
 						val = ini[key];
 						if (key == "Sources") {
@@ -190,7 +200,7 @@
 		/**
 		 * Builds a cache from a config.json. 
 		 */
-		function genesis() {
+		async function genesis() {
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
 
@@ -198,7 +208,7 @@
 
 			generateModuleCatalog();
 
-			recursiveBuild();
+			await recursiveBuild();
 
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,6 +230,12 @@
 					if (key == 'Deferred') {
 						var arr = Config.Modules[key];
 						arr.forEach(function (mod) {
+							log.v(`Defferring ${mod.Module || mod}`);
+							if(typeof mod == 'string') {
+								log.w('Adding Module names directly to Defferred is deprecated');
+								log.w(`Defferring { Module: '${mod}' } instead`);
+								mod = {Module: mod};
+							}
 							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
 							let source = mod.Source;
 							if (!(folder in Modules)) {
@@ -233,6 +249,11 @@
 							}
 						});
 					} else {
+						log.v(`Compiling ${Config.Modules[key].Module}`);
+						if(typeof Config.Modules[key].Module != 'string') {
+							log.e('Malformed Module Definition');
+							log.e(JSON.stringify(Config.Modules[key], null, 2))
+						}
 						let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
 						let source = Config.Modules[key].Source;
 						if (!(folder in Modules)) {
@@ -257,22 +278,26 @@
 			 * from the source defined in config
 			 */
 			function recursiveBuild() {
-				ifolder++;
-
-				if (ifolder >= nfolders) {
-					refreshSystem(populate);
-					return;
-				}
-
-				let folder = moduleKeys[ifolder];
-				let modrequest = {
-					"Module": folder,
-					"Source": Modules[folder]
-				};
-
-				GetModule(modrequest, function (err, mod) {
-					ModCache[folder] = mod;
-					recursiveBuild();
+				return new Promise(async (resolve, reject) => {
+					ifolder++;
+	
+					if (ifolder >= nfolders) {
+						await refreshSystem();
+						await populate();
+						return;
+					}
+	
+					let folder = moduleKeys[ifolder];
+					let modrequest = {
+						"Module": folder,
+						"Source": Modules[folder]
+					};
+	
+					GetModule(modrequest, async function (err, mod) {
+						ModCache[folder] = mod;
+						await recursiveBuild();
+						resolve();
+					});
 				});
 			}
 
@@ -571,6 +596,7 @@
 		 * @param {object} inst.Par		The par object that defines the par of the instance
 		 */
 		async function compileInstance(pidapx, inst) {
+			log.v('compileInstance', pidapx, inst);
 			var Local = {};
 			var modnam = inst.Module;
 			var mod;
@@ -618,7 +644,10 @@
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					ent[par] = await symbol(val);
+					// log.d(par, val);
+					let asdf = symbol(val);
+					ent[par] = await asdf;
+					// log.d(`${par}: ${JSON.stringify(ent[par], null, 2)}`);
 					// if (par === "Config") {
 					// 	ent["Cache"] = await GenTemplate(ent["Config"]);
 					// }
@@ -628,16 +657,18 @@
 			return ents;
 
 			async function symbol(val) {
+				// debugger;
 				if (typeof val === 'object') {
-					return (Array.isArray(val) ?
-						val.map(v => symbol(v)) :
-						Object.entries(val).map(([key, val]) => {
-							return [key, symbol(val)];
-						}).reduce((prev, curr) => {
-							prev[curr[0]] = curr[1];
-							return prev;
-						}, {})
-					);
+					// log.d('object');
+					if(Array.isArray(val)){
+						val.map(v => symbol(v));
+						val = await Promise.all(val);
+					} else {
+						for(let key in val) {
+							val[key] = await symbol(val[key]);
+						}
+					}
+					return val;
 				}
 				if (typeof val !== 'string')
 					return val;
@@ -649,6 +680,7 @@
 				if (val.charAt(0) === '\\')
 					return sym;
 				if (val.charAt(0) === '@') {
+					// log.d(val)
 					val = val.split(":");
 					let key = val[0].toLocaleLowerCase().trim();
 					let encoding = undefined;
@@ -743,49 +775,51 @@
 		 * to create node_modules directory for system
 		 * @callback func what to do next
 		 */
-		function refreshSystem(func) {
-			log.i('--refreshSystems: Updating and installing dependencies\n');
-			var packagejson = {};
+		function refreshSystem() {
+			return new Promise((resolve, reject) => {
+				log.i('--refreshSystems: Updating and installing dependencies\n');
+				var packagejson = {};
 
-			if (!packagejson.dependencies) packagejson.dependencies = {};
+				if (!packagejson.dependencies) packagejson.dependencies = {};
 
-			//include Genesis/Nexus required npm modules
-			packagejson.dependencies["uuid"] = "3.1.0";
-			packagejson.dependencies["jszip"] = "~3.1.3";
+				//include Genesis/Nexus required npm modules
+				packagejson.dependencies["uuid"] = "3.1.0";
+				packagejson.dependencies["jszip"] = "~3.1.3";
 
 
-			var strout = JSON.stringify(packagejson, null, 2);
-			//write the compiled package.json to disk
-			fs.mkdirSync(CacheDir);
-			fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
+				var strout = JSON.stringify(packagejson, null, 2);
+				//write the compiled package.json to disk
+				fs.mkdirSync(CacheDir);
+				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
 
-			//call npm install on a childprocess of node
-			const proc = require('child_process');
+				//call npm install on a childprocess of node
+				const proc = require('child_process');
 
-			var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-			var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
+				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
+			
+				module.paths=[];
+				module.paths.push([Path.resolve(CacheDir)]);
 
-			module.paths = [];
-			module.paths.push([Path.resolve(CacheDir)]);
+				ps.stdout.on('data', _ => {process.stdout.write(_)});
+				ps.stderr.on('data', _ => process.stderr.write(_));
 
-			ps.stdout.on('data', _ => { process.stdout.write(_) });
-			ps.stderr.on('data', _ => process.stderr.write(_));
+				ps.on('err', function (err) {
+					log.e('Failed to start child process.');
+					log.e('err:' + err);
+				});
 
-			ps.on('err', function (err) {
-				log.e('Failed to start child process.');
-				log.e('err:' + err);
-			});
-
-			ps.on('exit', function (code) {
-				if (code == 0)
-					log.i('dependencies installed correctly');
-				else {
-					log.e('npm process exited with code:' + code);
-					process.exit(1);
-					reject();
-				}
-				fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
-				func();
+				ps.on('exit', async function (code) {
+					if (code == 0)
+						log.i('dependencies installed correctly');
+					else {
+						log.e('npm process exited with code:' + code);
+						process.exit(1);
+						reject();
+					}
+					fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
+					resolve();
+				});
 			});
 		}
 

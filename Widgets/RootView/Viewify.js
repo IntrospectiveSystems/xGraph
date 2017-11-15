@@ -564,6 +564,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		// this.asuper
 		// this.evoke
 		// this.genmoduleasync
+		// this.cdnImportCss
+		// this.this.id
 		if(version >= new SemVer('3.4')) {
 			this.asuper = function (com) {
 				return new Promise((resolve, reject) => {
@@ -599,6 +601,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.cdnImportCss = (url) => {
 				$(document.head).append($(`<link href="${url}" rel="stylesheet">`));
 			};
+			this.id = str => md5(this.Par.Pid + str);
 		}
 
 		// heh
