@@ -309,15 +309,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
-		Render(com, fun) {
+		async Render(com, fun) {
 			let that = this;
-			async.each(this.Vlt.views, (pid, next)=> {
-				that.send({Cmd: 'Render'}, pid, () => {
-					next();
+			for(let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({Cmd: 'Render'}, pid, () => {
+						resolve();
+					});
 				});
-			}, function() {
-				fun(null, com);
-			});
+			}
+			fun(null, com);
 		}
 
 		GetType(com, fun) {
@@ -337,48 +338,49 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
-		DOMLoaded(com, fun) {
+		async DOMLoaded(com, fun) {
 			// debugger;
 			//console.log('DOMLoaded - ' + this.Vlt.type);
+			
 			let that = this;
-			async.eachSeries(this.Vlt.views,  (item, next)=> {
-				that.send({ Cmd: 'DOMLoaded' }, item, () => {
-					next();
+			for(let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({Cmd: 'DOMLoaded'}, pid, () => {
+						resolve();
+					});
 				});
-			}, () => {
-				fun(null, com);
-			});
+			}
+			fun(null, com);
 		}
 
-		Resize(com, fun) {
+		async Resize(com, fun) {
 			com.width = this.Vlt.div.width();
 			com.height = this.Vlt.div.height();
 			com.aspect = 1 / (this.Vlt.div.height() / this.Vlt.div.width());
-			var that = this;
-			async.each(this.Vlt.views,  (item, next)=>{
-				that.send({
-					Cmd: 'Resize'
-				}, item, (err, cmd) => {
-					if (err) debugger;
-					next();
+			let that = this;
+			for(let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({Cmd: 'Resize'}, pid, () => {
+						resolve();
+					});
 				});
-			}, () => {
-				fun(null, com);
-			});
+			}
+			fun(null, com);
 		}
 
 		ShowHierarchy(com, fun) {
+			
 			var that = this;
 			console.group(this.Vlt.rootID);
-		
-			async.forEach(this.Vlt.views,  (item, next)=>{
-				that.send({ Cmd: "ShowHierarchy" }, item, (err, cmd) => {
-					next();
+			for(let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({Cmd: 'ShowHierarchy'}, pid, () => {
+						resolve();
+					});
 				});
-			}, function () {
-				console.groupEnd(that.Vlt.rootID);
-				fun(null, com);
-			});
+			}
+			console.groupEnd(that.Vlt.rootID);
+			fun(null, com);
 		}
 
 		Drop(com, fun) {
