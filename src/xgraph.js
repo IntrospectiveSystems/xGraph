@@ -160,13 +160,13 @@ function startNexusProcess() {
 	const { spawn } = require('child_process');
 
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
+	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
@@ -189,7 +189,7 @@ async function ensureNode() {
 		await install();
 	}
 	// #else
-	console.error(`System ${system} is not yet supported`);
+	console.error(`Ensure Node is not yet supported on ${system}`);
 	// #endif
 }
 
@@ -254,7 +254,7 @@ function applySwitch(str, i) {
 	if ((i + 1) in process.argv) { // switch has a value
 		val = process.argv[i + 1];
 	}
-	pathOverrides[str.toLowerCase()] = val;
+	pathOverrides[str.toLowerCase()] = (val==null)? null:path.resolve(val);
 }
 
 
