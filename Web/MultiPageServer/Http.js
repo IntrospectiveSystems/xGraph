@@ -327,7 +327,7 @@
 	
 							(function(err, data) {
 								if(err) {
-									log.i(' ** ERR', err);
+									log.w(' ** ERR', err);
 									return;
 								}
 	
@@ -345,7 +345,7 @@
 								var str = JSON.stringify(cfg);
 	
 								socket.send(str);
-							})(...('Pages' in that.Par && path in that.Par.Pages ? [null, that.Par.Pages[path]] : [`${path} not in MultipageServer's Par.Pages`, null]));
+							})(...('RoutingTable' in that.Par && path in that.Par.RoutingTable ? [null, that.Par.RoutingTable[path]] : [`${path} not in MultipageServer's Par.RoutingTable`, null]));
 							// log.d(JSON.stringify(that.Par, null, 2));
 						}
 	

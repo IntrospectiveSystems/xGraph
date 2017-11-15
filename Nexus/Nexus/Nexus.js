@@ -23,6 +23,7 @@
 		deleteEntity,
 		saveEntity,
 		getFile,
+		GetModule,
 		loadDependency,
 		sendMessage
 	};
@@ -417,6 +418,7 @@
 		return {
 			Par,
 			Vlt,
+			getModule,
 			dispatch,
 			genModule,
 			genEntity,
@@ -434,6 +436,10 @@
 		 */
 		function require(string) {
 			return nxs.loadDependency(Par.Apex, Par.Pid, string);
+		}
+
+		function getModule(a, b) {
+			nxs.GetModule(a, b);
 		}
 
 		/**
@@ -534,6 +540,103 @@
 		function save(fun) {
 			nxs.saveEntity(Par.Apex, Par.Pid, fun);
 		}
+	}
+
+	function GetModule(modnam, fun) {
+		console.log('##GetModule', modnam);
+		// debugger;
+		var ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		var dir = ModName.replace('.', ':').replace(/\./g, '/');
+		var ModPath = genPath(dir);
+		if (ModName in ModCache) {
+			fun(null, ModCache[ModName]);
+			return;
+		}
+
+		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
+		//console.log("looking in dir", dir);
+		fs.lstat(cachedMod, function (err, stat) {
+			if (stat && !development) {
+				if (!stat.isDirectory()) {
+					fs.readFile(cachedMod, function (err, data) {
+						if (err) {
+							fun(err);
+							return;
+						}
+						ModCache[ModName] = JSON.parse(data.toString());
+						fun(null, ModCache[ModName]);
+						return;
+					});
+				}
+			} else {
+
+				//
+				//
+				//
+				//		Access from the Broker!!!!!
+				//
+				//
+				//
+
+				var mod = {};
+ 
+				fs.readdir(ModPath, function (err, files) {
+					if (err) {
+						console.log(' ** ERR:Module <' + ModPath + '? not available');
+						fun(err);
+						return;
+					}
+					var nfile = files.length;
+					var ifile = -1;
+					scan();
+
+					function scan() {
+						ifile++;
+						if (ifile >= nfile) {
+							mod.ModName = ModName;
+
+							if ('schema.json' in mod) {
+								var schema = JSON.parse(mod['schema.json']);
+								//console.log('schema', JSON.stringify(schema, null, 2));
+								if ('Apex' in schema) {
+									var apx = schema.Apex;
+									if ('$Setup' in apx)
+										mod.Setup = apx['$Setup'];
+									if ('$Start' in apx)
+										mod.Start = apx['$Start'];
+									if ('$Save' in apx)
+										mod.Save = apx['$Save'];
+								}
+								//debugger;
+							}
+
+							ModCache[ModName] = mod;
+							fun(null, ModCache[ModName]);
+							return;
+						}
+						var file = files[ifile];
+						var path = ModPath + '/' + file;
+						fs.lstat(path, function (err, stat) {
+							if (stat) {
+								if (!stat.isDirectory()) {
+									fs.readFile(path, function (err, data) {
+										if (err) {
+											fun(err);
+											return;
+										}
+										mod[file] = data.toString();
+										scan();
+										return;
+									});
+									return;
+								}
+							}
+							scan();
+						})
+					}
+				});
+			}
+		});
 	}
 
 	/**
