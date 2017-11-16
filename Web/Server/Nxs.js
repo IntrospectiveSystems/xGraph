@@ -652,6 +652,8 @@ __Nexus = (_ => {
 		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
 		SockIO.send(str);
 
+		let asdf='asdf';
+		
 		function done(entContext) {
 
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {

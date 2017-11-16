@@ -126,10 +126,8 @@
 						Params[key] = pathOverrides[key];
 					}
 				}
-				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-				CacheDir = Params.cache || Path.join(CWD, "cache");
 			}
-
+			
 			/**
 			 * Reads in the given config and fills in the Macros
 			 */
@@ -137,11 +135,13 @@
 				// Read in the provided config.json file
 				// File is passed in Params.Config or defaults to "config.json" in current working directory
 				let cfg = undefined;
-
+				
 				//set CWD
 				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
 				log.v(`CWD set to ${CWD}`);
-
+				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+				CacheDir = Params.cache || Path.join(CWD, "cache");
+				
 				try {
 					cfg = fs.readFileSync(Params.config || Path.join(CWD, 'config.json'));
 				} catch (e) {
