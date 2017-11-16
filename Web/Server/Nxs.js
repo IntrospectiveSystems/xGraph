@@ -30,7 +30,6 @@ __Nexus = (_ => {
 
 	var Initializers = {};
 	var CurrentModule;
-	let silent = false;
 
 	//
 	// Logging Functionality
@@ -57,7 +56,7 @@ __Nexus = (_ => {
 	};
 
 	async function boot(sockio, cfg) {
-		if (!silent) log.i('--Nxs/start');
+		log.i('--Nxs is booting up');
 
 		SockIO = sockio;
 		SockIO.removeListener('message');
@@ -72,7 +71,7 @@ __Nexus = (_ => {
 				// if(cmd.Cmd == 'Evoke') debugger;
 			}
 
-			if (!silent) log.v(' << Msg:' + cmd.Cmd);
+			log.v(' << Msg:' + cmd.Cmd);
 
 			//if the message is a reply pair it with its callback
 			if ('Passport' in cmd && cmd.Passport.Reply) {
@@ -133,7 +132,7 @@ __Nexus = (_ => {
 	//
 
 	async function setup(cfg) {
-		if (!silent) log.i('--Nxs/Genesis');
+		log.i('--Nxs Setting Up');
 
 		Root = {};
 		Root.Global = {};
@@ -237,6 +236,7 @@ __Nexus = (_ => {
 	}
 
 	async function genesis() {
+		log.i("Nxs Genesis");
 
 		generateModuleCatalog();
 
@@ -369,9 +369,7 @@ __Nexus = (_ => {
 							let str = modjson[file];
 							var json = JSON.parse(str);
 							var font = new THREE.Font(json);
-							if (!silent) console.log('font', font);
 							Fonts[key] = font;
-							func();
 						}
 					}
 				}
