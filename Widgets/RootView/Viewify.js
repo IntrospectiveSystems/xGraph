@@ -497,7 +497,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		async Destroy(com, fun) {
-			log.d(Object.keys(this));
 			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
 			if (this.Par.Destroying) return (console.log('This is a duplicate destroy, no action made.'), fun(null, com));
 			this.Par.Destroying = true;

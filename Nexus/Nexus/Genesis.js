@@ -126,6 +126,8 @@
 						Params[key] = pathOverrides[key];
 					}
 				}
+				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+				CacheDir = Params.cache || Path.join(CWD, "cache");
 			}
 
 			/**
@@ -190,8 +192,6 @@
 			 *  Remove the cache if it currently exists in the given directory
 			 */
 			function cleanCache() {
-				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-				CacheDir = Params.cache || Path.join(CWD, "cache");
 
 				// Remove the provided cache directory
 				if (fs.existsSync(CacheDir)) {

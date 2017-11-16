@@ -47,7 +47,7 @@ __Nexus = (_ => {
 			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
 			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
 			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
-			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow'),
+			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color: yellow;background-color:#242424;'),
 			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
 		};
 	}
@@ -92,13 +92,14 @@ __Nexus = (_ => {
 			// Try to dispatch on browser
 			var pid = cmd.Passport.To;
 			if (pid in EntCache) {
+				log.d("its in the entcache");
 				var ent = EntCache[pid];
 				if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
 					ent.dispatch(cmd, reply);
 				else
 					ent.dispatch(cmd, _ => _);
 			} else {
-				log.v(' ** ERR:Local', pid, 'not in Cache');
+				log.v(' ** ERR:', pid, 'not in Cache');
 			}
 			return;
 
@@ -605,7 +606,7 @@ __Nexus = (_ => {
 	 * @param {string=} com.Passport.From the Pid of the sending module
 	 * @callback fun 				the callback function to return to when finished
 	 */
-	function sendMessage(com, fun = _ => _) {
+	function sendMessage(com, fun) {
 		if (!('Passport' in com)) {
 			log.w(' ** ERR:Message has no Passport, ignored');
 			log.w('    ' + JSON.stringify(com));
@@ -630,30 +631,28 @@ __Nexus = (_ => {
 		let apx = com.Passport.Apex || pid;
 		let pidmsg = com.Passport.Pid;
 		if (pid in EntCache) {
-			done(null, EntCache[pid]);
+			done(EntCache[pid]);
 			return;
 		}
+
+		//we're dispatching to the server
 		if (fun) {
+			log.d(JSON.stringify(com, null, 2));
 			MsgPool[pidmsg] = fun;
 			MsgFifo.push(pidmsg);
 			if (MsgFifo.length > 100) {
 				var kill = MsgFifo.shift();
 				delete MsgPool[kill];
 			}
+			log.d(MsgFifo);
 		}
 
 		var str = JSON.stringify(com);
 		log.d(' >> Msg:' + com.Cmd);
-		if (!(silent)) log.v(str)
+		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
 		SockIO.send(str);
 
-		function done(err, entContext) {
-			if (err) {
-				log.w(' ** ERR:' + err);
-				log.w(JSON.stringify(com, null, 2));
-				fun(err, com);
-				return;
-			}
+		function done(entContext) {
 
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
@@ -667,6 +666,7 @@ __Nexus = (_ => {
 			}
 		}
 		function reply(err, q) {
+			log.d("REPLY: ", err, (typeof q == 'object')?q.CMD:q);
 			fun(err, q);
 		}
 	}
@@ -739,7 +739,7 @@ __Nexus = (_ => {
 		 * @param {string} com.Cmd	The actual message we wish to send
 		 * @callback fun 
 		 */
-		function dispatch(com, fun = _ => _) {
+		function dispatch(com, fun=_=>_) {
 			var disp = Imp.dispatch;
 			if (com.Cmd in disp) {
 				disp[com.Cmd].call(this, com, fun);
@@ -923,6 +923,8 @@ __Nexus = (_ => {
 			function start() {
 				if (!("Start" in mod)) {
 					fun(null, pidapx);
+					log.d("The pid apex is", pidapx);
+					
 					return;
 				}
 				var com = {};
@@ -931,6 +933,7 @@ __Nexus = (_ => {
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
+					log.d("The pid apex is", pidapx);
 					fun(null, pidapx);
 				});
 			}
