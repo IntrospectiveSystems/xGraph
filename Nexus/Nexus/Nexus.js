@@ -386,14 +386,12 @@
 			
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
-				return;
 			} else {
 				let err = ' ** ERR: Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
 				log.w(err);
 				log.w(JSON.stringify(com, null, 2));
 				fun(err, com);
-				return;
 			}
 		}
 		function reply(err, q) {
@@ -746,21 +744,10 @@
 		let par;
 		let ent;
 
-		// Check to see if Apex entity in this system
-		if (!(apx in ApexIndex)) {
-			fun('Not available');
-			return;
-		}
-
-		// If entity already cached, just return it
-		if (pid in EntCache) {
-			if (apx == EntCache[pid].Par.Apex) {
-				fun(null, EntCache[pid]);
-				return;
-			} else {
-				fun('Not available');
-				return;
-			}
+		// Check to see if pid is also an apex entity in this system
+		// if not then we assume that the pid is an entity inside of the sending Module
+		if (pid in ApexIndex){
+			apex = pid;
 		}
 
 		let folder = ApexIndex[apx];
