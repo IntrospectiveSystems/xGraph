@@ -16,15 +16,8 @@ __Nexus = (_ => {
 	var Scripts = {};
 	var Fonts = {};
 	var Css = [];
-
-	var PidTop;
-	var PidStart;
-	var CurrentModule;
-	var Initializers = {};
-
-	var ModuleCache = {};
-	var ZipCache = {};
-	var SymTab = {};
+	var MsgFifo = [];
+	var MsgPool = {};
 	var Nxs = {
 		genPid,
 		genEntity,
@@ -34,14 +27,10 @@ __Nexus = (_ => {
 		sendMessage,
 		getFont
 	};
-	var MsgFifo = [];
-	var MsgPool = {};
-	var that = this;
-	__Config = {};
-	__Config.TrackIO = false;
-	__Share = {};
-	let silent = false;
 
+	var Initializers = {};
+	var CurrentModule;
+	let silent = false;
 
 	//
 	// Logging Functionality
@@ -254,11 +243,7 @@ __Nexus = (_ => {
 
 		recursiveBuild();
 
-		log.d(`Recursive build done`);
-
 		await populate();
-
-		log.d(Object.keys(EntCache));
 
 
 
@@ -435,7 +420,7 @@ __Nexus = (_ => {
 				var inst = Config.Modules[instname];
 				log.v(instname + '\n', JSON.stringify(inst, null, 2));
 				var pidinst = Root.ApexList[instname];
-				await compileInstance(pidinst, inst);
+				await compileInstance(pidinst, inst, true);
 			}
 		}
 	}
@@ -512,7 +497,7 @@ __Nexus = (_ => {
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
 	 */
-	async function compileInstance(pidapx, inst) {
+	async function compileInstance(pidapx, inst, saveRoot) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
 		var modnam = inst.Module;
@@ -562,14 +547,13 @@ __Nexus = (_ => {
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
 				var val = ent[par];
-				if (entkey == "Apex") {
+				if (entkey == "Apex" && saveRoot) {
 					if (par == "$Setup") Root.Setup[ent.Pid] = val;
 					if (par == "$Start") Root.Start[ent.Pid] = val;
 				}
 				let asdf = symbol(val);
 				ent[par] = await asdf;
 			}
-
 			ents.push(ent);
 		}
 
@@ -659,8 +643,7 @@ __Nexus = (_ => {
 		}
 
 		var str = JSON.stringify(com);
-		if (__Config.TrackIO)
-			log.v(' >> Msg:' + com.Cmd);
+		log.d(' >> Msg:' + com.Cmd);
 		if (!(silent)) log.v(str)
 		SockIO.send(str);
 
@@ -745,7 +728,7 @@ __Nexus = (_ => {
 			nxs.getFile(Par.Module, filename, fun);
 		}
 
-		function getFont(fontName){
+		function getFont(fontName) {
 			log.v(`Entity - Getting font ${fontName} from ${Par.Module}`);
 			return nxs.getFont(fontName);
 		}
@@ -908,19 +891,19 @@ __Nexus = (_ => {
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
-		let that = this;
-
-		GetModule(inst.Module, function (err, mod) {
-			if (err) {
-				log.w(' ** ERR:GenModule err -', err);
+		(async () => {
+			if (!(inst.Module in ModCache)) {
+				let err = `Module ${inst.Module} does not exist in ModCache`;
 				fun(err);
 				return;
 			}
+			let mod = ModCache[inst.Module];
+
 			let modnam = inst.Module;
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
-			compileInstance(pidapx, inst);
-
+			Root.ApexList[pidapx] = pidapx;
+			await compileInstance(pidapx, inst, false);
 			setup();
 
 			function setup() {
@@ -951,6 +934,6 @@ __Nexus = (_ => {
 					fun(null, pidapx);
 				});
 			}
-		});
+		})();
 	}
 })();

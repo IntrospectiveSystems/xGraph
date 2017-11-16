@@ -383,7 +383,7 @@
 				fun(err, com);
 				return;
 			}
-
+			
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
 				return;
