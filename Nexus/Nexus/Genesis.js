@@ -318,7 +318,7 @@
 				for (let folder in ModCache) {
 					let mod = ModCache[folder];
 					let dir = CacheDir + '/' + folder;
-					fs.mkdirSync(dir);
+					try{fs.mkdirSync(dir);}catch(e){}
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
@@ -390,7 +390,7 @@
 					// The following is for backword compatibility only
 					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
 					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
-					fs.mkdirSync(dirinst);
+					try{fs.mkdirSync(dirinst);}catch(e){}
 					ents.forEach(function (ent) {
 						let path = dirinst + '/' + ent.Pid + '.json';
 						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
@@ -794,7 +794,7 @@
 
 				var strout = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				fs.mkdirSync(CacheDir);
+				try{fs.mkdirSync(CacheDir);}catch(e){}
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
 
 				//call npm install on a childprocess of node

@@ -652,8 +652,6 @@ __Nexus = (_ => {
 		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
 		SockIO.send(str);
 
-		let asdf='asdf';
-		
 		function done(entContext) {
 
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
@@ -668,8 +666,7 @@ __Nexus = (_ => {
 			}
 		}
 		function reply(err, q) {
-			log.d("REPLY: ", err, (typeof q == 'object')?q.CMD:q);
-			fun(err, q);
+			if (fun) fun(err, q);
 		}
 	}
 
@@ -894,8 +891,11 @@ __Nexus = (_ => {
 	 */
 	function genModule(inst, fun = _ => _) {
 		(async () => {
+			inst.Module = inst.Module.replace(/\//g, '.').replace(/:/g, '.');
+			
 			if (!(inst.Module in ModCache)) {
 				let err = `Module ${inst.Module} does not exist in ModCache`;
+				log.e(err);
 				fun(err);
 				return;
 			}
@@ -926,7 +926,6 @@ __Nexus = (_ => {
 				if (!("Start" in mod)) {
 					fun(null, pidapx);
 					log.d("The pid apex is", pidapx);
-					
 					return;
 				}
 				var com = {};
