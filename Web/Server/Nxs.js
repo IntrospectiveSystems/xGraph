@@ -136,18 +136,11 @@ __Nexus = (_ => {
 	}
 
 
-
-
-
-
-
-
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Only Function Definitions Beyond This Point
 	//
 	//
-
 
 	async function setup(cfg) {
 		if (!silent) log.i('--Nxs/Genesis');
@@ -510,7 +503,6 @@ __Nexus = (_ => {
 		log.v('--Nxs/Run');
 	}
 
-
 	/**
 	 * Generate array of entities from module
 	 * Module must be in cache 
@@ -617,8 +609,6 @@ __Nexus = (_ => {
 			return val;
 		}
 	}
-
-
 
 	/**
 	 * Send a message from an entity to an Apex entity.
@@ -839,10 +829,7 @@ __Nexus = (_ => {
 				com.Passport.Pid = genPid();
 			nxs.sendMessage(com, fun);
 		}
-
 	}
-
-
 
 	/**
 	 * Create an Entity from the given par in the module defined by apx
@@ -912,305 +899,58 @@ __Nexus = (_ => {
 		return pid;
 	}
 
-	//-------------------------------------------------genModule
-	// This is the version used to install modules
-	// after startup, such as web dashboards and such.
-	// It provides for safe setup and start which is
-	// handled by Nxs for modules instantiated initially.
-	function genModule(mod, fun) {
-		var pidapx;
-		Initializers = {};
-		addModule(mod, setup);
+	/**
+	 * Starts an instance of a module that exists in the cache.
+	 * After generating, the instance Apex receives a setup and start command synchronously
+	 * @param {Object} inst 		Definition of the instance to be spun up
+	 * @param {string} inst.Module 	The name of te module to spin up
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par	
+	 * @callback fun 				(err, pid of module apex)
+	 */
+	function genModule(inst, fun = _ => _) {
+		let that = this;
 
-		function setup(err, pid) {
-			//	log.v('pid', pid);
-			//	log.v('Initializers', Initializers);
-			pidapx = pid;
+		GetModule(inst.Module, function (err, mod) {
 			if (err) {
-				if (!silent) log.e(' ** genModule:' + err);
+				log.w(' ** ERR:GenModule err -', err);
 				fun(err);
 				return;
 			}
-			if ('Setup' in Initializers) {
-				var q = {};
-				q.Cmd = Initializers.Setup;
-				q.Passport = {};
-				q.Passport.To = pidapx;
-				q.Passport.Pid = genPid();
-				sendMessage(q, start);
-			} else {
-				start();
-			}
-		}
-		function start(err, r) {
-			if (err) {
-				if (!silent) log.e(' ** genModule:' + err);
-				fun(err);
-				return;
-			}
-			if ('Start' in Initializers) {
-				var q = {};
-				q.Cmd = Initializers.Start;
-				q.Passport = {};
-				q.Passport.To = pidapx;
-				q.Passport.Pid = genPid();
-				sendMessage(q, pau);
-			} else {
-				pau();
-			}
-		}
-		function pau(err, r) {
-			if (err) {
-				if (!silent) log.e(' ** genModule:' + err);
-			}
-			fun(err, pidapx);
-		}
-	}
+			let modnam = inst.Module;
+			let pidapx = genPid();
+			ApexIndex[pidapx] = mod.ModName;
+			compileInstance(pidapx, inst);
 
-	//-------------------------------------------------addModule
-	function addModule(mod, fun) {
-		if (!(silent)) log.v('..addModule');
-		if (!(silent)) log.v(JSON.stringify(mod, null, 2));
-		var ents = {};
-		var lbls = {};
-		var q = {};
-		let modjson = null
-		q.Cmd = 'GetModule';
-		q.Module = mod.Module;
-		q.Passport = {};
-		q.Passport.To = PidServer;
-		q.Passport.Pid = genPid();
-		if (!(silent)) log.v(q);
-		sendMessage(q, addmod);
+			setup();
 
-		function addmod(err, r) {
-			//log.v('..addmod');
-			var module = r.Module;
-			var zipmod = new JSZip();
-			zipmod.loadAsync(r.Zip, { base64: true }).then(function (zip) {
-				var dir = zipmod.file(/.*./);
+			function setup() {
+				if (!("Setup" in mod)) {
+					start();
+					return;
+				}
+				var com = {};
+				com.Cmd = mod["Setup"];
+				com.Passport = {};
+				com.Passport.To = pidapx;
+				com.Passport.Pid = genPid();
+				sendMessage(com, start);
+			}
 
-				zip.file('module.json').async('string').then(function (str) {
-					modjson = JSON.parse(str);
-					ModuleCache[mod.Module] = modjson;
-					var keys = Object.keys(mod);
-					//debugger;
-					styles();
+			// Start
+			function start() {
+				if (!("Start" in mod)) {
+					fun(null, pidapx);
+					return;
+				}
+				var com = {};
+				com.Cmd = mod["Start"];
+				com.Passport = {};
+				com.Passport.To = pidapx;
+				com.Passport.Pid = genPid();
+				sendMessage(com, () => {
+					fun(null, pidapx);
 				});
-
-
-				function styles() {
-					if ('styles.json' in modjson) {
-						var obj = JSON.parse(modjson["styles.json"]);
-						var keys = Object.keys(obj);
-						//debugger;
-						async.eachSeries(keys, function (key, func) {
-							//debugger;
-
-							//this needs to be reworked duplicate names are not loaded
-							// if(Css.indexOf(key) >= 0) {
-							// 	func();
-							// 	return;
-							// }
-
-							Css.push(key);
-							var file = obj[key];
-
-							let css = modjson[file];
-							//log.v("Css is ", css);
-							var tag = document.createElement('style');
-							tag.setAttribute("data-css-url", key);
-							tag.setAttribute("type", 'text/css');
-							tag.innerHTML = css;
-							document.head.appendChild(tag);
-							// var txt = document.createTextNode(css);
-							// tag.appendChild(txt);
-							// document.head.appendChild(tag);
-
-							/*	var tag = document.createElement('script');
-								tag.setAttribute("data-script-url", key);
-								tag.setAttribute("type", 'text/javascript');
-								var txt = document.createTextNode(scr);
-								tag.appendChild(txt);
-								document.head.appendChild(tag); */
-							func();
-						}, scripts);
-					} else {
-						scripts();
-					}
-				}
-
-				function scripts() {
-					//log.v('..scripts');
-					if ('scripts.json' in modjson) {
-						var obj = JSON.parse(modjson["scripts.json"]);
-						var keys = Object.keys(obj);
-						async.eachSeries(keys, function (key, func) {
-							if (Scripts.indexOf(key) >= 0) {
-								func();
-								return;
-							}
-							Scripts.push(key);
-							var file = obj[key];
-							let scr = modjson[file];
-							//log.v("loading module from ", module, scr);
-
-							// var tag = document.createElement('script');
-							// tag.setAttribute("data-script-url", key);
-							// tag.setAttribute("type", 'text/javascript');
-							// var txt = document.createTextNode(scr);
-							// tag.appendChild(txt);
-							// document.head.appendChild(tag);
-							eval(scr);
-							log.v("Evaled scr", file);
-							func();
-						}, fonts);
-					} else {
-						fonts();
-					}
-				}
-
-				function fonts() {
-					//	log.v('..fonts');
-					if ('fonts.json' in modjson) {
-						var obj = JSON.parse(modjson["fonts.json"]);
-						var keys = Object.keys(obj);
-						async.eachSeries(keys, function (key, func) {
-							if (key in Fonts) {
-								func();
-								return;
-							}
-							var file = obj[key];
-							let str = modjson[file];
-							var json = JSON.parse(str);
-							var font = new THREE.Font(json);
-							if (!silent) log.v('font', font);
-							Fonts[key] = font;
-							func();
-						}, schema);
-					} else {
-						schema();
-					}
-				}
-
-				function schema() {
-					//log.v('..schema');
-					let str = JSON.parse(modjson["schema.json"]);
-					compile(str);
-				}
-			});
-
-			function compile(str) {
-				//	log.v('..compile');
-				var pidapx;
-				var schema = str;
-				ZipCache[module] = zipmod;
-				//debugger;
-				for (let lbl in schema) {
-					var ent = schema[lbl];
-					if ('Par' in mod) {
-						for (key in mod.Par) {
-							ent[key] = mod.Par[key];
-						}
-					}
-					ent.Module = mod.Module;
-					//Note: CurrentModule is only used in initial processing
-					//      of browser.json
-					if (lbl == 'Apex') {
-						if (CurrentModule)
-							ent.Pid = Root.ApexList[CurrentModule];
-						else
-							ent.Pid = genPid();
-						pidapx = ent.Pid;
-						//	log.v('Apex', ent);
-					} else {
-						ent.Pid = genPid();
-					}
-					lbls[lbl] = ent.Pid;
-					ents[lbl] = ent;
-				}
-				var keys = Object.keys(ents);
-				var nkey = keys.length;
-				var ikey = 0;
-				nextent();
-
-				function nextent() {
-					if (ikey >= nkey) {
-						fun(null, pidapx);
-						return;
-					}
-					var key = keys[ikey];
-					var ent = ents[key];
-
-					//The below seems to be duplicate code from 484-488
-
-					// if('Par' in mod) {
-					// 	for(key in mod.Par) {
-					// 		ent[key] = mod.Par[key];
-					// 	}
-					// }
-					ikey++;
-					for (let key in ent) {
-						val = ent[key];
-						if (key == '$Setup') {
-							//it looks like only one setup will be called. should be an array..
-							Initializers.Setup = ent[key];
-							Root.Setup[ent.Pid.substr(24)] = ent[key];
-							continue;
-						}
-						if (key == '$Start') {
-							//it looks like only one start will be called. should be an array..
-							Initializers.Start = ent[key];
-							Root.Start[ent.Pid.substr(24)] = ent[key];
-							continue;
-						}
-						function recurseSymbol(obj) {
-
-							if (typeof obj == 'string')
-								return symbol(obj);
-							if (typeof obj == 'object') {
-								for (let sym in obj) {
-									obj[sym] = recurseSymbol(obj[sym]);
-								}
-							}
-							return obj;
-						}
-						ent[key] = recurseSymbol(ent[key]);
-					}
-					var modkey = ent.Module + '/' + ent.Entity;
-
-					//seems to be duplicate from line 481
-
-					//ZipCache[mod] = zipmod;
-					let str = modjson[ent.Entity]
-					var mod = eval(str);
-					ModCache[modkey] = mod;
-					EntCache[ent.Pid] = new Entity(Nxs, mod, ent);
-					nextent();
-				}
-
-				function symbol(str) {
-					var esc = str.charAt(0);
-					if (esc == '#') {
-						var lbl = str.substr(1);
-						if (!(lbl in lbls)) {
-							var err = ' ** Symbol ' + lbl + ' not defined';
-							throw err;
-						}
-						return lbls[lbl];
-					}
-					if (esc == '$') {
-						var sym = str.substr(1);
-						if (!(sym in Root.ApexList)) {
-							var err = ' ** Symbol ' + sym + ' not defined';
-							throw err;
-						}
-						return Root.ApexList[sym];
-					}
-					return str;
-				}
 			}
-		}
+		});
 	}
-
 })();
