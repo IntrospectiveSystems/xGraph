@@ -72,6 +72,7 @@
 		}
 
 		function genmod() {
+			log.d(JSON.stringify(mod, null, 2));
 			that.genModule(mod, save);
 		}
 

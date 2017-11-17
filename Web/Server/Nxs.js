@@ -495,6 +495,7 @@ __Nexus = (_ => {
 	 * @param {object} inst 
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
+	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
@@ -550,8 +551,7 @@ __Nexus = (_ => {
 					if (par == "$Setup") Root.Setup[ent.Pid] = val;
 					if (par == "$Start") Root.Start[ent.Pid] = val;
 				}
-				let asdf = symbol(val);
-				ent[par] = await asdf;
+				ent[par] = await symbol(val);
 			}
 			ents.push(ent);
 		}
@@ -899,7 +899,6 @@ __Nexus = (_ => {
 			}
 			let mod = ModCache[inst.Module];
 
-			let modnam = inst.Module;
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
 			Root.ApexList[pidapx] = pidapx;
@@ -923,7 +922,7 @@ __Nexus = (_ => {
 			function start() {
 				if (!("Start" in mod)) {
 					fun(null, pidapx);
-					log.d("The pid apex is", pidapx);
+					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
@@ -932,7 +931,7 @@ __Nexus = (_ => {
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.d("The pid apex is", pidapx);
+					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}

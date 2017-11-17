@@ -161,9 +161,11 @@ async function compile() {
 
 function startNexusProcess() {
 	const { spawn } = require('child_process');
+	let processPath = pathOverrides["cwd"]||path.resolve('./');
+	console.log("Process PAth is ", processPath);
 
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], {cwd: processPath, env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef MAC
 	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
