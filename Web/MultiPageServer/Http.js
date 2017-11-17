@@ -197,6 +197,27 @@
 		let finish = () => {
 			var Par = this.Par;
 			var Vlt = this.Vlt;
+
+			//generate the routing table, pre combining pages within Vlt
+
+			{
+				if(!('RoutingTable' in this.Par && 'Config' in this.Par) ) {
+					log.w('No routing Table in Server Par, not starting server...');
+					try {
+						server.close();
+					} catch(e) {
+						log.e(e);
+					}
+				}
+
+				for(let key in this.Par.RoutingTable) {
+					if(key in this.Vlt) {
+						log.w(`duplicate key in routing table <${key.toLowerCase()}>`)
+						continue;
+					}
+					this.Vlt[key.toLowerCase()] = this.Par[key];
+				}
+			}
 			
 			webSocket(server);
 			(function (err, data) {
@@ -222,7 +243,7 @@
 			}
 	
 			function getnxs() {
-				that.getFile('Nxs.js', function(err, data) {					
+				that.getFile('Nxs.js', function(err, data) {
 					if(err) {
 						log.i(' ** ERR:Cannot read Nxs file');
 						return;
@@ -310,43 +331,14 @@
 							var str = JSON.stringify([err, com]);
 							socket.send(str);
 						}
-	
+						
+						
 						function getConfig() {
-							//debugger;
-							var path = com.Path;
-	
-	
-							// var cfg = Vlt.Browser;
-							let cfg = {};
-							for(let key in Vlt.Browser) {
-								cfg[key] = Vlt.Browser[key];
-							}
-							cfg = Vlt.Browser;
-							
-							// socket.send(str);
-	
-							(function(err, data) {
-								if(err) {
-									log.w(' ** ERR', err);
-									return;
-								}
-	
-								cfg.Pid24 = pidsock;
-								cfg.PidServer = Par.Pid;
-								cfg.ApexList = Par.ApexList||{};
-								
+							log.i(com.Path);
 
-								let page = JSON.parse(data.toString('utf8'));
-	
-								for(let key in page.Modules) {
-									cfg.Modules[key] = page.Modules[key];
-								}
-	
-								var str = JSON.stringify(cfg);
-	
-								socket.send(str);
-							})(...('RoutingTable' in that.Par && path in that.Par.RoutingTable ? [null, that.Par.RoutingTable[path]] : [`${path} not in MultipageServer's Par.RoutingTable`, null]));
-							// log.d(JSON.stringify(that.Par, null, 2));
+
+
+							socket.send("lolno");
 						}
 	
 						//.....................................getfile

@@ -700,7 +700,7 @@
 							try {
 								let path;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-								if (val[0] == '/')
+								if (Path.isAbsolute(val))
 									path = val;
 								else
 									path = Path.join(Path.resolve(systemPath), val);
@@ -716,7 +716,7 @@
 							try {
 								let dir;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-								if (val[0] == '/')
+								if (Path.isAbsolute(val))
 									dir = val;
 								else
 									dir = Path.join(Path.resolve(systemPath), val);
@@ -749,7 +749,7 @@
 							try {
 								let path, config;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-								if (val[0] == '/')
+								if (Path.isAbsolute(val))
 									path = val;
 								else
 									path = Path.join(Path.resolve(systemPath), val);
@@ -894,7 +894,7 @@
 			var parts;
 			var file = filein;
 
-			if (file.charAt(0) == '/')
+			if (Path.isAbsolute(file))
 				return file;
 
 			if (file.charAt(0) == '{') { // Macro
