@@ -2,43 +2,47 @@
 // debugger;
 
 
-let debug = ((new URL(location.href)).searchParams.get('debug'))!=null
-if(debug) console.warn('Debug is turned on!!');
+let debug = ((new URL(location.href)).searchParams.get('debug')) != null
+if (debug) console.warn('Debug is turned on!!');
 
 // minified md5 implemetation
-window.md5 = function(){
+window.md5 = function () {
 	var k = [], i = 0;
-	for(; i < 64; ) k[i] = 0|(Math.abs(Math.sin(++i)) * 4294967296);
-	function calcMD5(str){ var b, c, d, j, x = [], str2 = unescape(encodeURI(str)),
-	a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
-	for(; i <= a; ) x[i >> 2] |= (str2.charCodeAt(i)||128) << 8 * (i++ % 4);
-	x[str = (a + 8 >> 6) * 16 + 14] = a * 8; i = 0; for(; i < str; i += 16){
-	a = h; j = 0; for(; j < 64; ) a = [ d = a[3], ((b = a[1]|0) + ((d = ((a[0] +
-	[b & (c = a[2]) | ~b&d,d & b | ~d & c,b ^ c ^ d,c ^ (b | ~d)][a = j >> 4])
-	+ (k[j] + (x[[j, 5 * j + 1, 3 * j + 5, 7 * j][a] % 16 + i]|0)))) << (a = [
-	7, 12, 17, 22, 5,  9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
-	]) | d >>> 32 - a)), b, c]; for(j = 4; j; ) h[--j] = h[j] + a[j]; } str = '';
-	for(; j < 32; ) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
-return str;} return calcMD5; }();
+	for (; i < 64;) k[i] = 0 | (Math.abs(Math.sin(++i)) * 4294967296);
+	function calcMD5(str) {
+		var b, c, d, j, x = [], str2 = unescape(encodeURI(str)),
+		a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
+		for (; i <= a;) x[i >> 2] |= (str2.charCodeAt(i) || 128) << 8 * (i++ % 4);
+		x[str = (a + 8 >> 6) * 16 + 14] = a * 8; i = 0; for (; i < str; i += 16) {
+			a = h; j = 0; for (; j < 64;) a = [d = a[3], ((b = a[1] | 0) + ((d = ((a[0] +
+				[b & (c = a[2]) | ~b & d, d & b | ~d & c, b ^ c ^ d, c ^ (b | ~d)][a = j >> 4])
+				+ (k[j] + (x[[j, 5 * j + 1, 3 * j + 5, 7 * j][a] % 16 + i] | 0)))) << (a = [
+					7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
+				]) | d >>> 32 - a)), b, c]; for (j = 4; j;) h[--j] = h[j] + a[j];
+		} str = '';
+		for (; j < 32;) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
+		return str;
+	} return calcMD5;
+}();
 
-function hslToRgb([h, s, l]){
+function hslToRgb([h, s, l]) {
 	var r, g, b;
-	if(s == 0){
+	if (s == 0) {
 		r = g = b = l; // achromatic
-	}else{
-		var hue2rgb = function hue2rgb(p, q, t){
-			if(t < 0) t += 1;
-			if(t > 1) t -= 1;
-			if(t < 1/6) return p + (q - p) * 6 * t;
-			if(t < 1/2) return q;
-			if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+	} else {
+		var hue2rgb = function hue2rgb(p, q, t) {
+			if (t < 0) t += 1;
+			if (t > 1) t -= 1;
+			if (t < 1 / 6) return p + (q - p) * 6 * t;
+			if (t < 1 / 2) return q;
+			if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
 			return p;
 		}
 		var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
 		var p = 2 * l - q;
-		r = hue2rgb(p, q, h + 1/3);
+		r = hue2rgb(p, q, h + 1 / 3);
 		g = hue2rgb(p, q, h);
-		b = hue2rgb(p, q, h - 1/3);
+		b = hue2rgb(p, q, h - 1 / 3);
 	}
 	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
@@ -118,33 +122,33 @@ $.fn.extend({
 });
 
 class ViewNotInitializedError extends Error {
-	
+
 }
 
 //Viewify
 if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	class SemVer {
 		constructor(str) {
-			if(!str) {
+			if (!str) {
 				console.warn('View version not specified, assuming 3.0 for compatibility.');
 				str = '3.0.0';
 			}
 			let parts = str.split('.');
 			let version = [];
-			if(parts.length > 0 && parts.length < 4);
-			for(let i = 0; i < parts.length; i ++) {
+			if (parts.length > 0 && parts.length < 4);
+			for (let i = 0; i < parts.length; i++) {
 				let thing = parseInt(parts[i]);
-				if(thing === thing) {
+				if (thing === thing) {
 					version.push(thing);
 				}
 			}
-			while(version.length < 3) {
+			while (version.length < 3) {
 				version.push(0);
 			}
 
 			[this.major, this.minor, this.patch] = version;
 			// debugger;
-			
+
 		}
 
 		valueOf() {
@@ -171,13 +175,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root = DIV(vlt.rootID);
 			vlt.root.attr('viewPid', this.Par.Pid);
 			vlt.styletag = STYLE();
-			
+
 			vlt.root.css('height', '100%');
 			vlt.root.css('display', 'block');
 			vlt.root.css('box-sizing', 'border-box');
 			vlt.root.css('overflow', 'hidden');
 			// vlt.root.css('padding', '2px');
-			
+
 			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}" 
 				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `Z${this.Par.Pid}`)}"
 				style="
@@ -187,7 +191,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				box-sizing: border-box;
 				overflow: hidden;
 			"></div>`);
-			
+
 			// debugger;
 
 			// vlt.div.css('padding', '2px');
@@ -202,13 +206,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			// debugger;
 
 			console.time('View');
-			
+
 			fun(null, com);
 		}
 
 		GetViewRoot(com, fun) {
 			// debugger;
-			if(!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before its setup!`);
+			if (!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before its setup!`);
 			com.Div = this.Vlt.root;
 			// debugger;
 			fun(new ViewNotInitializedError(), com);
@@ -285,18 +289,18 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		async ChildDestroyed(com, fun) {
 			this.Vlt.views.splice(this.Vlt.views.indexOf(com.Pid), 1);
 			let views = this.Vlt.views.slice(0);
-			
+
 			this.Vlt.viewDivs = [];
-			for(let pid of views)
-				await this.ascend('AddView', {View: pid}, this.Par.Pid);
-			
-			
+			for (let pid of views)
+				await this.ascend('AddView', { View: pid }, this.Par.Pid);
+
+
 			await this.ascend('Render', {}, this.Par.Pid);
 
 			fun(null, com);
-			
+
 		}
-		
+
 		/// com.View = PID of view
 		AddView(com, fun) {
 			let that = this;
@@ -309,15 +313,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
-		Render(com, fun) {
+		async Render(com, fun) {
 			let that = this;
-			async.each(this.Vlt.views, (pid, next)=> {
-				that.send({Cmd: 'Render'}, pid, () => {
-					next();
+			for (let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({ Cmd: 'Render' }, pid, () => {
+						resolve();
+					});
 				});
-			}, function() {
-				fun(null, com);
-			});
+			}
+			fun(null, com);
 		}
 
 		GetType(com, fun) {
@@ -337,48 +342,49 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
-		DOMLoaded(com, fun) {
+		async DOMLoaded(com, fun) {
 			// debugger;
 			//console.log('DOMLoaded - ' + this.Vlt.type);
+
 			let that = this;
-			async.eachSeries(this.Vlt.views,  (item, next)=> {
-				that.send({ Cmd: 'DOMLoaded' }, item, () => {
-					next();
+			for (let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({ Cmd: 'DOMLoaded' }, pid, () => {
+						resolve();
+					});
 				});
-			}, () => {
-				fun(null, com);
-			});
+			}
+			fun(null, com);
 		}
 
-		Resize(com, fun) {
+		async Resize(com, fun) {
 			com.width = this.Vlt.div.width();
 			com.height = this.Vlt.div.height();
 			com.aspect = 1 / (this.Vlt.div.height() / this.Vlt.div.width());
-			var that = this;
-			async.each(this.Vlt.views,  (item, next)=>{
-				that.send({
-					Cmd: 'Resize'
-				}, item, (err, cmd) => {
-					if (err) debugger;
-					next();
+			let that = this;
+			for (let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({ Cmd: 'Resize' }, pid, () => {
+						resolve();
+					});
 				});
-			}, () => {
-				fun(null, com);
-			});
+			}
+			fun(null, com);
 		}
 
-		ShowHierarchy(com, fun) {
+		async ShowHierarchy(com, fun) {
+
 			var that = this;
 			console.group(this.Vlt.rootID);
-		
-			async.forEach(this.Vlt.views,  (item, next)=>{
-				that.send({ Cmd: "ShowHierarchy" }, item, (err, cmd) => {
-					next();
+			for (let pid of this.Vlt.views) {
+				await new Promise((resolve, reject) => {
+					that.send({ Cmd: 'ShowHierarchy' }, pid, () => {
+						resolve();
+					});
 				});
-			}, function () {
-				console.groupEnd(that.Vlt.rootID);
-				fun(null, com);
-			});
+			}
+			console.groupEnd(that.Vlt.rootID);
+			fun(null, com);
 		}
 
 		Drop(com, fun) {
@@ -389,13 +395,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		AttachDragListener(com, fun) {
 			let that = this;
 			let root = com.To || (console.log('com.To: <Native HTMLElement> is required!'));
-			if(!com.To) return fun('com.To: <Native HTMLElement> is required!', com);
+			if (!com.To) return fun('com.To: <Native HTMLElement> is required!', com);
 			let data = com.Data || {};
 			let datatype = com.Datatype || "HTMLElement";
 			// debugger;
 			$(root).attr('draggable', 'true');
 			let createDragDom;
-			if(version > new SemVer('3.1')) createDragDom = com.CreateDragDom || null;
+			if (version > new SemVer('3.1')) createDragDom = com.CreateDragDom || null;
 			else createDragDom = com.CreateDragDom || function () {
 				div = $(document.createElement('div'));
 				div.css('width', '200px');
@@ -407,7 +413,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let div;
 			root.addEventListener('dragstart', function (evt) {
 				// debugger;
-				if(createDragDom) {
+				if (createDragDom) {
 					console.log(evt.dataTransfer.setDragImage(emptyImage(), 0, 0));
 					div = createDragDom();
 
@@ -423,11 +429,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 			root.addEventListener('drag', function (evt) {
 				// console.log("DRAG!", evt.pageX, evt.pageY);
-				if(evt.pageX == 0 && evt.pageY == 0) {
+				if (evt.pageX == 0 && evt.pageY == 0) {
 					// console.log('RIDICULOUS');
 					return;
 				}
-				if(div) {
+				if (div) {
 					let pivotX = (div.width() / 2);
 					let pivotY = 20;
 					div.css('top', (evt.pageY + pivotY) + 'px');
@@ -435,14 +441,14 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 			});
 			root.addEventListener('dragend', function (evt) {
-				if(div)
+				if (div)
 					div.remove();
 				// console.log('LOOKING FOR ');
 
 				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
-				if(version > new SemVer('3.1')) {
+				if (version > new SemVer('3.1')) {
 					// console.log('new thing');
-					while(elem.hasClass('dropArea') == null) {
+					while (elem.hasClass('dropArea') == null) {
 						elem = elem.parent();
 					}
 
@@ -481,7 +487,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 						DivY: evt.pageY - elem.position().top
 					}, viewpid, () => { });
 				}
-				
+
 
 
 			});
@@ -492,9 +498,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		async Destroy(com, fun) {
 			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
-			if(this.Par.Destroying) return (console.log('This is a duplicate destroy, no action made.'), fun(null, com));
+			if (this.Par.Destroying) return (console.log('This is a duplicate destroy, no action made.'), fun(null, com));
 			this.Par.Destroying = true;
-			for(let item of this.Vlt.views)
+			for (let item of this.Vlt.views)
 				await this.ascend('Destroy', {}, item);
 			await this.ascend('Cleanup');
 			this.deleteEntity((err) => fun(null, com));
@@ -503,23 +509,23 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		Cleanup(com, fun) {
 			// debugger;
 			console.log("SUPER CLEANUP");
-			if('DestroyListeners' in this.Par && version >= new SemVer('3.3'))
-				for(let pid of this.Par.DestroyListeners)
-					this.send({Cmd: 'ChildDestroyed', Pid: this.Par.Pid}, pid, _=>_);
+			if ('DestroyListeners' in this.Par && version >= new SemVer('3.3'))
+				for (let pid of this.Par.DestroyListeners)
+					this.send({ Cmd: 'ChildDestroyed', Pid: this.Par.Pid }, pid, _ => _);
 			this.Vlt.root.remove();
 			fun(null, com);
 		}
 
 		RegisterDestroyListener(com, fun) {
 			let pid = com.Passport.From;
-			if('DestroyListeners' in this.Par) this.Par.DestroyListeners.push(pid);
+			if ('DestroyListeners' in this.Par) this.Par.DestroyListeners.push(pid);
 			else this.Par.DestroyListeners = [pid];
 			fun(null, com);
 		}
 
 		PrepareBuffer(com, fun) {
-			if(!('onScreenBuffer' in this.Vlt) || this.Vlt.onScreenBuffer == undefined) this.Vlt.onScreenBuffer = this.Vlt.div;
-			
+			if (!('onScreenBuffer' in this.Vlt) || this.Vlt.onScreenBuffer == undefined) this.Vlt.onScreenBuffer = this.Vlt.div;
+
 			//either way, we should reset the div to our last saved on screen buffer
 			this.Vlt.div = this.Vlt.buffer.onScreenBuffer.clone();
 		}
@@ -532,30 +538,33 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	function injections() {
 		let that = this;
 
+		// heh
+		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
+
 		// this.super
 		// this.ascend
-		if(version >= new SemVer('3.0')) {
+		if (version >= new SemVer('3.0')) {
 			this.super = function (com, fun) {
 				if (com.Cmd in View.prototype) {
 					View.prototype[com.Cmd].call(this, com, fun);
-				}else {
+				} else {
 					fun('Command <' + com.Cmd + '> not in base class', com);
 				}
 			};
 
 			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
-				this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => {
-					if(err) reject(err);
+				this.send(Object.assign({ Cmd: name }, opts), pid, (err, cmd) => {
+					if (err) reject(err);
 					else resolve(cmd);
 				});
 			});
 		} else return;
 
 		// this.ascend with [err, com] rejection
-		if(version >= new SemVer('3.3')) {
+		if (version >= new SemVer('3.3')) {
 			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
-				this.send(Object.assign({Cmd: name}, opts), pid, (err, cmd) => {
-					if(err) reject([err, cmd]);
+				this.send(Object.assign({ Cmd: name }, opts), pid, (err, cmd) => {
+					if (err) reject([err, cmd]);
 					else resolve(cmd);
 				});
 			});
@@ -566,18 +575,18 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		// this.genmoduleasync
 		// this.cdnImportCss
 		// this.this.id
-		if(version >= new SemVer('3.4')) {
+		if (version >= new SemVer('3.4')) {
 			this.asuper = function (com) {
 				return new Promise((resolve, reject) => {
 					this.super(com, (err, cmd) => {
-						if(err) reject([err, cmd])
+						if (err) reject([err, cmd])
 						else resolve(cmd);
 					});
 				});
 			};
 			this.genModuleAsync = (modDef) => new Promise((resolve, reject) => {
 				this.genModule(modDef, (err, apx) => {
-					if(err) reject(err);
+					if (err) reject(err);
 					else resolve(apx);
 				});
 			});
@@ -585,7 +594,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				this.send({
 					Cmd: 'Evoke'
 				}, pid, async (err, cmd) => {
-					if(cmd.Type == 'View') {
+					if (cmd.Type == 'View') {
 						let newPar = {
 							View: cmd.View,
 							Par: cmd.Par || {},
@@ -603,48 +612,45 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			};
 			this.id = str => md5(this.Par.Pid + str);
 		}
-
-		// heh
-		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
 	}
 
 	function Command(com, fun) {
 		// console.log(' >> ', com.Cmd);
-		fun = fun || (()=>{});
+		fun = fun || (() => { });
 		if (com.Cmd == 'Setup' || !('super' in this)) {
 			injections.call(this);
 		}
 
 		let timeTag, color, id;
-		if(debug) {
+		if (debug) {
 			timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
 			color = md5(timeTag).substr(0, 6);
 			id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
 		}
 
 
-		if(debug) console.group(id);
-		if(debug) console.log(`%c${timeTag} ${com.Cmd}`,
-		`color: #${color};
+		if (debug) console.group(id);
+		if (debug) console.log(`%c${timeTag} ${com.Cmd}`,
+			`color: #${color};
 		text-shadow: rgba(255, 255, 255, .4) 0px 0px 5px;
 		padding: 2px 6px;`);
 
 		if (com.Cmd in child) {
 			// console.time(timeTag);
 			child[com.Cmd].call(this, com, () => {
-				
-				if(debug) console.groupEnd(id);
+
+				if (debug) console.groupEnd(id);
 				fun(null, com);
 			});
 		} else if (com.Cmd in View.prototype) {
 			View.prototype[com.Cmd].call(this, com, () => {
-				
-				if(debug) console.groupEnd(id);
+
+				if (debug) console.groupEnd(id);
 				fun(null, com);
 			});
 		} else {
 			console.warn('Command <' + com.Cmd + '> not Found');
-			if(debug) console.groupEnd(id);
+			if (debug) console.groupEnd(id);
 			fun('Command <' + com.Cmd + '> not Found', com);
 		}
 	}

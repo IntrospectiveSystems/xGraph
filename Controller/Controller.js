@@ -14,6 +14,8 @@
 		Register(com, fun){
 			console.log("Browser has Registered");
 			this.Vlt.Browser = com.Pid;
+			fun();
+			log.v("Returned Fun from register");
 			
 			//add some objects to the world
 			let q = {}, obj;

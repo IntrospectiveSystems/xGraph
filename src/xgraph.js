@@ -3,6 +3,7 @@ const tar = require('targz');
 const fs = require('fs');
 const path = require('path');
 const mergedirs = require('merge-dirs').default;
+let state = 'production';
 
 // #ifdef LINUX
 let system = 'linux';
@@ -41,7 +42,7 @@ processSwitches();
 switch (process.argv[1]) {
 	case 'x':
 	case 'execute': {
-		run();
+		execute();
 		break;
 	}
 
@@ -107,13 +108,14 @@ function help() {
       run: Starts a system from config or cache
         Example: xgraph run --config config.json
                  xgraph run --cache cache/
-        
+    
   `);
 }
 
 async function reset() {
 	try {
 		await ensureNode();
+		state = 'develop';
 		await genesis();
 		startNexusProcess();
 	} catch (e) {
@@ -126,18 +128,18 @@ async function deploy() {
 		await ensureNode();
 		startNexusProcess();
 
-
 	} catch (e) {
 		console.log(`ERR: ${e}`);
 	}
 }
 
-async function run() {
+async function execute() {
 	try {
 		await ensureNode();
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
+			state = 'develop'; 
 			await genesis();
 			startNexusProcess();
 		}
@@ -149,6 +151,7 @@ async function run() {
 async function compile() {
 	try {
 		await ensureNode();
+		state = 'production';		
 		await genesis();
 	} catch (e) {
 		console.log(`ERR: ${e}`);
@@ -160,13 +163,13 @@ function startNexusProcess() {
 	const { spawn } = require('child_process');
 
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/") } });
+	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
@@ -189,7 +192,7 @@ async function ensureNode() {
 		await install();
 	}
 	// #else
-	console.error(`System ${system} is not yet supported`);
+	console.error(`Ensure Node is not yet supported on ${system}`);
 	// #endif
 }
 
@@ -254,7 +257,7 @@ function applySwitch(str, i) {
 	if ((i + 1) in process.argv) { // switch has a value
 		val = process.argv[i + 1];
 	}
-	pathOverrides[str.toLowerCase()] = val;
+	pathOverrides[str.toLowerCase()] = (val==null)? null:path.resolve(val);
 }
 
 

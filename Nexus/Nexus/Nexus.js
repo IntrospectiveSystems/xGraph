@@ -384,17 +384,15 @@
 				fun(err, com);
 				return;
 			}
-
+			
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
-				return;
 			} else {
 				let err = ' ** ERR: Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
 				log.w(err);
 				log.w(JSON.stringify(com, null, 2));
 				fun(err, com);
-				return;
 			}
 		}
 		function reply(err, q) {
@@ -849,21 +847,10 @@
 		let par;
 		let ent;
 
-		// Check to see if Apex entity in this system
-		if (!(apx in ApexIndex)) {
-			fun('Not available');
-			return;
-		}
-
-		// If entity already cached, just return it
-		if (pid in EntCache) {
-			if (apx == EntCache[pid].Par.Apex) {
-				fun(null, EntCache[pid]);
-				return;
-			} else {
-				fun('Not available');
-				return;
-			}
+		// Check to see if pid is also an apex entity in this system
+		// if not then we assume that the pid is an entity inside of the sending Module
+		if (pid in ApexIndex){
+			apex = pid;
 		}
 
 		let folder = ApexIndex[apx];
@@ -967,24 +954,27 @@
 	 * @param {*} pidapx 	The apex of the module which requires spinnup
 	 * @param {*} inst 		
 	 */
-	function compileInstance(pidapx, inst) {
-		let Local = {};
-		let modnam = inst.Module;
-		let mod;
-		let ents = [];
-		// The following is for backword compatibility only
-		modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+	async function compileInstance(pidapx, inst) {
+		log.v('compileInstance', pidapx, inst);
+		var Local = {};
+		var modnam = inst.Module;
+		var mod;
+		var ents = [];
+		var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
 		} else {
 			log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+			process.exit(1);
+			reject();
 			return;
 		}
 		var schema = JSON.parse(mod['schema.json']);
 		var entkeys = Object.keys(schema);
 
-		//assign pids to the entities
-		for (let j = 0; j < entkeys.length; j++) {
+		//set Pids for each entity in the schema
+		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			if (entkey === 'Apex')
 				Local[entkey] = pidapx;
@@ -992,28 +982,30 @@
 				Local[entkey] = genPid();
 		}
 
-		for (let j = 0; j < entkeys.length; j++) {
+		//unpack the par of each ent
+		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			let ent = schema[entkey];
 			ent.Pid = Local[entkey];
 			ent.Module = modnam;
 			ent.Apex = pidapx;
 
-			//load module pars into the Apex entity
+			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
-				let pars = Object.keys(inst.Par);
-				for (let ipar = 0; ipar < pars.length; ipar++) {
-					let par = pars[ipar];
+				var pars = Object.keys(inst.Par);
+				for (var ipar = 0; ipar < pars.length; ipar++) {
+					var par = pars[ipar];
 					ent[par] = inst.Par[par];
 				}
 			}
 
 			//load pars from schema
-			let pars = Object.keys(ent);
+			var pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
-				let par = pars[ipar];
-				let val = ent[par];
-				ent[par] = symbol(val);
+				var par = pars[ipar];
+				var val = ent[par];
+				let asdf = symbol(val);
+				ent[par] = await asdf;
 			}
 			ents.push(ent);
 		}
@@ -1031,21 +1023,23 @@
 			EntCache[par.Pid] = ent;
 		});
 
-		function symbol(val) {
+		async function symbol(val) {
 			if (typeof val === 'object') {
-				return (Array.isArray(val) ?
-					val.map(v => symbol(v)) :
-					Object.entries(val).map(([key, val]) => {
-						return [key, symbol(val)];
-					}).reduce((prev, curr) => {
-						prev[curr[0]] = curr[1];
-						return prev;
-					}, {})
-				);
+				if (Array.isArray(val)) {
+					val.map(v => symbol(v));
+					val = await Promise.all(val);
+				} else {
+					for (let key in val) {
+						val[key] = await symbol(val[key]);
+					}
+				}
+				return val;
 			}
 			if (typeof val !== 'string')
 				return val;
 			var sym = val.substr(1);
+			if (val.charAt(0) === '$' && sym in Apex)
+				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
 			if (val.charAt(0) === '\\')

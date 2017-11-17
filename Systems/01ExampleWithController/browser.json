@@ -1,4 +1,7 @@
 {
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
 	"Modules": {
 		"RootView": {
 			"Module": "xGraph:Widgets/RootView",
@@ -11,6 +14,20 @@
 			"Par": {
 				"Controller":"$Controller"
 			}
-		}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Widgets.Mouse",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.Popup",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Scene.Modelx3D",
+				"Source": "xGraph"
+			}
+		]
 	}
 }

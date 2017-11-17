@@ -1,7 +1,9 @@
 (function () {
 	return new Promise(async (resolve, reject) => {
+		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
+		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--develop") > -1) state = 'develop';
 
-		console.log(`\nInitializing the Compile Engine`);
+		console.log(`\nInitializing the Compile Engine in ${state} Mode`);
 		console.time('Genesis Runtime');
 
 		const fs = require('fs');
@@ -24,7 +26,11 @@
 		{
 			// The logging function for writing to xgraph.log to the current working directory
 			const xgraphlog = (...str) => {
-				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1); reject(); } });
+				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => {
+					if (err) {
+						console.error(err); process.exit(1); reject();
+					}
+				});
 			};
 			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 			// Levels include:
@@ -61,7 +67,7 @@
 		try {
 			setup();
 			await genesis();
-		}catch(e) {
+		} catch (e) {
 			log.e(e.toString());
 			log.e((new Error().stack));
 			reject(e);
@@ -87,7 +93,7 @@
 
 			parseConfig();
 
-			cleanCache();
+			if (state == 'production') cleanCache();
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
@@ -121,7 +127,7 @@
 					}
 				}
 			}
-
+			
 			/**
 			 * Reads in the given config and fills in the Macros
 			 */
@@ -129,11 +135,13 @@
 				// Read in the provided config.json file
 				// File is passed in Params.Config or defaults to "config.json" in current working directory
 				let cfg = undefined;
-
+				
 				//set CWD
 				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
 				log.v(`CWD set to ${CWD}`);
-
+				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+				CacheDir = Params.cache || Path.join(CWD, "cache");
+				
 				try {
 					cfg = fs.readFileSync(Params.config || Path.join(CWD, 'config.json'));
 				} catch (e) {
@@ -146,7 +154,7 @@
 				let val, sources, subval;
 				if (cfg) {
 					var ini = JSON.parse(cfg);
-					if(typeof ini['Sources'] === 'undefined') {
+					if (typeof ini['Sources'] === 'undefined') {
 						log.w('You have not defined Config.Sources.');
 						log.w('this will likely break the compile process');
 						log.w('')
@@ -184,14 +192,12 @@
 			 *  Remove the cache if it currently exists in the given directory
 			 */
 			function cleanCache() {
-				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-				CacheDir = Params.cache || Path.join(CWD, "cache");
 
 				// Remove the provided cache directory
 				if (fs.existsSync(CacheDir)) {
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
-					log.v(`Removed cacheDir: "{CacheDir}"`);					
+					log.v(`Removed cacheDir: "{CacheDir}"`);
 				}
 			}
 		}
@@ -231,10 +237,10 @@
 						var arr = Config.Modules[key];
 						arr.forEach(function (mod) {
 							log.v(`Defferring ${mod.Module || mod}`);
-							if(typeof mod == 'string') {
+							if (typeof mod == 'string') {
 								log.w('Adding Module names directly to Defferred is deprecated');
 								log.w(`Defferring { Module: '${mod}' } instead`);
-								mod = {Module: mod};
+								mod = { Module: mod };
 							}
 							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
 							let source = mod.Source;
@@ -250,7 +256,7 @@
 						});
 					} else {
 						log.v(`Compiling ${Config.Modules[key].Module}`);
-						if(typeof Config.Modules[key].Module != 'string') {
+						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2))
 						}
@@ -280,19 +286,19 @@
 			function recursiveBuild() {
 				return new Promise(async (resolve, reject) => {
 					ifolder++;
-	
+
 					if (ifolder >= nfolders) {
 						await refreshSystem();
 						await populate();
 						return;
 					}
-	
+
 					let folder = moduleKeys[ifolder];
 					let modrequest = {
 						"Module": folder,
 						"Source": Modules[folder]
 					};
-	
+
 					GetModule(modrequest, async function (err, mod) {
 						ModCache[folder] = mod;
 						await recursiveBuild();
@@ -312,7 +318,7 @@
 				for (let folder in ModCache) {
 					let mod = ModCache[folder];
 					let dir = CacheDir + '/' + folder;
-					fs.mkdirSync(dir);
+					try{fs.mkdirSync(dir);}catch(e){}
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
@@ -384,7 +390,7 @@
 					// The following is for backword compatibility only
 					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
 					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
-					fs.mkdirSync(dirinst);
+					try{fs.mkdirSync(dirinst);}catch(e){}
 					ents.forEach(function (ent) {
 						let path = dirinst + '/' + ent.Pid + '.json';
 						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
@@ -400,8 +406,11 @@
 
 
 
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
-		// Helper functions
+		// Only Function Definitions Beyond This Point
+		//
 		//
 
 
@@ -601,7 +610,6 @@
 			var modnam = inst.Module;
 			var mod;
 			var ents = [];
-			// The following is for backword compatibility only
 			var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
 
 			if (modnam in ModCache) {
@@ -629,6 +637,9 @@
 				let entkey = entkeys[j];
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
+				ent.Module = modnam;
+				ent.Apex = pidapx;
+
 				//unpack the config pars to the par of the apex of the instance
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
@@ -638,19 +649,13 @@
 					}
 				}
 
-				ent.Module = modnam;
-				ent.Apex = pidapx;
+				//load pars from schema
 				var pars = Object.keys(ent);
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					// log.d(par, val);
 					let asdf = symbol(val);
 					ent[par] = await asdf;
-					// log.d(`${par}: ${JSON.stringify(ent[par], null, 2)}`);
-					// if (par === "Config") {
-					// 	ent["Cache"] = await GenTemplate(ent["Config"]);
-					// }
 				}
 				ents.push(ent);
 			}
@@ -660,11 +665,11 @@
 				// debugger;
 				if (typeof val === 'object') {
 					// log.d('object');
-					if(Array.isArray(val)){
+					if (Array.isArray(val)) {
 						val.map(v => symbol(v));
 						val = await Promise.all(val);
 					} else {
-						for(let key in val) {
+						for (let key in val) {
 							val[key] = await symbol(val[key]);
 						}
 					}
@@ -751,7 +756,7 @@
 								config = fs.readFileSync(path).toString(encoding);
 
 								return await GenTemplate(config);
-								
+
 							} catch (err) {
 								log.e("Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
@@ -789,7 +794,7 @@
 
 				var strout = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				fs.mkdirSync(CacheDir);
+				try{fs.mkdirSync(CacheDir);}catch(e){}
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
 
 				//call npm install on a childprocess of node
@@ -797,11 +802,11 @@
 
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
-			
-				module.paths=[];
+
+				module.paths = [];
 				module.paths.push([Path.resolve(CacheDir)]);
 
-				ps.stdout.on('data', _ => {process.stdout.write(_)});
+				ps.stdout.on('data', _ => { process.stdout.write(_) });
 				ps.stderr.on('data', _ => process.stderr.write(_));
 
 				ps.on('err', function (err) {
@@ -845,7 +850,7 @@
 						break;
 					case 2:
 						if (chr == '}') {
-							param=param.toLowerCase();
+							param = param.toLowerCase();
 							if (param in Params)
 								s += Params[param];
 							else
@@ -910,7 +915,7 @@
 			if (parts.length == 2) {
 				let key = parts[0].toLowerCase();
 				if (key in Params) {
-					path = Path.join(Params[key],parts[1]);
+					path = Path.join(Params[key], parts[1]);
 				} else {
 					log.e(' ** ERR:File <' + file + '> prefix not defined');
 					return;
@@ -1024,11 +1029,10 @@
 								else res(ModCache[folder] = mod);
 							});
 						}));
-
-						await Promise.all(modArray)
-
-						populate();
 					}
+					await Promise.all(modArray)
+
+					populate();
 
 					/**
 					 * Write the modules.json to a zipped cache and set as Par.System 

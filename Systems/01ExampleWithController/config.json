@@ -13,7 +13,7 @@
 				"Port": 8080,
 				"Url": "Paint",
 				"HTML": "@file: Paint.html",
-				"Config": "@file: browser.json"
+				"Paint": "@system: browser.json"
 			}
 		},
 		"Controller": {
@@ -22,28 +22,6 @@
 			"Par":{
 				"Server":"$Server"
 			}
-		},
-		"Deferred": [
-			{
-				"Module": "xGraph.Widgets.RootView",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Widgets.3DView",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Widgets.Mouse",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Widgets.Popup",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Scene.Modelx3D",
-				"Source": "xGraph"
-			}
-		]
+		}
 	}
 }
