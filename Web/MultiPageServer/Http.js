@@ -1,4 +1,4 @@
-//# sourceURL="HTTP.js"
+//# sourceMappingURL="HTTP.js"
 (function Http() {
 	var fs,async,jszip,path;
 
@@ -210,26 +210,19 @@
 					}
 				}
 
+				this.Vlt.RoutingTable = {};
 				for(let key in this.Par.RoutingTable) {
 					if(key in this.Vlt) {
 						log.w(`duplicate key in routing table <${key.toLowerCase()}>`)
 						continue;
 					}
-					this.Vlt[key.toLowerCase()] = this.Par[key];
+					this.Vlt.RoutingTable[key.toLowerCase()] = this.Par.RoutingTable[key];
 				}
 			}
 			
 			webSocket(server);
-			(function (err, data) {
-				if(err) {
-					log.w(err);
-					fun(err, com);
-					return;
-				}
-				Vlt.Browser = JSON.parse(data.toString());
-				getscripts();
-			})(...('Config' in this.Par ? [null, this.Par.Config] : ['Config not found in MultipageServer Par', null]));
-	
+			getscripts();
+			
 			function getscripts() {
 				that.getFile('scripts.json', function(err, data) {
 					if(err) {
@@ -237,7 +230,7 @@
 						fun(err, com);
 						return;
 					}
-					Vlt.Browser.Scripts = JSON.parse(data.toString());
+					Vlt.Scripts = JSON.parse(data.toString());
 					getnxs();
 				})
 			}
@@ -248,7 +241,7 @@
 						log.i(' ** ERR:Cannot read Nxs file');
 						return;
 					}
-					Vlt.Browser.Nxs = data.toString();
+					Vlt.Nxs = data.toString();
 					fun();
 				});
 			}
@@ -263,7 +256,7 @@
 					log.d('socket!!!');
 					var pidsock = '';
 					for(var i=0; i<3; i++)
-						pidsock += that.genPid().substr(24);
+						pidsock += that.genPid();
 					var obj = {};
 					obj.Socket = socket;
 					obj.User = {};
@@ -336,9 +329,24 @@
 						function getConfig() {
 							log.i(com.Path);
 
+							let cfg = {
+								Nxs: that.Vlt.Nxs,
+								Pid: obj.User.Pid,
+								PidServer: that.Par.Pid,
+								ApexList: that.Par.ApexList,
+								Scripts: Vlt.Scripts
+							}
 
+							for (let key in that.Vlt.RoutingTable[com.Path.toLowerCase()])
+								cfg[key] = that.Vlt.RoutingTable[com.Path.toLowerCase()][key];
 
-							socket.send("lolno");
+							log.d('----------------- cfg');
+							for(let k in cfg) {
+								log.d(`[${k}]: ${cfg[k].toString().substr(0, 100)}`);
+							}
+							log.d('---------------------');
+
+							socket.send(JSON.stringify(cfg, null, 2));
 						}
 	
 						//.....................................getfile
