@@ -165,17 +165,18 @@ function startNexusProcess() {
 	console.log("Process PAth is ", processPath);
 
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], {cwd: processPath, env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], {cwd: processPath, env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["Cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
 	ls.stderr.on('data', _ => process.stderr.write(_));
+	process.stdin.on('data', _=> ls.stdin.write(_));
 
 	ls.on('close', (code) => {
 		console.log(`child process exited with code ${code}`);

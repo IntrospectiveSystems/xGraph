@@ -789,7 +789,6 @@
 		});
 	}
 
-
 	/**
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
@@ -799,7 +798,6 @@
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
-
 		GetModule(inst.Module, async function (err, mod) {
 			if (err) {
 				log.w(' ** ERR:GenModule err -', err);
@@ -813,7 +811,6 @@
 			setup();
 
 			function setup() {
-				log.d("Try Setup");
 				if (!("Setup" in mod)) {
 					start();
 					return;
@@ -828,8 +825,6 @@
 
 			// Start
 			function start() {
-				log.d("Try Start");
-
 				if (!("Start" in mod)) {
 					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
