@@ -329,71 +329,69 @@
 
 
 
-	/**
-	 * Send a message from an entity to an Apex entity.
-	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
-	 * @param {string} com.Cmd 		the command of the message
-	 * @param {object} com.Passport	the information about the message
-	 * @param {string} com.Passport.To the Pid of the recipient module
-	 * @param {string} com.Passport.Pid the ID of the message
-	 * @param {string=} com.Passport.From the Pid of the sending module
-	 * @callback fun 				the callback function to return to when finished
-	 */
-	function sendMessage(com, fun = _ => _) {
-		if (!('Passport' in com)) {
-			log.w(' ** ERR:Message has no Passport, ignored');
-			log.w('    ' + JSON.stringify(com));
-			fun('No Passport');
-			return;
-		}
-		if (!('To' in com.Passport) || !com.Passport.To) {
-			log.w(' ** ERR:Message has no destination entity, ignored');
-			log.w('    ' + JSON.stringify(com));
-			console.trace();
-			fun('No recipient in message', com);
-			return;
-		}
-		if (!('Pid' in com.Passport)) {
-			log.w(' ** ERR:Message has no message id, ignored');
-			log.w('    ' + JSON.stringify(com));
-			fun('No message id', com);
-			return;
-		}
+    /**
+     * Send a message from an entity to an Apex entity.
+     * If a callback is provided, return when finished
+     * @param {object} com 			the message object
+     * @param {string} com.Cmd 		the command of the message
+     * @param {object} com.Passport	the information about the message
+     * @param {string} com.Passport.To the Pid of the recipient module
+     * @param {string} com.Passport.Pid the ID of the message
+     * @param {string=} com.Passport.From the Pid of the sending module
+     * @callback fun 				the callback function to return to when finished
+     */
+    function sendMessage(com, fun = _ => _) {
+        if (!('Passport' in com)) {
+            log.w(' ** ERR:Message has no Passport, ignored');
+            log.w('    ' + JSON.stringify(com));
+            fun('No Passport');
+            return;
+        }
+        if (!('To' in com.Passport) || !com.Passport.To) {
+            log.w(' ** ERR:Message has no destination entity, ignored');
+            log.w('    ' + JSON.stringify(com));
+            console.trace();
+            fun('No recipient in message', com);
+            return;
+        }
+        if (!('Pid' in com.Passport)) {
+            log.w(' ** ERR:Message has no message id, ignored');
+            log.w('    ' + JSON.stringify(com));
+            fun('No message id', com);
+            return;
+        }
 
-		let pid = com.Passport.To;
-		let apx = com.Passport.Apex || pid;
-		if (pid in EntCache) {
-			done(null, EntCache[pid]);
-			return;
-		} else {
-			getEntityContext(apx, pid, done);
-		}
+        let pid = com.Passport.To;
+        let apx = com.Passport.Apex || pid;
+        if (pid in EntCache) {
+            done(null, EntCache[pid]);
+            return;
+        } else {
+            getEntityContext(apx, pid, done);
+        }
 
-		function done(err, entContext) {
-			if (err) {
-				log.w(' ** ERR:' + err);
-				log.w(JSON.stringify(com, null, 2));
-				fun(err, com);
-				return;
-			}
+        function done(err, entContext) {
+            if (err) {
+                log.w(' ** ERR:' + err);
+                log.w(JSON.stringify(com, null, 2));
+                fun(err, com);
+                return;
+            }
 
-			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
-				entContext.dispatch(com, reply);
-				return;
-			} else {
-				let err = ' ** ERR: Trying to send a message to a non-Apex'
-					+ 'entity outside of the sending module';
-				log.w(err);
-				log.w(JSON.stringify(com, null, 2));
-				fun(err, com);
-				return;
-			}
-		}
-		function reply(err, q) {
-			fun(err, q);
-		}
-	}
+            if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
+                entContext.dispatch(com, reply);
+            } else {
+                let err = ' ** ERR: Trying to send a message to a non-Apex'
+                    + 'entity outside of the sending module';
+                log.w(err);
+                log.w(JSON.stringify(com, null, 2));
+                fun(err, com);
+            }
+        }
+        function reply(err, q) {
+            fun(err, q);
+        }
+    }
 
 
 
@@ -509,26 +507,26 @@
 			return nxs.genPid();
 		}
 
-		/**
-		 * Send a message to another entity, you can only send messages to Apexes of modules 
-		 * unless both sender and recipient are in the same module
-		 * @param {object} com  		the message object to send 
-		 * @param {string} com.Cmd		the function to send the message to in the destination entity 
-		 * @param {string} pid 			the pid of the recipient (destination) entity
-		 * @callback fun 
-		 */
-		function send(com, pid, fun) {
-			if (!('Passport' in com))
-				com.Passport = {};
-			com.Passport.To = pid;
-			if ('Apex' in Par)
-				com.Passport.Apex = Par.Apex;
-			if (fun)
-				com.Passport.From = Par.Pid;
-			if (!("Pid" in com.Passport))
-				com.Passport.Pid = genPid();
-			nxs.sendMessage(com, fun);
-		}
+        /**
+         * Send a message to another entity, you can only send messages to Apexes of modules
+         * unless both sender and recipient are in the same module
+         * @param {object} com  		the message object to send
+         * @param {string} com.Cmd		the function to send the message to in the destination entity
+         * @param {string} pid 			the pid of the recipient (destination) entity
+         * @callback fun
+         */
+        function send(com, pid, fun) {
+            if (!('Passport' in com))
+                com.Passport = {};
+            com.Passport.To = pid;
+            if ('Apex' in Par)
+                com.Passport.Apex = Par.Apex;
+            if (fun)
+                com.Passport.From = Par.Pid;
+            if (!("Pid" in com.Passport))
+                com.Passport.Pid = genPid();
+            nxs.sendMessage(com, fun);
+        }
 
 		/**
 		 * save the current entity to cache if not an Apex send the save message to Apex
@@ -738,77 +736,67 @@
 	}
 
 
-	/**
-	 * Spin up an entity from cache into memory and retrievd its context 
-	 * otherwise just return it's context from memory
-	 * @param {string} apx 		the pid of the entities apex
-	 * @param {string} pid 		the pid of the entity
-	 * @callback fun  			the callback to return te pid of the generated entity to
-	 */
-	function getEntityContext(apx, pid, fun = _ => _) {
-		let imp;
-		let par;
-		let ent;
+    /**
+     * Spin up an entity from cache into memory and retrievd its context
+     * otherwise just return it's context from memory
+     * @param {string} apx 		the pid of the entities apex
+     * @param {string} pid 		the pid of the entity
+     * @callback fun  			the callback to return te pid of the generated entity to
+     */
+    function getEntityContext(apx, pid, fun = _ => _) {
+        let imp;
+        let par;
+        let ent;
 
-		// Check to see if Apex entity in this system
-		if (!(apx in ApexIndex)) {
-			fun('Not available');
-			return;
-		}
+        // Check to see if pid is also an apex entity in this system
+        // if not then we assume that the pid is an entity inside of the sending Module
+        if (pid in ApexIndex){
+            apx = pid;
+        }
 
-		// If entity already cached, just return it
-		if (pid in EntCache) {
-			if (apx == EntCache[pid].Par.Apex) {
-				fun(null, EntCache[pid]);
-				return;
-			} else {
-				fun('Not available');
-				return;
-			}
-		}
+        let folder = ApexIndex[apx];
+        let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
+        fs.readFile(path, function (err, data) {
+            if (err) {
+                log.e(' ** ERR:<' + path + '> unavailable');
+                fun('Unavailable');
+                return;
+            }
+            let par = JSON.parse(data.toString());
+            let impkey = folder + '/' + par.Entity;
+            let imp;
+            if (impkey in ImpCache) {
+                imp = ImpCache[impkey];
+                BuildEnt();
+                return;
+            }
 
-		let folder = ApexIndex[apx];
-		let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
-		fs.readFile(path, function (err, data) {
-			if (err) {
-				log.e(' ** ERR:<' + path + '> unavailable');
-				fun('Unavailable');
-				return;
-			}
-			let par = JSON.parse(data.toString());
-			let impkey = folder + '/' + par.Entity;
-			let imp;
-			if (impkey in ImpCache) {
-				imp = ImpCache[impkey];
-				BuildEnt();
-				return;
-			}
+            GetModule(folder, function (err, mod) {
+                if (err) {
+                    log.e(' ** ERR:Module <' + folder + '> not available');
+                    fun('Module not available');
+                    return;
+                }
+                if (!(par.Entity in mod)) {
+                    log.e(' ** ERR:<' + par.Entity + '> not in module <' + folder + '>');
+                    fun('Null entity');
+                    return;
+                }
+                imp = (1, eval)(mod[par.Entity]);
+                ImpCache[impkey] = imp;
+                BuildEnt();
+            });
 
-			GetModule(folder, function (err, mod) {
-				if (err) {
-					log.e(' ** ERR:Module <' + folder + '> not available');
-					fun('Module not available');
-					return;
-				}
-				if (!(par.Entity in mod)) {
-					log.e(' ** ERR:<' + par.Entity + '> not in module <' + folder + '>');
-					fun('Null entity');
-					return;
-				}
-				imp = (1, eval)(mod[par.Entity]);
-				ImpCache[impkey] = imp;
-				BuildEnt();
-			});
-
-			function BuildEnt() {
-				EntCache[pid] = new Entity(Nxs, imp, par);
-				fun(null, EntCache[pid]);
-			}
-		});
-	}
+            function BuildEnt() {
+                EntCache[pid] = new Entity(Nxs, imp, par);
+                fun(null, EntCache[pid]);
+            }
+        });
+    }
 
 
-	/**
+
+    /**
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up
