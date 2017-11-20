@@ -152,7 +152,7 @@ async function execute() {
 async function compile() {
 	try {
 		await ensureNode();
-		state = 'production';		
+		state = 'production';
 		await genesis();
 	} catch (e) {
 		console.log(`ERR: ${e}`);
