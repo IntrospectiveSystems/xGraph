@@ -21,6 +21,10 @@
 		this.super(com, (err, cmd) => {
 			console.log('--3DView/Setup');
 			let div = this.Vlt.div;
+
+			//set live for true for the example of an updating system
+			let live = false;
+			
 			this.Vlt.View = {};
 			View = this.Vlt.View;
 			View.Geometries = {};
@@ -54,7 +58,7 @@
 			View.RenderLoop = setInterval(_ => {
 
 				//For testing of updating elevations
-				if (this.Vlt.Update) {
+				if (this.Vlt.Update||live) {
 					this.Vlt.Update = false;
 					let q = {}
 					q.Cmd = "SetObjects";
@@ -64,6 +68,7 @@
 						elevations: []
 					};
 					q.Objects.push(obj);
+
 					this.send(q, this.Par.Pid, (err, com) => {
 						setTimeout(this.send({ Cmd: "ImageCapture" }, this.Par.Pid), 40);
 					});
@@ -114,7 +119,7 @@
 			q.Objects = [];
 
 			// //add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx < 100; idx++) {
+			for (let idx = 0; idx <20; idx++) {
 				obj = {
 					id: idx,
 					geometry: {
@@ -166,18 +171,18 @@
 					x: 50,
 					y: 50,
 					z: 0
-				}, 
-				elevations:[],
+				},
+				elevations: [],
 				responseHandler: {
 					Cmd: "EvokeExample",
 					Handler: this.Par.Pid
 				}
 			};
 			q.Objects.push(obj);
-			// // add a module 
+			// add a module 
 			obj = {
 				id: "module",
-				module: "xGraph:Scene/Modelx3D",
+				module: "xGraph.Scene.Modelx3D",
 				parentId: "plane",
 				position: {
 					x: 0,
@@ -221,11 +226,11 @@
 
 		console.log("Popup");
 		this.genModule({
-			"Module": "xGraph:Widgets/Popup",
+			"Module": "xGraph.Widgets.Popup",
 			"Par": {
 				Left: com.mouse.x,
 				Top: com.mouse.y,
-				"View": "xGraph:Widgets/3DView",
+				"View": "xGraph.Widgets.3DView",
 				"Width": 800,
 				"Height": 600
 			}
@@ -247,7 +252,7 @@
 		View.Camera.updateProjectionMatrix();
 
 		this.genModule({
-			"Module": 'xGraph:Widgets/Mouse',
+			"Module": 'xGraph.Widgets.Mouse',
 			"Par": {
 				"Handler": this.Par.Pid
 			}
@@ -337,7 +342,7 @@
 
 			let unit = com.Objects[i];
 
-			if (!unit.id && (unit.id != 0)) {
+			if (typeof unit.id == "undefined") {
 				console.log("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}
@@ -517,6 +522,27 @@
 				if (unit.parentId) {
 					let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
 					if (parent) {
+						// //calc nearest elevation 
+						// let idx = -1; 
+						// let mindist = Infinity;
+						// let dist, vertex;
+						// for (let i = 0;i<parent.geometry.vertices.length; i++){
+						// 	vertex = parent.geometry.vertices[i];
+						// 	dist = Math.sqrt((unit.position.x-vertex[0]*unit.position.x-vertex[0])+(unit.position.y-vertex[1]*unit.position.y-vertex[1])+(vertex[2]*vertex[2]));
+						// 	log.d("Dist is ", dist)
+						// 	if (dist < mindist){
+						// 		idx = i;
+						// 		mindist = dist;
+						// 	}
+						// }
+						// let pedestal = new THREE.Object3D();
+						// pedestal.position.x=0;
+						// pedestal.position.y=0;
+						// pedestal.position.z = (idx == -1)? 0:parent.geometry.verteces[idx][2];
+
+						// parent.add(pedistal);
+						// pedestal.add(obj);
+
 						parent.add(obj);
 						obj.matrixWorldNeedsUpdate = true;
 						obj.updateMatrixWorld();
