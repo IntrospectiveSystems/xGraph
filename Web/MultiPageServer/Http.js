@@ -333,7 +333,7 @@
 								Nxs: that.Vlt.Nxs,
 								Pid: obj.User.Pid,
 								PidServer: that.Par.Pid,
-								ApexList: that.Par.ApexList,
+								// ApexList: that.Par.ApexList,
 								Scripts: Vlt.Scripts
 							}
 

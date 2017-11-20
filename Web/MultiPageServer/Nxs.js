@@ -88,10 +88,9 @@ __Nexus = (_ => {
 				return;
 			}
 
-			// Try to dispatch on browser
+			// Try to dispatch
 			var pid = cmd.Passport.To;
 			if (pid in EntCache) {
-				log.d("its in the entcache");
 				var ent = EntCache[pid];
 				if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
 					ent.dispatch(cmd, reply);
@@ -168,10 +167,6 @@ __Nexus = (_ => {
 						PidServer = cfg.PidServer;
 						break;
 					}
-					case "ApexList": {
-						Root.ApexList = cfg.ApexList;
-						break;
-					}
 					case "Scripts": {
 						Scripts = cfg.Scripts;
 						Scripts = (typeof Scripts == "object") ? Scripts : JSON.parse(Scripts);
@@ -210,7 +205,7 @@ __Nexus = (_ => {
 					q.Passport = {};
 					q.Passport.To = PidServer;
 					q.Passport.Pid = genPid();
-					sendMessage(q, function (err, r) {
+					sendSocket(q, function (err, r) {
 						if (err) {
 							log.v(' ** ERR:Script error', err);
 							reject(err);
@@ -495,6 +490,7 @@ __Nexus = (_ => {
 	 * @param {object} inst 
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
+	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
@@ -532,6 +528,9 @@ __Nexus = (_ => {
 			ent.Module = modnam;
 			ent.Apex = pidapx;
 
+			//give the webProxy modules access to the websocket and callback message stack
+			if (modnam == 'xGraph.Web.WebProxy') ent.sendSock = sendSocket; 
+
 			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
 				let pars = Object.keys(inst.Par);
@@ -550,8 +549,7 @@ __Nexus = (_ => {
 					if (par == "$Setup") Root.Setup[ent.Pid] = val;
 					if (par == "$Start") Root.Start[ent.Pid] = val;
 				}
-				let asdf = symbol(val);
-				ent[par] = await asdf;
+				ent[par] = await symbol(val);
 			}
 			ents.push(ent);
 		}
@@ -633,23 +631,6 @@ __Nexus = (_ => {
 			return;
 		}
 
-		//we're dispatching to the server
-		if (fun) {
-			log.d(JSON.stringify(com, null, 2));
-			MsgPool[pidmsg] = fun;
-			MsgFifo.push(pidmsg);
-			if (MsgFifo.length > 100) {
-				var kill = MsgFifo.shift();
-				delete MsgPool[kill];
-			}
-			log.d(MsgFifo);
-		}
-
-		var str = JSON.stringify(com);
-		log.d(' >> Msg:' + com.Cmd);
-		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
-		SockIO.send(str);
-
 		function done(entContext) {
 
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
@@ -666,6 +647,47 @@ __Nexus = (_ => {
 		function reply(err, q) {
 			if (fun) fun(err, q);
 		}
+	}
+
+	function sendSocket(com, fun){ 
+		log.d(`Sending a message over the socket!!!`);
+
+		//check for message valididty
+		if (!('Passport' in com)) {
+			log.w(' ** ERR:Message has no Passport, ignored');
+			log.w('    ' + JSON.stringify(com));
+			fun('No Passport');
+			return;
+		}
+		if (!('To' in com.Passport) || !com.Passport.To) {
+			log.w(' ** ERR:Message has no destination entity, ignored');
+			log.w('    ' + JSON.stringify(com));
+			console.trace();
+			fun('No recipient in message', com);
+			return;
+		}
+		if (!('Pid' in com.Passport) || (com.Passport.Pid.length != 32)) {
+			log.w(' ** ERR:Message has no message id, ignored');
+			log.w('    ' + JSON.stringify(com));
+			fun('No message id', com);
+			return;
+		}
+
+		//we're dispatching to the server
+		if (fun) {
+			log.d(JSON.stringify(com, null, 2));
+			MsgPool[com.Passport.Pid] = fun;
+			MsgFifo.push(com.Passport.Pid);
+			if (MsgFifo.length > 100) {
+				var kill = MsgFifo.shift();
+				delete MsgPool[kill];
+			}
+		}
+
+		var str = JSON.stringify(com);
+		log.d(' >> Msg:' + com.Cmd);
+		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
+		SockIO.send(str);
 	}
 
 	/**
@@ -899,7 +921,6 @@ __Nexus = (_ => {
 			}
 			let mod = ModCache[inst.Module];
 
-			let modnam = inst.Module;
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
 			Root.ApexList[pidapx] = pidapx;
@@ -923,7 +944,7 @@ __Nexus = (_ => {
 			function start() {
 				if (!("Start" in mod)) {
 					fun(null, pidapx);
-					log.d("The pid apex is", pidapx);
+					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
@@ -932,26 +953,10 @@ __Nexus = (_ => {
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.d("The pid apex is", pidapx);
+					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}
 		})();
 	}
 })();
-
-
-
-// --------------------------------
-// this is a complete hack, to 
-// give me easy cookie access
-// TODO create actual Nxs functionality
-// for accessing cookies
-// --------------------------------
-
-// API for future reference: 
-// Cookies('a', 3); sets a to 3
-// Cookies('a'); returns a: 3
-// Cookies('a', undefined); deletes a
-
-!function(e,t){"use strict";var o=function(e){if("object"!=typeof e.document)throw new Error("Cookies.js requires a `window` with a `document` object");var t=function(e,o,n){return 1===arguments.length?t.get(e):t.set(e,o,n)};return t._document=e.document,t._cacheKeyPrefix="cookey.",t._maxExpireDate=new Date("Fri, 31 Dec 9999 23:59:59 UTC"),t.defaults={path:"/",secure:!1},t.get=function(e){t._cachedDocumentCookie!==t._document.cookie&&t._renewCache();var o=t._cache[t._cacheKeyPrefix+e];return void 0===o?void 0:decodeURIComponent(o)},t.set=function(e,o,n){return n=t._getExtendedOptions(n),n.expires=t._getExpiresDate(void 0===o?-1:n.expires),t._document.cookie=t._generateCookieString(e,o,n),t},t.expire=function(e,o){return t.set(e,void 0,o)},t._getExtendedOptions=function(e){return{path:e&&e.path||t.defaults.path,domain:e&&e.domain||t.defaults.domain,expires:e&&e.expires||t.defaults.expires,secure:e&&void 0!==e.secure?e.secure:t.defaults.secure}},t._isValidDate=function(e){return"[object Date]"===Object.prototype.toString.call(e)&&!isNaN(e.getTime())},t._getExpiresDate=function(e,o){if(o=o||new Date,"number"==typeof e?e=e===1/0?t._maxExpireDate:new Date(o.getTime()+1e3*e):"string"==typeof e&&(e=new Date(e)),e&&!t._isValidDate(e))throw new Error("`expires` parameter cannot be converted to a valid Date instance");return e},t._generateCookieString=function(e,t,o){var n=(e=(e=e.replace(/[^#$&+\^`|]/g,encodeURIComponent)).replace(/\(/g,"%28").replace(/\)/g,"%29"))+"="+(t=(t+"").replace(/[^!#$&-+\--:<-\[\]-~]/g,encodeURIComponent));return n+=(o=o||{}).path?";path="+o.path:"",n+=o.domain?";domain="+o.domain:"",n+=o.expires?";expires="+o.expires.toUTCString():"",n+=o.secure?";secure":""},t._getCacheFromString=function(e){for(var o={},n=e?e.split("; "):[],r=0;r<n.length;r++){var i=t._getKeyValuePairFromCookieString(n[r]);void 0===o[t._cacheKeyPrefix+i.key]&&(o[t._cacheKeyPrefix+i.key]=i.value)}return o},t._getKeyValuePairFromCookieString=function(e){var t=e.indexOf("=");t=t<0?e.length:t;var o,n=e.substr(0,t);try{o=decodeURIComponent(n)}catch(e){console&&"function"==typeof console.error&&console.error('Could not decode cookie with key "'+n+'"',e)}return{key:o,value:e.substr(t+1)}},t._renewCache=function(){t._cache=t._getCacheFromString(t._document.cookie),t._cachedDocumentCookie=t._document.cookie},t._areEnabled=function(){var e="1"===t.set("cookies.js",1).get("cookies.js");return t.expire("cookies.js"),e},t.enabled=t._areEnabled(),t},n=e&&"object"==typeof e.document?o(e):o;"function"==typeof define&&define.amd?define(function(){return n}):"object"==typeof exports?("object"==typeof module&&"object"==typeof module.exports&&(exports=module.exports=n),exports.Cookies=n):e.Cookies=n}("undefined"==typeof window?this:window);
