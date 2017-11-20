@@ -124,6 +124,11 @@
 						return;
 					}
 
+					if (com.Passport.To in that.Par.ApexList)
+						com.Passport.To = that.Par.ApexList[com.Passport.To];
+					else 
+						reply(`${com.Passport.To} is not a known destinaton on the server`);
+					
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {
@@ -162,7 +167,6 @@
 						var cfg = Vlt.Browser;
 						cfg.Pid = obj.User.Pid;
 						cfg.PidServer = Par.Pid;
-						cfg.ApexList = Par.ApexList || {};
 						
 						if (path in Par) {
 							page = Par[path];

@@ -5,6 +5,7 @@
 	"Modules": {
 		"RootView": {
 			"Module": "xGraph:Widgets/RootView",
+			"Source": "xGraph",
 			"Par": {
 				"Layout": "$3DView"
 			}
@@ -12,7 +13,14 @@
 		"3DView": {
 			"Module":"xGraph:Widgets/3DView",
 			"Par": {
-				"Controller":"$Controller"
+				"Controller":"$ControllerProxy"
+			}
+		},
+		"ControllerProxy": {
+			"Module":"xGraph.Web.WebProxy",
+			"Source":"xGraph",
+			"Par":{
+				"Link": "Controller"				
 			}
 		},
 		"Deferred": [
