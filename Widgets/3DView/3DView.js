@@ -403,9 +403,7 @@
 						mod.Par.Angle = unit.angle;
 
 					obj = await new Promise((res, rej) => {
-						debugger;
 						this.genModule(mod, (err, pidApex) => {
-							log.d("GenMod apex pid is ", pidApex);
 							let that = this;
 
 							//save the modules pid in unit.Pid

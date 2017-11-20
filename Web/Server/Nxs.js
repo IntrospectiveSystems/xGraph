@@ -88,10 +88,9 @@ __Nexus = (_ => {
 				return;
 			}
 
-			// Try to dispatch on browser
+			// Try to dispatch
 			var pid = cmd.Passport.To;
 			if (pid in EntCache) {
-				log.d("its in the entcache");
 				var ent = EntCache[pid];
 				if ('Disp' in cmd.Passport && cmd.Passport.Disp == 'Query')
 					ent.dispatch(cmd, reply);
@@ -168,10 +167,6 @@ __Nexus = (_ => {
 						PidServer = cfg.PidServer;
 						break;
 					}
-					case "ApexList": {
-						Root.ApexList = cfg.ApexList;
-						break;
-					}
 					case "Scripts": {
 						Scripts = cfg.Scripts;
 						Scripts = (typeof Scripts == "object") ? Scripts : JSON.parse(Scripts);
@@ -210,7 +205,7 @@ __Nexus = (_ => {
 					q.Passport = {};
 					q.Passport.To = PidServer;
 					q.Passport.Pid = genPid();
-					sendMessage(q, function (err, r) {
+					sendSocket(q, function (err, r) {
 						if (err) {
 							log.v(' ** ERR:Script error', err);
 							reject(err);
@@ -533,6 +528,9 @@ __Nexus = (_ => {
 			ent.Module = modnam;
 			ent.Apex = pidapx;
 
+			//give the webProxy modules access to the websocket and callback message stack
+			if (modnam == 'xGraph.Web.WebProxy') ent.sendSock = sendSocket; 
+
 			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
 				let pars = Object.keys(inst.Par);
@@ -633,23 +631,6 @@ __Nexus = (_ => {
 			return;
 		}
 
-		//we're dispatching to the server
-		if (fun) {
-			log.d(JSON.stringify(com, null, 2));
-			MsgPool[pidmsg] = fun;
-			MsgFifo.push(pidmsg);
-			if (MsgFifo.length > 100) {
-				var kill = MsgFifo.shift();
-				delete MsgPool[kill];
-			}
-			log.d(MsgFifo);
-		}
-
-		var str = JSON.stringify(com);
-		log.d(' >> Msg:' + com.Cmd);
-		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
-		SockIO.send(str);
-
 		function done(entContext) {
 
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
@@ -666,6 +647,47 @@ __Nexus = (_ => {
 		function reply(err, q) {
 			if (fun) fun(err, q);
 		}
+	}
+
+	function sendSocket(com, fun){ 
+		log.d(`Sending a message over the socket!!!`);
+
+		//check for message valididty
+		if (!('Passport' in com)) {
+			log.w(' ** ERR:Message has no Passport, ignored');
+			log.w('    ' + JSON.stringify(com));
+			fun('No Passport');
+			return;
+		}
+		if (!('To' in com.Passport) || !com.Passport.To) {
+			log.w(' ** ERR:Message has no destination entity, ignored');
+			log.w('    ' + JSON.stringify(com));
+			console.trace();
+			fun('No recipient in message', com);
+			return;
+		}
+		if (!('Pid' in com.Passport) || (com.Passport.Pid.length != 32)) {
+			log.w(' ** ERR:Message has no message id, ignored');
+			log.w('    ' + JSON.stringify(com));
+			fun('No message id', com);
+			return;
+		}
+
+		//we're dispatching to the server
+		if (fun) {
+			log.d(JSON.stringify(com, null, 2));
+			MsgPool[com.Passport.Pid] = fun;
+			MsgFifo.push(com.Passport.Pid);
+			if (MsgFifo.length > 100) {
+				var kill = MsgFifo.shift();
+				delete MsgPool[kill];
+			}
+		}
+
+		var str = JSON.stringify(com);
+		log.d(' >> Msg:' + com.Cmd);
+		log.v(str.substring(0, (str.length>100)? 100:str.length)+' ... ');
+		SockIO.send(str);
 	}
 
 	/**

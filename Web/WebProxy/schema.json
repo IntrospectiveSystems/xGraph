@@ -1,6 +1,5 @@
 {
 	"Apex": {
-		"$Start": "Start",
 		"Entity": "WebProxy.js"
 	}
 }

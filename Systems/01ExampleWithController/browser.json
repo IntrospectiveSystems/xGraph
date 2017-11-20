@@ -20,7 +20,7 @@
 			"Module":"xGraph.Web.WebProxy",
 			"Source":"xGraph",
 			"Par":{
-				"ServerModule": "Controller"				
+				"Link": "Controller"				
 			}
 		},
 		"Deferred": [

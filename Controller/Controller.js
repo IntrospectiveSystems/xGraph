@@ -12,7 +12,7 @@
 		}
 
 		Register(com, fun){
-			console.log("Browser has Registered");
+			log.v("Browser has Registered");
 			this.Vlt.Browser = com.Pid;
 			fun();
 			log.v("Returned Fun from register");

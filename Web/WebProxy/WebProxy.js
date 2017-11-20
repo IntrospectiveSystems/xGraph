@@ -3,22 +3,23 @@
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
-		Start,
-		"*": Send
+		"*": Publish
 	};
 
-	return {dispatch};
+	return { dispatch };
 
-	function Start(com, fun) {
-		log.v("--Router/Start");
-		
-		this.send({Cmd:"Subscribe", Pid:this.Par.Pid}, this.Par.Server);
-		if (fun)
-			fun(null, com);
+
+	//-------------------------------------------------------Publish
+	// This is called when message needs to be sent to all
+	// browsers that have subscribed
+	function Publish(com, fun) {
+		log.d(`Publishing from ${this.Par.Link} webProxy: ${JSON.stringify(com, null, 2)}`);
+
+		//set the destination on the server side
+		com.Passport.To = this.Par.Link;
+
+		this.Par.sendSock(com, fun);
 	}
 
-	function Send(com, fun){
 
-	}
-
-})();
+}) ();
