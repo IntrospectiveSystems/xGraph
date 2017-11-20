@@ -127,9 +127,11 @@
 
 					if (com.Passport.To in that.Par.ApexList)
 						com.Passport.To = that.Par.ApexList[com.Passport.To];
-					else 
+					else{ 
 						reply(`${com.Passport.To} is not a known destinaton on the server`);
-					
+						return;
+					}
+
 					that.send(com, com.Passport.To, reply);
 
 					function reply(err, cmd) {

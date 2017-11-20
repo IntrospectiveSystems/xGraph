@@ -63,7 +63,6 @@
 			};
 		}
 
-
 		try {
 			setup();
 			await genesis();
@@ -93,7 +92,7 @@
 
 			parseConfig();
 
-			if (state == 'production') cleanCache();
+			cleanCache();
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
@@ -192,9 +191,12 @@
 			 *  Remove the cache if it currently exists in the given directory
 			 */
 			function cleanCache() {
-
 				// Remove the provided cache directory
-				if (fs.existsSync(CacheDir)) {
+				if (fs.existsSync(CacheDir) ) {
+					if (state == 'develop'){
+						state = 'updateOnly';
+						return;
+					}
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
 					log.v(`Removed cacheDir: "{CacheDir}"`);
@@ -215,6 +217,10 @@
 			generateModuleCatalog();
 
 			await recursiveBuild();
+
+			await refreshSystem();
+
+			await populate();
 
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,17 +248,7 @@
 								log.w(`Defferring { Module: '${mod}' } instead`);
 								mod = { Module: mod };
 							}
-							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
-							let source = mod.Source;
-							if (!(folder in Modules)) {
-								Modules[folder] = source;
-							} else {
-								if (Modules[folder] != source) {
-									log.e("Broker Mismatch Exception");
-									process.exit(2);
-									reject();
-								}
-							}
+							logModule(mod);							
 						});
 					} else {
 						log.v(`Compiling ${Config.Modules[key].Module}`);
@@ -260,8 +256,12 @@
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2))
 						}
-						let folder = Config.Modules[key].Module.replace(/\//g, '.').replace(/:/g, '.');
-						let source = Config.Modules[key].Source;
+						logModule(Config.Modules[key]);						
+					}
+
+					function logModule(mod) {
+						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+						let source = mod.Source;
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
@@ -283,28 +283,27 @@
 			 * get the modules from the prebuilt catalog
 			 * from the source defined in config
 			 */
-			function recursiveBuild() {
-				return new Promise(async (resolve, reject) => {
-					ifolder++;
+			async function recursiveBuild() {
+				let modArray = [];
+				let moduleKeys = Object.keys(Modules);
 
-					if (ifolder >= nfolders) {
-						await refreshSystem();
-						await populate();
-						return;
-					}
+				//loop over module keys to build Promise array 
+				for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
+					modArray.push(new Promise((res, rej) => {
+						let folder = moduleKeys[ifolder];
 
-					let folder = moduleKeys[ifolder];
-					let modrequest = {
-						"Module": folder,
-						"Source": Modules[folder]
-					};
+						let modrequest = {
+							"Module": folder,
+							"Source": Modules[folder]
+						};
 
-					GetModule(modrequest, async function (err, mod) {
-						ModCache[folder] = mod;
-						await recursiveBuild();
-						resolve();
-					});
-				});
+						GetModule(modrequest, function (err, mod) {
+							if (err) { rej(err); reject(err); }
+							else res(ModCache[folder] = mod);
+						});
+					}));
+				}
+				await Promise.all(modArray)
 			}
 
 			/**
@@ -371,6 +370,14 @@
 				}
 
 				await Promise.all(npmDependenciesArray);
+
+				if (state == 'updateOnly'){
+					log.i(`Genesis Update Stop: ${date.toString()}`);
+					log.i('=================================================\n');
+					console.timeEnd("Genesis Runtime");
+					resolve();
+					return;
+				}
 
 				// Assign pids to all instance in Config.Modules
 				for (let instname in Config.Modules) {

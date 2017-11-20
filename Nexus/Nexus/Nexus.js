@@ -1,4 +1,8 @@
 (async function () {
+
+	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
+	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--develop") > -1) state = 'develop';
+
 	console.log(`\nInitializing the Run Engine`);
 
 	const fs = require('fs');
@@ -75,7 +79,7 @@
 
 	// if called from binary quit or if called from 
 	// the command line and node build cache first
-	if (!fs.existsSync(CacheDir)) {
+	if (!fs.existsSync(CacheDir) || (state == "develop")) {
 		// #ifndef BUILT
 		if (isBinary()) {
 			// #endif
@@ -87,6 +91,7 @@
 			log.i("Building the Cache");
 		let genesisString = fs.readFileSync(`${Params.xgraph}/Nexus/Nexus/Genesis.js`).toString();
 		await eval(genesisString);
+		log.e(`AWAITING GENSTRING`)
 		// #endif
 	}
 
