@@ -20,7 +20,6 @@
 			//add some objects to the world
 			let q = {}, obj;
 			q.Cmd = "SetObjects";
-			q.Forward = this.Vlt.Browser;
 			q.Objects = [];
 			//add 10 ellipsoids with random location and scales
 			for (let idx = 0; idx < 10; idx++) {
