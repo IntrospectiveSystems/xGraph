@@ -91,7 +91,6 @@
 			log.i("Building the Cache");
 		let genesisString = fs.readFileSync(`${Params.xgraph}/Nexus/Nexus/Genesis.js`).toString();
 		await eval(genesisString);
-		log.e(`AWAITING GENSTRING`)
 		// #endif
 	}
 
