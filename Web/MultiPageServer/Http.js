@@ -261,6 +261,7 @@
 					obj.Socket = socket;
 					obj.User = {};
 					obj.User.Pid = '160D25754C01438388CE6A946CD4480C';
+					obj.User.Publish = {};
 					Sockets[pidsock] = obj;
 	
 					socket.on('disconnect', function () {
@@ -291,8 +292,7 @@
 							return;
 						}
 						if(com.Cmd == 'Subscribe') {
-							if ('Publish' in obj.User) obj.User.Publish.push(com.Pid);
-							else obj.User.Publish = [com.Pid];
+							obj.User.Publish[com.Link] = com.Pid;
 							return;
 						}
 						if(com.Cmd == 'GetConfig') {
@@ -313,6 +313,14 @@
 							}
 							return;
 						}
+						if(com.Passport.To in that.Par.ApexList) com.Passport.To = that.Par.ApexList[com.Passport.To];
+						else {
+							reply(`${com.Passport.To} is not a known destination on the server.`);
+							log.e(`${com.Passport.To} is not a known destination on the server.`);
+							return;
+						}
+						
+						
 						that.send(com, com.Passport.To, reply);
 	
 						function reply(err, cmd) {
@@ -379,45 +387,25 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
-		// debugger;
-		//	log.i('--Publish', com.Cmd);
-		fun = fun || (() => {});
-
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
 		var keys = Object.keys(socks);
-		
-		if ('Forward' in com) {
-			com.Passport.To = com.Forward;
-			if(fun) {
-				if (!('messages' in this.Vlt)) this.Vlt.messages = {};
-				this.Vlt.messages[com.Passport.Pid] = fun;
-			}
-		} else {
+		for (var i = 0; i < keys.length; i++) {
+			var obj = socks[keys[i]];
+			var sock = obj.Socket;
+			var user = obj.User;
 
-			for(var i=0; i<keys.length; i++) {
-				// debugger;
-				var obj = socks[keys[i]];
-				var sock = obj.Socket;
-				var user = obj.User;
-				// debugger;
-				if('Publish' in user) {
-					log.i(`sm pids [${user.Publish.join(', ')}]`);
-					for(let idek of user.Publish) {
-						com.Passport.To = idek; //user.Publish;
-						if(fun) {
-							com.Passport.Disp = 'Query';
-						}
-						var str = JSON.stringify(com);
-						log.i(JSON.stringify(com, null, 2));
-						sock.send(str);
-					}
+			if ('Forward' in com) {
+				com.Passport.To = user.Publish[com.Forward];
+				if (fun) {
+					com.Passport.Disp = 'Query';					
+					if (!('messages' in this.Vlt)) this.Vlt.messages = {};
+					this.Vlt.messages[com.Passport.Pid] = fun;
 				}
 			}
-
-			fun(null, com);
+			var str = JSON.stringify(com);
+			sock.send(str);
 		}
-
 	}
 
 	//-------------------------------------------------------Get
