@@ -1,5 +1,5 @@
-//# sourceURL=WebProxy
-(function WebProxy() {
+//# sourceURL=ServerProxy
+(function ServerProxy() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -7,7 +7,6 @@
 	};
 
 	return { dispatch };
-
 
 	//-------------------------------------------------------Publish
 	// This is called when message needs to be sent to all
@@ -22,4 +21,4 @@
 	}
 
 
-}) ();
+})();
