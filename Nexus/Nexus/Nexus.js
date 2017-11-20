@@ -272,7 +272,7 @@
 	 * Check if the system is running from binary
 	 */
 	function isBinary() {
-		return (typeof tar == 'undefined');
+		return (typeof tar !== 'undefined');
 	}
 	// #endif
 

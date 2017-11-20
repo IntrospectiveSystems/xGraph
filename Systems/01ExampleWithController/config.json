@@ -20,8 +20,16 @@
 			"Module": "xGraph.Controller",
 			"Source": "xGraph",
 			"Par":{
-				"Server":"$Server"
+				"Server":"$3DViewProxy"
 			}
+		},
+		"3DViewProxy": {
+			"Module":"xGraph.Web.ServerProxy",
+			"Source":"xGraph",
+			"Par":{
+				"Link": "3DView",
+				"Server":"$Server"			
+			}	
 		}
 	}
 }

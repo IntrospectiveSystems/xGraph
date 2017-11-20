@@ -91,6 +91,12 @@
 	function Start(com, fun) {
 		console.log('--3DView/Start');
 
+		if ("Server" in this.Par) {
+			this.send({ Cmd: "Subscribe", Pid: this.Par.Pid , Link: "3DView"}, this.Par.Server, (err, com) => {
+				console.log("Subscribed with Server");
+			});
+		}
+
 		if ("Controller" in this.Par) {
 			this.send({ Cmd: "Register", Pid: this.Par.Pid }, this.Par.Controller, (err, com) => {
 				console.log("Registered with Controller");
