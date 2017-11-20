@@ -116,7 +116,7 @@ function help() {
 async function reset() {
 	try {
 		await ensureNode();
-		state = 'develop';
+		state = 'production';
 		await genesis();
 		startNexusProcess();
 	} catch (e) {

@@ -1,7 +1,7 @@
 (function () {
 	return new Promise(async (resolve, reject) => {
 		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--develop") > -1) state = 'develop';
+		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) state = 'development';
 
 		console.log(`\nInitializing the Compile Engine in ${state} Mode`);
 		console.time('Genesis Runtime');
@@ -193,7 +193,7 @@
 			function cleanCache() {
 				// Remove the provided cache directory
 				if (fs.existsSync(CacheDir) ) {
-					if (state == 'develop'){
+					if (state == 'development'){
 						state = 'updateOnly';
 						return;
 					}
