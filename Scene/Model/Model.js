@@ -29,6 +29,7 @@
 
 	function Start(com, fun) {
 		console.log('--Model/Start');
+		this.save();
 		if(fun)
 			fun();
 	}

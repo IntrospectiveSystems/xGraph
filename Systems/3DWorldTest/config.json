@@ -50,6 +50,12 @@
 				"Scene": "$World",
 				"Spacing": 10
 			}
-		}
+		},
+		"Deferred": [
+			{
+				"Module":"xGraph.Scene.Model",
+				"Source": "xGraph"
+			}
+		]
 	}
 }

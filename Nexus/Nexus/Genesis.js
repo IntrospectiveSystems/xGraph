@@ -127,7 +127,7 @@
 					}
 				}
 			}
-			
+
 			/**
 			 * Reads in the given config and fills in the Macros
 			 */
@@ -135,13 +135,13 @@
 				// Read in the provided config.json file
 				// File is passed in Params.Config or defaults to "config.json" in current working directory
 				let cfg = undefined;
-				
+
 				//set CWD
 				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
 				log.v(`CWD set to ${CWD}`);
 				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 				CacheDir = Params.cache || Path.join(CWD, "cache");
-				
+
 				try {
 					cfg = fs.readFileSync(Params.config || Path.join(CWD, 'config.json'));
 				} catch (e) {
@@ -318,7 +318,7 @@
 				for (let folder in ModCache) {
 					let mod = ModCache[folder];
 					let dir = CacheDir + '/' + folder;
-					try{fs.mkdirSync(dir);}catch(e){}
+					try { fs.mkdirSync(dir); } catch (e) { }
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
 					let path = dir + '/Module.json';
 					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
@@ -374,6 +374,8 @@
 
 				// Assign pids to all instance in Config.Modules
 				for (let instname in Config.Modules) {
+					if (instname == "Deferred")
+						continue;
 					Apex[instname] = genPid();
 				}
 				log.v('Apex', JSON.stringify(Apex, null, 2));
@@ -390,7 +392,7 @@
 					// The following is for backword compatibility only
 					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
 					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
-					try{fs.mkdirSync(dirinst);}catch(e){}
+					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
 						let path = dirinst + '/' + ent.Pid + '.json';
 						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
@@ -603,9 +605,10 @@
 		 * @param {object} inst 
 		 * @param {string} inst.Module	The module definition in dot notation
 		 * @param {object} inst.Par		The par object that defines the par of the instance
+		 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 		 */
-		async function compileInstance(pidapx, inst) {
-			log.v('compileInstance', pidapx, inst);
+		async function compileInstance(pidapx, inst, saveRoot = false) {
+			log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 			var Local = {};
 			var modnam = inst.Module;
 			var mod;
@@ -654,8 +657,7 @@
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					let asdf = symbol(val);
-					ent[par] = await asdf;
+					ent[par] = await symbol(val);					
 				}
 				ents.push(ent);
 			}
@@ -697,8 +699,8 @@
 					switch (key) {
 						case "@filename":
 						case "@file": {
+							let path;
 							try {
-								let path;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 								if (Path.isAbsolute(val))
 									path = val;
@@ -794,7 +796,7 @@
 
 				var strout = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				try{fs.mkdirSync(CacheDir);}catch(e){}
+				try { fs.mkdirSync(CacheDir); } catch (e) { }
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
 
 				//call npm install on a childprocess of node

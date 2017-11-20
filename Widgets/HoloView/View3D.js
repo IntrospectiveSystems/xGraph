@@ -48,7 +48,7 @@
 			Vew.Camera.up.set(0.0, 0.0, 1.0);
 			Vew.Camera.lookAt(Vew.Focus);
 			Vew.Camera.updateProjectionMatrix();
-			TestFont(Vew, "Hello World");
+			TestFont(that, Vew, "Hello World");
 
 			if (fun)
 				fun();
@@ -209,9 +209,9 @@
 		});
 	}
 
-	function TestFont(vew, text) {
+	function TestFont(context, vew, text) {
 		console.log('--TestFont');
-		var font = __Nexus.getFont('Helvetiker.Bold');
+		var font = context.getFont('Helvetiker.Bold');
 		var mesh;
 		var size = 0.5;
 		var height = 0.25 * size;

@@ -162,6 +162,8 @@ async function compile() {
 
 function startNexusProcess() {
 	const { spawn } = require('child_process');
+	let processPath = pathOverrides["cwd"]||path.resolve('./');
+	console.log("Process PAth is ", processPath);
 
 
 	let cacheDir = pathOverrides["cache"];
@@ -178,6 +180,7 @@ function startNexusProcess() {
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
 	ls.stderr.on('data', _ => process.stderr.write(_));
+	process.stdin.on('data', _=> ls.stdin.write(_));
 
 	ls.on('close', (code) => {
 		console.log(`child process exited with code ${code}`);

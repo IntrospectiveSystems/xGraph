@@ -9,7 +9,8 @@
 	var Config = {};					// The read config.json
 	var ModCache = {};					// {<folder>: <module>}
 	var ApexIndex = {}; 				// {<Apex pid>:<folder>}
-	var SourceIndex = {};				// {<Apex pid>:<Broker obj or string>}
+	var Setup = {};						// {<Apex pid>:<function>}
+	var Start = {};						// {<Apex pid>:<function>}
 	var EntCache = {};					// {<Entity pid>:<Entity>
 	var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 	var packagejson = {};				// The compiled package.json, built from Modules
@@ -17,7 +18,6 @@
 	var Params = {};					// The set of Macros for defining paths ---- should be removed??
 	var Nxs = {
 		genPid,
-		GetModule,
 		genModule,
 		genEntity,
 		deleteEntity,
@@ -143,8 +143,8 @@
 	function initiate() {
 		log.i('\n--Nexus/Initiate');
 		ApexIndex = {};
-		var Setup = {};
-		var Start = {};
+		Setup = {};
+		Start = {};
 
 		loadCache();
 
@@ -384,7 +384,7 @@
 				fun(err, com);
 				return;
 			}
-			
+
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
 			} else {
@@ -834,7 +834,6 @@
 		return require(str);
 	}
 
-
 	/**
 	 * Spin up an entity from cache into memory and retrievd its context 
 	 * otherwise just return it's context from memory
@@ -849,8 +848,8 @@
 
 		// Check to see if pid is also an apex entity in this system
 		// if not then we assume that the pid is an entity inside of the sending Module
-		if (pid in ApexIndex){
-			apex = pid;
+		if (pid in ApexIndex) {
+			apx = pid;
 		}
 
 		let folder = ApexIndex[apx];
@@ -893,7 +892,6 @@
 		});
 	}
 
-
 	/**
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
@@ -903,19 +901,16 @@
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
-		let that = this;
-
-		GetModule(inst.Module, function (err, mod) {
+		GetModule(inst.Module, async function (err, mod) {
 			if (err) {
 				log.w(' ** ERR:GenModule err -', err);
 				fun(err);
 				return;
 			}
-			let modnam = inst.Module;
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
-			compileInstance(pidapx, inst);
-
+			log.d("about to compile inst");
+			await compileInstance(pidapx, inst);
 			setup();
 
 			function setup() {
@@ -934,6 +929,7 @@
 			// Start
 			function start() {
 				if (!("Start" in mod)) {
+					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 					return;
 				}
@@ -943,6 +939,7 @@
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
+					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}
@@ -950,12 +947,17 @@
 	}
 
 	/**
-	 * Build a graph of xGraph Entities 
-	 * @param {*} pidapx 	The apex of the module which requires spinnup
-	 * @param {*} inst 		
+	 * Generate array of entities from module
+	 * Module must be in cache 
+	 * 
+	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
+	 * @param {object} inst 
+	 * @param {string} inst.Module	The module definition in dot notation
+	 * @param {object} inst.Par		The par object that defines the par of the instance
+	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
-	async function compileInstance(pidapx, inst) {
-		log.v('compileInstance', pidapx, inst);
+	async function compileInstance(pidapx, inst, saveRoot = false) {
+		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
 		var modnam = inst.Module;
 		var mod;
@@ -967,7 +969,6 @@
 		} else {
 			log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
 			process.exit(1);
-			reject();
 			return;
 		}
 		var schema = JSON.parse(mod['schema.json']);
@@ -1004,8 +1005,11 @@
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
 				var val = ent[par];
-				let asdf = symbol(val);
-				ent[par] = await asdf;
+				if (entkey == "Apex" && saveRoot) {
+					if (par == "$Setup") Setup[ent.Pid] = val;
+					if (par == "$Start") Start[ent.Pid] = val;
+				}
+				ent[par] = await symbol(val);
 			}
 			ents.push(ent);
 		}
@@ -1019,8 +1023,7 @@
 				imp = (1, eval)(mod[par.Entity]);
 				ImpCache[impkey] = imp;
 			}
-			var ent = new Entity(Nxs, imp, par);
-			EntCache[par.Pid] = ent;
+			EntCache[par.Pid] = new Entity(Nxs, imp, par);;
 		});
 
 		async function symbol(val) {
@@ -1048,8 +1051,6 @@
 		}
 	}
 
-
-
 	/**
 	 * For retrieving modules
 	 * Modules come from memory, a defined broker, or disk depending on the module definition
@@ -1060,7 +1061,6 @@
 	 * @returns mod
 	 */
 	function GetModule(modRequest, fun = _ => _) {
-
 		let modnam = modRequest.Module;
 		if (typeof modRequest != "object") {
 			modnam = modRequest;

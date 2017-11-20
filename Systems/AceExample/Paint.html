@@ -12,7 +12,7 @@
 		SockIO.on('message', function (data) {
 			var com = JSON.parse(data);
 			eval(com.Nxs);
-			__Nexus.start(SockIO, com);
+			__Nexus.boot(SockIO, com);
 		});
 
 	</script>
