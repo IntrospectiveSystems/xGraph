@@ -80,6 +80,7 @@
 				obj.Socket = socket;
 				obj.User = {};
 				obj.User.Pid = that.genPid();
+				obj.User.Publish = {};
 				Sockets[obj.User.Pid] = obj;
 
 				socket.on('disconnect', function () {
@@ -104,7 +105,7 @@
 						return;
 					}
 					if (com.Cmd == 'Subscribe') {
-						obj.User.Publish = com.Pid;
+						obj.User.Publish[com.Link] = com.Pid;
 						return;
 					}
 					if (com.Cmd == 'GetConfig') {
@@ -197,15 +198,11 @@
 			var obj = socks[keys[i]];
 			var sock = obj.Socket;
 			var user = obj.User;
-			if ('Publish' in user) {
-				com.Passport.To = user.Publish;
-				if (fun) {
-					com.Passport.Disp = 'Query';
-				}
-			}
+
 			if ('Forward' in com) {
-				com.Passport.To = com.Forward;
+				com.Passport.To = user.Publish[com.Forward];
 				if (fun) {
+					com.Passport.Disp = 'Query';					
 					if (!('messages' in this.Vlt)) this.Vlt.messages = {};
 					this.Vlt.messages[com.Passport.Pid] = fun;
 				}
