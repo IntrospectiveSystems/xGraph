@@ -1,4 +1,4 @@
-//# sourceURL="HTTP.js"
+//# sourceMappingURL="HTTP.js"
 (function Http() {
 	var fs,async,jszip,path;
 
@@ -197,18 +197,32 @@
 		let finish = () => {
 			var Par = this.Par;
 			var Vlt = this.Vlt;
+
+			//generate the routing table, pre combining pages within Vlt
+
+			{
+				if(!('RoutingTable' in this.Par && 'Config' in this.Par) ) {
+					log.w('No routing Table in Server Par, not starting server...');
+					try {
+						server.close();
+					} catch(e) {
+						log.e(e);
+					}
+				}
+
+				this.Vlt.RoutingTable = {};
+				for(let key in this.Par.RoutingTable) {
+					if(key in this.Vlt) {
+						log.w(`duplicate key in routing table <${key.toLowerCase()}>`)
+						continue;
+					}
+					this.Vlt.RoutingTable[key.toLowerCase()] = this.Par.RoutingTable[key];
+				}
+			}
 			
 			webSocket(server);
-			(function (err, data) {
-				if(err) {
-					log.w(err);
-					fun(err, com);
-					return;
-				}
-				Vlt.Browser = JSON.parse(data.toString());
-				getscripts();
-			})(...('Config' in this.Par ? [null, this.Par.Config] : ['Config not found in MultipageServer Par', null]));
-	
+			getscripts();
+			
 			function getscripts() {
 				that.getFile('scripts.json', function(err, data) {
 					if(err) {
@@ -216,18 +230,18 @@
 						fun(err, com);
 						return;
 					}
-					Vlt.Browser.Scripts = JSON.parse(data.toString());
+					Vlt.Scripts = JSON.parse(data.toString());
 					getnxs();
 				})
 			}
 	
 			function getnxs() {
-				that.getFile('Nxs.js', function(err, data) {					
+				that.getFile('Nxs.js', function(err, data) {
 					if(err) {
 						log.i(' ** ERR:Cannot read Nxs file');
 						return;
 					}
-					Vlt.Browser.Nxs = data.toString();
+					Vlt.Nxs = data.toString();
 					fun();
 				});
 			}
@@ -242,7 +256,7 @@
 					log.d('socket!!!');
 					var pidsock = '';
 					for(var i=0; i<3; i++)
-						pidsock += that.genPid().substr(24);
+						pidsock += that.genPid();
 					var obj = {};
 					obj.Socket = socket;
 					obj.User = {};
@@ -310,43 +324,29 @@
 							var str = JSON.stringify([err, com]);
 							socket.send(str);
 						}
-	
+						
+						
 						function getConfig() {
-							//debugger;
-							var path = com.Path;
-	
-	
-							// var cfg = Vlt.Browser;
-							let cfg = {};
-							for(let key in Vlt.Browser) {
-								cfg[key] = Vlt.Browser[key];
-							}
-							cfg = Vlt.Browser;
-							
-							// socket.send(str);
-	
-							(function(err, data) {
-								if(err) {
-									log.i(' ** ERR', err);
-									return;
-								}
-	
-								cfg.Pid24 = pidsock;
-								cfg.PidServer = Par.Pid;
-								cfg.ApexList = Par.ApexList||{};
-								
+							log.i(com.Path);
 
-								let page = JSON.parse(data.toString('utf8'));
-	
-								for(let key in page.Modules) {
-									cfg.Modules[key] = page.Modules[key];
-								}
-	
-								var str = JSON.stringify(cfg);
-	
-								socket.send(str);
-							})(...('Pages' in that.Par && path in that.Par.Pages ? [null, that.Par.Pages[path]] : [`${path} not in MultipageServer's Par.Pages`, null]));
-							// log.d(JSON.stringify(that.Par, null, 2));
+							let cfg = {
+								Nxs: that.Vlt.Nxs,
+								Pid: obj.User.Pid,
+								PidServer: that.Par.Pid,
+								ApexList: that.Par.ApexList,
+								Scripts: Vlt.Scripts
+							}
+
+							for (let key in that.Vlt.RoutingTable[com.Path.toLowerCase()])
+								cfg[key] = that.Vlt.RoutingTable[com.Path.toLowerCase()][key];
+
+							log.d('----------------- cfg');
+							for(let k in cfg) {
+								log.d(`[${k}]: ${cfg[k].toString().substr(0, 100)}`);
+							}
+							log.d('---------------------');
+
+							socket.send(JSON.stringify(cfg, null, 2));
 						}
 	
 						//.....................................getfile

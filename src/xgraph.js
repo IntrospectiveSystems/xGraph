@@ -33,6 +33,7 @@ let pathOverrides = {};
 
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
+let CacheDir;
 
 if (process.argv.length == 1) process.argv[1] = 'help';
 
@@ -164,14 +165,17 @@ function startNexusProcess() {
 	let processPath = pathOverrides["cwd"]||path.resolve('./');
 	console.log("Process PAth is ", processPath);
 
+
+	let cacheDir = pathOverrides["cache"];
+	console.log(cacheDir);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], {cwd: processPath, env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
@@ -242,6 +246,7 @@ function install() {
 }
 
 function processSwitches() {
+	// console.log('\u001b[0;32m Process Switches');
 	for (let i = 0; i < process.argv.length; i++) {
 		let str = process.argv[i];
 		if (str.startsWith('--')) {
@@ -249,6 +254,25 @@ function processSwitches() {
 			applySwitch(key, i);
 		}
 	}
+	
+	pathOverrides["cache"] = pathOverrides["cache"] || "./cache";
+
+	// console.log(pathOverrides["cache"])
+
+	// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+	// CacheDir = Params.cache || Path.join(CWD, "cache");
+
+
+	// console.log(Object.keys(pathOverrides));
+
+	if(!('cache' in pathOverrides))
+		pathOverrides.cache = 'cache';
+
+	if(!path.isAbsolute(pathOverrides.cache)) {
+		pathOverrides.cache = path.resolve(path.resolve(pathOverrides.cwd || process.cwd()), pathOverrides.cache);
+	}
+
+	// console.log(`cache directory \u001b[1;34m${pathOverrides.cache}\u001b[0m`);
 }
 
 function applySwitch(str, i) {
@@ -260,7 +284,8 @@ function applySwitch(str, i) {
 	if ((i + 1) in process.argv) { // switch has a value
 		val = process.argv[i + 1];
 	}
-	pathOverrides[str.toLowerCase()] = (val==null)? null:path.resolve(val);
+	if(val != null)
+		pathOverrides[str.toLowerCase()] = val;
 }
 
 
