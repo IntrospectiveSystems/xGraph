@@ -1,5 +1,5 @@
 (function Palette() {
-	var async, fs;
+	var async, fs, Path;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -15,6 +15,7 @@
 		console.log('--Palette/Setup');
 		async = this.require('async');
 		fs = this.require('fs');
+		Path = this.require("path");
 		
 		this.Vlt.Graph = [];
 		if(fun)
@@ -33,6 +34,8 @@
 		Par.Initialized = true;
 		this.save();
 		var path = 'stash';
+		path = Path.resolve(path);
+		log.d("Path is ", path);
 		fs.readdir(path, function (err, files) {
 			if (err) {
 				console.log(' ** ERR:Project file err:' + err);
