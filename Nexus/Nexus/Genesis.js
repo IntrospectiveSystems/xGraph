@@ -1,14 +1,15 @@
 (function () {
 	return new Promise(async (resolve, reject) => {
 		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) state = 'development';
+		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
+			state = 'development';
+		}
 
-		console.log(`\nInitializing the Compile Engine in ${state} Mode`);
-		console.time('Genesis Runtime');
+		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
 
 		const fs = require('fs');
-		const date = new Date();
 		const Path = require('path');
+		const endOfLine = require('os').EOL;
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
 		let Config = {};					// The parsed system configuration in JSON format
@@ -16,7 +17,7 @@
 		let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
 		let ModCache = {};					// {<folder>: <module>}
 		let packagejson = {};				// The compiled package.json, built from Modules
-		let args = process.argv;			// The input arguments --under consideration for deprication  in future release
+		let args = process.argv;			// The input arguments --under consideration for deprication
 		let Params = {};					// The set of Macros for defining paths 
 		let CWD = '';						// The current working directory 
 
@@ -26,7 +27,7 @@
 		{
 			// The logging function for writing to xgraph.log to the current working directory
 			const xgraphlog = (...str) => {
-				fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => {
+				fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
 					if (err) {
 						console.error(err); process.exit(1); reject();
 					}
@@ -34,33 +35,48 @@
 			};
 			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 			// Levels include:
-			// v : verbose
-			// d : debug
-			// i : info
-			// w : warn			
-			// e : error 		critical failure
+			// v : verbose		Give too much information 
+			// d : debug		For debugging purposes not in production level releases
+			// i : info			General info presented to the end user 
+			// w : warn			Failures that dont result in a system exit
+			// e : error 		Critical failure should always follow with a system exit
 			const log = global.log = {
 				v: (...str) => {
-					console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-					xgraphlog(...str);
+					process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					xgraphlog(new Date().toString(),...str);
 				},
 				d: (...str) => {
-					console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-					xgraphlog(...str);
+					process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					xgraphlog(new Date().toString(),...str);
 				},
 				i: (...str) => {
-					console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-					xgraphlog(...str);
+					process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					xgraphlog(new Date().toString(),...str);
 				},
 				w: (...str) => {
-					console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
-					xgraphlog(...str);
+					process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					xgraphlog(new Date().toString(),...str);
 				},
 				e: (...str) => {
-					console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-					xgraphlog(...str);
+					process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					xgraphlog(new Date().toString(),...str);
 				}
 			};
+			console.log = function (...str) {
+				log.w('console.log is depricated use defined log levels ... log.i()');
+				log.v(...str);
+			}
+			console.time = _ => {
+				console.timers = console.timers || {};
+				console.timers[_] = performance.now();
+			};
+			console.timeEnd = _ => {
+				if(!(_ in (console.timers || {})))
+				   return;
+				let elapsed = performance.now() - console.timers[_];
+				console.timers[_] = undefined;
+				log.i(`${_}: ${elapsed}ms`);
+			}
 		}
 
 		try {
@@ -85,7 +101,7 @@
 		 * and clean the cache.
 		 */
 		function setup() {
-			log.i('=================================================');
+			log.i(`=================================================`);
 			log.i(`Genesis Setup:`);
 
 			defineMacros();
@@ -96,7 +112,7 @@
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
-			// Only Helper Beyond This Point
+			// Only Helper Functions Beyond This Point
 			//
 			//
 
@@ -108,7 +124,7 @@
 			 */
 			function defineMacros() {
 				// Process input arguments and define macro parameters
-				// All macros are stored case insensitive in the Params array
+				// All macros are stored case insensitive in the Params object
 
 				let arg, parts;
 				for (var iarg = 0; iarg < args.length; iarg++) {
@@ -125,6 +141,13 @@
 						Params[key] = pathOverrides[key];
 					}
 				}
+
+				//set CWD
+				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
+				log.v(`CWD set to ${CWD}`);
+
+				//set Cache location
+				CacheDir = Params.cache || Path.join(CWD, 'cache');
 			}
 
 			/**
@@ -135,12 +158,6 @@
 				// File is passed in Params.Config or defaults to "config.json" in current working directory
 				let cfg = undefined;
 
-				//set CWD
-				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
-				log.v(`CWD set to ${CWD}`);
-				// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-				CacheDir = Params.cache || Path.join(CWD, "cache");
-
 				try {
 					cfg = fs.readFileSync(Params.config || Path.join(CWD, 'config.json'));
 				} catch (e) {
@@ -149,7 +166,6 @@
 				}
 
 				// Parse the config.json and replace Macros
-				// Store all Macros in Params --- should be removed?
 				let val, sources, subval;
 				if (cfg) {
 					var ini = JSON.parse(cfg);
@@ -191,8 +207,8 @@
 			 */
 			function cleanCache() {
 				// Remove the provided cache directory
-				if (fs.existsSync(CacheDir) ) {
-					if (state == 'development'){
+				if (fs.existsSync(CacheDir)) {
+					if (state == 'development') {
 						state = 'updateOnly';
 						return;
 					}
@@ -202,7 +218,6 @@
 				}
 			}
 		}
-
 
 		/**
 		 * Builds a cache from a config.json. 
@@ -230,10 +245,7 @@
 			 * Create a list of all required modules and their brokers
 			 */
 			function generateModuleCatalog() {
-				// Create new cache				//prepare for looping over the module catalog
-				ifolder = -1;
-				moduleKeys = Object.keys(Modules);
-				nfolders = moduleKeys.length; and install high level
+				// Create new cache and install high level
 				// module subdirectories. Each of these also
 				// has a link to the source of that module (Module.json).
 				var keys = Object.keys(Config.Modules);
@@ -248,7 +260,7 @@
 								log.w(`Deferring { Module: '${mod}' } instead`);
 								mod = { Module: mod };
 							}
-							logModule(mod);							
+							logModule(mod);
 						});
 					} else {
 						log.v(`Compiling ${Config.Modules[key].Module}`);
@@ -256,7 +268,7 @@
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2))
 						}
-						logModule(Config.Modules[key]);						
+						logModule(Config.Modules[key]);
 					}
 
 					/**
@@ -337,7 +349,7 @@
 
 						log.i(`${folder}: Updating and installing dependencies`);
 						let packageString = JSON.stringify(packagejson, null, 2);
-						console.log(packageString);
+						log.v(packageString);
 						//write the compiled package.json to disk
 
 						fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
@@ -348,8 +360,12 @@
 						let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 						let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
 
-						ps.stdout.on('data', _ => { process.stdout.write(`${folder}: ${_} `) });
-						ps.stderr.on('data', _ => process.stderr.write(`${folder}: ${_} `));
+						ps.stdout.on('data', _ => {
+							process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+						});
+						ps.stderr.on('data', _ => {
+							process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+						});
 
 						ps.on('err', function (err) {
 							log.e('Failed to start child process.');
@@ -358,6 +374,7 @@
 						});
 
 						ps.on('exit', function (code) {
+							process.stderr.write(`\r\n`);
 							if (code == 0)
 								log.i(`${folder}: dependencies installed correctly`);
 							else {
@@ -373,10 +390,9 @@
 
 				await Promise.all(npmDependenciesArray);
 
-				if (state == 'updateOnly'){
-					log.i(`Genesis Update Stop: ${date.toString()}`);
-					log.i('=================================================\n');
-					console.timeEnd("Genesis Runtime");
+				if (state == 'updateOnly') {
+					log.i(`Genesis Update Stop: ${new Date().toString()}`);
+					log.i(`=================================================${endOfLine}`);
 					resolve();
 					return;
 				}
@@ -408,9 +424,8 @@
 					});
 				}
 
-				log.i(`Genesis Compile Stop: ${date.toString()}`);
-				log.i('=================================================\n');
-				console.timeEnd("Genesis Runtime");
+				log.i(`Genesis Compile Stop: ${new Date().toString()}`);
+				log.i(`=================================================${endOfLine}`);
 				resolve();
 			}
 		}
@@ -420,7 +435,7 @@
 
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
-		// Only Function Definitions Beyond This Point
+		// Only Helper Functions Beyond This Point
 		//
 		//
 
@@ -453,7 +468,7 @@
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
-			// Only Function Definitions Beyond This Point
+			// Only Helper Functions Beyond This Point
 			//
 			//
 
@@ -467,14 +482,15 @@
 				const host = source.Host;
 				let State;
 				let Buf;
-				sock.connect(port, host, function () { console.log("trying to connect") });
+				sock.connect(port, host, function () { log.v("trying to connect") });
 				sock.on('connect', function () {
 					let cmd = {};
 					cmd.Cmd = "GetModule";
 					cmd.Module = modnam;
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
-					log.v(`Requested Module ${modnam} from Broker \n${JSON.stringify(source, null, 2)}`);
+					log.v(`Requested Module ${modnam} from Broker ${endOfLine}
+							${JSON.stringify(source, null, 2)}`);
 				});
 
 				sock.on('error', (err) => {
@@ -614,7 +630,7 @@
 		 * @param {object} inst 
 		 * @param {string} inst.Module	The module definition in dot notation
 		 * @param {object} inst.Par		The par object that defines the par of the instance
-		 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
+		 * @param {boolean} saveRoot	Add the setup and start functions to the Root.Setup and start
 		 */
 		async function compileInstance(pidapx, inst, saveRoot = false) {
 			log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
@@ -666,7 +682,7 @@
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					ent[par] = await symbol(val);					
+					ent[par] = await symbol(val);
 				}
 				ents.push(ent);
 			}
@@ -793,7 +809,7 @@
 		 */
 		function refreshSystem() {
 			return new Promise((resolve, reject) => {
-				log.i('--refreshSystems: Updating and installing dependencies\n');
+				log.i(`--refreshSystems: Updating and installing dependencies${endOfLine}`);
 				var packagejson = {};
 
 				if (!packagejson.dependencies) packagejson.dependencies = {};
@@ -942,7 +958,7 @@
 		/**
 		 * Recursive directory deletion
 		 * Used for cache cleanup
-		 * @param {*} path the directory to be recursively removed 
+		 * @param {string} path the directory to be recursively removed 
 		 */
 		function remDir(path) {
 			var files = [];
@@ -976,9 +992,9 @@
 				recursiveBuild();
 
 
-				////////////////////////////////////////////////////////////////////////////////////////////////
+				/////////////////////////////////////////////////////////////////////////////////////////////
 				//
-				// Only Function Definitions Beyond This Point
+				// Only Helper Functions Beyond This Point
 				//
 				//
 
@@ -1001,6 +1017,12 @@
 							logModule(Config.Modules[key]);
 						}
 
+						/**
+						 * Add the module to the Modules object if unique
+						 * @param {object} mod 		The module object 
+						 * @param {string} mod.Module	The name of the module
+						 * @param {object, string} mod.Source The Module broker or path reference
+						 */
 						function logModule(mod) {
 							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
 							let source = mod.Source;
@@ -1062,12 +1084,12 @@
 							let path = dir + '/Module.json';
 							man.push(path);
 							zip.file(path, mod, {
-								date: new Date("December 25, 2007 00:00:01")
+								date: new Date("December 5, 2017 00:00:01")
 								//the date is required for zip consistency
 							});
 						}
 						zip.file('manifest.json', JSON.stringify(man), {
-							date: new Date("December 25, 2007 00:00:01")
+							date: new Date("December 5, 2017 00:00:01")
 							//the date is required for zip consistency
 						});
 						zip.generateAsync({ type: 'base64' }).then(function (data) {
@@ -1085,7 +1107,6 @@
 				*/
 				function parseConfig(cfg) {
 					// Parse the config.json and replace Macros
-					// Store all Macros in Params --- should be removed?
 					let val, sources, subval;
 					var ini = JSON.parse(cfg);
 					for (let key in ini) {

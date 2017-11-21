@@ -1,6 +1,5 @@
 //# sourceURL=server/http
 (function Http() {
-	let jszip;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -15,7 +14,6 @@
 
 	function Setup(com, fun) {
 		log.v('--Http/Setup');
-		jszip = this.require("jszip");
 		fun();
 	}
 

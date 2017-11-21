@@ -1,13 +1,14 @@
 (async function () {
-
 	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) state = 'development';
+	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
+		state = 'development';
+	}
 
-	console.log(`\nInitializing the Run Engine`);
+	process.stdout.write(`Initializing the Run Engine \r\n`);
 
 	const fs = require('fs');
 	const Path = require('path');
-	const date = new Date();
+	const endOfLine = require('os').EOL;
 	var Uuid;
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
@@ -18,8 +19,8 @@
 	var EntCache = {};					// {<Entity pid>:<Entity>
 	var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 	var packagejson = {};				// The compiled package.json, built from Modules
-	var args = process.argv;			// The input argutments ----- should be removed ??
-	var Params = {};					// The set of Macros for defining paths ---- should be removed??
+	var args = process.argv;			// The input arguments --under consideration for deprication 
+	var Params = {};					// The set of Macros for defining paths 
 	var Nxs = {
 		genPid,
 		genModule,
@@ -32,44 +33,63 @@
 		sendMessage
 	};
 
-
 	//
 	// Logging Functionality
 	//
 	{
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(process.cwd() + "/xgraph.log", str.join(" ") + "\n", (err) => { if (err) { console.error(err); process.exit(1) } });
+			fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
+				if (err) {
+					console.error(err); process.exit(1); reject();
+				}
+			});
 		};
 		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 		// Levels include:
-		// v : verbose
-		// d : debug
-		// i : info
-		// w : warn
-		// e : error
+		// v : verbose		Give too much information 
+		// d : debug		For debugging purposes not in production level releases
+		// i : info			General info presented to the end user 
+		// w : warn			Failures that dont result in a system exit
+		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
 			v: (...str) => {
-				console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
-				xgraphlog(...str);
+				process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				xgraphlog(new Date().toString(), ...str);
 			},
 			d: (...str) => {
-				console.log('\u001b[35m[DBUG]', ...str, '\u001b[39m');
-				xgraphlog(...str);
+				process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				xgraphlog(new Date().toString(), ...str);
 			},
 			i: (...str) => {
-				console.log('\u001b[36m[INFO]', ...str, '\u001b[39m');
-				xgraphlog(...str);
+				process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				xgraphlog(new Date().toString(), ...str);
 			},
 			w: (...str) => {
-				console.log('\u001b[33m[WARN]', ...str, '\u001b[39m');
-				xgraphlog(...str);
+				process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				xgraphlog(new Date().toString(), ...str);
 			},
 			e: (...str) => {
-				console.log('\u001b[31m[ERRR]', ...str, '\u001b[39m');
-				xgraphlog(...str);
+				process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				xgraphlog(new Date().toString(), ...str);
 			}
 		};
+		console.log = function (...str) {
+			log.w('console.log is depricated use defined log levels ... log.i()');
+			log.v(...str);
+		}
+		console.time = _ => {
+			console.timers = console.timers || {};
+			console.timers[_] = performance.now();
+		};
+		
+		console.timeEnd = _ => {
+			if(!(_ in (console.timers || {})))
+			   return;
+			let elapsed = performance.now() - console.timers[_];
+			console.timers[_] = undefined;
+			log.i(`${_}: ${elapsed}ms`);
+		}
 	}
 
 	log.i('=================================================');
@@ -112,6 +132,7 @@
 	 */
 	function defineMacros() {
 		// Process input arguments and define macro parameters
+		// All macros are stored case insensitive in the Params object
 
 		let arg, parts;
 		for (var iarg = 0; iarg < args.length; iarg++) {
@@ -132,7 +153,6 @@
 			}
 		}
 
-		// Define where the cache is located
 		//set CWD
 		CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
 		log.v(`CWD set to ${CWD}`);
@@ -145,7 +165,7 @@
 	 *  The main process of starting an xGraph System.
 	 */
 	function initiate() {
-		log.i('\n--Nexus/Initiate');
+		log.i(`${endOfLine}--Nexus/Initiate`);
 		ApexIndex = {};
 		Setup = {};
 		Start = {};
@@ -160,7 +180,7 @@
 
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
-		// Only Function Definitions Beyond This Point
+		// Only Helper Functions Beyond This Point
 		//
 		//
 
@@ -250,7 +270,7 @@
 		 * Send Finished command if the process was generated 
 		 */
 		function run() {
-			log.i('\n--Nexus/Run');
+			log.i(`${endOfLine}--Nexus/Run`);
 			if ('send' in process) {
 				process.send('{"Cmd":"Finished"}');
 			}
@@ -313,10 +333,6 @@
 	}
 
 
-
-
-
-
 	/**
 	 * generate a 32 character hex pid
 	 */
@@ -329,8 +345,6 @@
 		var pid = str.replace(/-/g, '').toUpperCase();
 		return pid;
 	}
-
-
 
 	/**
 	 * Send a message from an entity to an Apex entity.
@@ -345,20 +359,20 @@
 	 */
 	function sendMessage(com, fun = _ => _) {
 		if (!('Passport' in com)) {
-			log.w(' ** ERR:Message has no Passport, ignored');
+			log.w('Message has no Passport, ignored');
 			log.w('    ' + JSON.stringify(com));
 			fun('No Passport');
 			return;
 		}
 		if (!('To' in com.Passport) || !com.Passport.To) {
-			log.w(' ** ERR:Message has no destination entity, ignored');
+			log.w('Message has no destination entity, ignored');
 			log.w('    ' + JSON.stringify(com));
 			console.trace();
 			fun('No recipient in message', com);
 			return;
 		}
 		if (!('Pid' in com.Passport)) {
-			log.w(' ** ERR:Message has no message id, ignored');
+			log.w('Message has no message id, ignored');
 			log.w('    ' + JSON.stringify(com));
 			fun('No message id', com);
 			return;
@@ -375,7 +389,7 @@
 
 		function done(err, entContext) {
 			if (err) {
-				log.w(' ** ERR:' + err);
+				log.w(err);
 				log.w(JSON.stringify(com, null, 2));
 				fun(err, com);
 				return;
@@ -384,7 +398,7 @@
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
 			} else {
-				let err = ' ** ERR: Trying to send a message to a non-Apex'
+				let err = 'Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
 				log.w(err);
 				log.w(JSON.stringify(com, null, 2));
@@ -457,7 +471,7 @@
 				disp['*'].call(this, com, fun);
 				return;
 			}
-			log.e(' ** ERR:Nada Cmd:' + com.Cmd);
+			log.e('Nada Cmd:' + com.Cmd);
 			fun('Nada', com);
 		}
 
@@ -538,7 +552,7 @@
 	 * @param {object} par 		the Par of the entity that will be created
 	 * @param {string} par.Entity The entity type that will be generated
 	 * @param {string=} par.Pid	the pid to define as the pid of the entity
-	 * @callback fun 			the callback to return te pid of the generated entity to
+	 * @callback fun 			the callback to return the pid of the generated entity to
 	 */
 	function genEntity(apx, par, fun = _ => log.e(_)) {
 		if (!("Entity" in par)) {
@@ -550,7 +564,7 @@
 		var mod = ModCache[ApexIndex[apx]];
 
 		if (!(par.Entity in mod)) {
-			log.e(' ** ERR:<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
+			log.e('<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
 			fun('Null entity');
 			return;
 		}
@@ -576,7 +590,7 @@
 	 * then delete all the entities found in that module as well. 
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
-	 * @callback fun  			the callback to return te pid of the generated entity to
+	 * @callback fun  			the callback to return the pid of the generated entity to
 	 */
 	function deleteEntity(apx, pid, fun = _ => _) {
 		let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;
@@ -696,7 +710,7 @@
 	 * Access a file that exists in the module.json
 	 * @param {string} module 		the module to look for the file in
 	 * @param {string} filename 	the name of the file we're looking for
-	 * @callback fun				the callback to return te pid of the generated entity to
+	 * @callback fun				the callback to return the pid of the generated entity to
 	 */
 	function getFile(module, filename, fun = _ => _) {
 		let mod = ModCache[module];
@@ -733,7 +747,7 @@
 	 * otherwise just return it's context from memory
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
-	 * @callback fun  			the callback to return te pid of the generated entity to
+	 * @callback fun  			the callback to return the pid of the generated entity to
 	 */
 	function getEntityContext(apx, pid, fun = _ => _) {
 		let imp;
@@ -750,7 +764,7 @@
 		let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
 		fs.readFile(path, function (err, data) {
 			if (err) {
-				log.e(' ** ERR:<' + path + '> unavailable');
+				log.e('<' + path + '> unavailable');
 				fun('Unavailable');
 				return;
 			}
@@ -765,12 +779,12 @@
 
 			GetModule(folder, function (err, mod) {
 				if (err) {
-					log.e(' ** ERR:Module <' + folder + '> not available');
+					log.e('Module <' + folder + '> not available');
 					fun('Module not available');
 					return;
 				}
 				if (!(par.Entity in mod)) {
-					log.e(' ** ERR:<' + par.Entity + '> not in module <' + folder + '>');
+					log.e('<' + par.Entity + '> not in module <' + folder + '>');
 					fun('Null entity');
 					return;
 				}
@@ -797,7 +811,7 @@
 	function genModule(inst, fun = _ => _) {
 		GetModule(inst.Module, async function (err, mod) {
 			if (err) {
-				log.w(' ** ERR:GenModule err -', err);
+				log.e('GenModule err -', err);
 				fun(err);
 				return;
 			}
@@ -861,7 +875,7 @@
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
 		} else {
-			log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+			log.e('Module <' + modnam + '> not in ModCache');
 			process.exit(1);
 			return;
 		}
@@ -901,8 +915,8 @@
 				var par = pars[ipar];
 				var val = ent[par];
 				if (entkey == "Apex" && saveRoot) {
-					if (par == "$Setup"){Setup[ent.Pid] = val;}
-					if (par == "$Start") {Start[ent.Pid] = val;}
+					if (par == "$Setup") { Setup[ent.Pid] = val; }
+					if (par == "$Start") { Start[ent.Pid] = val; }
 				}
 				ent[par] = await symbol(val);
 			}
