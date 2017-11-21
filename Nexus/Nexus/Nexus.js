@@ -257,14 +257,6 @@
 		}
 	}
 
-
-
-
-
-
-
-
-
 	//
 	//
 	// Helper Functions as well as Entity definition
@@ -432,7 +424,7 @@
 		};
 
 		/**
-		 * load a dependency for a moduel
+		 * load a dependency for a module
 		 * @param {string} string 	the string of the module to require/load
 		 */
 		function require(string) {
@@ -541,7 +533,7 @@
 
 	/**
 	 * Create an Entity from the given par in the module defined by apx
-	 * The entity is then stored in EntCache
+	 * The entity is then stored in EntCache (the location of all "in Memory" entities)
 	 * @param {string} apx 		the Pid of the module Apex in which this entity will be generated
 	 * @param {object} par 		the Par of the entity that will be created
 	 * @param {string} par.Entity The entity type that will be generated
@@ -620,7 +612,7 @@
 	 * cache prior to saving said file
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
-	 * @callback fun  			the callback to return te pid of the generated entity to
+	 * @callback fun  			the callback to return the pid of the generated entity to
 	 */
 	function saveEntity(apx, pid, fun = _ => _) {
 		let modpath = `${CacheDir}/${ApexIndex[apx]}`;
@@ -798,8 +790,8 @@
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up
-	 * @param {string} inst.Module 	The name of te module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par	
+	 * @param {string} inst.Module 	The name of the module to spin up
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
@@ -879,10 +871,11 @@
 		//set Pids for each entity in the schema
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
-			if (entkey === 'Apex')
+			if (entkey === 'Apex') {
 				Local[entkey] = pidapx;
-			else
+			} else {
 				Local[entkey] = genPid();
+			}
 		}
 
 		//unpack the par of each ent
@@ -908,8 +901,8 @@
 				var par = pars[ipar];
 				var val = ent[par];
 				if (entkey == "Apex" && saveRoot) {
-					if (par == "$Setup") Setup[ent.Pid] = val;
-					if (par == "$Start") Start[ent.Pid] = val;
+					if (par == "$Setup"){Setup[ent.Pid] = val;}
+					if (par == "$Start") {Start[ent.Pid] = val;}
 				}
 				ent[par] = await symbol(val);
 			}

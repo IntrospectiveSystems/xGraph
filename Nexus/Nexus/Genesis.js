@@ -11,13 +11,13 @@
 		const Path = require('path');
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
-		let Config = {};					// The read config.json
+		let Config = {};					// The parsed system configuration in JSON format
 		let Apex = {};						// {<Name>: <pid of Apex>}
 		let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
 		let ModCache = {};					// {<folder>: <module>}
 		let packagejson = {};				// The compiled package.json, built from Modules
-		let args = process.argv;			// The input argutments ----- should be removed ??
-		let Params = {};					// The set of Macros for defining paths ---- should be removed??
+		let args = process.argv;			// The input arguments --under consideration for deprication  in future release
+		let Params = {};					// The set of Macros for defining paths 
 		let CWD = '';						// The current working directory 
 
 		//
@@ -37,8 +37,8 @@
 			// v : verbose
 			// d : debug
 			// i : info
-			// w : warn
-			// e : error
+			// w : warn			
+			// e : error 		critical failure
 			const log = global.log = {
 				v: (...str) => {
 					console.log('\u001b[90m[VRBS]', ...str, '\u001b[39m');
@@ -80,9 +80,9 @@
 
 		/**
 		 * The setup procedures for genesis.
-		 * This includes defining macros and othre Params.
-		 * Parse the config
-		 * and Clean the cache if it currently exists
+		 * This includes defining macros and other Params.
+		 * Parse the configuration file
+		 * and clean the cache.
 		 */
 		function setup() {
 			log.i('=================================================');
@@ -96,13 +96,13 @@
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
-			// Only Function Definitions Beyond This Point
+			// Only Helper Beyond This Point
 			//
 			//
 
 			/**
 			 * Read in macros and set Params from process.argv
-			 * these are also set in the birany in pathOverrides
+			 * these are also set in the binary in pathOverrides
 			 * examples are  xGraph={path to xGraph} 
 			 * in binary they look like --xGraph {path to xGraph}
 			 */
@@ -167,7 +167,6 @@
 								subval = sources[subkey];
 								if (typeof subval == 'string') {
 									Config.Sources[subkey] = Macro(subval);
-									//Params[subkey] = Config[subkey];
 								} else {
 									Config.Sources[subkey] = subval;
 								}
@@ -212,8 +211,6 @@
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
 
-			let ifolder, moduleKeys, nfolders;
-
 			generateModuleCatalog();
 
 			await recursiveBuild();
@@ -225,7 +222,7 @@
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
-			// Only Function Definitions Beyond This Point
+			// Only Helper Functions Beyond This Point
 			//
 			//
 
@@ -233,7 +230,10 @@
 			 * Create a list of all required modules and their brokers
 			 */
 			function generateModuleCatalog() {
-				// Create new cache and install high level
+				// Create new cache				//prepare for looping over the module catalog
+				ifolder = -1;
+				moduleKeys = Object.keys(Modules);
+				nfolders = moduleKeys.length; and install high level
 				// module subdirectories. Each of these also
 				// has a link to the source of that module (Module.json).
 				var keys = Object.keys(Config.Modules);
@@ -242,10 +242,10 @@
 					if (key == 'Deferred') {
 						var arr = Config.Modules[key];
 						arr.forEach(function (mod) {
-							log.v(`Defferring ${mod.Module || mod}`);
+							log.v(`Deferring ${mod.Module || mod}`);
 							if (typeof mod == 'string') {
-								log.w('Adding Module names directly to Defferred is deprecated');
-								log.w(`Defferring { Module: '${mod}' } instead`);
+								log.w('Adding Module names directly to Deferred is deprecated');
+								log.w(`Deferring { Module: '${mod}' } instead`);
 								mod = { Module: mod };
 							}
 							logModule(mod);							
@@ -259,6 +259,12 @@
 						logModule(Config.Modules[key]);						
 					}
 
+					/**
+					 * Add the module to the Modules object if unique
+					 * @param {object} mod 		The module object 
+					 * @param {string} mod.Module	The name of the module
+					 * @param {object, string} mod.Source The Module broker or path reference
+					 */
 					function logModule(mod) {
 						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
 						let source = mod.Source;
@@ -273,10 +279,6 @@
 						}
 					}
 				}
-				//prepare for looping over the module catalog
-				ifolder = -1;
-				moduleKeys = Object.keys(Modules);
-				nfolders = moduleKeys.length;
 			}
 
 			/**
@@ -334,11 +336,11 @@
 						}
 
 						log.i(`${folder}: Updating and installing dependencies`);
-						let strout = JSON.stringify(packagejson, null, 2);
-						console.log(strout);
+						let packageString = JSON.stringify(packagejson, null, 2);
+						console.log(packageString);
 						//write the compiled package.json to disk
 
-						fs.writeFileSync(Path.join(dir, 'package.json'), strout);
+						fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
 
 						//call npm install on a childprocess of node
 						const proc = require('child_process');
@@ -546,7 +548,7 @@
 				//create the Module.json and add it to ModCache
 				fs.readdir(ModPath, function (err, files) {
 					if (err) {
-						err += ' ** ERR:Module <' + ModPath + '? not available'
+						err += 'Module <' + ModPath + '? not available'
 						log.e(err);
 						fun(err);
 						return;
@@ -625,7 +627,7 @@
 			if (modnam in ModCache) {
 				mod = ModCache[modnam];
 			} else {
-				log.e(' ** ERR:' + 'Module <' + modnam + '> not in ModCache');
+				log.e('Module <' + modnam + '> not in ModCache');
 				process.exit(1);
 				reject();
 				return;
@@ -801,10 +803,10 @@
 				packagejson.dependencies["jszip"] = "~3.1.3";
 
 
-				var strout = JSON.stringify(packagejson, null, 2);
+				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
 				try { fs.mkdirSync(CacheDir); } catch (e) { }
-				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), strout);
+				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 
 				//call npm install on a childprocess of node
 				const proc = require('child_process');
@@ -895,7 +897,7 @@
 		 */
 		function genPath(filein) {
 			if (!filein) {
-				log.e(' ** ERR:Invalid file name');
+				log.e('Invalid file name');
 				return '';
 			}
 			var cfg = Params;
@@ -916,7 +918,7 @@
 					path = Path.join(Params[name], parts[1]);
 					return path;
 				} else {
-					log.e(' ** ERR:File <' + file + '> {' + name + '} not found');
+					log.e('File <' + file + '> {' + name + '} not found');
 					return;
 				}
 			}
@@ -926,7 +928,7 @@
 				if (key in Params) {
 					path = Path.join(Params[key], parts[1]);
 				} else {
-					log.e(' ** ERR:File <' + file + '> prefix not defined');
+					log.e('File <' + file + '> prefix not defined');
 					return;
 				}
 			} else {

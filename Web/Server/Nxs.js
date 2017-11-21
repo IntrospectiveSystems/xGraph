@@ -68,9 +68,7 @@ __Nexus = (_ => {
 				// if its an array, its probs a reply...
 				// so, you should split it up.
 				var [err, cmd] = cmd;
-				// if(cmd.Cmd == 'Evoke') debugger;
 			}
-
 			log.v(' << Msg:' + cmd.Cmd);
 
 			//if the message is a reply pair it with its callback
@@ -97,7 +95,7 @@ __Nexus = (_ => {
 				else
 					ent.dispatch(cmd, _ => _);
 			} else {
-				log.v(' ** ERR:', pid, 'not in Cache');
+				log.e(pid, 'not in Cache');
 			}
 			return;
 
