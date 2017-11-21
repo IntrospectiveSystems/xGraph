@@ -7,6 +7,7 @@
 		Setup: Setup,
 		Start: Start,
 		GetModule: GetModule,
+		AddRoute,
 		'*': Publish
 	};
 
@@ -381,6 +382,13 @@
 		
 		setupHttp();
 
+	}
+
+	async function AddRoute(com, fun) {
+
+		this.Par.ApexList[com.Tag] = com.Pid;
+
+		fun(null, com);
 	}
 
 	//-------------------------------------------------------Publish
