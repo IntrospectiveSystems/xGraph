@@ -78,75 +78,22 @@
 
 		}
 
-		Start(com, fun) {
+		async Start(com, fun) {
 
+			if('Source' in this.Par && 'Columns' in this.Par) {
+				//get headers from source
+				this.ascend("SetDataHeaders", {
+					Headers: this.Par.Columns
+				});
+	
+				let data = await this.ascend("GetData", {}, this.Par.Source);
+				debugger;
+				// add rows
+				this.ascend("SetRows", {
+					Rows: data.Data
+				});
 
-			//set some example headers
-			this.ascend("SetDataHeaders", {
-				Headers: [
-					{ Name: '#', Key: "id" },
-					{ Name: 'Ticket', Key: 'ticketName' },
-					{ Name: 'Status', Key: 'status' },
-					{ Name: 'Priority', Key: 'priority' },
-					{ Name: 'Severity', Key: 'severity' }
-				]
-			});
-
-
-			//set some example content
-			this.ascend("SetRows", {
-				Rows: [
-					{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},
-					{
-						id: 2,
-						ticketName: 'just another ticket',
-						priority: "HIGHEST!!!!",
-						severity: "lowest111111"
-					}
-				]
-			});
+			}
 
 
 
