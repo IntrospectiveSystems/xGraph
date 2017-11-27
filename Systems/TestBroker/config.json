@@ -8,7 +8,10 @@
 			"Source": "xGraph",
 			"Par": {
 				"ApexList": {},
-				"Port": 8080
+				"Port": 8088,
+				"Paths":{
+					"xGraph": "/home/tjgionet/xGraph"
+				}
 			}
 		}
 	}

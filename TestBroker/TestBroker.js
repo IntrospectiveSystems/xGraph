@@ -1,6 +1,6 @@
 //# sourceURL='TestBroker.js'
 (function TestBroker() {
-
+	let fs;
 	//-----------------------------------------------------dispatch
 	var dispatch = {
 		Setup: Start
@@ -12,6 +12,7 @@
 
 	function Start(com, fun) {
 		log.v('--TestBroker/Start');
+		fs = this.require("fs");
 		let Vlt = this.Vlt;
 		let Par = this.Par;
 		let that = this;
@@ -134,8 +135,10 @@
 								}
 								com.Module = data;
 								
-								var str = JSON.stringify(com);
-								sock.write(str, 'utf8', loop);						});
+								var str = `\u0002${JSON.stringify(com)}\u0003`;
+								sock.write(str, 'utf8', loop);	
+								log.d(`sent response`);					
+							});
 						}
 
 						function GetModule(modnam, fun) {
@@ -191,36 +194,15 @@
 
 						//---------------------------------------------------------genPath
 						function genPath(filein) {
-							//	EventLog('!!genPath', filein);
+							log.d('!!genPath', filein);
 							if (!filein) {
 								EventLog(' ** ERR:Invalid file name');
 								return '';
 							}
-							var cfg = Config;
-							var path;
-							var parts;
-							var file = filein;
-							if (Config.Redirect) {
-								if (file in Config.Redirect)
-									file = Config.Redirect[file];
-							}
-							if (file.charAt(0) == '/')
-								return file;
-							if (file.charAt(0) == '{') { // Macro
-								parts = file.split('}');
-								if (parts.length != 2) {
-									return;
-								}
-								var name = parts[0].substr(1);
-								if (name in cfg) {
-									path = cfg[name] + '/' + parts[1];
-									return path;
-								} else {
-									EventLog(' ** ERR:File <' + file + '> {' + name + '} not found');
-									return;
-								}
-							}
-							parts = file.split(':');
+							
+							let cfg = Par.Paths;
+							let parts = filein.split(":");
+
 							if (parts.length == 2) {
 								if (parts[0] in cfg) {
 									path = cfg[parts[0]] + '/' + parts[1];

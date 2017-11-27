@@ -1,6 +1,6 @@
 (function () {
 	return new Promise(async (resolve, reject) => {
-		
+
 		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
 			state = 'development';
@@ -11,6 +11,7 @@
 		const fs = require('fs');
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
+		let log;
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
 		let Config = {};					// The parsed system configuration in JSON format
@@ -41,7 +42,7 @@
 			// i : info			General info presented to the end user 
 			// w : warn			Failures that dont result in a system exit
 			// e : error 		Critical failure should always follow with a system exit
-			const log = global.log = {
+			log = {
 				v: (...str) => {
 					process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
@@ -63,12 +64,8 @@
 					xgraphlog(new Date().toString(), ...str);
 				}
 			};
-			console.log = function (...str) {
-				log.w('console.log is depricated use defined log levels ... log.i()');
-				log.v(...str);
-			};
 			console.microtime = _ => {
-				let hrTime =  process.hrtime();
+				let hrTime = process.hrtime();
 				return (hrTime[0] * 1000000 + hrTime[1] / 1000);
 			}
 			console.time = _ => {
@@ -76,8 +73,8 @@
 				console.timers[_] = console.microtime();
 			}
 			console.timeEnd = _ => {
-				if(!(_ in (console.timers || {})))
-				   return;
+				if (!(_ in (console.timers || {})))
+					return;
 				let elapsed = console.microtime() - console.timers[_];
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
@@ -318,7 +315,10 @@
 
 						GetModule(modrequest, function (err, mod) {
 							if (err) { rej(err); reject(err); }
-							else res(ModCache[folder] = mod);
+							else {
+								res(ModCache[folder] = mod);
+							}
+
 						});
 					}));
 				}
@@ -485,9 +485,21 @@
 				const sock = new Socket();
 				const port = source.Port || source.port;
 				const host = source.Host || source.host;
-				log.d(`trying to load from broker at host ${source.host} and port ${source.port}`);
-				let State;
-				let Buf;
+				var Buf = "";
+				var State = 0;
+				var tmp = new Buffer(2);
+				tmp[0] = 2;
+				tmp[1] = 3;
+				var str = tmp.toString();
+				let Read = {
+					STX: tmp[0],
+					ETX: tmp[1]
+				};
+				let Write = {
+					STX: str.charAt(0),
+					ETX: str.charAt(1)
+				};
+
 				sock.connect(port, host, function () { log.v("trying to connect") });
 				sock.on('connect', function () {
 					let cmd = {};
@@ -495,8 +507,7 @@
 					cmd.Module = modnam;
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
-					log.v(`Requested Module ${modnam} from Broker ${endOfLine}
-							${JSON.stringify(source, null, 2)}`);
+					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
 				});
 
 				sock.on('error', (err) => {
@@ -508,68 +519,98 @@
 				});
 
 				sock.on('data', function (data) {
-					let nd = data.length;
-					let i1 = 0;
-					let i2;
-					let STX = 2;
-					let ETX = 3;
-					if (State == 0)
-						Buf = '';
-					for (let i = 0; i < nd; i++) {
-						switch (State) {
-							case 0:
-								if (data[i] == STX) {
-									Buf = '';
-									State = 1;
-									i1 = i + 1;
-								}
-								break;
-							case 1:
-								i2 = i;
-								if (data[i] == ETX)
-									State = 2;
-								break;
-						}
-					}
-					switch (State) {
-						case 0:
-							break;
-						case 1: {
-							Buf += data.toString('utf8', i1, i2 + 1);
-							break;
-						}
-						default: {
-							Buf += data.toString('utf8', i1, i2);
-							State = 0;
-							let response = JSON.parse(Buf);
+					var Fifo = [];
+					let sbstr = '';
 
-							try {
-								//test without zip
-								mod = JSON.parse(response.Module);
-								ModCache[ModName] = mod;
-								fun(null, ModCache[ModName]);
-								return;
-							} catch (e) {
+					let regexBreak = new RegExp(Write.STX + '|' + Write.ETX);
 
+					let str = data.toString();
+					let cmds = str.split(regexBreak);
 
-								module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-								const jszip = require("jszip");
-								const zipmod = new jszip();
+					while (cmds.length > 0) {
+						sbstr = cmds.shift();
+						if (sbstr.length == 0)
+							continue;
 
-								zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
-									var dir = zipmod.file(/.*./);
-
-									zip.file('module.json').async('string').then(function (str) {
-										mod = JSON.parse(str);
-										ModCache[ModName] = mod;
-										fun(null, ModCache[ModName]);
-									});
-								});
+						if (cmds.length > 0) {
+							//then we do hit an etx before the end of the data set
+							if (State == 1) {
+								Buf += sbstr;
+								var obj = JSON.parse(Buf);
+								Fifo.push(obj);
+								State = 0;
+								continue;
 							}
+
+							var obj = JSON.parse(sbstr);
+							Fifo.push(obj);
+							continue;
+						}
+
+						if (State == 1) {
+							Buf += sbstr;
+							continue;
+						}
+
+						Buf = sbstr;
+						State = 1;
+					}
+
+					processResponse();
+
+					function processResponse() {
+						if (Fifo.length < 1)
+							return;
+
+						let response = Fifo.shift();
+						if (typeof response.Module == 'object') {
+							mod = response.Module;
+							if ('schema.json' in mod) {
+								var schema = JSON.parse(mod['schema.json']);
+								if ('Apex' in schema) {
+									var apx = schema.Apex;
+									if ('$Setup' in apx)
+										mod.Setup = apx['$Setup'];
+									if ('$Start' in apx)
+										mod.Start = apx['$Start'];
+									if ('$Save' in apx)
+										mod.Save = apx['$Save'];
+								}
+							}
+							ModCache[ModName] = mod;
+							fun(null, ModCache[ModName]);
+							return;
+						} else {
+							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+							const jszip = require("jszip");
+							const zipmod = new jszip();
+
+							zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
+								var dir = zipmod.file(/.*./);
+
+								zip.file('module.json').async('string').then(function (str) {
+									mod = JSON.parse(str);
+									if ('schema.json' in mod) {
+										var schema = JSON.parse(mod['schema.json']);
+										if ('Apex' in schema) {
+											var apx = schema.Apex;
+											if ('$Setup' in apx)
+												mod.Setup = apx['$Setup'];
+											if ('$Start' in apx)
+												mod.Start = apx['$Start'];
+											if ('$Save' in apx)
+												mod.Save = apx['$Save'];
+										}
+									}
+									ModCache[ModName] = mod;
+									fun(null, ModCache[ModName]);
+								});
+							});
 						}
 					}
 				});
 			}
+
 
 			/**
 			 * load module from disk
@@ -706,9 +747,7 @@
 			return ents;
 
 			async function symbol(val) {
-				// debugger;
 				if (typeof val === 'object') {
-					// log.d('object');
 					if (Array.isArray(val)) {
 						val.map(v => symbol(v));
 						val = await Promise.all(val);
@@ -729,7 +768,6 @@
 				if (val.charAt(0) === '\\')
 					return sym;
 				if (val.charAt(0) === '@') {
-					// log.d(val)
 					val = val.split(":");
 					let key = val[0].toLocaleLowerCase().trim();
 					let encoding = undefined;
@@ -746,8 +784,9 @@
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 								if (Path.isAbsolute(val))
 									path = val;
-								else
+								else {
 									path = Path.join(Path.resolve(systemPath), val);
+								}
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e("Error reading file ", path);
@@ -781,7 +820,6 @@
 										});
 										return dirObj;
 									}
-
 								}
 							} catch (err) {
 								log.e("Error reading directory ", path);
@@ -793,10 +831,13 @@
 							try {
 								let path, config;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+
 								if (Path.isAbsolute(val))
 									path = val;
-								else
+								else {
 									path = Path.join(Path.resolve(systemPath), val);
+								}
+
 								config = fs.readFileSync(path).toString(encoding);
 
 								return await GenTemplate(config);
@@ -1076,7 +1117,9 @@
 
 							GetModule(modrequest, function (err, mod) {
 								if (err) { rej(err); reject(err); }
-								else res(ModCache[folder] = mod);
+								else  {
+									res(ModCache[folder] = mod);
+								}
 							});
 						}));
 					}
@@ -1131,13 +1174,8 @@
 						if (key == "Sources") {
 							Config.Sources = {};
 							sources = ini["Sources"];
-							log.d(typeof sources, sources);
-
 							for (let subkey in sources) {
-								log.d(subkey);
-
 								subval = sources[subkey];
-								log.d(typeof subval, subval);
 								if (typeof subval == 'string') {
 									Config.Sources[subkey] = Macro(subval);
 								} else {
