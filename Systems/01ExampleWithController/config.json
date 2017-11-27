@@ -1,11 +1,14 @@
 {
 	"Sources": {
-		"xGraph": "{xGraph}"
+		"Test": {
+			"host": "localhost",
+			"port": 8080
+		}
 	},
 	"Modules": {
 		"Server": {
 			"Module": "xGraph.Web.Server",
-			"Source": "xGraph",
+			"Source": "Test",
 			"Par": {
 				"ApexList": {
 					"Controller":"$Controller"
@@ -18,14 +21,14 @@
 		},
 		"Controller": {
 			"Module": "xGraph.Controller",
-			"Source": "xGraph",
+			"Source": "Test",
 			"Par":{
 				"Server":"$3DViewProxy"
 			}
 		},
 		"3DViewProxy": {
 			"Module":"xGraph.Web.ServerProxy",
-			"Source":"xGraph",
+			"Source":"Test",
 			"Par":{
 				"Link": "3DView",
 				"Server":"$Server"			

@@ -614,6 +614,8 @@
 				fun(null, ent);
 				return;
 			}
+
+			
 			//debugger;
 			GetModule(folder, function (err, mod) {
 				if (err) {

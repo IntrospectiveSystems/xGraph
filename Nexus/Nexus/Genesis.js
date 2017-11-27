@@ -43,23 +43,23 @@
 			const log = global.log = {
 				v: (...str) => {
 					process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(),...str);
+					xgraphlog(new Date().toString(), ...str);
 				},
 				d: (...str) => {
 					process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(),...str);
+					xgraphlog(new Date().toString(), ...str);
 				},
 				i: (...str) => {
 					process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(),...str);
+					xgraphlog(new Date().toString(), ...str);
 				},
 				w: (...str) => {
 					process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(),...str);
+					xgraphlog(new Date().toString(), ...str);
 				},
 				e: (...str) => {
 					process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(),...str);
+					xgraphlog(new Date().toString(), ...str);
 				}
 			};
 			console.log = function (...str) {
@@ -71,8 +71,8 @@
 				console.timers[_] = performance.now();
 			};
 			console.timeEnd = _ => {
-				if(!(_ in (console.timers || {})))
-				   return;
+				if (!(_ in (console.timers || {})))
+					return;
 				let elapsed = performance.now() - console.timers[_];
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
@@ -450,7 +450,7 @@
 		 */
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
-			let source = modRequest.Source;
+			let source = Config.Sources[modRequest.Source];
 			let mod = {};
 			let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
 
@@ -478,8 +478,9 @@
 			function loadModuleFromBroker() {
 				const { Socket } = require('net');
 				const sock = new Socket();
-				const port = source.Port;
-				const host = source.Host;
+				const port = source.Port || source.port;
+				const host = source.Host || source.host;
+				log.d(`trying to load from broker at host ${source.host} and port ${source.port}`);
 				let State;
 				let Buf;
 				sock.connect(port, host, function () { log.v("trying to connect") });
@@ -494,11 +495,11 @@
 				});
 
 				sock.on('error', (err) => {
-					log.w(' ** Socket error:' + err);
+					log.w(err);
 				});
 
 				sock.on('disconnect', (err) => {
-					log.v(' ** Socket disconnected:' + err);
+					log.v(err);
 				});
 
 				sock.on('data', function (data) {
@@ -536,19 +537,30 @@
 							Buf += data.toString('utf8', i1, i2);
 							State = 0;
 							let response = JSON.parse(Buf);
-							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-							const jszip = require("jszip");
-							const zipmod = new jszip();
 
-							zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
-								var dir = zipmod.file(/.*./);
+							try {
+								//test without zip
+								mod = JSON.parse(response.Module);
+								ModCache[ModName] = mod;
+								fun(null, ModCache[ModName]);
+								return;
+							} catch (e) {
 
-								zip.file('module.json').async('string').then(function (str) {
-									mod = JSON.parse(str);
-									ModCache[ModName] = mod;
-									fun(null, ModCache[ModName]);
+
+								module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+								const jszip = require("jszip");
+								const zipmod = new jszip();
+
+								zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
+									var dir = zipmod.file(/.*./);
+
+									zip.file('module.json').async('string').then(function (str) {
+										mod = JSON.parse(str);
+										ModCache[ModName] = mod;
+										fun(null, ModCache[ModName]);
+									});
 								});
-							});
+							}
 						}
 					}
 				});
@@ -1114,8 +1126,13 @@
 						if (key == "Sources") {
 							Config.Sources = {};
 							sources = ini["Sources"];
+							log.d(typeof sources, sources);
+
 							for (let subkey in sources) {
+								log.d(subkey);
+
 								subval = sources[subkey];
+								log.d(typeof subval, subval);
 								if (typeof subval == 'string') {
 									Config.Sources[subkey] = Macro(subval);
 								} else {

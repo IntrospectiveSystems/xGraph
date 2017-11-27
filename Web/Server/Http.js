@@ -111,7 +111,7 @@
 						return;
 					}
 					if (!('Passport' in com)) {
-						console.log(' ** ERR:No Passport in routed msg');
+						log.e('No Passport in routed msg');
 						return;
 					}
 
@@ -148,7 +148,7 @@
 						var path = com.File;
 						that.getFile(path, function (err, data) {
 							if (err) {
-								console.log(' ** ERR', err);
+								log.e( err);
 								return;
 							}
 							com.Data = data.toString('utf8');

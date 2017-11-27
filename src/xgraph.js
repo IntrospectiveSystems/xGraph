@@ -1,3 +1,44 @@
+// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+// Levels include:
+// v : verbose		Give too much information 
+// d : debug		For debugging purposes not in production level releases
+// i : info			General info presented to the end user 
+// w : warn			Failures that dont result in a system exit
+// e : error 		Critical failure should always follow with a system exit
+const endOfLine = require('os').EOL;
+const log = global.log = {
+	v: (...str) => {
+		process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+	},
+	d: (...str) => {
+		process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+	},
+	i: (...str) => {
+		process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+	},
+	w: (...str) => {
+		process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+	},
+	e: (...str) => {
+		process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+	}
+};
+console.log = function (...str) {
+	log.w('console.log is depricated use defined log levels ... log.i()');
+	log.v(...str);
+}
+console.time = _ => {
+	console.timers = console.timers || {};
+	console.timers[_] = performance.now();
+};
+console.timeEnd = _ => {
+	if (!(_ in (console.timers || {})))
+		return;
+	let elapsed = performance.now() - console.timers[_];
+	console.timers[_] = undefined;
+	log.i(`${_}: ${elapsed}ms`);
+}
+
 const { execSync } = require('child_process');
 const tar = require('targz');
 const fs = require('fs');
@@ -77,30 +118,30 @@ switch (process.argv[1]) {
 		break;
 	}
 	default: {
-		console.log(`unknown command <${process.argv[1]}>`);
+		log.w(`Unknown command <${process.argv[1]}>`);
 		help();
 		break;
 	}
 }
 
 async function generate(args) {
-	console.log(`Generate: ${args}`);
-	switch(args[0]){
+	log.v(`Generate: ${args}`);
+	switch (args[0]) {
 		case 'system':
 		case 's': {
-			console.log(`Create systems with names: ${args.slice(1)}`);
+			log.v(`Create systems with names: ${args.slice(1)}`);
 			break;
 		}
 		case 'module':
-		case 'm':{
-			console.log(`Create modules with names: ${args.slice(1)}`);			
+		case 'm': {
+			log.v(`Create modules with names: ${args.slice(1)}`);
 			break;
 		}
 	}
 }
 
 function help() {
-	console.log(`
+	log.v(`
   xGraph
   Introspective Systems LLC
 
@@ -120,7 +161,7 @@ async function reset() {
 		await genesis();
 		startNexusProcess();
 	} catch (e) {
-		console.log(`ERR: ${e}`);
+		log.e(e);
 	}
 }
 
@@ -130,7 +171,7 @@ async function deploy() {
 		startNexusProcess();
 
 	} catch (e) {
-		console.log(`ERR: ${e}`);
+		log.e(e);
 	}
 }
 
@@ -140,12 +181,12 @@ async function execute() {
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
-			state = 'develop'; 
+			state = 'develop';
 			await genesis();
 			startNexusProcess();
 		}
 	} catch (e) {
-		console.log(`ERR: ${e}`);
+		log.e(e);
 	}
 }
 
@@ -155,35 +196,35 @@ async function compile() {
 		state = 'production';
 		await genesis();
 	} catch (e) {
-		console.log(`ERR: ${e}`);
+		log.e(e);
 	}
 }
 
 
 function startNexusProcess() {
 	const { spawn } = require('child_process');
-	let processPath = pathOverrides["cwd"]||path.resolve('./');
-	console.log("Process PAth is ", processPath);
+	let processPath = pathOverrides["cwd"] || path.resolve('./');
+	log.v("Process PAth is ", processPath);
 
 
 	let cacheDir = pathOverrides["cache"];
-	console.log(cacheDir);
+	log.v(cacheDir);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd:processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH } });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd:processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH } });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd:processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH } });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
 	ls.stderr.on('data', _ => process.stderr.write(_));
-	process.stdin.on('data', _=> ls.stdin.write(_));
+	process.stdin.on('data', _ => ls.stdin.write(_));
 
 	ls.on('close', (code) => {
-		console.log(`child process exited with code ${code}`);
+		log.v(`child process exited with code ${code}`);
 	});
 }
 
@@ -193,7 +234,7 @@ async function ensureNode() {
 	let node = (execSync('which node').toString());
 
 	if (node != '') {
-		console.log();
+		log.v();
 		return;
 	} else {
 		await install();
@@ -213,24 +254,24 @@ function install() {
 			let body = '';
 			response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
 			response.on('end', function () {
-				// console.log('extraction time!');
+				// log.v('extraction time!');
 				tar.decompress({
 					src: bindir + '/node.tar.gz',
 					dest: bindir
 				}, function () {
-					// console.log(mergedirs);
+					// log.v(mergedirs);
 					try {
 						mergedirs('node-v8.4.0-linux-x64/bin', '/usr/bin', 'overwrite');
 						mergedirs('node-v8.4.0-linux-x64/include', '/usr/include', 'overwrite');
 						mergedirs('node-v8.4.0-linux-x64/lib', '/usr/lib', 'overwrite');
 						mergedirs('node-v8.4.0-linux-x64/share', '/usr/share', 'overwrite');
 						//TODO RIMRAF THE ZIP AND EXTRACTED FILES
-						// console.log('dun');
+						// log.v('dun');
 						resolve();
 					} catch (e) {
-						console.log('Could not install node, try running the command again with sudo\n');
-						console.log("If the problem persists, email support@introspectivesystems.com");
-						console.log('with this ' + e.toString());
+						log.w('Could not install node, try running the command again with sudo\n');
+						log.w("If the problem persists, email support@introspectivesystems.com");
+						log.w('with this ' + e.toString());
 						process.exit(1);
 						resolve();
 					}
@@ -246,7 +287,7 @@ function install() {
 }
 
 function processSwitches() {
-	// console.log('\u001b[0;32m Process Switches');
+	// log.v('\u001b[0;32m Process Switches');
 	for (let i = 0; i < process.argv.length; i++) {
 		let str = process.argv[i];
 		if (str.startsWith('--')) {
@@ -254,37 +295,37 @@ function processSwitches() {
 			applySwitch(key, i);
 		}
 	}
-	
+
 	pathOverrides["cache"] = pathOverrides["cache"] || "./cache";
 
-	// console.log(pathOverrides["cache"])
+	// log.v(pathOverrides["cache"])
 
 	// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 	// CacheDir = Params.cache || Path.join(CWD, "cache");
 
 
-	// console.log(Object.keys(pathOverrides));
+	// log.v(Object.keys(pathOverrides));
 
-	if(!('cache' in pathOverrides))
+	if (!('cache' in pathOverrides))
 		pathOverrides.cache = 'cache';
 
-	if(!path.isAbsolute(pathOverrides.cache)) {
+	if (!path.isAbsolute(pathOverrides.cache)) {
 		pathOverrides.cache = path.resolve(path.resolve(pathOverrides.cwd || process.cwd()), pathOverrides.cache);
 	}
 
-	// console.log(`cache directory \u001b[1;34m${pathOverrides.cache}\u001b[0m`);
+	// log.v(`cache directory \u001b[1;34m${pathOverrides.cache}\u001b[0m`);
 }
 
 function applySwitch(str, i) {
 	let val = null;
 	if (str == "debug") {
-		console.log("Doing the debug thing");
+		log.d("Doing the debug thing");
 		return;
 	}
 	if ((i + 1) in process.argv) { // switch has a value
 		val = process.argv[i + 1];
 	}
-	if(val != null)
+	if (val != null)
 		pathOverrides[str.toLowerCase()] = val;
 }
 
