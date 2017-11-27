@@ -1,5 +1,6 @@
 (function () {
 	return new Promise(async (resolve, reject) => {
+		
 		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
 			state = 'development';
@@ -65,15 +66,19 @@
 			console.log = function (...str) {
 				log.w('console.log is depricated use defined log levels ... log.i()');
 				log.v(...str);
+			};
+			console.microtime = _ => {
+				let hrTime =  process.hrtime();
+				return (hrTime[0] * 1000000 + hrTime[1] / 1000);
 			}
 			console.time = _ => {
 				console.timers = console.timers || {};
-				console.timers[_] = performance.now();
-			};
+				console.timers[_] = console.microtime();
+			}
 			console.timeEnd = _ => {
-				if (!(_ in (console.timers || {})))
-					return;
-				let elapsed = performance.now() - console.timers[_];
+				if(!(_ in (console.timers || {})))
+				   return;
+				let elapsed = console.microtime() - console.timers[_];
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
 			}

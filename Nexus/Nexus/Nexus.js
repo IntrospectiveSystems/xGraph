@@ -78,15 +78,18 @@
 			log.w('console.log is depricated use defined log levels ... log.i()');
 			log.v(...str);
 		}
+		console.microtime = _ => {
+			let hrTime =  process.hrtime();
+			return (hrTime[0] * 1000000 + hrTime[1] / 1000);
+		}
 		console.time = _ => {
 			console.timers = console.timers || {};
-			console.timers[_] = performance.now();
-		};
-		
+			console.timers[_] = console.microtime();
+		}
 		console.timeEnd = _ => {
 			if(!(_ in (console.timers || {})))
 			   return;
-			let elapsed = performance.now() - console.timers[_];
+			let elapsed = console.microtime() - console.timers[_];
 			console.timers[_] = undefined;
 			log.i(`${_}: ${elapsed}ms`);
 		}
@@ -514,26 +517,26 @@
 			return nxs.genPid();
 		}
 
-		/**
-		 * Send a message to another entity, you can only send messages to Apexes of modules 
-		 * unless both sender and recipient are in the same module
-		 * @param {object} com  		the message object to send 
-		 * @param {string} com.Cmd		the function to send the message to in the destination entity 
-		 * @param {string} pid 			the pid of the recipient (destination) entity
-		 * @callback fun 
-		 */
-		function send(com, pid, fun) {
-			if (!('Passport' in com))
-				com.Passport = {};
-			com.Passport.To = pid;
-			if ('Apex' in Par)
-				com.Passport.Apex = Par.Apex;
-			if (fun)
-				com.Passport.From = Par.Pid;
-			if (!("Pid" in com.Passport))
-				com.Passport.Pid = genPid();
-			nxs.sendMessage(com, fun);
-		}
+        /**
+         * Send a message to another entity, you can only send messages to Apexes of modules
+         * unless both sender and recipient are in the same module
+         * @param {object} com  		the message object to send
+         * @param {string} com.Cmd		the function to send the message to in the destination entity
+         * @param {string} pid 			the pid of the recipient (destination) entity
+         * @callback fun
+         */
+        function send(com, pid, fun) {
+            if (!('Passport' in com))
+                com.Passport = {};
+            com.Passport.To = pid;
+            if ('Apex' in Par)
+                com.Passport.Apex = Par.Apex;
+            if (fun)
+                com.Passport.From = Par.Pid;
+            if (!("Pid" in com.Passport))
+                com.Passport.Pid = genPid();
+            nxs.sendMessage(com, fun);
+        }
 
 		/**
 		 * save the current entity to cache if not an Apex send the save message to Apex
