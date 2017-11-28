@@ -88,7 +88,7 @@ switch (args[0]) {
 	}
 
 	case '--version':
-	case "-v":{
+	case "-v": {
 		console.log(version);
 		break
 	}

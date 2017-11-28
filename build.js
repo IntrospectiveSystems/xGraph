@@ -25,7 +25,7 @@
 
 	function doImports(filename) {
 		let file = fs.readFileSync(filename).toString();
-		let outfile = `let version = "${pkg.version}"\n`;
+		let outfile = `const version = "${pkg.version}"\n`;
 		for (let line of file.split('\n')) {
 			line = line.trim();
 			if (line.startsWith('// $')) {
@@ -137,40 +137,24 @@
 		}
 	});
 
-	// var opts = {
-	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
-	// 	installLocation: '/usr/bin',
-	// 	identifier: 'com.IntrospectiveSystems.xgraph.pkg',
-	// 	title: 'xGraph'
-	// }
-	// createPackage(opts)
-	// 	.pipe(fs.createWriteStream('bin/xgraph.pkg'))
+	//make for windows
+	var options = {
+		source: 'bin/windows',
+		output: 'bin/xgraph.msi',
+		name: 'xGraph',
+		upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
+		version: pkg.version,
+		manufacturer: 'Introspective Systems, LLC.',
+		iconPath: 'IS.png',
+		executable: 'bin/windows/bin/xgraph.exe',
+		localInstall: true
+	};
 
-
-	// //make for windows
-	// var options = {
-
-	// 	source: 'bin/windows',
-	// 	output: 'bin/xgraph.msi',
-	// 	name: 'xGraph',
-	// 	upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
-	// 	version: '1.0.0',
-	// 	manufacturer: 'IntrospectiveSystems.com',
-	// 	iconPath: 'IS.png',
-	// 	executable: 'xgraph.exe',
-
-	// 	// optional 
-	// 	description: "install xgraph CLI",
-	// 	arch: 'x64',
-	// 	localInstall: true
-	// };
-
-	// createMsi(options, function (err) {
-	// 	if (err) throw err
-	// 	console.log('Outputed to ' + options.output);
-	// });
+	createMsi(options, function (err) {
+		if (err) throw err
+		console.log('Windows: Done!');
+	});
 
 	//https://wiki.gnome.org/msitools/HowTo/CreateMSI
-
 
 })();
