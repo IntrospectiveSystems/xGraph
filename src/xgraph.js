@@ -41,36 +41,47 @@ processSwitches();
 
 switch (args[0]) {
 	case 'x':
+	case '-x':
 	case 'run':
+	case '--execute':
 	case 'execute': {
 		execute();
 		break;
 	}
 
 	case 'r':
+	case '-r':
+	case '--reset':
 	case 'reset': {
 		reset();
 		break;
 	}
 
 	case 'c':
+	case '-c':
+	case '--compile':
 	case 'compile': {
 		compile();
 		break;
 	}
 
 	case 'd':
+	case '-d':
+	case '--deploy':
 	case 'deploy': {
 		deploy();
 		break;
 	}
 
 	case 'help':
+	case 'h':
+	case '-h':
 	case '--help': {
 		help();
 		break;
 	}
 	case 'g':
+	case '-g':
 	case 'generate':
 	case 'init': {
 		generate(args.slice(1));
@@ -111,9 +122,14 @@ function help() {
 
     Commands:
       help: displays this help screen.
-      run: Starts a system from config or cache
-        Example: xgraph compile --config config.json
-                 xgraph deploy --cache cache/
+      execute: Starts a system from config or cache
+        Example: xgraph execute --config config.json
+								 xgraph execute --cache cache/
+			reset:
+			deploy:
+			compile:
+			generate <module|system>:
+
     
   `);
 }
@@ -202,7 +218,20 @@ async function ensureNode() {
 	} else {
 		await install();
 	}
-	// #else
+	// #endif
+
+	// #ifdef MAC
+	let node = (execSync('which node').toString());
+	
+	if (node != '') {
+		console.log(`Node appears to be installed.  If you have problems we recommend you have Node v${nodeVersion} installed.`);
+		return;
+	} else {
+		await install();
+	}
+	// #endif
+	
+	// #ifdef WINDOWS
 	console.error(`System ${system} is not yet supported.  You will need to install Node v${nodeVersion} manually.`);
 	// #endif
 }
@@ -210,6 +239,7 @@ async function ensureNode() {
 function install() {
 	// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
 	return new Promise((resolve) => {
+		let installAttempted = false;
 		// #ifdef LINUX
 		require('https').get({
 			host: 'nodejs.org',
@@ -224,6 +254,7 @@ function install() {
 					dest: bindir
 				}, function () {
 					// console.log(mergedirs);
+					installAttempted = true;
 					try {
 						mergedirs('node-v' + nodeVersion + '-linux-x64/bin', '/usr/bin', 'overwrite');
 						mergedirs('node-v' + nodeVersion + '-linux-x64/include', '/usr/include', 'overwrite');
@@ -242,12 +273,56 @@ function install() {
 				});
 			});
 		});
-		// #
-		// #else
-		console.error(`System ${system} is not yet supported`);
-		//node-msi.fetch.start
-
 		// #endif
+
+		// #ifdef MAC
+		// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
+		require('https').get({
+			host: 'nodejs.org',
+			path: '/dist/v' + nodeVersion + '/node-v' +  nodeVersion + '-darwin-x64.tar.gz'
+		}, (response) => {
+			let body = '';
+			response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
+			response.on('end', function () {
+				tar.decompress({
+					src: bindir + '/node.tar.gz',
+					dest: bindir
+				}, function () {
+					installAttempted = true;
+					try {
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/local/bin', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/local/include', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/local/lib', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/local/share', 'overwrite');
+						resolve();
+					} catch (e) {
+						try {
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/bin', 'overwrite');
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/include', 'overwrite');
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/lib', 'overwrite');
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/share', 'overwrite');
+							resolve();
+						} catch (e) {
+							console.log('Could not install node, try running the command again with sudo\n');
+							console.log("If the problem persists, email support@introspectivesystems.com");
+							console.log('with this ' + e.toString());
+							process.exit(1);
+							resolve();
+						}
+					}
+				});
+			});
+		});
+		// #endif
+
+		// #ifdef WINDOWS
+		console.error(`${system} is not yet supported.`);
+		// node-msi.fetch.start
+		// #endif
+
+		if (!installAttempted) {
+			console.error(`Node installation was skipped.  Please verify Node v${nodeVersion} is installed.`);
+		}
 	});
 }
 

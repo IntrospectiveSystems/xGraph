@@ -125,6 +125,16 @@
 	});
 
 	// //make for mac
+	tar.compress({
+		src: "bin/mac/",
+		dest: 'bin/xgraph_mac.tar.gz'
+	}, function (err) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Done!");
+		}
+	});
 	// var opts = {
 	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
 	// 	installLocation: '/usr/bin',
