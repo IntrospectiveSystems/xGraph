@@ -1,6 +1,6 @@
 {
   "name": "build-cli",
-  "version": "1.0.0",
+  "version": "0.9.7",
   "description": "",
   "main": "build.js",
   "scripts": {
@@ -10,8 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/IntrospectiveSystems/xGraph.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Introspective Systems, LLC.",
+  "private": true,
   "bugs": {
     "url": "https://github.com/IntrospectiveSystems/xGraph/issues"
   },

@@ -701,7 +701,6 @@ __Nexus = (_ => {
 	 * @callback fun 				the callback function to return to when finished
 	 */
 	function sendSocket(com, fun) {
-		log.d(`Sending a message over the socket!!!`);
 
 		//check for message valididty
 		if (!('Passport' in com)) {
@@ -726,7 +725,6 @@ __Nexus = (_ => {
 
 		//we're dispatching to the server
 		if (fun) {
-			log.d(JSON.stringify(com, null, 2));
 			MsgPool[com.Passport.Pid] = fun;
 			MsgFifo.push(com.Passport.Pid);
 			if (MsgFifo.length > 100) {
@@ -736,7 +734,7 @@ __Nexus = (_ => {
 		}
 
 		var str = JSON.stringify(com);
-		log.d(' >> Msg:' + com.Cmd);
+		log.v(' >> Msg:' + com.Cmd);
 		log.v(str.substring(0, (str.length > 100) ? 100 : str.length) + ' ... ');
 		SockIO.send(str);
 	}

@@ -4,9 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const mergedirs = require('merge-dirs').default;
 let state = 'production';
+if (process.argv.length == 1) process.argv[1] = 'help';
 let args = process.argv.slice(1);
 let pathOverrides = {};
-
+let nodeVersion = "8.9.1";
+let cwd = (process.cwd());
+let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
+let CacheDir;
 
 // #ifdef LINUX
 let system = 'linux';
@@ -29,13 +33,8 @@ let windows = true;
 let mac = false;
 let unix = false;
 // #endif
-let nodeVersion = "8.9.1";
 
-let cwd = (process.cwd());
-let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
-let CacheDir;
-
-if (process.argv.length == 1) process.argv[1] = 'help';
+// $genesis $load('./Nexus/Nexus/Genesis.js')
 
 processSwitches();
 
@@ -87,6 +86,12 @@ switch (args[0]) {
 		generate(args.slice(1));
 		break;
 	}
+
+	case '--version':
+	case "-v":{
+		console.log(version);
+		break
+	}
 	default: {
 		console.log(`Unknown command <${process.argv[1]}>`);
 		help();
@@ -117,21 +122,20 @@ async function generate(args) {
 
 function help() {
 	console.log(`
-  xGraph
-  Introspective Systems LLC
-
-    Commands:
-      help: displays this help screen.
-      execute: Starts a system from config or cache
-        Example: xgraph execute --config config.json
-								 xgraph execute --cache cache/
-			reset:
-			deploy:
-			compile:
-			generate <module|system>:
-
-    
-  `);
+xGraph ${version}
+Introspective Systems LLC
+Commands:
+help: displays this help screen.
+execute: Starts a system from cache or config if cache does not exist.
+\x20\x20\x20Example: xgraph execute --config config.json
+\x20\x20\x20\x20\x20\x20\x20\x20xgraph execute --cache cache/
+reset: Starts a system from config, removing the cache.
+deploy: Starts a system from an existing cache.
+compile: Generates a cache from a config.
+generate <module|system>: Generates a template xGraph module|system with 
+\x20\x20\x20\x20\x20the given name. 
+\x20\x20\x20Example: xgraph generate module MyFirstModule
+`);
 }
 
 async function reset() {
@@ -222,7 +226,7 @@ async function ensureNode() {
 
 	// #ifdef MAC
 	let node = (execSync('which node').toString());
-	
+
 	if (node != '') {
 		console.log(`Node appears to be installed.  If you have problems we recommend you have Node v${nodeVersion} installed.`);
 		return;
@@ -230,7 +234,7 @@ async function ensureNode() {
 		await install();
 	}
 	// #endif
-	
+
 	// #ifdef WINDOWS
 	console.error(`System ${system} is not yet supported.  You will need to install Node v${nodeVersion} manually.`);
 	// #endif
@@ -279,7 +283,7 @@ function install() {
 		// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
 		require('https').get({
 			host: 'nodejs.org',
-			path: '/dist/v' + nodeVersion + '/node-v' +  nodeVersion + '-darwin-x64.tar.gz'
+			path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-darwin-x64.tar.gz'
 		}, (response) => {
 			let body = '';
 			response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
@@ -413,8 +417,7 @@ let config = (repo, system) => {
 };
 
 function initSystem(names) {
-	let systemDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Systems');
-	console.log("System dir is ", systemDir);
+	let systemPath;
 	const ConfigTemplate = {
 		"Sources": {},
 		"Modules": {
@@ -422,47 +425,62 @@ function initSystem(names) {
 		}
 	};
 
-	try {
-		fs.mkdirSync(systemDir);
-	} catch (e) {
-		console.error(e);
-		console.log(`${systemDir} directory already exists`);
-	}
-
 	for (let index = 0; index < names.length; index++) {
 		let name = names[index];
-		let systemPath = path.join(systemDir, name);
+
+		if (path.isAbsolute(name)) {
+			systemPath = name;
+		} else {
+			let systemDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Systems');
+			systemPath = path.join(systemDir, name);
+			console.log("System dir is ", systemDir);
+
+			//ensure that the encapsulating directory exists
+			try {
+				fs.mkdirSync(systemDir);
+			} catch (e) {
+				console.error(e);
+				console.log(`${systemDir} directory already exists`);
+			}
+		}
+
 		try {
 			fs.mkdirSync(systemPath);
 		} catch (e) {
 			console.error(e);
 			console.log(`${systemPath} directory already exists`);
 		}
+
 		fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
 	}
 }
 
 function initModule(names) {
-	let moduleDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Modules');
-	
+	let modulePath;
 	let Schema = {
 		"Apex": {
 			"$Setup": "Setup",
 			"$Start": "Start"
 		}
 	};
-
-	try {
-		fs.mkdirSync(moduleDir);
-	} catch (e) {
-		console.error(e);
-		console.log(`${moduleDir} directory already exists`);
-	}
-
 	for (let index = 0; index < names.length; index++) {
 		let name = names[index];
-		let modulePath = path.join(moduleDir, name);
-		
+
+		if (path.isAbsolute(name))
+			modulePath = name;
+		else {
+			let moduleDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Modules');
+			modulePath = path.join(moduleDir, name);
+			console.log("Module dir is ", systemDir);
+
+			try {
+				fs.mkdirSync(moduleDir);
+			} catch (e) {
+				console.error(e);
+				console.log(`${moduleDir} directory already exists`);
+			}
+		}
+
 		try {
 			fs.mkdirSync(modulePath);
 		} catch (e) {
@@ -471,7 +489,7 @@ function initModule(names) {
 		}
 
 		let jsTemplate =
-		`//# sourceURL=${name}.js
+			`//# sourceURL=${name}.js
 		(function ${name}() {
 		\tclass ${name} {
 		\t\tSetup(com, fun) {

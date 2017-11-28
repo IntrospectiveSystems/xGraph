@@ -6,6 +6,7 @@
 	const { compile } = require('nexe');
 	const createPackage = require('osx-pkg');
 	var createMsi = require('msi-packager');
+	const pkg = require("./package.json");
 
 	ensureDir('bin');
 	ensureDir('src/gen');
@@ -24,7 +25,7 @@
 
 	function doImports(filename) {
 		let file = fs.readFileSync(filename).toString();
-		let outfile = '';
+		let outfile = `let version = "${pkg.version}"\n`;
 		for (let line of file.split('\n')) {
 			line = line.trim();
 			if (line.startsWith('// $')) {
@@ -78,7 +79,7 @@
 	});
 
 
-	//move all required files to lib of system bin.                       -17 is errno: EEXISTS
+	//move all required files to lib of system bin.
 	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if (e.errno != -17) console.log(e); } }
 	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if (e.errno != -17) console.log(e); } }
 
@@ -115,12 +116,12 @@
 	//make for linux 
 	tar.compress({
 		src: "bin/linux/",
-		dest: 'bin/xgraph.tar.gz'
+		dest: 'bin/xgraph_linux.tar.gz'
 	}, function (err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("Done!");
+			console.log("Linux: Done!");
 		}
 	});
 
@@ -132,9 +133,10 @@
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("Done!");
+			console.log("Mac: Done!");
 		}
 	});
+
 	// var opts = {
 	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
 	// 	installLocation: '/usr/bin',
