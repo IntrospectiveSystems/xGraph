@@ -76,9 +76,9 @@
 			}
 		};
 		console.log = function (...str) {
-			if (consoleNotification){
-				console.log(...str);
-			}else{
+			if (consoleNotification) {
+				log.v(...str);
+			} else {
 				consoleNotification = true;
 				log.w('console.log is depricated use defined log levels ... log.i()');
 				log.v(...str);
