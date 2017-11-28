@@ -7,6 +7,8 @@
 	const createPackage = require('osx-pkg');
 	var createMsi = require('msi-packager');
 
+	ensureDir('bin');
+	ensureDir('src/gen');
 	ensureDir('bin/linux');
 	ensureDir('bin/linux/bin');
 	ensureDir('bin/mac');
@@ -123,6 +125,16 @@
 	});
 
 	// //make for mac
+	tar.compress({
+		src: "bin/mac/",
+		dest: 'bin/xgraph_mac.tar.gz'
+	}, function (err) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Done!");
+		}
+	});
 	// var opts = {
 	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
 	// 	installLocation: '/usr/bin',

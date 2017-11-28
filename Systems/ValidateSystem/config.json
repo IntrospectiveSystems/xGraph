@@ -8,7 +8,7 @@
 			"Source": "xGraph",
 			"Par": {
 				"TestModule": "xGraph.Web.Router",
-				"TestJson" :"@file: /home/trevor/xGraph/Web/Router/test.json"
+				"TestJson": "@file: ../../Web/Router/test.json"
 			}
 		},
 		"Deferred": [

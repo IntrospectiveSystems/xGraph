@@ -12,16 +12,17 @@
 		}
 
 		Register(com, fun){
-			console.log("Browser has Registered");
+			log.v("Browser has Registered");
 			this.Vlt.Browser = com.Pid;
+			fun();
+			log.v("Returned Fun from register");
 			
 			//add some objects to the world
 			let q = {}, obj;
 			q.Cmd = "SetObjects";
-			q.Forward = this.Vlt.Browser;
 			q.Objects = [];
 			//add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx < 10; idx++) {
+			for (let idx = 0; idx < 100; idx++) {
 				obj = {
 					id: idx,
 					geometry: {

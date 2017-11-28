@@ -16,8 +16,6 @@
 		//save context for use in fs readfile subcontext
 		let that = this;
 
-		//load required functions
-		const fs = this.require('fs');
 		// function for seting the appropriate pid references in  cmds and genmodule
 		const setPid = (val) => {
 			if (typeof val === 'object') {
@@ -161,19 +159,21 @@
 
 
 		//load the test.json file
-
 		that.Vlt.Test = setPid(JSON.parse(that.Par.TestJson));
+		log.d("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
 
 		//build the module inst from test.json required state
 		let inst = {};
 		inst.Module = that.Par.TestModule;
 		inst.Par = that.Vlt.Test.State;
-
+		log.d("Callig genMod on ", JSON.stringify(inst, null, 2));
 		//instantiate the module
 		//this calls setup and start in the instance
 		that.genModule(inst, (err, instApex) => {
+			log.d("In the Callback");
 			that.Vlt.InstModule = instApex;
 			that.Vlt.Test = setPid(that.Vlt.Test);
+			log.d("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));			
 			RunTests();
 		});
 

@@ -1,0 +1,19 @@
+{
+  "input": {
+    "required":[],
+    "opts":[]
+  },
+  "output":{
+    "required":[],
+    "opts":[]
+  },
+  "par": {
+    "required":[],
+    "opts":[]
+  },
+  "name": "ServerProxy",
+  "icon": null,
+  "doc": null,
+  "info":{"author":"TrevrGionet"},
+  "src": "xGraph:Web/ServerProxy"
+}

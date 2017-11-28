@@ -13,7 +13,7 @@
 				"Port": 8080,
 				"Url": "Paint",
 				"HTML": "@file: Paint.html",
-				"Config": "@file: browser.json",
+				"Paint": "@system: browser.json",
 				"Static": {
 					"sand-12.jpg": "@file: sand-12.jpg"
 				}
@@ -53,15 +53,7 @@
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Scene.Model",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Widgets.RootView",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Widgets.HoloView",
+				"Module":"xGraph.Scene.Model",
 				"Source": "xGraph"
 			}
 		]

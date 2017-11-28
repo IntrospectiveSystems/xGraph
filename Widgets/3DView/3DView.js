@@ -24,7 +24,7 @@
 
 			//set live for true for the example of an updating system
 			let live = false;
-			
+
 			this.Vlt.View = {};
 			View = this.Vlt.View;
 			View.Geometries = {};
@@ -58,7 +58,7 @@
 			View.RenderLoop = setInterval(_ => {
 
 				//For testing of updating elevations
-				if (this.Vlt.Update||live) {
+				if (this.Vlt.Update || live) {
 					this.Vlt.Update = false;
 					let q = {}
 					q.Cmd = "SetObjects";
@@ -91,6 +91,12 @@
 	function Start(com, fun) {
 		console.log('--3DView/Start');
 
+		if ("Server" in this.Par) {
+			this.send({ Cmd: "Subscribe", Pid: this.Par.Pid , Link: "3DView"}, this.Par.Server, (err, com) => {
+				console.log("Subscribed with Server");
+			});
+		}
+
 		if ("Controller" in this.Par) {
 			this.send({ Cmd: "Register", Pid: this.Par.Pid }, this.Par.Controller, (err, com) => {
 				console.log("Registered with Controller");
@@ -119,7 +125,7 @@
 			q.Objects = [];
 
 			// //add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx <20; idx++) {
+			for (let idx = 0; idx < 20; idx++) {
 				obj = {
 					id: idx,
 					geometry: {
@@ -404,7 +410,6 @@
 
 					obj = await new Promise((res, rej) => {
 						this.genModule(mod, (err, pidApex) => {
-
 							let that = this;
 
 							//save the modules pid in unit.Pid
@@ -420,8 +425,9 @@
 							this.send(q, unit.Pid, scene);
 
 							function scene(err, r) {
-								console.log('..View3D/scene');
+								log.v('..View3D/scene');
 								Inst = r.Inst;
+								log.d('Instances are: ', JSON.stringify(Inst, null, 2));
 								if (err) {
 									console.log(' ** ERR:' + err);
 									if (fun)
@@ -429,54 +435,47 @@
 									return;
 								}
 
-								async.eachSeries(Inst, instance, done);
+								let inst = Inst[0];
+								var q = {};
+								q.Cmd = 'GetModel';
+								q.Instance = inst.Instance;
+								//debugger;
+								that.send(q, unit.Pid, rply);
 
-								function instance(inst, func) {
-									var q = {};
-									q.Cmd = 'GetModel';
-									q.Instance = inst.Instance;
-									//debugger;
-									that.send(q, unit.Pid, rply);
-
-									function rply(err, x) {
-										if (err) {
-											func(err);
-											return;
-										}
-										if (!('Obj3D' in x)) {
-											var err = 'No model returned';
-											console.log(' ** ERR:' + err);
-											func(err);
-											return;
-										}
-										var objinst = new THREE.Object3D();
-										if ('Position' in inst) {
-											var pos = inst.Position;
-											objinst.position.x = pos[0];
-											objinst.position.y = pos[1];
-											objinst.position.z = pos[2];
-										}
-										if ('Axis' in inst && 'Angle' in inst) {
-											var axis = inst.Axis;
-											var ang = inst.Angle * Math.PI / 180.0;
-											var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
-											objinst.setRotationFromAxisAngle(vec, ang);
-										}
-										var data = {};
-										if ('Role' in inst)
-											data.Role = inst.Role;
-										else
-											data.Role = 'Fixed';
-										data.Pid = inst.Instance;
-										objinst.userData = data;
-										objinst.add(x.Obj3D);
-										res(objinst);
+								function rply(err, x) {
+									if (err) {
+										func(err);
+										return;
 									}
-								}
-
-
-								function done() {
-									console.log("Done Generating the Module/Model");
+									if (!('Obj3D' in x)) {
+										var err = 'No model returned';
+										console.log(' ** ERR:' + err);
+										func(err);
+										return;
+									}
+									var objinst = new THREE.Object3D();
+									if ('Position' in inst) {
+										var pos = inst.Position;
+										objinst.position.x = pos[0];
+										objinst.position.y = pos[1];
+										objinst.position.z = pos[2];
+									}
+									if ('Axis' in inst && 'Angle' in inst) {
+										var axis = inst.Axis;
+										var ang = inst.Angle * Math.PI / 180.0;
+										var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
+										objinst.setRotationFromAxisAngle(vec, ang);
+									}
+									var data = {};
+									if ('Role' in inst)
+										data.Role = inst.Role;
+									else
+										data.Role = 'Fixed';
+									data.Pid = inst.Instance;
+									objinst.userData = data;
+									objinst.add(x.Obj3D);
+									res(objinst);
+									log.v("Done Generating the Module/Model");
 								}
 							}
 						});

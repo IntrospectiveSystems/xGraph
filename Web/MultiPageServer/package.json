@@ -2,12 +2,13 @@
   "name": "web",
   "version": "0.0.3",
   "dependencies": {
+    "async": "^2.6.0",
+    "greenlock": "2.1.15",
     "greenlock-express": "^2.0.11",
     "jszip": "~3.1.3",
-    "socket.io": "*",
-    "greenlock": "2.1.15",
+    "le-challenge-dns": "*",
     "le-challenge-fs": "*",
     "le-challenge-sni": "*",
-    "le-challenge-dns": "*"
+    "socket.io": "*"
   }
 }

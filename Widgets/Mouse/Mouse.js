@@ -10,9 +10,10 @@
 		dispatch: dispatch
 	};
 
+
 	//-----------------------------------------------------Start
 	function SetDomElement(com, fun) {
-		console.log('--Mouse/SetDomElement');
+		log.v('--Mouse/SetDomElement');
 		let Vlt = this.Vlt;
 		Vlt.domElement = ("length" in com.DomElement)? com.DomElement : $(com.DomElement);
 		
@@ -36,7 +37,7 @@
 			evt.returnValue = false;
 		});
 		domElement.on("wheel","canvas", (evt) =>{
-			console.log("Handler ", this.Par.Handler.substr(30));
+			log.v("Handler ", this.Par.Handler.substr(30));
 			let info = {};
 			evt = evt.originalEvent;
 			let fac = (evt.detail < 0 || evt.wheelDelta > 0) ? 1 : -1;
@@ -47,7 +48,7 @@
 			evt.returnValue = false;
 		});
 		domElement.on("mousedown","canvas",(evt) => {
-			console.log("Handler ", this.Par.Handler.substr(30));
+			log.v("Handler ", this.Par.Handler.substr(30));
 			
 			info = {};
 			info.Mouse = {};
@@ -61,7 +62,7 @@
 					info.Action = 'RightMouseDown';
 					break;
 				default:
-					console.log("mousedown which");
+					log.v("mousedown which");
 					return;
 			}
 			this.send({Cmd:"DispatchEvent", info:info, mouse:Vlt.Mouse}, this.Par.Handler);
@@ -69,7 +70,7 @@
 			evt.returnValue = false;
 		});
 		domElement.on("mousemove", "canvas",(evt) =>{
-			//console.log("Handler ", this.Par.Handler.substr(30));
+			//log.v("Handler ", this.Par.Handler.substr(30));
 			
 			let info = {};			
 			info.Action = 'Move';

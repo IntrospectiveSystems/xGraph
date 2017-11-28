@@ -3,6 +3,7 @@ const tar = require('targz');
 const fs = require('fs');
 const path = require('path');
 const mergedirs = require('merge-dirs').default;
+let state = 'production';
 
 // #ifdef LINUX
 let system = 'linux';
@@ -33,6 +34,7 @@ let pathOverrides = {};
 
 let cwd = (process.cwd());
 let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
+let CacheDir;
 
 if (process.argv.length == 1) process.argv[1] = 'help';
 
@@ -40,38 +42,50 @@ processSwitches();
 
 
 switch (process.argv[1]) {
-	case 'r':
-	case 'run': {
-		run();
+	case 'x':
+	case '-x':
+	case '--execute':
+	case 'execute': {
+		execute();
 		break;
 	}
 
-	case 'rr':
+	case 'r':
+	case '-r':
+	case '--reset':
 	case 'reset': {
 		reset();
 		break;
 	}
 
 	case 'c':
+	case '-c':
+	case '--compile':
 	case 'compile': {
 		compile();
 		break;
 	}
 
 	case 'd':
+	case '-d':
+	case '--deploy':
 	case 'deploy': {
 		deploy();
 		break;
 	}
 
 	case 'help':
+	case 'h':
+	case '-h':
 	case '--help': {
 		help();
 		break;
 	}
 	case 'g':
+	case '-g':
+	case 'generate':
 	case 'init': {
-		init(process.argv.slice(2));
+		generate(process.argv.slice(2));
 		break;
 	}
 	default: {
@@ -81,9 +95,20 @@ switch (process.argv[1]) {
 	}
 }
 
-async function init(args) {
-	console.log('init System');
-	console.log('[', ...args, ']');
+async function generate(args) {
+	console.log(`Generate: ${args}`);
+	switch(args[0]){
+		case 'system':
+		case 's': {
+			console.log(`Create systems with names: ${args.slice(1)}`);
+			break;
+		}
+		case 'module':
+		case 'm':{
+			console.log(`Create modules with names: ${args.slice(1)}`);			
+			break;
+		}
+	}
 }
 
 function help() {
@@ -93,16 +118,22 @@ function help() {
 
     Commands:
       help: displays this help screen.
-      run: Starts a system from config or cache
-        Example: xgraph run --config config.json
-                 xgraph run --cache cache/
-        
+      execute: Starts a system from config or cache
+        Example: xgraph execute --config config.json
+								 xgraph execute --cache cache/
+			reset:
+			deploy:
+			compile:
+			generate <module|system>:
+
+    
   `);
 }
 
 async function reset() {
 	try {
 		await ensureNode();
+		state = 'production';
 		await genesis();
 		startNexusProcess();
 	} catch (e) {
@@ -115,18 +146,18 @@ async function deploy() {
 		await ensureNode();
 		startNexusProcess();
 
-
 	} catch (e) {
 		console.log(`ERR: ${e}`);
 	}
 }
 
-async function run() {
+async function execute() {
 	try {
 		await ensureNode();
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
+			state = 'develop'; 
 			await genesis();
 			startNexusProcess();
 		}
@@ -138,6 +169,7 @@ async function run() {
 async function compile() {
 	try {
 		await ensureNode();
+		state = 'production';
 		await genesis();
 	} catch (e) {
 		console.log(`ERR: ${e}`);
@@ -148,16 +180,18 @@ async function compile() {
 function startNexusProcess() {
 	const { spawn } = require('child_process');
 	let processPath = pathOverrides["cwd"]||path.resolve('./');
-	console.log("Process PAth is ", processPath);
+	console.log("Process Path is ", processPath);
 
+	let cacheDir = pathOverrides["cache"];
+	console.log(cacheDir);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], {cwd: processPath, env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd:processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd:processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { env: { NODE_PATH: path.join(path.dirname(path.resolve(pathOverrides["cache"] || "./cache")), "node_modules/"), PATH: process.env.PATH} });
+	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd:processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH} });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
@@ -180,7 +214,20 @@ async function ensureNode() {
 	} else {
 		await install();
 	}
-	// #else
+	// #endif
+
+	// #ifdef MAC
+	let node = (execSync('which node').toString());
+	
+	if (node != '') {
+		console.log(`Node appears to be installed.  If you have problems we recommend you have Node v${nodeVersion} installed.`);
+		return;
+	} else {
+		await install();
+	}
+	// #endif
+	
+	// #ifdef WINDOWS
 	console.error(`System ${system} is not yet supported.  You will need to install Node v${nodeVersion} manually.`);
 	// #endif
 }
@@ -188,6 +235,7 @@ async function ensureNode() {
 function install() {
 	// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
 	return new Promise((resolve) => {
+		let installAttempted = false;
 		// #ifdef LINUX
 		require('https').get({
 			host: 'nodejs.org',
@@ -202,6 +250,7 @@ function install() {
 					dest: bindir
 				}, function () {
 					// console.log(mergedirs);
+					installAttempted = true;
 					try {
 						mergedirs('node-v' + nodeVersion + '-linux-x64/bin', '/usr/bin', 'overwrite');
 						mergedirs('node-v' + nodeVersion + '-linux-x64/include', '/usr/include', 'overwrite');
@@ -220,16 +269,61 @@ function install() {
 				});
 			});
 		});
-		// #
-		// #else
-		console.error(`System ${system} is not yet supported`);
-		//node-msi.fetch.start
-
 		// #endif
+
+		// #ifdef MAC
+		// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
+		require('https').get({
+			host: 'nodejs.org',
+			path: '/dist/v' + nodeVersion + '/node-v' +  nodeVersion + '-darwin-x64.tar.gz'
+		}, (response) => {
+			let body = '';
+			response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
+			response.on('end', function () {
+				tar.decompress({
+					src: bindir + '/node.tar.gz',
+					dest: bindir
+				}, function () {
+					installAttempted = true;
+					try {
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/local/bin', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/local/include', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/local/lib', 'overwrite');
+						mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/local/share', 'overwrite');
+						resolve();
+					} catch (e) {
+						try {
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/bin', 'overwrite');
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/include', 'overwrite');
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/lib', 'overwrite');
+							mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/share', 'overwrite');
+							resolve();
+						} catch (e) {
+							console.log('Could not install node, try running the command again with sudo\n');
+							console.log("If the problem persists, email support@introspectivesystems.com");
+							console.log('with this ' + e.toString());
+							process.exit(1);
+							resolve();
+						}
+					}
+				});
+			});
+		});
+		// #endif
+
+		// #ifdef WINDOWS
+		console.error(`${system} is not yet supported.`);
+		// node-msi.fetch.start
+		// #endif
+
+		if (!installAttempted) {
+			console.error(`Node installation was skipped.  Please verify Node v${nodeVersion} is installed.`);
+		}
 	});
 }
 
 function processSwitches() {
+	// console.log('\u001b[0;32m Process Switches');
 	for (let i = 0; i < process.argv.length; i++) {
 		let str = process.argv[i];
 		if (str.startsWith('--')) {
@@ -237,14 +331,38 @@ function processSwitches() {
 			applySwitch(key, i);
 		}
 	}
+	
+	pathOverrides["cache"] = pathOverrides["cache"] || "./cache";
+
+	// console.log(pathOverrides["cache"])
+
+	// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+	// CacheDir = Params.cache || Path.join(CWD, "cache");
+
+
+	// console.log(Object.keys(pathOverrides));
+
+	if(!('cache' in pathOverrides))
+		pathOverrides.cache = 'cache';
+
+	if(!path.isAbsolute(pathOverrides.cache)) {
+		pathOverrides.cache = path.resolve(path.resolve(pathOverrides.cwd || process.cwd()), pathOverrides.cache);
+	}
+
+	// console.log(`cache directory \u001b[1;34m${pathOverrides.cache}\u001b[0m`);
 }
 
 function applySwitch(str, i) {
 	let val = null;
+	if (str == "debug") {
+		console.log("Doing the debug thing");
+		return;
+	}
 	if ((i + 1) in process.argv) { // switch has a value
 		val = process.argv[i + 1];
 	}
-	pathOverrides[str] = val;
+	if(val != null)
+		pathOverrides[str.toLowerCase()] = val;
 }
 
 

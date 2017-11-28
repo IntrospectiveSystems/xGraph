@@ -11,19 +11,9 @@
 				"Port": 8080,
 				"Url": "Paint",
 				"HTML": "@file: Paint.html",
-				"Config": "@file: browser.json",
+				"Paint": "@system: browser.json",
 				"Static": "@directory: static"
 			}
-		},
-		"Deferred": [
-			{
-				"Module": "xGraph.Widgets.RootView",
-				"Source": "xGraph"
-			},
-			{
-				"Module": "xGraph.Widgets.AceEditorView",
-				"Source": "xGraph"
-			}
-		]
+		}
 	}
 }
