@@ -9,6 +9,7 @@
 	const fs = require('fs');
 	const Path = require('path');
 	const endOfLine = require('os').EOL;
+	var consoleNotification = false;
 	var Uuid;
 	var CacheDir;						// The location of where the Cache will be stored
 	var Config = {};					// The read config.json
@@ -75,8 +76,13 @@
 			}
 		};
 		console.log = function (...str) {
-			log.w('console.log is depricated use defined log levels ... log.i()');
-			log.v(...str);
+			if (consoleNotification){
+				console.log(...str);
+			}else{
+				consoleNotification = true;
+				log.w('console.log is depricated use defined log levels ... log.i()');
+				log.v(...str);
+			}
 		}
 		console.microtime = _ => {
 			let hrTime =  process.hrtime();

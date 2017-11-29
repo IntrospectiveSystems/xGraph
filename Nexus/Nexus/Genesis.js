@@ -64,6 +64,7 @@
 					xgraphlog(new Date().toString(), ...str);
 				}
 			};
+
 			console.microtime = _ => {
 				let hrTime = process.hrtime();
 				return (hrTime[0] * 1000000 + hrTime[1] / 1000);
