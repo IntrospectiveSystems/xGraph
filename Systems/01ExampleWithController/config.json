@@ -28,8 +28,8 @@
 			"Source":"xGraph",
 			"Par":{
 				"Link": "3DView",
-				"Server":"$Server"			
-			}	
+				"Server":"$Server"
+			}
 		}
 	}
 }

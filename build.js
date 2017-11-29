@@ -80,8 +80,8 @@
 
 
 	//move all required files to lib of system bin.
-	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if (e.errno != -17) console.log(e); } }
-	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if (e.errno != -17) console.log(e); } }
+	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) {if ((e.errno != -17) &&(e.errno != -4075)) console.log(e); } }
+	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 
 
 	// copy everything into bin/lib
@@ -154,7 +154,4 @@
 		if (err) throw err
 		console.log('Windows: Done!');
 	});
-
-	//https://wiki.gnome.org/msitools/HowTo/CreateMSI
-
 })();

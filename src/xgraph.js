@@ -9,7 +9,7 @@ let args = process.argv.slice(1);
 let pathOverrides = {};
 let nodeVersion = "8.9.1";
 let cwd = (process.cwd());
-let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf('/'));
+let bindir = process.argv[0].substr(0, process.argv[0].lastIndexOf(path.sep));
 let CacheDir;
 
 // #ifdef LINUX
@@ -187,19 +187,19 @@ async function compile() {
 
 function startNexusProcess() {
 	const { spawn } = require('child_process');
-	let processPath = pathOverrides["cwd"] || path.resolve('./');
+	let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
 	console.log("Process Path is ", processPath);
 
 	let cacheDir = pathOverrides["cache"];
 	console.log(cacheDir);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node.cmd", [`${bindir.substr(0, bindir.lastIndexOf('/'))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules/"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
