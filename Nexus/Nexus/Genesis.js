@@ -64,15 +64,6 @@
 					xgraphlog(new Date().toString(),...str);
 				}
 			};
-			console.log = function (...str) {
-				if (consoleNotification) {
-					console.log(...str);
-				} else {
-					consoleNotification = true;
-					log.w('console.log is depricated use defined log levels ... log.i()');
-					log.v(...str);
-				}
-			}
 			console.microtime = _ => {
 				let hrTime =  process.hrtime();
 				return (hrTime[0] * 1000000 + hrTime[1] / 1000);

@@ -77,12 +77,12 @@
 		};
 		console.log = function (...str) {
 			if (consoleNotification) {
-				log.v(...str);
+				process.stdout.write(`${str.join(' ')}${endOfLine}`);
 			} else {
-				consoleNotification = true;
-				log.w('console.log is depricated use defined log levels ... log.i()');
-				log.v(...str);
-			}
+	 			consoleNotification = true;
+		 		log.w('console.log is depricated use defined log levels ... log.i()');
+				process.stdout.write(`${str.join(' ')}${endOfLine}`);
+		 	}
 		}
 		console.microtime = _ => {
 			let hrTime =  process.hrtime();
