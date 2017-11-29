@@ -77,7 +77,7 @@
 		};
 		console.log = function (...str) {
 			if (consoleNotification) {
-				process.stdout.write(`${str.join(' ')} ${endOfLine}`);
+				log.v(...str);
 			} else {
 				consoleNotification = true;
 				log.w('console.log is depricated use defined log levels ... log.i()');
