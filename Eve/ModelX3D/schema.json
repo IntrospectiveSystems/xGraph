@@ -1,0 +1,14 @@
+{
+  "Apex": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "Model.js",
+	"Position": [0,0,0],
+	"Axis":[0,0,1],
+	"Angle":0.0,
+	"Translator": "#x3d"
+  },
+  "x3d":{
+	  "Entity": "X3D.js"
+  }
+}
