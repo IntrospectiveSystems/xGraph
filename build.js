@@ -147,7 +147,7 @@
 		manufacturer: 'Introspective Systems, LLC.',
 		iconPath: 'IS.png',
 		executable: 'bin/windows/bin/xgraph.exe',
-		localInstall: true
+		arch: 'x64',
 	};
 
 	createMsi(options, function (err) {
