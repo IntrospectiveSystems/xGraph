@@ -55,7 +55,7 @@
 				//alert(JSON.stringify(par, null, 2));
 				this.genModule(par, (err, pid) => {
 					//debugger;
-					this.send({Cmd:"SetView", View: pid}, this.Par.Pid, (err, cmd)=>{
+					this.send({Cmd:"AddView", View: pid}, this.Par.Pid, (err, cmd)=>{
 						// debugger;
 						this.send({Cmd: 'DOMLoaded'}, pid, (err, cmd) => {
 							

@@ -315,11 +315,11 @@
 						if (!("Timer" in Vlt) && "Timeout" in Par){
 							//console.log("\n\n setting timer for timeout \n\n");
 							Vlt.Timer = setTimeout(()=>{
-								that.log("Error: Proxy "+Par.Pid+ " connection timeout. Last Attempt.");
+								log.e("Error: Proxy "+Par.Pid+ " connection timeout. Last Attempt.");
 								Par.Poll = false;
 							},Par.Timeout);
 						}
-						that.log("Proxy "+Par.Pid+ " is Polling");
+						log.v("Proxy "+Par.Pid+ " is Polling");
 						if ("Sock" in Vlt)
 							delete Vlt["Sock"];
 						setTimeout(connectLoop,3000);
@@ -343,7 +343,6 @@
 					console.log(' ** Socket disconnected:' + err);
 					
 					if (Par.Poll){
-						//that.log("Proxy "+Par.Pid+ " is Polling");
 						if ("Sock" in Vlt)
 							delete Vlt[Sock];
 						setTimeout(connectLoop,3000);
@@ -471,15 +470,14 @@
 			else {
 				Vlt.Fun[com.Passport.Pid] = null;
 			}
-
 		}
 
 		function client() {
 			var STX = 2;
 			var ETX = 3;
-			var sock = Vlt.Sock;2
+			var sock = Vlt.Sock;
 			if(!sock) {
-				that.log('No Socket');
+				log.v('No Socket');
 				//we are purposely withholding the callback we should call it back once the socket is formed but we need an event listener for this
 				// if(fun)
 				// 	fun('Proxy not connected');

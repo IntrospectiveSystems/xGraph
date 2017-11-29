@@ -56,9 +56,10 @@
 	--subtext: #777;
 	--accent-subtext: rgba(0,0,0,.65);
 	--view-border-color: #3D3D3D;
-	--text: #CCC;
-	--accent-color: var(--introspective-green);
-	--accent-700: #478530;
+	--text: #FFF;
+	--atext: 255, 255, 255;
+	--accent-color: #2979FF;
+	--accent-700: #2979FF;
 	--accent-error: #5B0000;
 	--text-error: #FF8888;
 	--error-background: #280000;
@@ -69,13 +70,9 @@
 	font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-p, h1, h2, h3, h4, h5, div, span {
+p, h1, h2, h3, h4, h5, div, span, label, input {
 	/* however, this declaring of text should be super specific, so you can overwrite --text before this gets baked in */
 	color: var(--text);
-}
-
-h1, h2, h3 {
-	font-weight: 100;
 }
 
 hr {
@@ -84,9 +81,4 @@ hr {
 	border-right: none;
 	border-bottom: 1px solid var(--view-border-color-light);
 	margin: 0px;
-}
-
-h1 {
-	margin-bottom: 12px;
-	padding-left: 27px;
 }

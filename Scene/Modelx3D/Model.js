@@ -1,6 +1,5 @@
 // #sourcsURL='Model.js'
 (function Model() {
-	var async, fs;
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {

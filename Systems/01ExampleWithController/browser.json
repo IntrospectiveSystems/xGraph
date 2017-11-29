@@ -1,16 +1,50 @@
 {
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
 	"Modules": {
 		"RootView": {
 			"Module": "xGraph:Widgets/RootView",
+			"Source": "xGraph",
 			"Par": {
 				"Layout": "$3DView"
 			}
 		},
 		"3DView": {
-			"Module":"xGraph:Widgets/3DView",
+			"Module": "xGraph:Widgets/3DView",
+			"Source": "xGraph",
 			"Par": {
-				"Controller":"$Controller"
+				"Controller": "$ControllerProxy",
+				"Server": "$ServerProxy"
 			}
-		}
+		},
+		"ControllerProxy": {
+			"Module": "xGraph.Web.WebProxy",
+			"Source": "xGraph",
+			"Par": {
+				"Link": "Controller"
+			}
+		},
+		"ServerProxy": {
+			"Module": "xGraph.Web.WebProxy",
+			"Source": "xGraph",
+			"Par": {
+				"Link": "Server"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Widgets.Mouse",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.Popup",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Scene.Modelx3D",
+				"Source": "xGraph"
+			}
+		]
 	}
 }
