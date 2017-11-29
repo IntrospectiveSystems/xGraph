@@ -80,8 +80,8 @@
 				process.stdout.write(`${str.join(' ')}${endOfLine}`);
 			} else {
 	 			consoleNotification = true;
-				 log.w(`console.log does not write to xgraph.log 
-				 	consider using log levels ... log.i(), log.d(), ...`);
+				 log.w('console.log does not write to xgraph.log consider using log levels\n'
+				 		+`       - log.i(), log.v(), log.d(), log.e(), or log.w()`);
 				process.stdout.write(`${str.join(' ')}${endOfLine}`);
 		 	}
 		}
