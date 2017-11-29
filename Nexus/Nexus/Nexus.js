@@ -80,7 +80,8 @@
 				process.stdout.write(`${str.join(' ')}${endOfLine}`);
 			} else {
 	 			consoleNotification = true;
-		 		log.w('console.log is depricated use defined log levels ... log.i()');
+				 log.w(`console.log does not write to xgraph.log 
+				 	consider using log levels ... log.i(), log.d(), ...`);
 				process.stdout.write(`${str.join(' ')}${endOfLine}`);
 		 	}
 		}
