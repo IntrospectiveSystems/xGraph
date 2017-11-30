@@ -12,7 +12,7 @@
 
 
 	function Start(com, fun) {
-		log.v('Test::Start');
+		log.v('--Validate/Start');
 		//save context for use in fs readfile subcontext
 		let that = this;
 
@@ -143,7 +143,7 @@
 				});
 			}
 
-			log.v('\nAll tests concluded.\n');
+			log.v('\n\nAll tests concluded.\n');
 			let fails = 0;
 			for (let key in Results) {
 				let keys = Object.keys(Results[key]);
@@ -152,9 +152,9 @@
 					fails++;
 			}
 			if (fails == 0)
-				log.v("\nAll tests Passed!");
+				log.v("\n\nAll tests Passed!");
 			else
-				log.v(`\n${fails} of ${Results.length} tests Failed.`)
+				log.v(`\n\n${fails} of ${Results.length} tests Failed.`)
 		}
 
 
@@ -173,7 +173,7 @@
 			log.d("In the Callback");
 			that.Vlt.InstModule = instApex;
 			that.Vlt.Test = setPid(that.Vlt.Test);
-			log.d("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));			
+			log.d("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
 			RunTests();
 		});
 
@@ -184,7 +184,7 @@
 	}
 
 	function DummyCatch(com, fun) {
-		//log.v(`Validate::DummyCatch ${JSON.stringify(com, null,2)}`);
+		log.d(`Validate::DummyCatch ${JSON.stringify(com, null, 2)}`);
 
 		if (!this.Vlt.SentMessages)
 			this.Vlt.SentMessages = {};

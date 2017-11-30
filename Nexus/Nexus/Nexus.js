@@ -79,11 +79,11 @@
 			if (consoleNotification) {
 				process.stdout.write(`${str.join(' ')}${endOfLine}`);
 			} else {
-	 			consoleNotification = true;
-				 log.w('console.log does not write to xgraph.log consider using log levels\n'
-				 		+`       - log.i(), log.v(), log.d(), log.e(), or log.w()`);
+				consoleNotification = true;
+				log.w('console.log does not write to xgraph.log consider using log levels\n'
+					+ `       - log.i(), log.v(), log.d(), log.e(), or log.w()`);
 				process.stdout.write(`${str.join(' ')}${endOfLine}`);
-		 	}
+			}
 		}
 		console.microtime = _ => {
 			let hrTime = process.hrtime();
@@ -203,12 +203,10 @@
 
 			for (var ifold = 0; ifold < folders.length; ifold++) {
 				let folder = folders[ifold];
-				if (folder == 'node_modules')
-					continue;
 				let dir = CacheDir + '/' + folder;
-				if (!fs.lstatSync(dir).isDirectory())
-					continue;
 				let path = dir + '/Module.json';
+				if (!fs.existsSync(path))
+					continue;
 				let data = fs.readFileSync(path).toString();
 				let mod = JSON.parse(data);
 				parseMod(mod, dir, folder);
@@ -827,7 +825,6 @@
 			}
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
-			log.d("about to compile inst");
 			await compileInstance(pidapx, inst);
 			setup();
 
@@ -847,7 +844,6 @@
 			// Start
 			function start() {
 				if (!("Start" in mod)) {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 					return;
 				}
@@ -857,7 +853,6 @@
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}
