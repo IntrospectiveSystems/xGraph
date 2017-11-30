@@ -825,7 +825,6 @@
 			}
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
-			log.d("about to compile inst");
 			await compileInstance(pidapx, inst);
 			setup();
 
@@ -845,7 +844,6 @@
 			// Start
 			function start() {
 				if (!("Start" in mod)) {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 					return;
 				}
@@ -855,7 +853,6 @@
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}

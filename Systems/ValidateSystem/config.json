@@ -7,13 +7,13 @@
 			"Module": "xGraph.ValidateModule",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Web.Router",
-				"TestJson": "@file: ../../Web/Router/test.json"
+				"TestModule": "xGraph.Nexus.Plexus",
+				"TestJson": "@file: ../../Nexus/Plexus/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Web.Router",
+				"Module": "xGraph.Nexus.Plexus",
 				"Source": "xGraph"
 			}
 		]
