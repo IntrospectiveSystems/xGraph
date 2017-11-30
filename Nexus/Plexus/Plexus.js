@@ -1,5 +1,10 @@
 //# sourceURL=Plexus.js
-(function Plexus() {
+(
+	/**
+	 * The Plexus entity, the Apex and only entity of the Plexus Module.
+	 * This entity requres its Setup function called during the Setup phase of Nexus startup
+	 */
+	function Plexus() {
 
 	//-----------------------------------------------------dispatch
 	// the set of functions that are accessible from the this.send function of an entity
@@ -13,7 +18,11 @@
 		dispatch: dispatch
 	};
 
-	//-----------------------------------------------------Setup
+	/**
+	 * Setup the required vault variables
+	 * @param {Object} com 
+	 * @param {Function} fun 
+	 */
 	function Setup(com, fun) {
 		log.v('--Plexus/Setup');
 
