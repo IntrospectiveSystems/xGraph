@@ -1,12 +1,12 @@
-//# sourceURL=Proxy.js
-(function Proxy() {
+//# sourceURL=Plexus.js
+(function Plexus() {
 
 	//-----------------------------------------------------dispatch
 	// the set of functions that are accessible from the this.send function of an entity
 	let dispatch = {
-		Setup: Setup,
-		Publish: Publish,
-		Subscribe: Subscribe
+		Setup,
+		Publish,
+		Subscribe
 	};
 
 	return {
