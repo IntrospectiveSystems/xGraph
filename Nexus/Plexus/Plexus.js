@@ -1,7 +1,9 @@
+//# sourceURL=Proxy.js
 (function Proxy() {
 
 	//-----------------------------------------------------dispatch
-	var dispatch = {
+	// the set of functions that are accessible from the this.send function of an entity
+	let dispatch = {
 		Setup: Setup,
 		Publish: Publish,
 		Subscribe: Subscribe
@@ -13,91 +15,91 @@
 
 	//-----------------------------------------------------Setup
 	function Setup(com, fun) {
-		console.log('--Plexus/Setup');
-		var that = this;
-		var Par = this.Par;
-		var Vlt = this.Vlt;
-		Vlt.Ports = [];
-		Vlt.Servers = {};
-		Vlt.Clients = {};
-		if(fun)
+		log.v('--Plexus/Setup');
+
+		//set by publish
+		this.Vlt.Ports = [];	//the list of taken ports
+
+		//set by publish
+		this.Vlt.Servers = {};	//{<channel>:<{	
+		//	Name: com.Name,
+		//	Host: com.Host,
+		//	Port: port}>}
+
+		if (fun)
 			fun(null, com);
 	}
 
-
 	//-----------------------------------------------------Publish
-	//post address to plexus
+	//post address to plexus (get a port assignment)
 	function Publish(com, fun) {
-		console.log('--Plexus/Publish');
-		var Par = this.Par;
-		var Vlt = this.Vlt;
-		var err;
-		if(!('Chan' in com))
-			err = 'No Chan in com';
-		if(!('Host' in com))
-			err = 'No Host in com';
-		// TBD: This should be err after cleanup implemented correctly
-		if(com.Chan in Vlt.Servers)
-			console.log(' ** ERR"Server <' + com.Chan + '> already assigned');
-		if(err) {
-			console.log(' ** ERR:' + err);
-			if(fun)
-				fun(err);
+		log.v('--Plexus/Publish');
+		let Vlt = this.Vlt;
+		let port, err = '';
+
+		//check for an error in the request
+		if (!('Chan' in com))
+			err += 'No channel defined in com (com.Chan) ';
+		if (!('Host' in com))
+			err += 'No host defined in com (com.Host) ';
+		if (com.Chan in Vlt.Servers)
+			err += `Server <${com.Chan}> already assigned `;
+
+		if (err) {
+			log.e(err);
+			fun(err);
 			return;
 		}
-		var port;
 
-		console.log(Vlt.Ports, "is the set of taken ports");
-		if(com.Chan == 'Plexus') {
+		log.v(Vlt.Ports, "is the set of taken ports");
+
+		//The plexus server should always be set first (during setup) and is given the port 27000
+		if (com.Chan == 'Plexus') {
 			port = 27000;
 		} else {
-			for(var iport=27001; iport<27099; iport++) {
-				console.log("In Loop");
-				if(Vlt.Ports.indexOf(iport)>-1){
-					console.log("Port" , iport, " is taken");
-					continue;
-				}
-				port = iport;
-				break;
+			//loop through the set of ports to find the next available
+			let iport = 27001;
+			while (Vlt.Ports.indexOf(iport++) > -1) {
+				log.d("Port", iport, " is taken");
+				iport++;
 			}
+			port = iport;
 		}
-		if(!port) {
-			err = 'No ports available';
-			console.log(' ** ERR:' + err);
-			if(fun)
-				fun(err);
-			return;
-		}
+
 		var srv = {};
 		srv.Name = com.Name;
-		srv.Chan = com.Chan;
 		srv.Host = com.Host;
 		srv.Port = port;
+
+		//store the server info
 		Vlt.Servers[com.Chan] = srv;
 		Vlt.Ports.push(port);
-		console.log('Servers', JSON.stringify(Vlt.Servers, null, 2));
+
+		log.v('Servers', JSON.stringify(Vlt.Servers, null, 2));
+
+		//add port to the reply message
 		com.Port = port;
-		console.log(com.Chan, 'assigned to port', port);
-		if(fun)
-			fun(null, com);
+		log.v(com.Chan, 'assigned to port', port);
+		
+		fun(null, com);
 	}
 
 	//-----------------------------------------------------Subscribe
 	//get address from plexus
 	function Subscribe(com, fun) {
-		console.log('--Plexus/Subscribe');
-		var Par = this.Par;
-		var Vlt = this.Vlt;
-		if(com.Chan in Vlt.Servers) {
-			var srv = Vlt.Servers[com.Chan];
+		log.v('--Plexus/Subscribe');
+		let err;
+
+		//access the registered server
+		if (com.Chan in this.Vlt.Servers) {
+			let srv = this.Vlt.Servers[com.Chan];
 			com.Host = srv.Host;
 			com.Port = srv.Port;
-			if(fun)
-				fun(null, com);
-			return;
+		} else {
+			err = `Channel <${com.Chan}> not registered`;
 		}
-		if(fun)
-			fun(null, com);
+
+		fun(err||null, com);
 	}
 
 })();
