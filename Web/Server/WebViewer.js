@@ -1,5 +1,14 @@
-//# sourceURL=server/http
-(function Http() {
+//# sourceURL=WebViewer.js
+(
+	/**
+	 * The WebViewer entity is the Apex and only entity of the WebViewer Module.
+	 * This entity requires its Setup and Start functions to be invoked durring the same stage of Nexus startup.
+	 * The main functionality of this entity is to start up an http server and on connection a webserver for 
+	 * interfacing a browers based xGraph System to one that is server based. Communication between these two 
+	 * Systems is done by the ServerProxy Module on the server and the WebProxy on the browser. Both of these 
+	 * Modules interface with the WebViewer programatically.
+	 */
+	function WebViewer() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {

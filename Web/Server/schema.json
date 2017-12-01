@@ -2,6 +2,6 @@
   "Apex": {
 	"$Setup": "Setup",
 	"$Start": "Start",
-	"Entity": "Http.js"
+	"Entity": "WebViewer.js"
   }
 }
