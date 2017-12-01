@@ -5,41 +5,81 @@ v1.0.0
 Introspective Systems, LLC.
 
 ---
-## xgraph executable
-The xgraph command line tool accelerates the building and running of xGraph 
-Systems. 
+## xGraph Executable
+The xGraph command line tool accelerates the building and running of xGraph
+Systems.
 
 ---
-## Getting Started
+### Getting Started
 
-Download the system dependent installer from the Introspective Systems webpage. 
+Download the system dependent installer from the Introspective Systems website.
 
-On Windows: Be sure the {path to...}ProgramFiles/xGraph directory is appended to 
-your Environmental Path Variable ($PATH). To append it got to 
-"My Computer" > "Properties" > "Advanced" > "Environment Variables" > "Path" and
-add it to the list. 
+##### On Windows:
+You will have to add the xgraph path variable to your systems environment
+variable. This can be done for a single session through the command line,
+or you can set the environment variable permanently through windows settings.
 
-On Linux or Mac: Simply unpack the .tar.gz files and reopen your terminal
-window.
+The xgraph path variable is ``` {path to...}ProgramFiles/xGraph```.
+Append this to your your Environmental Path Variable ($PATH).
+
+To add the xgraph path variable to your system environment variable, go
+to "My Computer" > "Properties" > "Advanced" > "Environment Variables" > "Path"
+and add it to the list.
+
+##### On Linux or Mac:
+Simply unpack the installation file (.tar or .gz) and restart your terminal
+session.
 
 ---
-## API 
-xgraph command line tool options
---help      display the help message
---version   display the current xgraph version
+## API
+```
+Compile and Run xGraph systems with a few simple commands.
 
---compile   build an xGraph cache directory from an xGraph Configuration
-            (config.json) file (Production)
---deploy    start an xGraph System from an xGraph cache directory (Production)
---reset     compile and deploy an xGraph System
---execute   deploy an xGraph System if the cache exists, else compile and deploy
+Unless otherwise specified, commands will look in the current working
+directory for a config.json file or cache directory, depending on the
+command.
 
---generate  generate a new module (m) or system (s) from a blank template
+If the system includes local module sources, these must be listed after
+the command and options, [--source directory ...].
 
+xGraph
 
-Useful command line attributes
---cwd       set the working directory xgraph operation
+Usage: xgraph [command] [options] [--source directory ...]
 
+Command:
+    help        h                       : Displays this help screen.
+    compile     c                       : Generates a cache from a system
+                                            structure file.
+    deploy      d                       : Run a system from it's cache.
+    reset       r                       : Run a system from system structure
+                                            file, resetting the system's cache.
+    generate <module|system>    g <m|s> : Generate a new module or system
+                                            from a template with the given
+                                            name.
+
+    execute     x run                   : Run a system from it's cache, or
+                                            it's system structure file if
+                                            the cache does not exist.
+
+Options:
+    --cwd                               : Sets the current working directory
+                                            for the command.
+    --config                            : Specifies a system's structure file.
+	--cache                             : Specifies a system's cache directory.
+
+Examples:
+    Compile the system in the current directory.
+        xgraph compile
+
+    Deploy a module from a system structure file.
+        xgraph deploy --config .\ExampleSystems\HelloWorld\config.json
+
+    Reset a system in a different working directory with an external source.
+        xgraph reset --cwd .\MultipleSystemsTemplate\Systems\Plexus\ --xGraph ..\xGraph --xGraphTemplates ..\..\xGraphTemplates
+
+    Generate a new module called MyFirstModule.
+        xgraph generate module MyFirstModule
+```
 
 
 ---
