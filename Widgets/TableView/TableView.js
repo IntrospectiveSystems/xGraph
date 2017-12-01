@@ -45,7 +45,7 @@
 
 					superStyle('table.table th, table.table td', {
 						'padding': '.75rem',
-						'border-top': '1px solid #eceeef'
+						'border-bottom': '1px solid #eceeef'
 					});
 
 					superStyle('table.table th', {
@@ -149,6 +149,10 @@
 				str = `<tr>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
+					// log.d(key, row[key]);
+					if(typeof row[key] == 'object' && 'Value' in row[key]) {
+						row[key] = row[key].Value;
+					}
 					if (key == 'id')
 						str += `<th>${(row[key] || 'NA')}</th>`;
 					else
@@ -166,7 +170,7 @@
 			
 			let that = this;
 			$(`.${this.id('EvokeButton')}`).on('click', function() {
-				debugger;
+				// debugger;
 				that.evoke($(this).attr('pid'));
 			});
 

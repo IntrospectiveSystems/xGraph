@@ -3,6 +3,14 @@
 	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--develop") > -1) state = 'develop';
 
+	//who knows how well this will work
+	process.on('unhandledRejection', event => {
+		log.e('------------------ [Stack] ------------------');
+		log.e(event);
+		log.e('------------------ [/Stack] -----------------');
+		process.exit(1);
+	});
+
 	console.log(`\nInitializing the Run Engine`);
 
 	const fs = require('fs');
