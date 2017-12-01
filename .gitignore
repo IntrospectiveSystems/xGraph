@@ -91,4 +91,5 @@ Work/*/*.js
 bin/**/*.*
 bin/**/*
 bin/*.*
+!bin/*.md
 src/gen/**/*.*
