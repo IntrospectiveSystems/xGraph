@@ -751,7 +751,7 @@ __Nexus = (_ => {
 			fun(null, mod[filename])
 			return;
 		}
-		let err = `Error: File ${filename} does not exist in module ${module}`;
+		let err = `File ${filename} does not exist in module ${module}`;
 		log.e(err);
 		fun(err);
 	}
