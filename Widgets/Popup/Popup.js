@@ -2,7 +2,14 @@
 //jshint esversion: 6
 (function Popup() {
 
+	/*
+        The PopupView class is a Root Container View.
+        PopupView attaches itself to the DOM, rendering on top of the existing page.
+
+     */
 	class Popup {
+
+        //-----------------------------------------------------Setup
 		Setup(com, fun) {
 			this.super(com, (err, com)=>{
 				console.log("Viewify/Setup");
