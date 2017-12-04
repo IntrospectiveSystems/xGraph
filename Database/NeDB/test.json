@@ -1,21 +1,26 @@
 {
-	"State": {
-
-	},
+	"State": {},
 	"Cases": [
 		{
 			"Command": {
-				"Cmd":"Insert",
+				"Cmd": "Insert",
 				"Document": {
 					"String": "string",
 					"Number": 5,
-					"Null": null
+					"Null": null,
+					"TestNest":{
+						"Beep": "Boop"
+					}
 				}
 			},
 			"Response": {
-				"Cmd":"Insert",
+				"Cmd": "Insert",
 				"Document": {
-					
+					"String": "string",
+					"Number": 5,
+					"TestNest": {
+						"Beep": "*"
+					}
 				}
 			}
 		}

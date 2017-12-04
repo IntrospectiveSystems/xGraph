@@ -18,7 +18,7 @@
 
 		// function for seting the appropriate pid references in  cmds and genmodule
 		const setPid = (val) => {
-			if(val === null) return null;
+			if (val === null) return null;
 			if (typeof val === 'object') {
 				return (Array.isArray(val) ?
 					val.map(v => setPid(v)) :
@@ -101,14 +101,23 @@
 
 						//check for a binary match with the test.json test callback
 						if ('Response' in test) {
-							keys = Object.keys(test.Response);
-							for (let i = 0; i < keys.length; i++) {
-								///fail if either the values are not equal, 
-								///or the value is "*" and key is in the returned command 
-								if ((test.Response[keys[i]] !== returnedCommand[keys[i]])
-									&& !((test.Response[keys[i]] == "*") && (keys[i] in returnedCommand))) {
-									bMatch = false;
-									break;
+							parseObject(test.Response, returnedCommand);
+
+							function parseObject(ob, ret) {
+								keys = Object.keys(ob);
+								for (let i = 0; i < keys.length; i++) {
+									
+									if (typeof ob[keys[i]] === 'object'){
+										parseObject (ob[keys[i]], ret[keys[i]]);
+										return;
+									}
+									///fail if either the values are not equal, 
+									///or the value is "*" and key is in the returned command 
+									if ((ob[keys[i]] !== ret[keys[i]])
+										&& !((ob[keys[i]] == "*") && (keys[i] in ret))) {
+										bMatch = false;
+										break;
+									}
 								}
 							}
 						}
