@@ -1,0 +1,61 @@
+{
+	"name": "NeDB",
+	"version": "1.0.0",
+	"info": {
+		"authors": [
+			{
+				"Name": "Marcus Gosselin",
+				"Company": "Introspective Systems LLC"
+			}
+		]
+	},
+	"doc": "README.md",
+	"input": {
+		"opts": [
+			{
+				"Cmd": "Insert",
+				"required": [
+					"Document"
+				]
+			},
+			{
+				"Cmd": "Count",
+				"required": [
+				],
+				"opts": [
+					"Filter"
+				]
+			},
+			{
+				"Cmd": "Find",
+				"required": [
+					"Where"
+				],
+				"opts": [
+					"Projection"
+				]
+			},
+			{
+				"Cmd": "Update",
+				"required": [
+					"Where",
+					"Set"
+				]
+			},
+			{
+				"Cmd": "Remove",
+				"required": [
+					"Where"
+				]
+			}
+		]
+	},
+	"par": {
+		"required": [
+			"Filename"
+		],
+		"opts": [
+			"Reset"
+		]
+	}
+}
