@@ -18,39 +18,35 @@ This entity requres its Setup function invoked during the Setup phase of Nexus s
 
 The next section is the API documentation for this module.
 
----
+#### Module Definition Parameters
 
-### Module Definition Parameters
+Plexus has the following module definition parameters.
 
-Parameters are defined in the module definition and stored in this.Par.
-Some are required, while some may be optional. Below, the Parameters
-that Plexus expects to be defined.
-
-***(Plexus does not require any parameters to be defined in the
+***(Plexus does not have any parameters to be defined in the
 config.json file.)***
 
 ---
 
-### Output Commands
+#### Output Commands
 
 The Output Commands are all the command that Plexus can send to
 other modules.
 
-***(Plexus does not send any commands)***
+*(Plexus does not send any commands.)*
 
 ---
 
-### Input Commands
+#### Input Commands
 The Input Commands are all the commands that Plexus can
 receive.
 
 
-#### Setup(com, fun) 
+##### Setup(com, fun)
 
 Setup the required vault variables
 
 
-##### Parameters
+###### Parameters
 
 | Name | Type | Description |  |
 | ---- | ---- | ----------- | -------- |
@@ -60,21 +56,21 @@ Setup the required vault variables
 
 
 
-##### Returns
+###### Returns
 
 
 - `com`  
 
 
 
-#### Publish(com, fun) 
+##### Publish(com, fun)
 
 Publish a Proxy (server) to the Plexus
 
 
 
 
-##### Parameters
+###### Parameters
 
 | Name | Type | Description |  |
 | ---- | ---- | ----------- | -------- |
@@ -86,21 +82,21 @@ Publish a Proxy (server) to the Plexus
 
 
 
-##### Returns
+###### Returns
 
 
 - `com.Port`  the port that the server shall listen at
 
 
 
-#### Subscribe(com, fun) 
+##### Subscribe(com, fun)
 
 A Proxy (client) can request the data of a Proxy server
 
 
 
 
-##### Parameters
+###### Parameters
 
 | Name | Type | Description |  |
 | ---- | ---- | ----------- | -------- |
@@ -111,7 +107,7 @@ A Proxy (client) can request the data of a Proxy server
 
 
 
-##### Returns
+###### Returns
 
 
 - `com.Host`  The host for the client to connect on

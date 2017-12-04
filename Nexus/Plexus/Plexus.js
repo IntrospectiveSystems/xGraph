@@ -2,7 +2,7 @@
 (
 	/**
 	 * The Plexus entity is the Apex and only entity of the Plexus Module.
-	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup.
+	 * This entity requires its Setup function invoked during the Setup phase of Nexus startup.
 	 */
 	function Plexus() {
 
