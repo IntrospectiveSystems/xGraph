@@ -3,6 +3,8 @@
 	/**
 	 * The Plexus entity is the Apex and only entity of the Plexus Module.
 	 * This entity requires its Setup function invoked during the Setup phase of Nexus startup.
+	 * The main capability of this entity is to act as a dynamic router that not only routes connections, but
+	 * assigns the port to servers requesting publication.
 	 */
 	function Plexus() {
 

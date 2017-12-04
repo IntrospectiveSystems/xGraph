@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.ValidateModule",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.Nexus.Plexus",
+				"TestJson": "@file: ../../Nexus/Plexus/test.json"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Nexus.Plexus",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

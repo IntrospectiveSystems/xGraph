@@ -8,8 +8,13 @@ Introspective Systems, LLC.
 ---
 #### Plexus
 
-The Plexus entity is the Apex and only entity of the Plexus Module.
-This entity requres its Setup function invoked during the Setup phase of Nexus startup.
+Plexus is a dynamic router that routes connections, and assigns the
+port to servers requesting publication. Plexus registers a server with a
+channel name and host, and assigns that server a port. Plexus handles
+connection requests by channel name.
+
+Plexus requires the Setup function invoked during instantiation.
+
 
 
 ---
