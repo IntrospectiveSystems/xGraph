@@ -11,6 +11,22 @@
 	};
 
 
+	/**
+	 * 
+	 * 
+			"Response": {
+				"Documents": {
+					"0": {
+						"String": "Beta",
+						"Null": null,
+						"Number": 6
+					},
+					"length": 1
+				}
+			}
+	 * is a thing you can do to ensure length of an array, and it elements.
+	 * 
+	 */
 	function Start(com, fun) {
 		log.v('--Validate/Start');
 		//save context for use in fs readfile subcontext
@@ -95,7 +111,9 @@
 						resolve();
 						return;
 					}
+					log.v(tidx);
 					that.send(test.Command, that.Vlt.InstModule, (err, returnedCommand) => {
+						log.v(JSON.stringify(returnedCommand, null, 2));
 						let bMatch = true;
 						let keys, key, hash, hashStash = [], msgIdx;
 
@@ -104,10 +122,16 @@
 							parseObject(test.Response, returnedCommand);
 
 							function parseObject(ob, ret) {
+								log.v(JSON.stringify(ob, null, 2));
+								log.v(JSON.stringify(ret, null, 2));
 								keys = Object.keys(ob);
 								for (let i = 0; i < keys.length; i++) {
 									
-									if (typeof ob[keys[i]] === 'object'){
+									if (typeof ob[keys[i]] === 'object' && ob[keys[i]] !== null){
+										if(!(keys[i] in ret)) {
+											bMatch = false;
+											return;
+										}
 										parseObject (ob[keys[i]], ret[keys[i]]);
 										return;
 									}
@@ -125,7 +149,7 @@
 						if ("SentMessages" in test) {
 							for (msgIdx = 0; msgIdx < test.SentMessages.length; msgIdx++) {
 								hash = hashIt(test.SentMessages[msgIdx]);
-								hashStash.push(hash);
+								hashStash.push(hash);Response
 								if (hash in that.Vlt.SentMessages)
 									that.Vlt.SentMessages[hash]--;
 								else {
@@ -155,9 +179,14 @@
 
 			log.v('\n\nAll tests concluded.\n');
 			let fails = 0;
+			
+			let maxKeyLength = 0;
+			for (let key in Results) maxKeyLength = Math.max(maxKeyLength, (Object.keys(Results[key])[0]).length);
+
 			for (let key in Results) {
 				let keys = Object.keys(Results[key]);
-				log.v(keys[0] + ' : ' + (Results[key][keys[0]] ? "Pass" : "Fail"));
+				let formattedKey = (Array(maxKeyLength).join(' ') + keys[0]).substr(-maxKeyLength);
+				log.i(formattedKey + ': ' + (Results[key][keys[0]] ? "\u2713 Pass" : "\u001b[31m\u2715 Fail"));
 				if (!Results[key][keys[0]])
 					fails++;
 			}

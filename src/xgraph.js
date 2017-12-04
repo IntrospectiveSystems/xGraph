@@ -207,7 +207,8 @@ function startNexusProcess() {
 	process.stdin.on('data', _ => ls.stdin.write(_));
 
 	ls.on('close', (code) => {
-		console.log(`child process exited with code ${code}`);
+		console.log(`xGraph exiting with code ${code}`);
+		process.exit(code);
 	});
 }
 

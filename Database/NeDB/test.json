@@ -1,27 +1,146 @@
 {
-	"State": {},
+	"State": {
+		"Filename": "Test.nedb",
+		"Reset": true
+	},
 	"Cases": [
 		{
 			"Command": {
 				"Cmd": "Insert",
 				"Document": {
-					"String": "string",
-					"Number": 5,
+					"String": "Alpha",
 					"Null": null,
-					"TestNest":{
-						"Beep": "Boop"
-					}
+					"Number": 5
 				}
 			},
 			"Response": {
 				"Cmd": "Insert",
 				"Document": {
-					"String": "string",
+					"String": "Alpha",
 					"Number": 5,
-					"TestNest": {
-						"Beep": "*"
-					}
+					"Null": null,
+					"_id": "*"
 				}
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Insert",
+				"Document": {
+					"String": "Beta",
+					"Null": null,
+					"Number": 6
+				}
+			},
+			"Response": {
+				"Cmd": "Insert",
+				"Document": {
+					"String": "Beta",
+					"Number": 6,
+					"Null": null,
+					"_id": "*"
+				}
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Count",
+				"Filter": {
+					"Null": null
+				}
+			},
+			"Response": {
+				"Cmd": "Count",
+				"Count": 2
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Find",
+				"Where": {
+					"String": "Beta"
+				}
+			},
+			"Response": {
+				"Documents": {
+					"0": {
+						"String": "Beta",
+						"Null": null,
+						"Number": 6
+					},
+					"length": 1
+				}
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Update",
+				"Where": {
+					"String": "Alpha"
+				},
+				"Set": {
+					"String": "Delta"
+				}
+			},
+			"Response": {
+				"ReplacedCount": 1
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Count",
+				"Filter": {
+					"Null": null
+				}
+			},
+			"Response": {
+				"Cmd": "Count",
+				"Count": 2
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Find",
+				"Where": {
+					"String": "Delta"
+				}
+			},
+			"Response": {
+				"Documents": {
+					"0": {
+						"String": "Delta",
+						"Null": null,
+						"Number": 5
+					},
+					"length": 1
+				}
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Count"
+			},
+			"Response": {
+				"Count": 2
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Remove",
+				"Where": {
+					"String": "Beta"
+				}
+			},
+			"Response": {
+				"DeletedCount": 1
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Count"
+			},
+			"Response": {
+				"Count": 1
 			}
 		}
 	]

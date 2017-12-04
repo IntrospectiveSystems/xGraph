@@ -5,19 +5,20 @@ Use by providing a Json file of commands (Add path to TestModule config as Par.T
 for an example look at xGraph/Web/Router/test.json
 
 test.json Format:
+
 {
 	"State": {
 		"Par": "value.... Required pars (key:value pairs) that allow the module to do it's job
 	},
-    "Cases": [
-        {
-            "Command": <Object> Command object to send,
-			"SentMessages":[
+	"Cases": [
+			{
+				"Command": <Object> Command object to send,
+				"SentMessages":[
 				{
 					"Command": <Object> command to be caught by test.
 				}
 			]
-            "Callback": <Object> Expected return command (Omit if no callback expected)
-        }    
-    ]
+			"Callback": <Object> Expected return command (Omit if no callback expected)
+		}
+	]
 }
