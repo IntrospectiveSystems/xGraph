@@ -18,6 +18,7 @@
 
 		// function for seting the appropriate pid references in  cmds and genmodule
 		const setPid = (val) => {
+			if(val === null) return null;
 			if (typeof val === 'object') {
 				return (Array.isArray(val) ?
 					val.map(v => setPid(v)) :

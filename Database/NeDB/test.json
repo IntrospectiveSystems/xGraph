@@ -1,0 +1,23 @@
+{
+	"State": {
+
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd":"Insert",
+				"Document": {
+					"String": "string",
+					"Number": 5,
+					"Null": null
+				}
+			},
+			"Response": {
+				"Cmd":"Insert",
+				"Document": {
+					
+				}
+			}
+		}
+	]
+}
