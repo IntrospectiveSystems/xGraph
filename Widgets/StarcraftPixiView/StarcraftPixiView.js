@@ -47,12 +47,20 @@
 		}
 
 		/**
-		 * Retreives the data from this.Par.Source if defined.
+		 * Retreives the data from this.Par.Source if defined 
 		 * @param {Object} com 
 		 * @param {Function} fun 
 		 */
 		function Start(com, fun) {
 			log.i("--PixiView/Start");
+			if (this.Vlt.Started == true) {
+				fun(null, com);
+				return;
+			}
+
+			this.Vlt.Started = true;
+			let View = this.Vlt.View;
+			this.View.TileTable = {};
 
 			if (!("Source" in this.Par)) {
 				fun(null, com);
@@ -60,22 +68,39 @@
 			}
 
 			this.send({ Cmd: "GetData", "DataChannels": this.Par.DataChannels, "Pid": this.Par.Pid }, this.Par.Source, (err, com) => {
-				if (err){
-					log.w("error getting data from source in Par.Source")
-					fun(null, com);
-					return;
+
+				let Data = com.Data.Sar;
+				[View.Width, View.Height] = [Data.Width, Data.Height];
+				let width = 2048, height = 2048;
+				let widthUnit = width / (Data.Width + 1), heightUnit = height / (Data.Height + 1);
+
+				for (var i = 0; i < (Data.Width + 1) * (Data.Height + 1); i++) {
+					let row = Math.floor(i / Data.Width);
+					let col = i - row * Data.Width;
+					let idx = (Data.Height - row) * Data.Width + col;
+
+					let ob = new PIXI.Graphics();
+					ob.position.set(col * widthUnit, row * heightUnit);
+					// set a fill and line style
+					ob.beginFill(0xFFFFFF);
+					// set a fill and a line style again and draw a rectangle
+					ob.drawRect(0, 0, widthUnit, heightUnit);
+					ob.endFill();
+					ob.tint = (Data.Data[idx] in Data.Dictionary) ? Data.Dictionary[Data.Data[idx]] : Data.Dictionary["default"];
+
+					View.Stage.addChild(ob);
+					View.TileTable[idx] = ob;
 				}
-				com.Cmd = "DrawObjects";
-				this.dispatch(com, fun)
+				View.Renderer.render(View.Stage);
+				View.SarData = Data.Data;
+
+				if ("WorldPid" in this.Vlt) {
+					this.send({ Cmd: "UpdateCanvas", canvas: View.Renderer.view, Width: View.Width, Height: View.Height }, this.Vlt.WorldPid, () => { });
+				}
+				fun(null, com);
 			});
 		}
 
-		/**
-		 * Add objects to the pixi stage.
-		 * @param {Object} com 
-		 * @param {Object} com.Data
-		 * @param {Function} fun 
-		 */
 		function DrawObjects(com, fun = _ => _) {
 			log.i("--PixiView/DrawObjects");
 			let View = this.Vlt.View;
