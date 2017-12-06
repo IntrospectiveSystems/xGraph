@@ -313,7 +313,7 @@
 			} else {
 				if (url.charAt(0) == '/')
 					url = url.substr(1);
-				if (url == Par.Url)
+				if (url.startsWith(Par.Url))
 					ship(null, Par.HTML);
 				else {
 					res.writeHead(404);

@@ -1,6 +1,6 @@
 {
 	"Apex": {
-		"Entity": "PixiView.js",
+		"Entity": "StarcraftPixiView.js",
 		"$Setup": "Setup",
 		"$Start": "Start"
 	}
