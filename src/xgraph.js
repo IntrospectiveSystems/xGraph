@@ -471,7 +471,7 @@ function initModule(names) {
 		else {
 			let moduleDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Modules');
 			modulePath = path.join(moduleDir, name);
-			console.log("Module dir is ", systemDir);
+			console.log("Module dir is ", moduleDir);
 
 			try {
 				fs.mkdirSync(moduleDir);
