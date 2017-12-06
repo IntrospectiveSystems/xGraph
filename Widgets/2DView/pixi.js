@@ -6053,6 +6053,7 @@ var Resource = function () {
      * Loads this resources using an element that has a single source,
      * like an HTMLImageElement.
      *
+     *
      * @private
      * @param {string} type - The type of element to use.
      */

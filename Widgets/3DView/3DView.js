@@ -19,7 +19,7 @@
 
 	function Setup(com, fun) {
 		this.super(com, (err, cmd) => {
-			console.log('--3DView/Setup');
+			log.i('--3DView/Setup');
 			let div = this.Vlt.div;
 
 			//set live for true for the example of an updating system
@@ -70,36 +70,30 @@
 					q.Objects.push(obj);
 
 					this.send(q, this.Par.Pid, (err, com) => {
-						setTimeout(this.send({ Cmd: "ImageCapture" }, this.Par.Pid), 40);
+						setTimeout(this.dispatch({ Cmd: "ImageCapture" }, _=>_), 40);
 					});
 				}
 				//end TEST
 
-
-
 				View.Renderer.render(View.Scene, View.Camera);
 			}, 20);
 
-
 			fun(null, com);
-
-
-
 		});
 	}
 
 	function Start(com, fun) {
-		console.log('--3DView/Start');
+		log.i('--3DView/Start');
 
 		if ("Server" in this.Par) {
 			this.send({ Cmd: "Subscribe", Pid: this.Par.Pid , Link: "3DView"}, this.Par.Server, (err, com) => {
-				console.log("Subscribed with Server");
+				log.v("Subscribed with Server");
 			});
 		}
 
 		if ("Controller" in this.Par) {
 			this.send({ Cmd: "Register", Pid: this.Par.Pid }, this.Par.Controller, (err, com) => {
-				console.log("Registered with Controller");
+				log.v("Registered with Controller");
 			});
 		}
 
@@ -203,7 +197,7 @@
 
 			this.send(q, this.Par.Pid, _ =>
 				//callback
-				console.log("we sent the objects to be added to the scene")
+				log.v("we sent the objects to be added to the scene")
 			);
 
 
@@ -228,15 +222,15 @@
 	}
 
 	function EvokeExample(com, fun) {
-		console.log("EVOKE EXAMPLE", com.id);
+		log.v("EVOKE EXAMPLE", com.id);
 
-		console.log("Popup");
+		log.v("Popup");
 		this.genModule({
 			"Module": "xGraph.Widgets.Popup",
 			"Par": {
 				Left: com.mouse.x,
 				Top: com.mouse.y,
-				"View": "xGraph.Widgets.3DView",
+				"View": "xGraph.Widgets.2DView",
 				"Width": 800,
 				"Height": 600
 			}
@@ -248,7 +242,7 @@
 	}
 
 	function DOMLoaded(com, fun) {
-		console.log("--3DView/DOMLoaded");
+		log.v("--3DView/DOMLoaded");
 		this.super(com, fun);
 		let div = this.Vlt.div;
 		div.append(this.Vlt.View.Renderer.domElement);
@@ -267,14 +261,14 @@
 				Cmd: "SetDomElement",
 				"DomElement": this.Vlt.div
 			}, pidApex, (err, cmd) => {
-				console.log("GenModed the Mouse and set the DomElement");
+				log.v("GenModed the Mouse and set the DomElement");
 				//fun(null, com);
 			});
 		});
 	}
 
 	function Cleanup(com, fun) {
-		console.log("--3DView/Cleanup", this.Par.Pid.substr(30));
+		log.v("--3DView/Cleanup", this.Par.Pid.substr(30));
 
 		clearInterval(this.Vlt.View.RenderLoop);
 		if (fun)
@@ -282,14 +276,14 @@
 	}
 
 	function Render(com, fun) {
-		console.log("--3DView/Render", this.Par.Pid.substr(30));
+		log.v("--3DView/Render", this.Par.Pid.substr(30));
 		this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 		this.super(com, fun);
 	}
 
 
 	function Resize(com, fun) {
-		//console.log("--3DView/Resize")
+		//log.v("--3DView/Resize")
 		this.super(com, (err, cmd) => {
 			let View = this.Vlt.View;
 			View.Renderer.setSize(cmd.width, cmd.height);
@@ -349,7 +343,7 @@
 			let unit = com.Objects[i];
 
 			if (typeof unit.id == "undefined") {
-				console.log("A unit sent to 3DView/SetObjects did not have an id");
+				log.v("A unit sent to 3DView/SetObjects did not have an id");
 				continue;
 			}
 
@@ -360,7 +354,7 @@
 				if (!unit.module) {
 					//we're building a 3JS object
 					if (!unit.geometry || !unit.mesh) {
-						console.log("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
+						log.v("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
 						continue;
 					}
 					let geom, mesh;
@@ -429,7 +423,7 @@
 								Inst = r.Inst;
 								log.d('Instances are: ', JSON.stringify(Inst, null, 2));
 								if (err) {
-									console.log(' ** ERR:' + err);
+									log.v(' ** ERR:' + err);
 									if (fun)
 										fun(err);
 									return;
@@ -449,7 +443,7 @@
 									}
 									if (!('Obj3D' in x)) {
 										var err = 'No model returned';
-										console.log(' ** ERR:' + err);
+										log.v(' ** ERR:' + err);
 										func(err);
 										return;
 									}
@@ -546,7 +540,7 @@
 						obj.matrixWorldNeedsUpdate = true;
 						obj.updateMatrixWorld();
 					} else {
-						console.log("Parent not defined in three.js scene");
+						log.v("Parent not defined in three.js scene");
 						this.Vlt.View.Scene.add(obj);
 
 					}
@@ -584,26 +578,16 @@
 
 	//-----------------------------------------------------Dispatch
 	function DispatchEvent(com) {
-		//debugger;
-		// if ((!com.Shared) && ("ShareDispatch" in this.Par)){
-
-		// 	let q=JSON.parse(JSON.stringify(com));
-
-		// 	q.Shared = true;
-		// 	for (let i = 0;i< this.Par.ShareDispatch.length;i++){
-		// 		this.send(q, this.Par.ShareDispatch[i]);
-		// 	}
-		// }
-		// console.log("--ThreeJsView/DispatchEvent", com.info.Action);
+		
 		let info = com.info;
 		let Vlt = this.Vlt;
 		Vlt.Mouse = com.mouse;
-		// console.log(this.Par.Pid.substr(30));
+		// log.v(this.Par.Pid.substr(30));
 		var dispatch;
 		if ('Dispatch' in Vlt) {
 			dispatch = Vlt.Dispatch;
 		} else {
-			//console.log('Harvesting for dispatch');
+			//log.v('Harvesting for dispatch');
 			Vlt.Dispatch = {};
 			dispatch = Vlt.Dispatch;
 
@@ -622,7 +606,7 @@
 					//may need to handle evoke callback here
 					//
 					//
-					console.log("Evoke example callback")
+					log.v("Evoke example callback")
 				});
 			}
 			return;
@@ -632,7 +616,7 @@
 		if ('CharKey' in info)
 			key += '.' + info.CharKey;
 		info.Key = key;
-		//console.log(this.Par.View, 'Dispatch', key);
+		//log.v(this.Par.View, 'Dispatch', key);
 		if (key in dispatch) {
 			var proc = dispatch[key];
 			proc(info, Vlt);
@@ -646,7 +630,7 @@
 			for (var i = 0; i < q.Keys.length; i++) {
 				var key = q.Keys[i];
 				dispatch[key] = proc;
-				//	console.log('key', key);
+				//	log.v('key', key);
 			}
 		}
 	}
@@ -654,7 +638,7 @@
 	//-----------------------------------------------------mouseRay
 	function mouseRay(info, Vlt) {
 		//var info = {};
-		//console.log(info.Mouse)
+		//log.v(info.Mouse)
 		let View = Vlt.View;
 		View.Ray.precision = 0.00001;
 		container = Vlt.div;
@@ -663,19 +647,19 @@
 		var vec = new THREE.Vector2();
 		vec.x = 2 * (info.Mouse.x - container.offset().left) / w - 1;
 		vec.y = 1 - 2 * (info.Mouse.y - container.offset().top) / h;
-		// console.log(vec);
+		// log.v(vec);
 		View.Ray.setFromCamera(vec, View.Camera);
 		var hits = View.Ray.intersectObjects(View.Scene.children, true);
 		var hit;
 		var obj;
-		console.log('Hits length is', hits);
+		log.v('Hits length is', hits);
 		for (var i = 0; i < hits.length; i++) {
 			hit = hits[i];
 			obj = hit.object;
 			var pt;
 			if (obj != null && obj.name) {
-				//console.log('hit', hit);
-				//console.log('mouseRay', data);
+				//log.v('hit', hit);
+				//log.v('mouseRay', data);
 				// debugger;
 				info.obj = {};
 				info.obj.id = obj.name
@@ -714,7 +698,7 @@
 	// 		dispatch[info.Key]();
 
 	// 	function start() {
-	// 		//console.log('..select/start', info);
+	// 		//log.v('..select/start', info);
 	// 		var mouse = View.Mouse;
 	// 		mouse.Mode = 'Select1';
 	// 		mouse.x = info.Mouse.x;
@@ -736,7 +720,7 @@
 	// 	}
 
 	// 	function move() {
-	// 	//	console.log('..move', info);
+	// 	//	log.v('..move', info);
 	// 		if (!('Point' in info))
 	// 			return;
 	// 		var q = {};
@@ -765,11 +749,11 @@
 	// TBD: Remove Three.js dependancy
 	function Zoom(info, Vlt) {
 		if (info.Action == 'Harvest') {
-			console.log('Harvest-Zoom');
+			log.v('Harvest-Zoom');
 			info.Keys.push('Idle.Wheel');
 			return;
 		}
-		//console.log("Zooooooming");
+		//log.v("Zooooooming");
 		let View = Vlt.View;
 
 		var v = new THREE.Vector3();
@@ -796,7 +780,7 @@
 	// TBD: Remove Three.js dependancy
 	function Keyed(info, Vlt) {
 		if (info.Action == 'Harvest') {
-			console.log('Harvest-Keyed');
+			log.v('Harvest-Keyed');
 			info.Keys.push('Idle.keydown.n');
 			return;
 		}
@@ -829,7 +813,7 @@
 			dispatch[info.Key]();
 
 		function start() {
-			// console.log('..Rotate/start', info.Key);
+			// log.v('..Rotate/start', info.Key);
 			var mouse = Vlt.Mouse;
 			mouse.Mode = 'Rotate';
 			mouse.x = info.Mouse.x;
@@ -837,7 +821,7 @@
 		}
 
 		function rotate() {
-			// console.log('..Rotate/move', info.Key);
+			// log.v('..Rotate/move', info.Key);
 			var mouse = Vlt.Mouse;
 			var vcam = new THREE.Vector3();
 			vcam.fromArray(View.Camera.position.toArray());
@@ -862,7 +846,7 @@
 		}
 
 		function stop() {
-			// console.log('..Rotate/stop', info.Key);
+			// log.v('..Rotate/stop', info.Key);
 			//var Vlt = View;
 			Vlt.Mouse.Mode = 'Idle';
 		}

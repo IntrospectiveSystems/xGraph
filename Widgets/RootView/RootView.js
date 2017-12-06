@@ -4,15 +4,8 @@
 (function RootView() {
 
 	class RootView {
-		Setup(com, fun) {
-			this.super(com, (err, cmd) => {
-				log.v(`--RootView::Setup`);
-				//debugger;
-				fun(null, com);
-			});
-		}
 		Start(com, fun) {
-			log.v(`--RootView::Setup`);
+			log.v(`--RootView::Start`);
 			this.super(com, (err, cmd) => {
 
 				let that = this;
