@@ -446,7 +446,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				// console.log('LOOKING FOR ');
 
 				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
-				if (version > new SemVer('3.1')) {
+				if (version >= new SemVer('3.2')) {
 					// console.log('new thing');
 					while (elem.hasClass('dropArea') == null) {
 						elem = elem.parent();
@@ -494,7 +494,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 			fun(null, com);
 
-		}
+		} 
 
 		async Destroy(com, fun) {
 			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
@@ -523,16 +523,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
-		PrepareBuffer(com, fun) {
-			if (!('onScreenBuffer' in this.Vlt) || this.Vlt.onScreenBuffer == undefined) this.Vlt.onScreenBuffer = this.Vlt.div;
-
-			//either way, we should reset the div to our last saved on screen buffer
-			this.Vlt.div = this.Vlt.buffer.onScreenBuffer.clone();
-		}
-
-		SwapBuffer(com, fun) {
-
-		}
 	}
 
 	function injections() {
