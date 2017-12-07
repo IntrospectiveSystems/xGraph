@@ -161,6 +161,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	let child = typeof _class == 'function' ? _class.prototype : _class;
 
 	class View {
+		/**
+		 * @description Creates the basic things
+		 * a view needs, like its div, internal
+		 * stylesheet and other elements.
+		 * 
+		 * Overridable
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		Setup(com, fun) {
 			// debugger;
 			// console.time('View');
@@ -210,6 +220,20 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description Returns back (in com.Root) the root
+		 * of the view.
+		 * 
+		 * Note: the root is different than this.Vlt.div.
+		 * com.Root is the highest node in your View's 
+		 * DOM hierarchy.
+		 * 
+		 * Not part of the public API. this
+		 * command should stay internal
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		GetViewRoot(com, fun) {
 			// debugger;
 			if (!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before its setup!`);
@@ -218,19 +242,30 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(new ViewNotInitializedError(), com);
 		}
 
+		/**
+		 * @description Returns this.Vlt.div
+		 * 
+		 * Not part of the public API. this
+		 * command should stay internal
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		GetViewDiv(com, fun) {
 			com.Div = this.Vlt.div;
 			fun(null, com);
 		}
 
-		/// used to add styles to this View & children
-		/// com format: 
-		/// com.Selector = The css selector to apply rules to
-		/// com.Rules = Associative array where keys are rules and values are css values.
-		/// OR for only one rule
-		/// com.Selector = same
-		/// com.Rule = CSS rule name
-		/// com.Value = CSS rule value
+		/**
+		 * @description used to add styles to this View
+		 * @param {object} com 
+		 * @param {string} com.Selector The css selector to apply rules to
+		 * @param {Object=} com.Rules Associative array where keys are rules
+		 * and values are css values
+		 * @param {any} fun 
+		 * @returns 
+		 * @memberof View
+		 */
 		Style(com, fun) {
 			let that = this;
 			let vlt = this.Vlt
@@ -264,12 +299,32 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description Used to be used to disable a title bar,
+		 * which no longer exists.
+		 * 
+		 * @deprecated
+		 * @memberof View
+		 */
 		DisableTitleBar() {
+			log.w('deprecated DisableTitleBar call');
+			"editor.rulers": [80]
+			log.w(new Error().stack);
 			this.Vlt.titleBar.detach();
 			this.Vlt.disableTitleBar = true;
 		}
 
+		/**
+		 * @description Reset the DOM hierarchy of your View
+		 * 
+		 * @deprecated
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		Clear(com, fun) {
+			log.w('deprecated clear call');
+			log.w(new Error().stack);
 			this.Vlt.div.children().detach();
 			this.Vlt.root.children().detach();
 			this.Vlt.root.append(this.Vlt.styletag);
@@ -277,8 +332,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.Vlt.root.append(this.Vlt.div);
 			fun(null, com);
 		}
-		/// com.Value = CSS parsable color as string
+		/**
+		 * @description deprecated
+		 * Set the color of the View
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		SetColor(com, fun) {
+			log.w('deprecated SetColor call');
+			log.w(new Error().stack);
 			let value = com.Value || com.Color;
 			let border = com.Border || value;
 			this.Vlt._color = value;
@@ -286,6 +349,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			// this.Vlt.root.css('border', '1px solid ' + border);
 			fun(null, com);
 		}
+
+		/**
+		 * @description Called when a child of this View has been
+		 * destroyed.
+		 * 
+		 * overriding this command is not supported
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		async ChildDestroyed(com, fun) {
 			this.Vlt.views.splice(this.Vlt.views.indexOf(com.Pid), 1);
 			let views = this.Vlt.views.slice(0);
@@ -301,7 +374,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		}
 
-		/// com.View = PID of view
+		/**
+		 * @description Add com.View as a Child View
+		 * this forces a render after the child gives us its div.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		AddView(com, fun) {
 			let that = this;
 			let vlt = this.Vlt;
@@ -313,6 +392,18 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
+
+		/**
+		 * @description Render the View. This is only called
+		 * when something about the view has changed.
+		 * typically, this means that your children
+		 * have changed.
+		 * 
+		 * Overridable
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		async Render(com, fun) {
 			let that = this;
 			for (let pid of this.Vlt.views) {
@@ -325,23 +416,65 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description returns the Type of view this is.
+		 * View type is defined by the last token in the
+		 * dot separated array this.Par.Module
+		 * 
+		 * @deprecated
+		 * @param {any} com
+		 * @param {string} com.Type return value
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		GetType(com, fun) {
+			log.w('deprecated GetType call');
+			log.w(new Error().stack);
 			com.Type = this.Vlt.type;
 			fun(null, com);
 		}
 
+		/**
+		 * @description Event Command; fired when this view
+		 * received focus.
+		 * 
+		 * @deprecated
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		Focus(com, fun) {
+			log.w('deprecated Focus call');
+			log.w(new Error().stack);
 			this.Vlt.root.addClass('Focus');
 			if (!this.Vlt.disableTitleBar) this.Vlt.titleBar.css('border-bottom', '1px solid var(--accent-color)');
 			fun(null, com);
 		}
 
+		/**
+		 * @description Event command; fired when
+		 * this viw lost focus
+		 * 
+		 * @deprecated
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		Blur(com, fun) {
 			this.Vlt.root.removeClass('Focus');
 			if (!this.Vlt.disableTitleBar) this.Vlt.titleBar.css('border-bottom', '1px solid var(--view-border-color)');
 			fun(null, com);
 		}
 
+		/**
+		 * @description Event Command;  Fired after the
+		 * first Render cascade in a new View hierarchy
+		 * 
+		 * Overridable
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		async DOMLoaded(com, fun) {
 			// debugger;
 			//console.log('DOMLoaded - ' + this.Vlt.type);
@@ -357,6 +490,22 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description Event Commend; Called when your drawable area
+		 * has been changed.
+		 * 
+		 * Note: This is dispatched by a root view, so if you are
+		 * creatin a root view, you need to manually start the
+		 * Resize cascaded.
+		 * 
+		 * Overridable
+		 * @param {object} com
+		 * @param {number} com.width
+		 * @param {number} com.height
+		 * @param {number} com.aspect
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		async Resize(com, fun) {
 			com.width = this.Vlt.div.width();
 			com.height = this.Vlt.div.height();
@@ -372,6 +521,12 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description ShowHierarchy creates a tree in the console
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		async ShowHierarchy(com, fun) {
 
 			var that = this;
@@ -387,11 +542,50 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description Event Command; Fires when Something is
+		 * dropped in this View.
+		 * 
+		 * See Also: [Drag and Drop API](https://github.com/IntrospectiveSystems/xGraph/wiki/Viewify-Docs---Version-Info#drag-and-drop)
+		 * @param {object} com 
+		 * @param {any} com.Data
+		 * @param {string} com.Datatype
+		 * @param {HTMLElement} com.DropArea
+		 * @param {number} com.PageX
+		 * @param {number} com.PageY
+		 * @param {number} com.DivX
+		 * @param {number} com.DivX
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		Drop(com, fun) {
 			console.log('DROPPED', com);
 			fun(null, com);
 		}
 
+		/**
+		 * @description make an element drag & droppable.
+		 * 
+		 * com.Data and com.Datatype is the information
+		 * and type of information that is tied to the element.
+		 * i.e., if the element is dragged, when it is dropped,
+		 * that data will be passed to the drop event.
+		 * 
+		 * com.To is the Native Element to attach the listener to.
+		 * 
+		 * com.CreateDragDom is an optional function to create what
+		 * the drag handler will dragg around. for example, if you 
+		 * had a custom image you would like to drag, you could return
+		 * and img element, with its src attribute set.
+		 * @param {object} com
+		 * @param {HTMLElement} com.To
+		 * @param {function=} com.CreateDragDom
+		 * @param {object} com.Data
+		 * @param {string} com.Datatype
+		 * @param {any} fun
+		 * @returns 
+		 * @memberof View
+		 */
 		AttachDragListener(com, fun) {
 			let that = this;
 			let root = com.To || (console.log('com.To: <Native HTMLElement> is required!'));
@@ -494,8 +688,17 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 			fun(null, com);
 
-		} 
+		}
 
+		/**
+		 * @description Destroy will force a View togracefully
+		 * shut down. Sending itself a cleanup before garbage
+		 * collection, if anything needs to be done.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @returns 
+		 * @memberof View
+		 */
 		async Destroy(com, fun) {
 			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
 			if (this.Par.Destroying) return (console.log('This is a duplicate destroy, no action made.'), fun(null, com));
@@ -506,6 +709,15 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.deleteEntity((err) => fun(null, com));
 		}
 
+		/**
+		 * @description Event Command; sent right before 
+		 * a View will be garbage collected.
+		 * 
+		 * Overridable
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		Cleanup(com, fun) {
 			// debugger;
 			console.log("SUPER CLEANUP");
@@ -516,6 +728,14 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			fun(null, com);
 		}
 
+		/**
+		 * @description Internal Private Command
+		 * 
+		 * Subscribe to the event for when this View is destroyed.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof View
+		 */
 		RegisterDestroyListener(com, fun) {
 			let pid = com.Passport.From;
 			if ('DestroyListeners' in this.Par) this.Par.DestroyListeners.push(pid);

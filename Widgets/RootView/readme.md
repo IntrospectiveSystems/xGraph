@@ -34,7 +34,16 @@ function Setup(com, fun) {
 
 ## Schema
 
-The View "Base Class" Utilizes both `Setup` and `Start` commands, so even if your view doesn't require them, any entity that returns a [*View Dispatch Table*](#view-dispatch-table) should include `Setup` and `Start` in its `schema.json`.
+The View "Base Class" Utilizes both `Setup` commands, so even if your view doesn't require them, any entity that returns a [*View Dispatch Table*](#view-dispatch-table) should include `Setup` in its `schema.json`.
+
+``` json
+{
+    "Apex": {
+        "Entity": "MyView.js",
+        "$Setup": "Setup"
+    }
+}
+```
 
 ## View Dispatch Table
 
@@ -98,7 +107,7 @@ You'll notice that in this case, the super call is at the end. This is usually d
 
 Just like in `Render`, the purpose of the base class `DOMLoaded` command is to cascade the command down the DOM, so calling it after the view does what it needs to do is recommended.
 
-```javascript
+``` javascript
 function DOMLoaded(com, fun) {
     alert('DOM Loaded!');
     this.super(com, (err, cmd) => {
@@ -406,18 +415,48 @@ Example
 In a server side module
 
 ``` javascript
+(function Serverside() {
+    class Serverside {
+        Evoke(com, fun) {
+            com.Type = "View";
+            com.Container = 'xGraph.Views.Popup';
+            com.View = "xGraph.Views.TableView";
+            com.Par = {
+                Serverside: this.Par.Pid
+            };
+            fun(null, com);
+        }
+    }
 
+    return { dispatch: Serverside.prototype };
+})();
+```
+
+On the Browser, to open `Serverside`'s Visualization
+
+``` javascript
+(function BrowserButton() {
+    class BrowserButton {
+        async Click(com, fun) { //example button click command
+            await this.Evoke(this.Par.ServersidePid);
+            fun(null, com);
+        }
+    }
+
+    return { dispatch: BrowserButton.prototype };
+})();
 ```
 
 ## 4.0 (Not included in Astro Boy)
 
 - `this.Par.Layout`
 - `this.Par.Root`
-- LayoutView and RootView Deprecated.
 
 ### `this.Par.Layout`
 
 `this.Par.Layout` is now standard for all Views. (See: RootView Layout Par for Example usage). this means you can either declaratively create your layout, all in one module's Layout Par, You could have each view only declare its children, or anything in between.
+
+This will lead to the eventual deprecation of `LayoutView`
 
 ### `this.Par.Root`
 
@@ -427,8 +466,4 @@ If a View attempts to `AddChild` or `SetChild` a View with `this.Par.Root` set t
 
 All Root Views will, upon being added to the page, be appended to a linked list, of all other Root Views. This can be used to determine `z-index` order for overlapping Root Views.
 
-### LayoutView and RootView Deprecation
-
-LayoutView served as a means to add more to a layout, when a dead end had been reached in the View tree. However, now that all views can declare a `this.Par.Layout`, LayoutView is no longer needed, and as such is deprecated. it will exist in `Widgets/4_0`, However it will throw a warning on setup, about its deprecation. It will be obselete in Version 5.0
-
-RootView served as a way to create a static page layout, however now that all views can self declare themselves to be a root view, the need for a helper view no longer exists. Same as before, the view will exist in `Widgets/4_0` with a warning on setup, and will not be included in v5.0
+This change will lead to the eventual deprecation of `RootView`.
