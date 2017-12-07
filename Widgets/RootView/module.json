@@ -1,23 +1,24 @@
 {
+	"name": "RootView",
+	"version": "1.0.0",
+	"info": {
+		"authors": [
+			{
+				"Name": "Marcus Gosselin",
+				"Company": "Introspective Systems LLC"
+			}
+		]
+	},
+	"doc": "README.md",
 	"input": {
-		"required": [],
-		"opts": []
 	},
 	"output": {
-		"required": [],
-		"opts": []
 	},
 	"par": {
 		"required": [
-			"Root"
+			"Layout"
 		],
-		"opts": []
-	},
-	"name": "Layout Initializer",
-	"info": {
-		"author": "Marcus Gosselin"
-	},
-	"icon": null,
-	"doc": null,
-	"src": "xSDE:LayoutInitializer"
+		"opts": [
+		]
+	}
 }
