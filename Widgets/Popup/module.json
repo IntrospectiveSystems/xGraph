@@ -1,0 +1,25 @@
+{
+	"name": "Popup",
+	"version": "1.0.0",
+	"info": {
+		"authors": [
+			{
+				"Name": "Marcus Gosselin",
+				"Company": "Introspective Systems LLC"
+			}
+		]
+	},
+	"doc": "README.md",
+	"input": {
+	},
+	"output": {
+	},
+	"par": {
+		"required": [
+			"View"
+		],
+		"opts": [
+			"Par"
+		]
+	}
+}
