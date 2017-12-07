@@ -3,7 +3,7 @@
 	/**
 	 * The 2DView entity is the Apex and only entity of the 2DView Module.
 	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup.
-	 * The main capability of this entity is to add and render a pixi stage on the div provided by 
+	 * The main capability of this entity is to add and render a Pixi.js stage on the div provided by 
 	 * the Viewify class (its stored in this.Vlt.div). See Viewify documentation for more info on this.
 	 */
 	function _2DView() {
@@ -17,7 +17,6 @@
 			Resize,
 			Render,
 			DOMLoaded,
-			Cleanup,
 			EvokeExample
 		};
 
@@ -27,14 +26,16 @@
 		return Viewify(dispatch, "3.1");
 
 		/**
-		 * Create the Pixi renderer and Stage and append the renderer.view to the div
+		 * Create the Pixi renderer (autodetected) and Stage and append the rendered canvas to the div
 		 * @param {Object} com 
 		 * @param {Function} fun 
 		 */
 		function Setup(com, fun) {
 			log.i("-2DView/Setup");
 
-			//we hoist the setup command to View.js in the viewif script.
+			// /**
+			//  * we hoist the setup command to the Viewify.js script
+			//  */
 			this.super(com, (err, cmd) => {
 				//we access the existing div
 				let div = this.Vlt.div;
@@ -76,7 +77,9 @@
 		}
 
 		/**
-		 * Retreives the data from this.Par.Source if defined.
+		 * Retreives the data from this.Par.Source if defined. Also subscribes 
+		 * to the server to allow for server communications to reach this module.
+		 * If there was a controller defined we also register with that.
 		 * @param {Object} com 
 		 * @param {Function} fun 
 		 */
@@ -215,8 +218,16 @@
 		}
 
 
-
-		function EvokeExample(com, fun) {
+		/**
+		 * This is an example of an Evoke handler. This particular example 
+		 * generates a popup module containing a 3DView module or the one set in
+		 * Par.EvokeView.
+		 * @param {Object} 		com 
+		 * @param {String}		com.id
+		 * @param {Object}		com.mouse 	 the coordinates of the mouse when evoked {x:_x,y:_y}
+		 * @param {Function=} 	fun 
+		 */
+		function EvokeExample(com, fun = _ => _) {
 			log.v("EVOKE EXAMPLE", com.id);
 
 			log.v("Popup");
@@ -230,11 +241,14 @@
 					"Height": 600
 				}
 			}, () => { })
-
-			if (fun)
-				fun(null, com)
+			fun(null, com)
 		}
 
+		/**
+		 * Propagate a DomLoaded Event to children views. We append the canvas to the div.
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 */
 		function DOMLoaded(com, fun) {
 			log.v("--2DView/DOMLoaded");
 			let div = this.Vlt.div;
@@ -258,28 +272,40 @@
 			this.super(com, fun);
 		}
 
-		function Cleanup(com, fun) {
-			log.v("--2DView/Cleanup", this.Par.Pid.substr(30));
-
-			clearInterval(this.Vlt.View.AnimationLoop);
-			if (fun)
-				fun(null, com);
-		}
-
+		/**
+		 * Cascade a render down the DOM tree of views
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 */
 		function Render(com, fun) {
 			log.v("--2DView/Render", this.Par.Pid.substr(30));
-			this.Vlt.div.append($(this.Vlt.View.Renderer.view));
+			this.Vlt.View.Renderer.render(this.Vlt.View.Stage);
+			//this.Vlt.div.append($(this.Vlt.View.Renderer.view));
 			this.super(com, fun);
 		}
 
+		/**
+		 * Sent when a resize event occurs on the div. 
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 */
 		function Resize(com, fun) {
 			this.super(com, (err, cmd) => {
 				let View = this.Vlt.View;
-				//View.Renderer.resize(cmd.width, cmd.height);
+				//View.Renderer.resize(cmd.width-1, cmd.height-1);
 				fun(null, com);
 			});
 		}
 
+		/**
+		 * The main PIXI.js functionality. Currently only allows for 
+		 * primitive type Pixi.Graphics, howerver sprites with textures are coming.
+		 * An array of objects is recieved and added to the stage before being 
+		 * rendered. 
+		 * @param {Object} com 
+		 * @param {Object} com.Objects 	The array of pixi graphics objects to be displayed
+		 * @param {Function} fun 
+		 */
 		async function DrawObjects(com, fun) {
 			//Pixi.Graphics Primitive objects
 			const PixiPrimitives = {
@@ -477,9 +503,10 @@
 							"Cmd": unit.responseHandler.Cmd, mouse: {
 								x: e.data.originalEvent.x,
 								y: e.data.originalEvent.y
-							}}, unit.responseHandler.Handler, _=> {
-								log.d("example evoke callback");
-							});
+							}
+						}, unit.responseHandler.Handler, _ => {
+							log.d("example evoke callback");
+						});
 					}
 					obj.on('click', evoke);
 				}
@@ -500,34 +527,28 @@
 			}
 
 			this.Vlt.View.Renderer.render(this.Vlt.View.Stage);
-			log.d('rendered after add');
 			if (fun)
 				fun(null, com);
 		}
 
+		/**
+		 * Accesses the canvas object of the View
+		 * @param {Object} com 
+		 * @param {Function=} fun 
+		 */
 		function GetCanvas(com, fun = _ => _) {
-			console.log("2DView/GetCanvas");
-			if (!this.Vlt.Started) {
-				this.send({ Cmd: "Start" }, this.Par.Pid, () => {
-					let View = this.Vlt.View;
-					this.Vlt.WorldPid = com.pid;
-					[com.Width, com.Height] = [View.Width + 1, View.Height + 1];
+			log.v("2DView/GetCanvas");
 
-					com.canvas = View.Renderer.view;
-					if (this.Par.Hidden)
-						com.Div = this.Vlt.root;
-
-					fun(null, com);
-
-				});
+			if (!this.Vlt.View || !this.Vlt.View.Renderer) {
+				fun('canvas not yet setup');
 				return;
 			}
-
 			let View = this.Vlt.View;
 			this.Vlt.WorldPid = com.pid;
 			[com.Width, com.Height] = [View.Width + 1, View.Height + 1];
 
 			com.canvas = View.Renderer.view;
+			com.Div = this.Par.Pid;
 			if (this.Par.Hidden)
 				com.Div = this.Vlt.root;
 
@@ -535,7 +556,17 @@
 
 		}
 
-		function ImageCapture(com, fun) {
+		/**
+		 * Take a snapshot of the canvas and send it off to the controller 
+		 * (server side) to be saved. This is how on could make a movie. 
+		 * @param {Object} com 
+		 * @param {Function=} fun 
+		 */
+		function ImageCapture(com, fun= _ => _) {
+			if (!this.Vlt.View || !this.Vlt.View.Renderer) {
+				fun('canvas not yet setup');
+				return;
+			}
 			if (this.Vlt.Count)
 				this.Vlt.Count++
 			else
