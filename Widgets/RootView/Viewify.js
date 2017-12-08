@@ -11,7 +11,7 @@ window.md5 = function () {
 	for (; i < 64;) k[i] = 0 | (Math.abs(Math.sin(++i)) * 4294967296);
 	function calcMD5(str) {
 		var b, c, d, j, x = [], str2 = unescape(encodeURI(str)),
-		a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
+			a = str2.length, h = [b = 1732584193, c = -271733879, ~b, ~c], i = 0;
 		for (; i <= a;) x[i >> 2] |= (str2.charCodeAt(i) || 128) << 8 * (i++ % 4);
 		x[str = (a + 8 >> 6) * 16 + 14] = a * 8; i = 0; for (; i < str; i += 16) {
 			a = h; j = 0; for (; j < 64;) a = [d = a[3], ((b = a[1] | 0) + ((d = ((a[0] +
@@ -172,16 +172,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		Setup(com, fun) {
-			// debugger;
-			// console.time('View');
 			let vlt = this.Vlt;
-			// vlt.type = this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1).replace(".js", "");
-			// debugger;
 			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
 			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
 			vlt.viewDivs = [];
-			// debugger;
 			vlt.root = DIV(vlt.rootID);
 			vlt.root.attr('viewPid', this.Par.Pid);
 			vlt.styletag = STYLE();
@@ -190,7 +185,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root.css('display', 'block');
 			vlt.root.css('box-sizing', 'border-box');
 			vlt.root.css('overflow', 'hidden');
-			// vlt.root.css('padding', '2px');
 
 			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}" 
 				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `Z${this.Par.Pid}`)}"
@@ -202,18 +196,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				overflow: hidden;
 			"></div>`);
 
-			// debugger;
-
-			// vlt.div.css('padding', '2px');
-			this.dispatch({
-				Cmd: 'SetColor',
-				Value: "var(--view-color)"
-				// Border: "var(--view-border-color)"
-			}, () => { });
 			vlt.name = com.Name || this.Par.Name || "Untitled View";
 			vlt.root.append(vlt.styletag);
 			vlt.root.append(vlt.div);
-			// debugger;
 
 			console.time('View');
 
@@ -308,7 +293,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		DisableTitleBar() {
 			log.w('deprecated DisableTitleBar call');
-			"editor.rulers": [80]
 			log.w(new Error().stack);
 			this.Vlt.titleBar.detach();
 			this.Vlt.disableTitleBar = true;
@@ -332,6 +316,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.Vlt.root.append(this.Vlt.div);
 			fun(null, com);
 		}
+		
 		/**
 		 * @description deprecated
 		 * Set the color of the View
@@ -848,13 +833,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		if (com.Cmd in child) {
 			// console.time(timeTag);
 			child[com.Cmd].call(this, com, () => {
-
 				if (debug) console.groupEnd(id);
 				fun(null, com);
 			});
 		} else if (com.Cmd in View.prototype) {
 			View.prototype[com.Cmd].call(this, com, () => {
-
+				if (debug) console.groupEnd(id);
+				fun(null, com);
+			});
+		} else if ("*" in child) {
+			child["*"].call(this, com, () => {
 				if (debug) console.groupEnd(id);
 				fun(null, com);
 			});

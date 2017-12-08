@@ -331,7 +331,6 @@
 			async function populate() {
 				log.v('--populate : Writing Cache to Disk');
 				// Write cache to CacheDir
-
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
 					let mod = ModCache[folder];
@@ -669,8 +668,29 @@
 									});
 									return;
 								}
+								else {
+									mod[file] = buildDir(path);
+									scan();
+									return;
+
+									function buildDir(path) {
+										let dirObj = {};
+										if (fs.existsSync(path)) {
+											files = fs.readdirSync(path);
+											files.forEach(function (file, index) {
+												var curPath = path + "/" + file;
+												if (fs.lstatSync(curPath).isDirectory()) {
+													// recurse
+													dirObj[file] = buildDir(curPath);
+												} else {
+													dirObj[file] = fs.readFileSync(curPath).toString();
+												}
+											});
+											return dirObj;
+										}
+									}
+								}
 							}
-							scan();
 						});
 					}
 				});
@@ -1114,10 +1134,9 @@
 								"Module": folder,
 								"Source": Modules[folder]
 							};
-
 							GetModule(modrequest, function (err, mod) {
 								if (err) { rej(err); reject(err); }
-								else  {
+								else {
 									res(ModCache[folder] = mod);
 								}
 							});

@@ -309,7 +309,6 @@ __Nexus = (_ => {
 		 */
 		function recursiveBuild() {
 			let moduleKeys = Object.keys(Modules);
-
 			for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 				let folder = moduleKeys[ifolder];
 				if (!(folder in ModCache)) {
@@ -317,7 +316,6 @@ __Nexus = (_ => {
 					continue;
 				}
 				let modjson = ModCache[folder];
-
 				styles();
 
 				/**
@@ -666,10 +664,10 @@ __Nexus = (_ => {
 		if (pid in EntCache) {
 			done(EntCache[pid]);
 			return;
-		} else{
+		} else {
 			let err = 'Ent not in EntCache';
 			log.w(err);
-			fun(err,com);
+			fun(err, com);
 		}
 
 		function done(entContext) {
@@ -750,6 +748,34 @@ __Nexus = (_ => {
 		if (filename in mod) {
 			fun(null, mod[filename])
 			return;
+		}
+
+		if ('static' in mod) {
+			let filearr = filename.split('/');
+			let store = mod["static"];
+			let [err, file] = subSearch(filearr, store);
+			fun(err, file);
+			return;
+
+			// /**
+			//  * Recursive object search
+			//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
+			//  * @param {Object} st 		The directort we're searching in 
+			//  */
+			function subSearch(ar, st) {
+				if (ar[0] in st) {
+					if (ar.length == 1) {
+						return [null, st[ar[0]]];
+					}
+					else {
+						return subSearch(arr.slice(1), st[ar[0]]);
+					}
+				} else {
+					let err = `${url} does not exist in Par.Static`;
+					log.w(err);
+					return [err, null];
+				}
+			}
 		}
 		let err = `File ${filename} does not exist in module ${module}`;
 		log.e(err);

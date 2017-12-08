@@ -1,12 +1,9 @@
 //# sourceURL=AceEditorView.js
-//Makes a texteditor view. 
-
-
 (function AceEditorView() {
 
 	let dispatch = {
-		Setup: Setup,
-		Start: Start
+		Setup,
+		"*": APILookup
 	};
 
 	//Using views we must inject basic functionality via the viewify script.
@@ -15,30 +12,46 @@
 	return Viewify(dispatch, "3.1");
 
 	function Setup(com, fun) {
-		log.v("-Ace-code-editor/Setup");
+		log.v("-Ace/Setup");
 		//we hoist the setup command to View.js in the viewif script.
 		this.super(com, (err, cmd) => {
-			//we access the existing div
-			let div = this.Vlt.div[0];
-			let Vlt = this.Vlt;
 
-			var editor = ace.edit(div);
-			editor.$blockScrolling = Infinity;
-			editor.setTheme("ace/theme/monokai");
-			editor.getSession().setMode("ace/mode/javascript");
-			this.getFile
-			editor.setValue("//\n//\n//\n//\n//Load code here!");
+			this.Vlt.editor = ace.edit(this.Vlt.div[0]);
+			this.Vlt.editor.$blockScrolling = Infinity;
 
-			if (fun) {
-				fun(null, com);
-			}
+			this.getFile('theme-monokai.js', (err, file) => {
+				if (err) { log.e(err); return; }
+				eval(file);
+				this.Vlt.editor.setTheme("ace/theme/monokai");
+			});
+
+			this.getFile("mode-javascript.js", (err, file) => {
+				if (err) { log.e(err); return; }
+				eval(file);
+				this.Vlt.editor.getSession().setMode("ace/mode/javascript");
+			});
+			fun(null, com);
+
+			setTimeout(() => {
+				log.d(this.Par.Entity);
+				this.getFile(this.Par.Entity, (err, file) => {
+					if (err) { log.e(err); return; }
+					this.send({ Cmd: "setValue", Args: [file] }, this.Par.Pid);
+				});
+			}, 1000);
 		});
 	}
 
-	function Start(com, fun) {
-		log.v("--Ace/Start");
-		
-		if (fun)
+	function APILookup(com, fun = _ => _) {
+		if (!("editor" in this.Vlt) || !(com.Cmd in this.Vlt.editor)) {
+			log.d(`${com.Cmd} not in Ace API`);
 			fun(null, com);
+			return;
+		}
+
+		log.v(`--Ace/APILookup: ${com.Cmd} Args: ${com.Args}`);
+		this.Vlt.editor[com.Cmd](...com.Args);
+		fun(null, com);
 	}
+
 })();
