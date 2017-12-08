@@ -308,7 +308,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		DisableTitleBar() {
 			log.w('deprecated DisableTitleBar call');
-			"editor.rulers": [80]
 			log.w(new Error().stack);
 			this.Vlt.titleBar.detach();
 			this.Vlt.disableTitleBar = true;
