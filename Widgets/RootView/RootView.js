@@ -28,7 +28,7 @@
 		 * @memberof RootView
 		 */
 		Start(com, fun) {
-			log.v(`--RootView::Setup`);
+			log.v(`--RootView::Start`);
 			this.super(com, (err, cmd) => {
 
 				let that = this;
