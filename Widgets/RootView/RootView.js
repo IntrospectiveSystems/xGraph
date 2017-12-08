@@ -11,6 +11,22 @@
 				fun(null, com);
 			});
 		}
+
+		/**
+		 * @description
+		 * 1) Reads in the Layout parameter
+		 * 
+		 * 2) Sends Correct AddView messages
+		 * down the Layout to construct the
+		 * hierarchy
+		 * 
+		 * 3) Appends itself to the DOM
+		 * 
+		 * 4) Propogates a Render, Resize, DOMLoaded, Resize, in that order.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof RootView
+		 */
 		Start(com, fun) {
 			log.v(`--RootView::Setup`);
 			this.super(com, (err, cmd) => {

@@ -1,5 +1,5 @@
 {
-	"name": "RootView",
+	"name": "Popup",
 	"version": "1.0.0",
 	"info": {
 		"authors": [
@@ -16,9 +16,10 @@
 	},
 	"par": {
 		"required": [
-			"Layout"
+			"View"
 		],
 		"opts": [
+			"Par"
 		]
 	}
 }

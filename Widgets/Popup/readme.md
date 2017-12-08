@@ -1,4 +1,4 @@
-# RootView
+# Popup
 
 Version 1.0.0
 
@@ -6,7 +6,9 @@ Marcus Gosselin, Introspective Systems LLC.
 
 ---
 
-A `RootView` is one of the basic building blocks for Views. It is the starting point for your layout. 
+A Popup is a form of [RootView](#), with some key differences.
+
+
 
 ## Basic Configuration
 
