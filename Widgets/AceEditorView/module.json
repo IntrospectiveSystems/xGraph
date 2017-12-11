@@ -1,0 +1,50 @@
+{
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			}
+		],
+		"optional": [
+			{
+				"Cmd": "*",
+				"required": {},
+				"optional": {
+					"Arguments": []
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"optional": [
+			{
+				"par": "Controller",
+				"Command": [
+					{
+						"Cmd": "Save",
+						"required": {
+							"Data": "String"
+						}
+					}
+				]
+			}
+		]
+	},
+	"par": {
+		"required": [],
+		"optional": [
+			{
+				"Controller": "xGraphPid",
+				"AutoSave": "boolean"
+			}
+		]
+	},
+	"name": "AceEditorView",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "TrevrGionet"
+	},
+	"src": "xGraph:Widgets/AceEditorView"
+}
