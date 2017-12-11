@@ -14,12 +14,6 @@ The main capability of this entity is to add and render a Three.js scene on the 
 
 ---
 
-### API Documentation
-
-The next section is the API documentation for this module.
-
----
-
 ### Module Definition Parameters
 
 Parameters are defined in the module definition and stored in the Par attribute 
