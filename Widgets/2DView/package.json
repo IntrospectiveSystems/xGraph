@@ -1,8 +1,8 @@
 {
-  "name": "pixiview",
+  "name": "2dview",
   "version": "1.0.0",
-  "description": "Adding a Pixi.js Module to a browser xGraph System",
-  "main": "PixiView.js",
+  "description": "xGraph's Pixi.js wrapper",
+  "main": "2DView.js",
   "author": "Introspective Systems, LLC.",
   "license": "ISC"
 }

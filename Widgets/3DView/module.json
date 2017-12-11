@@ -33,8 +33,7 @@
 						"x": "Integer",
 						"y": "Integer"
 					}
-				},
-				"optional": {}
+				}
 			}
 		]
 	},
