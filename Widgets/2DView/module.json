@@ -100,7 +100,8 @@
 					"Handler": "functionString"
 				}
 			],
-			"Hidden": "boolean"
+			"Hidden": "boolean",
+			"BackgroundColor": "string"
 		}
 	},
 	"name": "2DView",

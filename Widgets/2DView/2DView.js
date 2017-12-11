@@ -286,6 +286,7 @@
 			});
 		}
 
+
 		/**
 		 * The main PIXI.js functionality. Currently only allows for 
 		 * primitive type Pixi.Graphics, howerver sprites with textures are coming.
@@ -295,7 +296,7 @@
 		 * @param {Object} com.Objects 	The array of pixi graphics objects to be displayed
 		 * @param {Function} fun 
 		 */
-		async function DrawObjects(com, fun) {
+		function DrawObjects(com, fun) {
 			//Pixi.Graphics Primitive objects
 			const PixiPrimitives = {
 				"arc": "arcTo",
@@ -308,43 +309,41 @@
 				"line": "lineTo",
 				"quadratic": "quadraticCurveTo"
 			};
-			/**
-			 * 
-			 * the com will contain an Objects key that lists an array of objects
-			 * to be modified on the 3d view. All of the listed attributes need NOT
-			 * exist. Only a unit ID is required.
-			 * 
-			 * 
-			 * com.Objects = [
-			 * 		obj = {
-						id: idx,
-						geometry: {
-							id: "geom",
-							name: "Circle",
-							arguments: [5, 5, 3]
-						},
-						fill: {
-							color: 0xFFFFFF,
-							alpha: 1
-						},
-						tint: 0xFFFFFF * Math.random(),
-						position: {
-							x: 100 * Math.random(),
-							y: 100 * Math.random()
-						},
-						scale: {
-							x: 10 * Math.random(),
-							y: 10 * Math.random()
-						},
-						responseHandler: {
-							Cmd: "EvokeExample",
-							Handler: this.Par.Pid
-						}
-					}
-			 * ]
-			 */
-
-
+			// /**
+			//  * 
+			//  * the com will contain an Objects key that lists an array of objects
+			//  * to be modified on the 3d view. All of the listed attributes need NOT
+			//  * exist. Only a unit ID is required.
+			//  * 
+			//  * 
+			//  * com.Objects = [
+			//  * 		obj = {
+			// 			id: idx,
+			// 			geometry: {
+			// 				id: "geom",
+			// 				name: "Circle",
+			// 				arguments: [5, 5, 3]
+			// 			},
+			// 			fill: {
+			// 				color: 0xFFFFFF,
+			// 				alpha: 1
+			// 			},
+			// 			tint: 0xFFFFFF * Math.random(),
+			// 			position: {
+			// 				x: 100 * Math.random(),
+			// 				y: 100 * Math.random()
+			// 			},
+			// 			scale: {
+			// 				x: 10 * Math.random(),
+			// 				y: 10 * Math.random()
+			// 			},
+			// 			responseHandler: {
+			// 				Cmd: "EvokeExample",
+			// 				Handler: this.Par.Pid
+			// 			}
+			// 		}
+			//  * ]
+			//  */
 			for (let i = 0; i < com.Objects.length; i++) {
 
 				let unit = com.Objects[i];
@@ -369,101 +368,6 @@
 							obj.endFill();
 						}
 						obj.name = unit.id;
-					}
-					{
-						//build generative Pixi graphics using Textures and Sprites
-						//else {
-
-						// 	//we're passed a module and need to generate it
-						// 	let mod = {
-						// 		"Module": unit.module,
-						// 		"Par": {
-						// 			"Name": unit.id
-						// 		}
-						// 	};
-
-						// 	if (unit.position)
-						// 		mod.Par.Position = unit.position;
-						// 	if (unit.model)
-						// 		mod.Par.Model = unit.model;
-						// 	if (unit.axis)
-						// 		mod.Par.Axis = unit.axis;
-						// 	if (unit.angle)
-						// 		mod.Par.Angle = unit.angle;
-
-						// 	obj = await new Promise((res, rej) => {
-						// 		this.genModule(mod, (err, pidApex) => {
-						// 			let that = this;
-
-						// 			//save the modules pid in unit.Pid
-						// 			unit.Pid = pidApex;
-
-						// 			unit.responseHandler = {
-						// 				Cmd: "Evoke",
-						// 				Handler: unit.Pid
-						// 			};
-
-						// 			var q = {};
-						// 			q.Cmd = 'GetGraph';
-						// 			this.send(q, unit.Pid, scene);
-
-						// 			function scene(err, r) {
-						// 				log.v('..View3D/scene');
-						// 				Inst = r.Inst;
-						// 				log.d('Instances are: ', JSON.stringify(Inst, null, 2));
-						// 				if (err) {
-						// 					log.v(' ** ERR:' + err);
-						// 					if (fun)
-						// 						fun(err);
-						// 					return;
-						// 				}
-
-						// 				let inst = Inst[0];
-						// 				var q = {};
-						// 				q.Cmd = 'GetModel';
-						// 				q.Instance = inst.Instance;
-						// 				//debugger;
-						// 				that.send(q, unit.Pid, rply);
-
-						// 				function rply(err, x) {
-						// 					if (err) {
-						// 						func(err);
-						// 						return;
-						// 					}
-						// 					if (!('Obj3D' in x)) {
-						// 						var err = 'No model returned';
-						// 						log.v(' ** ERR:' + err);
-						// 						func(err);
-						// 						return;
-						// 					}
-						// 					var objinst = new THREE.Object3D();
-						// 					if ('Position' in inst) {
-						// 						var pos = inst.Position;
-						// 						objinst.position.x = pos[0];
-						// 						objinst.position.y = pos[1];
-						// 						objinst.position.z = pos[2];
-						// 					}
-						// 					if ('Axis' in inst && 'Angle' in inst) {
-						// 						var axis = inst.Axis;
-						// 						var ang = inst.Angle * Math.PI / 180.0;
-						// 						var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
-						// 						objinst.setRotationFromAxisAngle(vec, ang);
-						// 					}
-						// 					var data = {};
-						// 					if ('Role' in inst)
-						// 						data.Role = inst.Role;
-						// 					else
-						// 						data.Role = 'Fixed';
-						// 					data.Pid = inst.Instance;
-						// 					objinst.userData = data;
-						// 					objinst.add(x.Obj3D);
-						// 					res(objinst);
-						// 					log.v("Done Generating the Module/Model");
-						// 				}
-						// 			}
-						// 		});
-						// 	});
-						// }
 					}
 				}
 				else if (unit.removed) {
@@ -520,6 +424,8 @@
 				fun(null, com);
 		}
 
+
+
 		/**
 		 * Accesses the canvas object of the View
 		 * @param {Object} com 
@@ -548,8 +454,10 @@
 		 * (server side) to be saved. This is how on could make a movie. 
 		 * @param {Object} com 
 		 * @param {Function=} fun 
+		 * @returns {com.Image} the base 64 of the image
+		 * @returns {com.Name}	the image count 
 		 */
-		function ImageCapture(com, fun= _ => _) {
+		function ImageCapture(com, fun = _ => _) {
 			if (!this.Vlt.View || !this.Vlt.View.Renderer) {
 				fun('canvas not yet setup');
 				return;
