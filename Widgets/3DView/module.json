@@ -1,0 +1,93 @@
+{
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			},
+			{
+				"Cmd": "Start"
+			}
+		],
+		"opts": [
+			{
+				"Cmd": "SetObjects",
+				"required": {
+					"Objects": []
+				}
+			},
+			{
+				"Cmd": "ImageCapture"
+			},
+			{
+				"Cmd": "Cleanup",
+				"required": {
+					"Name": "moduleName",
+					"Pid": "xGraphPid"
+				}
+			},
+			{
+				"Cmd": "EvokeExample",
+				"required": {
+					"id": "String",
+					"mouse": {
+						"x": "Integer",
+						"y": "Integer"
+					}
+				},
+				"optional": {}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"opts": [
+			{
+				"par": "Server",
+				"Command": [
+					{
+						"Cmd": "Subscribe",
+						"required": {
+							"Pid": "xGraphPid",
+							"Link": "String"
+						}
+					}
+				]
+			},
+			{
+				"par": "Controller",
+				"Command": [
+					{
+						"Cmd": "Register",
+						"required": {
+							"Pid": "xGraphPid"
+						}
+					},
+					{
+						"Cmd": "SaveImage",
+						"required": {
+							"Image": "String",
+							"Name": "String"
+						}
+					}
+				]
+			}
+		]
+	},
+	"par": {
+		"required": [],
+		"opts": [
+			{
+				"Server": "xGraphPid",
+				"Controller": "xGraphPid",
+				"EvokeView": "xGraphModuleAddress"
+			}
+		]
+	},
+	"name": "3DView",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "TrevrGionet"
+	},
+	"src": "xGraph:Widgets/3DView"
+}

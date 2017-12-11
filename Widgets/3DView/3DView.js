@@ -2,9 +2,12 @@
 (
 	/**
 	 * The 3DView entity is the Apex and only entity of the 3DView Module.
-	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup.
+	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup. As well as its
+	 * Start function invoked during the Start phase of Nexus startup.
+	 * 
 	 * The main capability of this entity is to add and render a Three.js scene on the div provided by 
-	 * the Viewify class (its stored in this.Vlt.div). See Viewify documentation for more info on this.
+	 * the Viewify class (its stored in this.Vlt.div). Currently only Three.js primitives and generative 
+	 * object3D models can be added to the scene/reneered.
 	 */
 	function _3DView() {
 
@@ -245,9 +248,10 @@
 		/**
 		 * This is an example of an Evoke handler. This particular example 
 		 * generates a popup module containing a 3DView module or the one set in
-		 * Par.EvokeView.
+		 * Par.EvokeView. In deployment this code can be removed and EvokeExample 
+		 * removed from the dispatch table.
 		 * @param {Object} 		com 
-		 * @param {String}		com.id
+		 * @param {String}		com.id			the id of the object being evoked
 		 * @param {Object}		com.mouse 	 the coordinates of the mouse when evoked {x:_x,y:_y}
 		 * @param {Function=} 	fun 
 		 */
@@ -268,11 +272,11 @@
 			fun(null, com)
 		}
 
-		/**
-		 * Propagate a DomLoaded Event to children views. We append the canvas to the div.
-		 * @param {Object} com 
-		 * @param {Function} fun 
-		 */
+		// /**
+		//  * Propagate a DomLoaded Event to children views. We append the canvas to the div.
+		//  * @param {Object} com 
+		//  * @param {Function} fun 
+		//  */
 		function DOMLoaded(com, fun) {
 			log.v("--3DView/DOMLoaded");
 			let div = this.Vlt.div;
@@ -295,9 +299,7 @@
 					log.v("GenModed the Mouse and set the DomElement");
 				});
 			});
-
 			this.super(com, fun);
-
 		}
 
 		/**
@@ -312,22 +314,22 @@
 			fun(null, com);
 		}
 
-		/**
-		 * Cascade a render down the DOM tree of views
-		 * @param {Object} com 
-		 * @param {Function} fun 
-		 */
+		// /**
+		//  * Cascade a render down the DOM tree of views
+		//  * @param {Object} com 
+		//  * @param {Function} fun 
+		//  */
 		function Render(com, fun) {
 			log.v("--3DView/Render", this.Par.Pid.substr(30));
 			this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 			this.super(com, fun);
 		}
 
-		/**
-		 * Sent when a resize event occurs on the div. 
-		 * @param {Object} com 
-		 * @param {Function} fun 
-		 */
+		// /**
+		//  * Sent when a resize event occurs on the div. 
+		//  * @param {Object} com 
+		//  * @param {Function} fun 
+		//  */
 		function Resize(com, fun) {
 			//log.v("--3DView/Resize")
 			this.super(com, (err, cmd) => {
@@ -347,7 +349,7 @@
 		 * @param {Object} com.Objects 	The array of pixi graphics objects to be displayed
 		 * @param {Function} fun 
 		 */
-		async function SetObjects(com, fun) {
+		async function SetObjects(com, fun = (err, com) => { if (err) log.e(err) }) {
 			/**
 			 * 
 			 * the com will contain an Objects key that lists an array of objects
@@ -390,6 +392,11 @@
 			 * ]
 			 */
 
+			//return if com.Objects is not an array
+			if (!Array.isArray(com.Objects)) {
+				fun("com.Objects must be an array (Array.isArray(com.Objects) == true)", com);
+				return;
+			}
 
 			for (let i = 0; i < com.Objects.length; i++) {
 
@@ -528,11 +535,11 @@
 							});
 						});
 					}
-				}
-				else if (unit.removed) {
+				} else if (unit.removed) {
 					this.Vlt.View.Scene.remove(obj);
 					continue;
 				}
+
 				if (unit.position) {
 					if (unit.position.x || (unit.position.x == 0))
 						obj.position.x = Math.round(unit.position.x);
@@ -568,34 +575,12 @@
 					if (unit.parentId) {
 						let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
 						if (parent) {
-							// //calc nearest elevation 
-							// let idx = -1; 
-							// let mindist = Infinity;
-							// let dist, vertex;
-							// for (let i = 0;i<parent.geometry.vertices.length; i++){
-							// 	vertex = parent.geometry.vertices[i];
-							// 	dist = Math.sqrt((unit.position.x-vertex[0]*unit.position.x-vertex[0])+(unit.position.y-vertex[1]*unit.position.y-vertex[1])+(vertex[2]*vertex[2]));
-							// 	log.d("Dist is ", dist)
-							// 	if (dist < mindist){
-							// 		idx = i;
-							// 		mindist = dist;
-							// 	}
-							// }
-							// let pedestal = new THREE.Object3D();
-							// pedestal.position.x=0;
-							// pedestal.position.y=0;
-							// pedestal.position.z = (idx == -1)? 0:parent.geometry.verteces[idx][2];
-
-							// parent.add(pedistal);
-							// pedestal.add(obj);
-
 							parent.add(obj);
 							obj.matrixWorldNeedsUpdate = true;
 							obj.updateMatrixWorld();
 						} else {
 							log.v("Parent not defined in three.js scene");
 							this.Vlt.View.Scene.add(obj);
-
 						}
 					} else {
 						this.Vlt.View.Scene.add(obj);
@@ -607,6 +592,15 @@
 				fun(null, com);
 		}
 
+
+		/**
+		 * Captures the canvas as a base64 image and sends it off the controller (on
+		 * the server), if implemented, to be saved.
+		 * @param {Object} com 
+		 * @param {Function} fun	the callback function	
+		 * @returns {com.Image} the base 64 of the image
+		 * @returns {com.Name}	the image count 
+		 */
 		function ImageCapture(com, fun) {
 			if (this.Vlt.Count)
 				this.Vlt.Count++
@@ -629,14 +623,13 @@
 		}
 
 
-		/**
-		 * Used by the mouse module to propagate interactions.
-		 * @param {Object} com 
-		 * @param {Object} com.info 	the interaction info
-		 * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
-		 */
+		// /**
+		//  * Used by the mouse module to propagate interactions.
+		//  * @param {Object} com 
+		//  * @param {Object} com.info 	the interaction info
+		//  * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
+		//  */
 		function DispatchEvent(com) {
-
 			let info = com.info;
 			let Vlt = this.Vlt;
 			Vlt.Mouse = com.mouse;
