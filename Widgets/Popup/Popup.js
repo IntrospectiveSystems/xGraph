@@ -9,6 +9,20 @@
 	class Popup {
 
 		//-----------------------------------------------------Setup
+
+		/**
+		 * @description 
+		 * Creates Module instance based on
+		 * this.Par.View and this.Par.Par.
+		 * 
+		 * Adds generated View to Popup via AddView
+		 * 
+		 * Then Propogates a Resize and DOMLoaded
+		 * @param {object} com
+		 * @param {any} fun
+		 * @override
+		 * @memberof RootView
+		 */
 		Setup(com, fun) {
 			this.super(com, (err, com)=>{
 				console.log("Viewify/Setup");
@@ -34,6 +48,35 @@
 				this.Vlt.popup.append(this.Vlt.root);
 				document.body.appendChild(this.Vlt.popup[0]);
 
+
+			
+				this.Vlt.topBarDiv = DIV();
+				this.Vlt.topBarDiv.css('height','20px');
+				this.Vlt.topBarDiv.css("border-bottom", "1px solid var(--view-border-color-light)");
+				this.Vlt.topBarDiv.css('background-color', 'var(--view-lighter)');
+				
+				this.Vlt.contentDiv = DIV();
+				this.Vlt.contentDiv.css('height','calc(100% - 21px)');
+				
+				this.Vlt.closeButton =  DIV();
+				this.Vlt.closeButton.html("🗙");
+				this.Vlt.closeButton.css("float", "right");
+				this.Vlt.closeButton.css("cursor", "pointer");
+				this.Vlt.closeButton.css("line-height", "14px");
+				this.Vlt.closeButton.css('height','16px');				
+				this.Vlt.closeButton.css("padding", "2px");
+				this.Vlt.closeButton.css('background-color', 'var(--accent-error)');
+				
+				this.Vlt.closeButton.on("click", () => {
+					// debugger;
+					this.send({Cmd:"Destroy"}, this.Par.Pid, (err, cmd)=>{});
+				});
+
+				this.Vlt.topBarDiv.append(this.Vlt.closeButton);
+				
+				this.Vlt.div.append(this.Vlt.topBarDiv);
+				this.Vlt.div.append(this.Vlt.contentDiv);
+
 				let par = {
 					Module: this.Par.View
 				};
@@ -53,65 +96,49 @@
 				//debugger;
 				//alert(JSON.stringify(par, null, 2));
 				this.genModule(par, (err, pid) => {
-					//debugger;
 					this.send({Cmd:"AddView", View: pid}, this.Par.Pid, (err, cmd)=>{
-						// debugger;
-						this.send({Cmd: 'DOMLoaded'}, pid, (err, cmd) => {
-							
+						this.send({Cmd: 'Resize'}, pid, (err, cmd) => {
+							this.send({Cmd: 'DOMLoaded'}, pid, (err, cmd) => {
+							});
 						});
-						
 					});
 				});
 			});
 		}
 
+
+		/**
+		 * @description create the DOM of the popup
+		 * and add its children. 
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override 
+		 * @memberof Popup
+		 */
 		async Render(com,fun){
-			
 			if(this.Vlt.viewDivs.length == 0) {
 				await this.ascend('Destroy');
 				return fun(null, com);
 			}
 
-			let that = this;
+			// debugger;
 
-			if (this.Vlt.viewDivs.length>0)
-				this.Vlt.viewDivs[0].detach();
-			
-			this.Vlt.div.children().remove();
-			
-			let topBarDiv = DIV();
-			topBarDiv.css('height','20px');
-			topBarDiv.css("border-bottom", "1px solid var(--view-border-color-light)");
-			topBarDiv.css('background-color', 'var(--view-lighter)');
-			
-			let contentDiv = DIV();
-			contentDiv.css('height','calc(100% - 21px)');
-			contentDiv.append(this.Vlt.viewDivs[0]);
+			this.Vlt.contentDiv.children().detach();
+			this.Vlt.contentDiv.append(this.Vlt.viewDivs[0]);
 
-			let closeButton =  DIV();
-			closeButton.html("🗙");
-			closeButton.css("float", "right");
-			closeButton.css("cursor", "pointer");
-			closeButton.css("line-height", "14px");
-			closeButton.css('height','16px');				
-			closeButton.css("padding", "2px");
-			closeButton.css('background-color', 'var(--accent-error)');
-
-			closeButton.on("click",(function () {
-				// debugger;
-				that.send({Cmd:"Destroy"}, that.Par.Pid, (err, cmd)=>{});
-			}));
-
-			topBarDiv.append(closeButton);
-
-			this.Vlt.div.append(topBarDiv);
-			this.Vlt.div.append(contentDiv);
-			
 			this.super(com, (err,cmd)=>{
 				fun(err, com);
 			});
 		}
 
+		/**
+		 * @description Before Garbage collection,
+		 * remove our elements from the DOM.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof Popup
+		 */
 		Cleanup(com, fun){
 			console.log("--Popup/Cleanup");
 			this.Vlt.popup.remove();

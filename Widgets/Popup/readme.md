@@ -6,63 +6,36 @@ Marcus Gosselin, Introspective Systems LLC.
 
 ---
 
-A Popup is a form of [RootView](#), with some key differences.
+## Getting Started
 
-
-
-## Basic Configuration
-
-To create a webpage with just a single full screen view, all you need to do is have a root view, with your single view attached to it. It will automatically fill the space.
+`View` is the only required Parameter, a [Module Address](#). It will define the Module to generate and show inside the popup.
 
 Example
 
-``` json
-{
-    "Module": "xGraph.Views.RootView",
-    "Par": {
-        "Layout": "$MyView"
+``` javascript
+this.genModule({
+    Module: 'xGraph.Widgets.Popup',
+    Par: {
+        View: 'Project.Views.CustomView'
     }
-}
+}, (err, apex) => {
+
+});
 ```
 
-## Advanced Configuration
+The only other accepted Parameter is `Par`, which are the parameters passed to the gen module of `Par.View`.
 
-If you want more than one view on the screen at a time, then we need to use something like a [PanelView](#), to split up the available screen space.
-
-``` json
-{
-    "Module": "xGraph.Views.RootView",
-    "Par": {
-        "Layout": {
-            "View": "$Panel",
-            "Children": [
-                "$LeftView",
-                "$RightView"
-            ]
+``` javascript
+this.genModule({
+    Module: 'xGraph.Widgets.Popup',
+    Par: {
+        View: 'Project.Views.CustomView',
+        Par: {
+            Information: 'Additional Data!',
+            OtherModule: this.Par.OtherModule
         }
     }
-}
-```
+}, (err, apex) => {
 
-You can continue this recursive pattern to keep splitting up the available space and adding views
-
-``` json
-{
-    "Module": "xGraph.Views.RootView",
-    "Par": {
-        "Layout": {
-            "View": "$Panel",
-            "Children": [
-                {
-                    "View": "$Panel",
-                    "Children": [
-                        "$LeftView",
-                        "$MiddleView"
-                    ]
-                },
-                "$RightView"
-            ]
-        }
-    }
-}
+});
 ```
