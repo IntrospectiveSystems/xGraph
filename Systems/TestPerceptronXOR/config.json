@@ -1,0 +1,29 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"NeuralNet": {
+			"Module": "xGraph.Perceptron",
+			"Source": "xGraph",
+			"Par": {
+				"NetworkDimensions": [
+					2,
+					3,
+					1
+				],
+				"InitializeOnSetup": true,
+				"TestSetSize": [
+					10
+				]
+			}
+		},
+		"Xor": {
+			"Module": "xGraph.XOR",
+			"Source": "xGraph",
+			"Par": {
+				"Brain":"$NeuralNet"
+			}
+		}
+	} 
+}

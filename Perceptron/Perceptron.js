@@ -51,7 +51,7 @@
 	 * @param {Function=} fun callback(err, com)
 	 */
 	function Initialize(com, fun = _ => log.e(_)) {
-		log.v("--Perception/Initialize", com);
+		log.v("--Perception/Initialize");
 		let Par = this.Par;
 		let Vlt = this.Vlt;
 
@@ -65,14 +65,14 @@
 
 
 		// Initialize neural net
-		this.Vlt.neataptic = require('neataptic');
+		this.Vlt.neataptic = this.require('neataptic');
 		// Perceptron parameters, in order:
 		// number of input nodes
 		// number of neurons in hidden layer (can be multiple numbers if multiple layers)
 		// number of neurons in output layer
 
 		//build the network
-		Vlt.Network = new Vlt.neataptic.Architect.Perceptron(...Vlt.NetworkDimentions);
+		Vlt.Network = new Vlt.neataptic.architect.Perceptron(...Vlt.NetworkDimentions);
 
 		fun(null, com);
 	}
@@ -85,7 +85,7 @@
 	 * @param {Function=} fun  	callback(err, com)
 	 */
 	function Train(com, fun = _ => _) {
-		log.v("--Perception/Train", com);
+		log.v("--Perception/Train", com.Input, com.Output);
 		let Vlt = this.Vlt;
 
 		Vlt.TrainingData.push({
@@ -99,12 +99,12 @@
 		}
 
 		//train the network
-		Vlt.Network.train(Vlt.TrainingData, {
+		log.v(JSON.stringify(Vlt.Network.train(Vlt.TrainingData, {
 			log: 100,  			//if we want to log training info
-			iterations: 1000,	//a maximum nuber of iteration before stop training
-			error: 0.03,		//stop training when this error is reached
+			iterations: 10000,	//a maximum nuber of iteration before stop training
+			error: 0.003,		//stop training when this error is reached
 			rate: 0.3  			//the learning reate
-		});
+		}), null, 2));
 
 		fun(null, com);
 	}

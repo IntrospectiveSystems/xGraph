@@ -18,11 +18,13 @@
 		let Vlt = this.Vlt;
 		let Par = this.Par;
 		Vlt.Iteration = 0;
-		Vlt.function = (function (x, y) {
-			if (x == y)
+		Vlt.xor =  (x, y)=>{
+			if (x == y) {
 				return [0];
-			else return [1];
-		});
+			} else {
+				return [1];
+			}
+		};
 		setTimeout(() => { this.send({ Cmd: "BeginLoop" }, Par.Pid) }, 1000);
 		fun(null, com);
 	}
@@ -40,28 +42,29 @@
 		function Iterate() {
 			// determine a new state of two random values, 0 and 1
 			q.Input = [Math.round(Math.random()), Math.round(Math.random())];
-			q.OutPut = Vlt.function(...q.Input);
+			q.Output = Vlt.xor(...q.Input);
+
 			log.v("\nInput", q.Input, "\nOutput", q.Output);
 			that.send(q, Par.Brain, (err, cm) => {
-				log.v(Vlt.Iteration, " Returned: Action ", cm.Action);
+				log.v(Vlt.Iteration);
 				Vlt.Iteration++;
-				if (Vlt.Iteration < 300) {
+				if (Vlt.Iteration < 20) {
 					setTimeout(Iterate, 100);
 				} else {
-					Evaluate();
+					setTimeout(Evaluate, 100);
 				}
 			});
 		}
 
 		function Evaluate() {
-			q.Input = [Math.round(Math.random()), Math.round(Math.random())];
-			log.v("\nInput", q.Input);
-			that.send(q, Par.Brain, (err, cm) => {
+			r.Input = [Math.round(Math.random()), Math.round(Math.random())];
+			log.v("\nInput", r.Input);
+			that.send(r, Par.Brain, (err, cm) => {
 				log.v(Vlt.Iteration, " Returned: Output ", cm.Output);
 				Vlt.Iteration++;
-				if (Vlt.iteration < 350) {
+				if (Vlt.Iteration < 30) {
 					setTimeout(Evaluate, 100);
-				}else{
+				} else {
 					log.v("Done!!");
 				}
 			});

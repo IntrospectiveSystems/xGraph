@@ -230,6 +230,8 @@
 
 			generateModuleCatalog();
 
+			log.v(`About to load ${Object.keys(Modules)}`);
+
 			await recursiveBuild();
 
 			await refreshSystem();
@@ -265,7 +267,7 @@
 							logModule(mod);
 						});
 					} else {
-						log.v(`Compiling ${Config.Modules[key].Module}`);
+						log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2))
@@ -313,9 +315,16 @@
 							"Source": Modules[folder]
 						};
 
+						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
+
 						GetModule(modrequest, function (err, mod) {
-							if (err) { rej(err); reject(err); }
-							else {
+							if (err) {
+								log.w(`Failed to retreive ${modrequest.Modue}`);
+								log.e(err);
+								rej(err);
+								reject(err);
+							} else {
+								log.v(`Successfully retrieved ${mod.ModName}`);
 								res(ModCache[folder] = mod);
 							}
 
@@ -460,7 +469,7 @@
 
 
 			//get the module from memory (ModCache) if it has already been retrieved
-			if (ModName in ModCache) return fun(null, ModCache[ModName]);
+			if (ModName in ModCache){log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]);}
 
 
 			//get the module from the defined broker
@@ -619,6 +628,7 @@
 				let ModPath = genPath(dir);
 				//read the module from path in the local file system
 				//create the Module.json and add it to ModCache
+
 				fs.readdir(ModPath, function (err, files) {
 					if (err) {
 						err += 'Module <' + ModPath + '? not available'
@@ -632,7 +642,6 @@
 
 					function scan() {
 						ifile++;
-
 						if (ifile >= nfile) {
 							mod.ModName = ModName;
 							if ('schema.json' in mod) {
@@ -647,12 +656,14 @@
 										mod.Save = apx['$Save'];
 								}
 							}
+							log.v(`${ModName} returned from local file system`);
 							ModCache[ModName] = mod;
 							fun(null, ModCache[ModName]);
 							return;
 						}
 						var file = files[ifile];
 						var path = ModPath + '/' + file;
+
 						fs.lstat(path, function (err, stat) {
 							if (stat) {
 								if (!stat.isDirectory()) {
@@ -664,19 +675,15 @@
 										}
 										mod[file] = data.toString();
 										scan();
-										return;
 									});
-									return;
-								}
-								else {
+								} else {
 									mod[file] = buildDir(path);
 									scan();
-									return;
 
 									function buildDir(path) {
 										let dirObj = {};
 										if (fs.existsSync(path)) {
-											files = fs.readdirSync(path);
+											let files = fs.readdirSync(path);
 											files.forEach(function (file, index) {
 												var curPath = path + "/" + file;
 												if (fs.lstatSync(curPath).isDirectory()) {
