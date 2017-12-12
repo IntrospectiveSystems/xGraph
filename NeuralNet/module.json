@@ -1,0 +1,21 @@
+{
+  "input": {
+    "required": [],
+    "opts": []
+  },
+  "output": {
+    "required": [],
+    "opts": []
+  },
+  "par": {
+    "required": {},
+    "opts": {}
+  },
+  "name": "NeuralNetLSTM",
+  "icon": null,
+  "doc": null,
+  "info": {
+    "author": "Introspective System"
+  },
+  "src": "xGrid:NeuralNet"
+}
