@@ -1,1 +1,28 @@
-{}
+{
+	"input": {
+		"required": [
+			{
+				"Cmd": "Start"
+			}
+		],
+		"opts": []
+	},
+	"output": {
+		"required": [],
+		"opts": []
+	},
+	"par": {
+		"required": {
+			"TestModule": "xGraphModuleAddress",
+			"TestJson": "@file {pathTo} test.json"
+		},
+		"opts": {}
+	},
+	"name": "Validate",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"src": "xGraph:ValidateModule"
+}

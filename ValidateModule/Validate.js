@@ -26,6 +26,13 @@
 	 * is a thing you can do to ensure length of an array, and it elements.
 	 * 
 	 */
+
+	/**
+	 * The only required function of the Validate module. This function genModules the Module being tested 
+	 * then carries out the tests.
+	 * @param {Object} com the command object
+	 * @param {Function} fun callback
+	 */
 	function Start(com, fun) {
 		log.v('--Validate/Start');
 		//save context for use in fs readfile subcontext
@@ -221,6 +228,11 @@
 
 	}
 
+	// //**
+	//  * This function catches all messages sent during testing by the module being tested. 
+	//  * @param {Object} com 
+	//  * @param {Function} fun 
+	//  */
 	function DummyCatch(com, fun) {
 		log.d(`Validate::DummyCatch ${JSON.stringify(com, null, 2)}`);
 
