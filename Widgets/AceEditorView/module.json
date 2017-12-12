@@ -32,19 +32,17 @@
 		]
 	},
 	"par": {
-		"required": [],
-		"optional": [
-			{
-				"Controller": "xGraphPid",
-				"AutoSave": "boolean"
-			}
-		]
+		"required": {},
+		"optional": {
+			"Controller": "xGraphPid",
+			"AutoSave": "boolean"
+		}
 	},
 	"name": "AceEditorView",
 	"icon": null,
 	"doc": "README.md",
 	"info": {
-		"author": "TrevrGionet"
+		"author": "Introspective Systems, LLC."
 	},
 	"src": "xGraph:Widgets/AceEditorView"
 }

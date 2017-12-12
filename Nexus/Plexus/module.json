@@ -26,8 +26,8 @@
 		"opts": []
 	},
 	"par": {
-		"required": [],
-		"opts": []
+		"required": {},
+		"opts": {}
 	},
 	"name": "Plexus",
 	"icon": null,

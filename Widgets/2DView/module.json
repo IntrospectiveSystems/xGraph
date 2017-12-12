@@ -87,7 +87,7 @@
 		]
 	},
 	"par": {
-		"required": [],
+		"required": {},
 		"opts": {
 			"Server": "xGraphPid",
 			"Controller": "xGraphPid",

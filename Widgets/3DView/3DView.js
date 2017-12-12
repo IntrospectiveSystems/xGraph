@@ -774,7 +774,7 @@
 		function Keyed(info, Vlt) {
 			if (info.Action == 'Harvest') {
 				log.v('Harvest-Keyed');
-				info.Keys.push('Idle.keydown.n');
+				info.Keys.push('Idle.KeyDown.n');
 				return;
 			}
 			Vlt.Update = true;

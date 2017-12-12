@@ -73,20 +73,18 @@
 		]
 	},
 	"par": {
-		"required": [],
-		"opts": [
-			{
-				"Server": "xGraphPid",
-				"Controller": "xGraphPid",
-				"EvokeView": "xGraphModuleAddress"
-			}
-		]
+		"required": {},
+		"opts": {
+			"Server": "xGraphPid",
+			"Controller": "xGraphPid",
+			"EvokeView": "xGraphModuleAddress"
+		}
 	},
 	"name": "3DView",
 	"icon": null,
 	"doc": "README.md",
 	"info": {
-		"author": "TrevrGionet"
+		"author": "Introspective Systems, LLC."
 	},
 	"src": "xGraph:Widgets/3DView"
 }
