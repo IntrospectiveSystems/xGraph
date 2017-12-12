@@ -1,36 +1,36 @@
-//# sourceURL=NeuralNetPerception.js
-(function NeuralNetPerception() {
-	// Purpose: Provide an LSTM Neural net functionality
-	//	- required Par:
-	// 		OnStart boolean
-	//		Size    Array [input, hidden, ..., output]
+//# sourceURL=Perception.js
+(
+	/**
+	 * The Perceptron entity is the Apex and only entity of the Perceptron Module.
+	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup.
+	 * The main capability of this entity is to initialize and work with a neataptic.js perceptron network. 
+	 */
+	function Perception() {
 
-
-	//-----------------------------------------------------dispatch
 	var dispatch = {
-
-		Start: Start,
-		Initialize: Initialize,
-		Train: Train,
-		Evaluate: Evaluate,
-		Reset: Reset,
-
+		Setup,
+		Initialize,
+		Train,
+		Evaluate,
+		Reset
 	};
 
 	return {
-		dispatch: dispatch
+		dispatch
 	};
 
-
-
-	function Start(com, fun) {
+	/**
+	 * Set some default attributes and initialize if Par.InitializeOnStart = true;
+	 * @param {Object} com  the command object
+	 * @param {Function} fun callback(err, com)
+	 */
+	function Setup(com, fun) {
 		let Par = this.Par;
-
 		//set some defaults
 		Par.TrainingSetSize = Par.TrainingSetSize || 1000;
 		Par.NetworkDimentions = Par.NetworkDimentions || [2, 2, 1];
 
-		if (Par.InitializeOnStart) {
+		if (Par.InitializeOnSetup){
 			var q = {};
 			q.Cmd = "Initialize";
 			q.NetworkDimentions = Par.NetworkDimentions;
@@ -41,7 +41,6 @@
 		} else {
 			fun(null, com);
 		}
-
 	}
 
 	/**
@@ -52,7 +51,7 @@
 	 * @param {Function=} fun callback(err, com)
 	 */
 	function Initialize(com, fun = _ => log.e(_)) {
-		log.v("--NeuralNetPerception/Initialize", com);
+		log.v("--Perception/Initialize", com);
 		let Par = this.Par;
 		let Vlt = this.Vlt;
 
@@ -86,7 +85,7 @@
 	 * @param {Function=} fun  	callback(err, com)
 	 */
 	function Train(com, fun = _ => _) {
-		log.v("--NeuralNetPerception/Train", com);
+		log.v("--Perception/Train", com);
 		let Vlt = this.Vlt;
 
 		Vlt.TrainingData.push({

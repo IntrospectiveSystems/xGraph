@@ -1,0 +1,67 @@
+{
+  "input": {
+    "required": [
+      {
+        "Cmd": "Setup"
+      }
+    ],
+    "opts": [
+      {
+        "Cmd": "Initialize",
+        "required": {},
+        "optional": {
+          "TrainingSetSize": "Integer",
+          "NetworkDimensions": [
+            "Integer",
+            "Integer",
+            "Integer"
+          ]
+        }
+      },
+      {
+        "Cmd": "Train",
+        "required": {
+          "Input": [
+            "Integer"
+          ],
+          "Output": [
+            "Integer"
+          ]
+        },
+        "optional": {}
+      },
+      {
+        "Cmd": "Evaluate",
+        "required": {
+          "Input": [
+            "Integer"
+          ]
+        },
+        "optional": {}
+      }
+    ]
+  },
+  "output": {
+    "required": [],
+    "opts": []
+  },
+  "par": {
+    "required": {},
+    "opts": {
+      "InitializeOnSetup": "Boolean",
+      "TrainingSetSize": "Integer",
+      "NetworkDimensions": [
+        "Integer",
+        "Integer",
+        "Integer"
+      ]
+    }
+  },
+  "name": "Perceptron",
+  "icon": null,
+  "doc": null,
+  "info": {
+    "author": "Introspective System"
+  },
+  "src": "xGraph:Perceptron"
+}

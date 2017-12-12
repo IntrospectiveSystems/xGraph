@@ -1,6 +1,6 @@
 {
 	"Apex": {
 		"$Start": "Start",
-		"Entity": "NeuralNetPerceptron.js"
+		"Entity": "Perceptron.js"
 	}
 }
