@@ -1170,12 +1170,12 @@
 							let path = dir + '/Module.json';
 							man.push(path);
 							zip.file(path, mod, {
-								date: new Date("December 5, 2017 00:00:01")
+								date: new Date("April 2, 2010 00:00:01")
 								//the date is required for zip consistency
 							});
 						}
 						zip.file('manifest.json', JSON.stringify(man), {
-							date: new Date("December 5, 2017 00:00:01")
+							date: new Date("April 2, 2010 00:00:01")
 							//the date is required for zip consistency
 						});
 						zip.generateAsync({ type: 'base64' }).then(function (data) {
