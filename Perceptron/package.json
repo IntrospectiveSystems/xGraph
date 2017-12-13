@@ -1,7 +1,7 @@
 {
   "name": "perceptron",
   "version": "1.0.0",
-  "description": "xGraph's Neataptic Preceptron Wrapper",
+  "description": "xGraph's Neataptic Perceptron Wrapper",
   "main": "Perceptron.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

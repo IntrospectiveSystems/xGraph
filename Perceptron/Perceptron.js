@@ -3,7 +3,7 @@
 	/**
 	 * The Perceptron entity is the Apex and only entity of the Perceptron Module.
 	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup.
-	 * The main capability of this entity is to initialize and work with a neataptic.js perceptron network. 
+	 * The main capability of this entity is to initialize and work with a neataptic.js perceptron network.
 	 */
 	function Perception() {
 
@@ -102,9 +102,9 @@
 			//train the network
 			log.v(JSON.stringify(Vlt.Network.train(Vlt.TrainingData, {
 				log: 100,  			//if we want to log training info
-				iterations: 10000,	//a maximum nuber of iteration before stop training
+				iterations: 10000,	//a maximum number of iteration before stop training
 				error: 0.003,		//stop training when this error is reached
-				rate: 0.3  			//the learning reate
+				rate: 0.3  			//the learning rate
 			}), null, 2));
 
 			fun(null, com);
