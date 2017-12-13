@@ -9,6 +9,14 @@
 			})
 		}
 
+		/**
+		 * @description Creates required DOM from the panels
+		 * and divider
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof Panel
+		 */
 		Setup(com, fun) {
 			// debugger;
 			console.time("Panel View");
@@ -171,11 +179,13 @@
 			});
 		}
 
-		/// com.View = View PID
-		// setView(com, fun) {
-		// 	this.Vlt.view1 = view;
-		// 	com.super({Cmd: 'SetView', View: com.View}, fun);
-		// }
+		/**
+		 * @description append all the relevant DOM to the View Div
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof Panel
+		 */
 		Render(com, fun) {
 			var that = this;
 
@@ -214,8 +224,12 @@
 			// });
 		}
 
-		// yuzh
-		// yüzh
+		/**
+		 * @description re sync the CSS of the View to the Vlt state
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof Panel
+		 */
 		correctRatioAndDirection(com, fun) {
 			// debugger;
 			let regularPanePadding = ((this.Vlt.dividerMargin * 2 + this.Vlt.dividerSize) / 2);
@@ -257,6 +271,14 @@
 			// if (con.Vlt.dragging) con.Vlt.divider.css('background-color', 'var(--accent-color)');
 		}
 
+		/**
+		 * @description re sync the CSS of the View to the Vlt state
+		 * expect instead of using pixel values, percents will
+		 * be used. This is helpful for before the DOM is connected.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof Panel
+		 */
 		correctRatioAndDirectionPercents(com, fun) {
 			// debugger;
 			let regularPanePadding = ((this.Vlt.dividerMargin * 2 + this.Vlt.dividerSize) / 2);
@@ -295,6 +317,15 @@
 				this.Vlt.divider.css('background-color', 'var(--view-border-color)');
 		}
 
+		/**
+		 * @description triggered when connected to the DOM.
+		 * since we know we're attached, we can set our CSS
+		 * to pixel values with correctRatioAndDirection
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof Panel
+		 */
 		DOMLoaded(com, fun) {
 			this.send({ Cmd: "correctRatioAndDirection" }, this.Par.Pid, () => {});
 
@@ -304,6 +335,14 @@
 			})
 		}
 
+		/**
+		 * @description When Our size is changed, we should update
+		 * our pixel CSS values by calling correctRatioAndDirection
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof Panel
+		 */
 		Resize(com, fun) {
 			//console.log("PANEL RESIZE!!!");
 			this.send({ Cmd: "correctRatioAndDirection" }, this.Par.Pid, () => { });

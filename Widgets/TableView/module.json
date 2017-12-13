@@ -1,0 +1,28 @@
+{
+	"name": "TableView",
+	"version": "1.0.0",
+	"info": {
+		"authors": [
+			{
+				"Name": "Marcus Gosselin",
+				"Company": "Introspective Systems LLC"
+			}
+		]
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": []
+	},
+	"output": {
+		"optional": {
+			
+		}
+	},
+	"par": {
+		"required": [],
+		"optional": {
+			"Ratio": "number",
+			"Horizontal": "boolean"
+		}
+	}
+}

@@ -1,0 +1,25 @@
+{
+	"name": "PanelView",
+	"version": "1.0.0",
+	"info": {
+		"authors": [
+			{
+				"Name": "Marcus Gosselin",
+				"Company": "Introspective Systems LLC"
+			}
+		]
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": []
+	},
+	"output": {
+	},
+	"par": {
+		"required": [],
+		"optional": {
+			"Ratio": "number",
+			"Horizontal": "boolean"
+		}
+	}
+}
