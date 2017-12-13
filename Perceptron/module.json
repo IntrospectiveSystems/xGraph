@@ -10,11 +10,11 @@
         "Cmd": "Initialize",
         "required": {},
         "optional": {
-          "TrainingSetSize": "Integer",
+          "TrainingSetSize": "number",
           "NetworkDimensions": [
-            "Integer",
-            "Integer",
-            "Integer"
+            "number",
+            "number",
+            "number"
           ]
         }
       },
@@ -22,10 +22,10 @@
         "Cmd": "Train",
         "required": {
           "Input": [
-            "Integer"
+            "number"
           ],
           "Output": [
-            "Integer"
+            "number"
           ]
         },
         "optional": {}
@@ -34,7 +34,7 @@
         "Cmd": "Evaluate",
         "required": {
           "Input": [
-            "Integer"
+            "number"
           ]
         },
         "optional": {}
@@ -48,12 +48,12 @@
   "par": {
     "required": {},
     "opts": {
-      "InitializeOnSetup": "Boolean",
-      "TrainingSetSize": "Integer",
+      "InitializeOnSetup": "boolean",
+      "TrainingSetSize": "number",
       "NetworkDimensions": [
-        "Integer",
-        "Integer",
-        "Integer"
+        "number",
+        "number",
+        "number"
       ]
     }
   },

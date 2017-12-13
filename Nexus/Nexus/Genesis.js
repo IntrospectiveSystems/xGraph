@@ -428,7 +428,7 @@
 					var ents = await compileInstance(pidinst, inst);
 					folder = inst.Module;
 					// The following is for backword compatibility only
-					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
+					var folder = folder.replace(/[\/\:]/g, '.');
 					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
 					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
@@ -465,7 +465,7 @@
 			let modnam = modRequest.Module;
 			let source = Config.Sources[modRequest.Source];
 			let mod = {};
-			let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+			let ModName = modnam.replace(/[\/\:]/g, '.');
 
 
 			//get the module from memory (ModCache) if it has already been retrieved
@@ -624,7 +624,7 @@
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let dir = ModName.replace('.', ':').replace(/\./g, '/');
+				let dir = ModName.replace(/[\/\:]/g, '.');
 				let ModPath = genPath(dir);
 				//read the module from path in the local file system
 				//create the Module.json and add it to ModCache
@@ -723,7 +723,7 @@
 			var modnam = inst.Module;
 			var mod;
 			var ents = [];
-			var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+			var modnam = modnam.replace(/[\/\:]/g, '.');
 
 			if (modnam in ModCache) {
 				mod = ModCache[modnam];
