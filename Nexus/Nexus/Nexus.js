@@ -4,7 +4,15 @@
 		state = 'development';
 	}
 
-	process.stdout.write(`Initializing the Run Engine \r\n`);
+	//who knows how well this will work
+	process.on('unhandledRejection', event => {
+		log.e('------------------ [Stack] ------------------');
+		log.e(event);
+		log.e('------------------ [/Stack] -----------------');
+		process.exit(1);
+	});
+
+	console.log(`\nInitializing the Run Engine`);
 
 	const fs = require('fs');
 	const Path = require('path');

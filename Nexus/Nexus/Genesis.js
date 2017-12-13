@@ -775,8 +775,8 @@
 			async function symbol(val) {
 				if (typeof val === 'object') {
 					if (Array.isArray(val)) {
-						val.map(v => symbol(v));
-						val = await Promise.all(val);
+						log.d('its an array'); //THIS TOTALLY WORKS, SRS
+						val = await Promise.all(val.map(v => symbol(v)));
 					} else {
 						for (let key in val) {
 							val[key] = await symbol(val[key]);

@@ -45,7 +45,7 @@
 
 					superStyle('table.table th, table.table td', {
 						'padding': '.75rem',
-						'border-top': '1px solid #eceeef'
+						'border-bottom': '1px solid #eceeef'
 					});
 
 					superStyle('table.table th', {
@@ -78,75 +78,27 @@
 
 		}
 
-		Start(com, fun) {
+		async Start(com, fun) {
 
+			if('Source' in this.Par && 'Columns' in this.Par) {
 
-			//set some example headers
-			this.ascend("SetDataHeaders", {
-				Headers: [
-					{ Name: '#', Key: "id" },
-					{ Name: 'Ticket', Key: 'ticketName' },
-					{ Name: 'Status', Key: 'status' },
-					{ Name: 'Priority', Key: 'priority' },
-					{ Name: 'Severity', Key: 'severity' }
-				]
-			});
+				let evoke = 'Evoke' in this.Par ? this.Par.Evoke : undefined;
 
+				//get headers from source
+				this.ascend("SetDataHeaders", {
+					Headers: this.Par.Columns,
+					Evoke: evoke
+				});
+	
+				let data = await this.ascend("GetData", {}, this.Par.Source);
+				// debugger;
+				// add rows
+				this.ascend("SetRows", {
+					Rows: data.Data,
+					Evoke: evoke
+				});
 
-			//set some example content
-			this.ascend("SetRows", {
-				Rows: [
-					{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},{
-						id: 1,
-						ticketName: 'Finalize ModuleCache in Nexus',
-						status: "Assigned",
-						priority: "Assigned",
-						severity: "Assigned"
-					},
-					{
-						id: 2,
-						ticketName: 'just another ticket',
-						priority: "HIGHEST!!!!",
-						severity: "lowest111111"
-					}
-				]
-			});
+			}
 
 
 
@@ -159,10 +111,20 @@
 
 			let headers = com.Headers;
 			this.Vlt.headers = headers;
+			this.Vlt.enums = {};
+			let evoke = com.Evoke;
 			let str = `<tr>`;
 
 			for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 				str += `<th>${this.Vlt.headers[colIdx].Name}</th>`;
+				if('Enum' in this.Vlt.headers[colIdx]) {
+					// debugger;
+					this.Vlt.enums[colIdx] = this.Vlt.headers[colIdx].Enum;
+				}
+			}
+
+			if(evoke) {
+				str += `<th></th>`;
 			}
 
 			str += `</tr>`;
@@ -187,15 +149,30 @@
 				str = `<tr>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
+					// log.d(key, row[key]);
+					if(typeof row[key] == 'object' && 'Value' in row[key]) {
+						row[key] = row[key].Value;
+					}
 					if (key == 'id')
 						str += `<th>${(row[key] || 'NA')}</th>`;
 					else
 						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 				}
+				// debugger;
+				if(typeof com.Evoke == 'string' && 'Pid' in row) {
+					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
+				}
+
 				str += `</tr>`;
 
 				this.Vlt.tablebody.append($(str));
 			}
+			
+			let that = this;
+			$(`.${this.id('EvokeButton')}`).on('click', function() {
+				// debugger;
+				that.evoke($(this).attr('pid'));
+			});
 
 			if (fun)
 				fun(null, com);
@@ -218,5 +195,5 @@
 		}
 	}
 
-	return Viewify(TableView, '3.3');
+	return Viewify(TableView, '3.4');
 })();

@@ -1,7 +1,8 @@
 //# sourceURL=Viewify.js
 // debugger;
 
-
+/// check if ?debug is in the URL. if so, turn on debug mode.
+/// this will enable more complex logging
 let debug = ((new URL(location.href)).searchParams.get('debug')) != null
 if (debug) console.warn('Debug is turned on!!');
 
@@ -25,45 +26,34 @@ window.md5 = function () {
 	} return calcMD5;
 }();
 
-function hslToRgb([h, s, l]) {
-	var r, g, b;
-	if (s == 0) {
-		r = g = b = l; // achromatic
-	} else {
-		var hue2rgb = function hue2rgb(p, q, t) {
-			if (t < 0) t += 1;
-			if (t > 1) t -= 1;
-			if (t < 1 / 6) return p + (q - p) * 6 * t;
-			if (t < 1 / 2) return q;
-			if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-			return p;
-		}
-		var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-		var p = 2 * l - q;
-		r = hue2rgb(p, q, h + 1 / 3);
-		g = hue2rgb(p, q, h);
-		b = hue2rgb(p, q, h - 1 / 3);
-	}
-	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-}
-
 // DIV, IMG, and STYLE are shorthand for making elements, wrapped in jquery
-if (window.DIV == undefined) window.DIV = function DIV(selectorish) {
-	let elem = $(document.createElement('div'));
-	// debugger;
-	if (selectorish) {
-		if (selectorish.search(/[#\.]/) == -1) {
-			elem.addClass(selectorish);
-			return elem;
+
+if (window.DIV == undefined)
+	/**
+	 * @param {String?} selectorish the classes and ID to apply to the generated
+	 * div; in the format of a css selector. passing a string without . or # will
+	 * set the class attribute to the string, unprocessed. this behavior is deprecated
+	 * and will throw a warning
+	 * 
+	 */
+	window.DIV = function DIV(selectorish) {
+		let elem = $(document.createElement('div'));
+		// debugger;
+		if (selectorish) {
+			if (selectorish.search(/[#\.]/) == -1) {
+				log.w('calling DIV with a non selector string is deprecated.');
+				log.w(`use DIV(.${selectorish}) instead`);
+				elem.addClass(selectorish);
+				return elem;
+			}
+			let params = selectorish.split(/(?=\.)/g);
+			for (let i in params) {
+				if (params[i].startsWith('#')) elem.attr('id', params[i].substr(1));
+				else if (params[i].startsWith('.')) elem.addClass(params[i].substr(1));
+			}
 		}
-		let params = selectorish.split(/(?=\.)/g);
-		for (let i in params) {
-			if (params[i].startsWith('#')) elem.attr('id', params[i].substr(1));
-			else if (params[i].startsWith('.')) elem.addClass(params[i].substr(1));
-		}
-	}
-	return elem;
-};
+		return elem;
+	};
 
 if (window.STYLE == undefined) window.STYLE = function STYLE() {
 	return $(document.createElement('style'));
