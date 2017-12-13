@@ -14,7 +14,7 @@
 	"par": {
 		"required": {
 			"TestModule": "xGraphModuleAddress",
-			"TestJson": "@file {pathTo} test.json"
+			"TestJson": "string"
 		},
 		"opts": {}
 	},

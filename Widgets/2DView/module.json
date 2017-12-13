@@ -24,10 +24,10 @@
 			{
 				"Cmd": "EvokeExample",
 				"required": {
-					"id": "String",
+					"id": "string",
 					"mouse": {
-						"x": "Integer",
-						"y": "Integer"
+						"x": "number",
+						"y": "number"
 					}
 				}
 			}
@@ -43,7 +43,7 @@
 						"Cmd": "Subscribe",
 						"required": {
 							"Pid": "xGraphPid",
-							"Link": "String"
+							"Link": "string"
 						}
 					}
 				]
@@ -58,8 +58,8 @@
 							"DataChannels": [
 								{
 									"Channel": "string",
-									"Flow": "Push || other",
-									"Handler": "functionString"
+									"Flow": "string",
+									"Handler": "string"
 								}
 							]
 						}
@@ -78,8 +78,8 @@
 					{
 						"Cmd": "SaveImage",
 						"required": {
-							"Image": "String",
-							"Name": "String"
+							"Image": "string",
+							"Name": "string"
 						}
 					}
 				]
@@ -97,7 +97,7 @@
 				{
 					"Channel": "string",
 					"Flow": "Push || other",
-					"Handler": "functionString"
+					"Handler": "functionstring"
 				}
 			],
 			"Hidden": "boolean",
