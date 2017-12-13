@@ -20,8 +20,8 @@
 		let ModCache = {};					// {<folder>: <module>}
 		let packagejson = {};				// The compiled package.json, built from Modules
 		let args = process.argv;			// The input arguments --under consideration for deprication
-		let Params = {};					// The set of Macros for defining paths 
-		let CWD = '';						// The current working directory 
+		let Params = {};					// The set of Macros for defining paths
+		let CWD = '';						// The current working directory
 
 		//
 		// Logging Functionality
@@ -37,9 +37,9 @@
 			};
 			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 			// Levels include:
-			// v : verbose		Give too much information 
+			// v : verbose		Give too much information
 			// d : debug		For debugging purposes not in production level releases
-			// i : info			General info presented to the end user 
+			// i : info			General info presented to the end user
 			// w : warn			Failures that dont result in a system exit
 			// e : error 		Critical failure should always follow with a system exit
 			log = {
@@ -121,7 +121,7 @@
 			/**
 			 * Read in macros and set Params from process.argv
 			 * these are also set in the binary in pathOverrides
-			 * examples are  xGraph={path to xGraph} 
+			 * examples are  xGraph={path to xGraph}
 			 * in binary they look like --xGraph {path to xGraph}
 			 */
 			function defineMacros() {
@@ -222,7 +222,7 @@
 		}
 
 		/**
-		 * Builds a cache from a config.json. 
+		 * Builds a cache from a config.json.
 		 */
 		async function genesis() {
 			log.i('=================================================');
@@ -277,12 +277,12 @@
 
 					/**
 					 * Add the module to the Modules object if unique
-					 * @param {object} mod 		The module object 
+					 * @param {object} mod 		The module object
 					 * @param {string} mod.Module	The name of the module
 					 * @param {object, string} mod.Source The Module broker or path reference
 					 */
 					function logModule(mod) {
-						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+						let folder = mod.Module.replace(/[\/\:]/g, '.');
 						let source = mod.Source;
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
@@ -305,7 +305,7 @@
 				let modArray = [];
 				let moduleKeys = Object.keys(Modules);
 
-				//loop over module keys to build Promise array 
+				//loop over module keys to build Promise array
 				for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 					modArray.push(new Promise((res, rej) => {
 						let folder = moduleKeys[ifolder];
@@ -456,9 +456,9 @@
 		/**
 		 * For loading modules
 		 * Modules come from a defined broker, or disk depending on the module definition
-		 * @param {Object} modRequest 
+		 * @param {Object} modRequest
 		 * @param {String} modRequest.Module the dot notation of the module name
-		 * @param {String} modRequest.Source the source Broker or path reference for the module 
+		 * @param {String} modRequest.Source the source Broker or path reference for the module
 		 * @param {Function} fun  the callback has form (error, module.json)
 		 */
 		function GetModule(modRequest, fun) {
@@ -705,14 +705,14 @@
 		}
 
 		//----------------------------------------------------CompileModule
-		// 
+		//
 
 		/**
 		 * Generate array of entities from module
-		 * Module must be in cache 
-		 * 
+		 * Module must be in cache
+		 *
 		 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-		 * @param {object} inst 
+		 * @param {object} inst
 		 * @param {string} inst.Module	The module definition in dot notation
 		 * @param {object} inst.Par		The par object that defines the par of the instance
 		 * @param {boolean} saveRoot	Add the setup and start functions to the Root.Setup and start
@@ -994,7 +994,7 @@
 
 		/**
 		 * build a path from the file system using defined Macros and Params
-		 * @param {string} filein 
+		 * @param {string} filein
 		 */
 		function genPath(filein) {
 			if (!filein) {
@@ -1043,7 +1043,7 @@
 		/**
 		 * Recursive directory deletion
 		 * Used for cache cleanup
-		 * @param {string} path the directory to be recursively removed 
+		 * @param {string} path the directory to be recursively removed
 		 */
 		function remDir(path) {
 			var files = [];
@@ -1104,12 +1104,12 @@
 
 						/**
 						 * Add the module to the Modules object if unique
-						 * @param {object} mod 		The module object 
+						 * @param {object} mod 		The module object
 						 * @param {string} mod.Module	The name of the module
 						 * @param {object, string} mod.Source The Module broker or path reference
 						 */
 						function logModule(mod) {
-							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+							let folder = mod.Module.replace(/[\/\:]/g, '.');
 							let source = mod.Source;
 							if (!(folder in Modules)) {
 								Modules[folder] = source;
@@ -1132,7 +1132,7 @@
 					let modArray = [];
 					let moduleKeys = Object.keys(Modules);
 
-					//loop over module keys to build Promise array 
+					//loop over module keys to build Promise array
 					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
@@ -1154,7 +1154,7 @@
 					populate();
 
 					/**
-					 * Write the modules.json to a zipped cache and set as Par.System 
+					 * Write the modules.json to a zipped cache and set as Par.System
 					 */
 					function populate() {
 						const jszip = require("jszip");
