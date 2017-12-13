@@ -1,39 +1,24 @@
 {
 	"State": {
-		"Server":"xGraphTesterPid",
-		"Table":{
-			"Test":"xGraphTesterPid"
-		}	
+		"Server": "xGraphTesterPid"
 	},
-    "Cases": [
+	"Cases": [
 		{
 			"Command": {
-				"Cmd":"Start"
+				"Cmd": "Setup"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Start"
 			},
-			"SentMessages":[
+			"SentMessages": [
 				{
-					"Cmd":"Subscribe", 
-					"Pid":"xGraphSelfPid"
+					"Cmd": "Subscribe",
+					"Pid": "xGraphSelfPid",
+					"Link": "2DView"
 				}
 			]
-		},
-		{
-			"Command": {
-				"Cmd":"Subscribe", 
-				"Name":"TestDestination",
-				"Pid": "xGraphTesterPid"
-			}
-		},
-		{
-			"Command": {
-				"Cmd":"Test", 
-				"Destination":"TestDestination",
-				"Pid": "xGraphTesterPid"
-			},
-			"Response": {
-				"Cmd": "Test",
-				"Pid": "*"				
-			}
 		}
-    ]
+	]
 }

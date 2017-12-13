@@ -195,11 +195,7 @@
 						y: 50,
 						z: 0
 					},
-					elevations: [],
-					responseHandler: {
-						Cmd: "EvokeExample",
-						Handler: this.Par.Pid
-					}
+					elevations: []
 				};
 				q.Objects.push(obj);
 				// add a module 
@@ -650,7 +646,7 @@
 			var key = Vlt.Mouse.Mode + '.' + info.Action;
 			if (info.Action == 'LeftMouseDown') {
 				info = mouseRay(info, Vlt);
-				if (info.obj.responseHandler) {
+				if (info.obj && info.obj.responseHandler) {
 					this.send({ Cmd: info.obj.responseHandler.Cmd, id: info.obj.id, point: info.point, mouse: info.Mouse }, info.obj.responseHandler.Handler, _ => {
 						//
 						//

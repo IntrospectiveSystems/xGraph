@@ -6,6 +6,13 @@
 			state = 'development';
 		}
 
+		process.on('unhandledRejection', event => {
+			log.e('------------------ [Stack] ------------------');
+			log.e(event);
+			log.e('------------------ [/Stack] -----------------');
+			process.exit(1);
+		});
+
 		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
 
 		const fs = require('fs');
@@ -775,7 +782,6 @@
 			async function symbol(val) {
 				if (typeof val === 'object') {
 					if (Array.isArray(val)) {
-						log.d('its an array'); //THIS TOTALLY WORKS, SRS
 						val = await Promise.all(val.map(v => symbol(v)));
 					} else {
 						for (let key in val) {
@@ -1065,7 +1071,6 @@
 
 		function GenTemplate(config) {
 			return new Promise(async (resolve, reject) => {
-				log.d(JSON.stringify(config, null, 2));
 
 				let Config = {};
 				let Modules = {};
@@ -1096,9 +1101,9 @@
 						let key = keys[i];
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
-							arr.forEach(async function (mod) {
-								await logModule(mod);
-							});
+							for (let idx = 0; idx <arr.length; idx++){
+									await logModule(arr[idx]);
+							}
 						} else {
 							await logModule(Config.Modules[key]);
 						}
@@ -1130,8 +1135,7 @@
 					async function symbol(val) {
 						if (typeof val === 'object') {
 							if (Array.isArray(val)) {
-								val.map(v => symbol(v));
-								val = await Promise.all(val);
+								val = await Promise.all(val.map(v => symbol(v)));
 							} else {
 								for (let key in val) {
 									val[key] = await symbol(val[key]);
@@ -1164,7 +1168,6 @@
 										else {
 											path = Path.join(Path.resolve(systemPath), val);
 										}
-										log.d(`Path is ${path}`);
 										return fs.readFileSync(path).toString(encoding);
 									} catch (err) {
 										log.e("Error reading file ", path);

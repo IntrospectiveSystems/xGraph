@@ -3,17 +3,21 @@
 		"xGraph": "{xGraph}"
 	},
 	"Modules": {
-		"Server": {
+		"ValidateModule": {
 			"Module": "xGraph.ValidateModule",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Perceptron",
+				"TestModule": "xGraph.Widgets.2DView",
 				"TestJson": "@file: ../../Widgets/2DView/test.json"
 			}
 		},
 		"Deferred": [
 			{
 				"Module": "xGraph.Widgets.2DView",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.Widgets.RootView",
 				"Source": "xGraph"
 			}
 		]

@@ -442,7 +442,7 @@ __Nexus = (_ => {
 				if (instname === 'Deferred')
 					continue;
 				var inst = Config.Modules[instname];
-				log.v(instname + '\n', JSON.stringify(inst, null, 2));
+				//log.v(instname + '\n', JSON.stringify(inst, null, 2));
 				var pidinst = Root.ApexList[instname];
 				await compileInstance(pidinst, inst, true);
 			}
@@ -528,7 +528,7 @@ __Nexus = (_ => {
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot) {
-		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
+		log.v('compileInstance', inst.Module, pidapx);
 		var Local = {};
 		var modnam = inst.Module;
 		var mod;
@@ -994,7 +994,7 @@ __Nexus = (_ => {
 	 */
 	function genModule(inst, fun = _ => _) {
 		(async () => {
-			inst.Module = inst.Module.replace(/\//g, '.').replace(/:/g, '.');
+			inst.Module = inst.Module.replace(/[\/\:]/g, '.');
 
 			if (!(inst.Module in ModCache)) {
 				let err = `Module ${inst.Module} does not exist in ModCache`;

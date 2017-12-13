@@ -4,7 +4,6 @@
 		state = 'development';
 	}
 
-	//who knows how well this will work
 	process.on('unhandledRejection', event => {
 		log.e('------------------ [Stack] ------------------');
 		log.e(event);
