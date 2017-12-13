@@ -1000,7 +1000,7 @@
 				log.e('Invalid file name');
 				return '';
 			}
-			
+
 			var cfg = Params;
 			var path;
 			var parts;
@@ -1064,7 +1064,7 @@
 		}
 
 		function GenTemplate(config) {
-			return new Promise((resolve, reject) => {
+			return new Promise(async (resolve, reject) => {
 				log.d(JSON.stringify(config, null, 2));
 
 				let Config = {};
@@ -1073,9 +1073,9 @@
 
 				parseConfig(config);
 
-				generateModuleCatalog();
+				await generateModuleCatalog();
 
-				recursiveBuild();
+				await recursiveBuild();
 
 
 				/////////////////////////////////////////////////////////////////////////////////////////////
@@ -1087,7 +1087,7 @@
 				/**
 				 * Create a list of all required modules and their brokers
 				 */
-				function generateModuleCatalog() {
+				async function generateModuleCatalog() {
 					// Create new cache and install high level
 					// module subdirectories. Each of these also
 					// has a link to the source of that module (Module.json).
@@ -1096,11 +1096,11 @@
 						let key = keys[i];
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
-							arr.forEach(function (mod) {
-								logModule(mod);
+							arr.forEach(async function (mod) {
+								await logModule(mod);
 							});
 						} else {
-							logModule(Config.Modules[key]);
+							await logModule(Config.Modules[key]);
 						}
 
 						/**
@@ -1109,7 +1109,7 @@
 						 * @param {string} mod.Module	The name of the module
 						 * @param {object, string} mod.Source The Module broker or path reference
 						 */
-						function logModule(mod) {
+						async function logModule(mod) {
 							let folder = mod.Module.replace(/[\/\:]/g, '.');
 							let source = mod.Source;
 							if (!(folder in Modules)) {
@@ -1121,71 +1121,10 @@
 									reject();
 								}
 							}
+							for (let key in mod.Par) {
+								mod.Par[key] = await symbol(mod.Par[key])
+							}
 						}
-					}
-				}
-
-				/**
-				 * get the modules from the prebuilt catalog
-				 * from the source defined in config
-				 */
-				async function recursiveBuild() {
-					let modArray = [];
-					let moduleKeys = Object.keys(Modules);
-
-					//loop over module keys to build Promise array
-					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
-						modArray.push(new Promise((res, rej) => {
-							let folder = moduleKeys[ifolder];
-							
-							let modrequest = {
-								"Module": folder,
-								"Source": Modules[folder]
-							};
-							GetModule(modrequest, function (err, mod) {
-								if (err) { rej(err); reject(err); }
-								else {
-									res(ModCache[folder] = mod);
-								}
-							});
-						}));
-					}
-					await Promise.all(modArray)
-
-					populate();
-
-					/**
-					 * Write the modules.json to a zipped cache and set as Par.System
-					 */
-					function populate() {
-						const jszip = require("jszip");
-						var zip = new jszip();
-						var man = [];
-						zip.folder("cache");
-						for (let folder in ModCache) {
-							let mod = ModCache[folder];
-							if (typeof mod == "object")
-								mod = JSON.stringify(mod);
-							let dir = "cache/" + folder;
-							zip.folder(dir);
-							let path = dir + '/Module.json';
-							man.push(path);
-							zip.file(path, mod, {
-								date: new Date("April 2, 2010 00:00:01")
-								//the date is required for zip consistency
-							});
-						}
-						zip.file('manifest.json', JSON.stringify(man), {
-							date: new Date("April 2, 2010 00:00:01")
-							//the date is required for zip consistency
-						});
-						zip.generateAsync({ type: 'base64' }).then(function (data) {
-							resolve({
-								"Config": Config,
-								"Cache": data
-							});
-						});
-
 					}
 
 					async function symbol(val) {
@@ -1270,17 +1209,13 @@
 									try {
 										let path, config;
 										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-
 										if (Path.isAbsolute(val))
 											path = val;
 										else {
 											path = Path.join(Path.resolve(systemPath), val);
 										}
-
 										config = fs.readFileSync(path).toString(encoding);
-
 										return await GenTemplate(config);
-
 									} catch (err) {
 										log.e("Error reading file ", path);
 										log.w(`Module ${modnam} may not operate as expected.`);
@@ -1293,6 +1228,69 @@
 							}
 						}
 						return val;
+					}
+				}
+
+				/**
+				 * get the modules from the prebuilt catalog
+				 * from the source defined in config
+				 */
+				async function recursiveBuild() {
+					let modArray = [];
+					let moduleKeys = Object.keys(Modules);
+
+					//loop over module keys to build Promise array
+					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
+						modArray.push(new Promise((res, rej) => {
+							let folder = moduleKeys[ifolder];
+
+							let modrequest = {
+								"Module": folder,
+								"Source": Modules[folder]
+							};
+							GetModule(modrequest, function (err, mod) {
+								if (err) { rej(err); reject(err); }
+								else {
+									res(ModCache[folder] = mod);
+								}
+							});
+						}));
+					}
+					await Promise.all(modArray)
+
+					populate();
+
+					/**
+					 * Write the modules.json to a zipped cache and set as Par.System
+					 */
+					function populate() {
+						const jszip = require("jszip");
+						var zip = new jszip();
+						var man = [];
+						zip.folder("cache");
+						for (let folder in ModCache) {
+							let mod = ModCache[folder];
+							if (typeof mod == "object")
+								mod = JSON.stringify(mod);
+							let dir = "cache/" + folder;
+							zip.folder(dir);
+							let path = dir + '/Module.json';
+							man.push(path);
+							zip.file(path, mod, {
+								date: new Date("April 2, 2010 00:00:01")
+								//the date is required for zip consistency
+							});
+						}
+						zip.file('manifest.json', JSON.stringify(man), {
+							date: new Date("April 2, 2010 00:00:01")
+							//the date is required for zip consistency
+						});
+						zip.generateAsync({ type: 'base64' }).then(function (data) {
+							resolve({
+								"Config": Config,
+								"Cache": data
+							});
+						});
 					}
 				}
 
