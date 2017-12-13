@@ -13,17 +13,15 @@
 					1
 				],
 				"InitializeOnSetup": true,
-				"TestSetSize": [
-					10
-				]
+				"TrainingSetSize": 20
 			}
 		},
 		"Xor": {
 			"Module": "xGraph.XOR",
 			"Source": "xGraph",
 			"Par": {
-				"Brain":"$NeuralNet"
+				"Brain": "$NeuralNet"
 			}
 		}
-	} 
+	}
 }

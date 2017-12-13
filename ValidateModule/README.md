@@ -108,4 +108,19 @@ Example:
     ]
 }
 ```
+To Check for array length and values  use 
 
+```json
+{
+	"Response": {
+		"Documents": {
+			"0": {
+				"String": "Beta",
+				"Null": null,
+				"Number": 6
+			},
+			"length": 1
+		}
+	}
+}
+```
