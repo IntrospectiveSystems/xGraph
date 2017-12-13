@@ -1,4 +1,10 @@
-(function Validate() {
+(
+	/**
+	 * The Validate entity is the Apex and only entity of the Validate Module. This entity requres its Start function invoked during the Start phase of Nexus startup.
+	 * 
+	 * The main capability of this entity is to GenModule the module being tested and then perform the tests laid out it the test.json file. 
+	 */
+	function Validate() {
 	let hashIt;
 
 	var dispatch = {
@@ -9,23 +15,6 @@
 	return {
 		dispatch: dispatch
 	};
-
-	/**
-	 * 
-	 * 
-			"Response": {
-				"Documents": {
-					"0": {
-						"String": "Beta",
-						"Null": null,
-						"Number": 6
-					},
-					"length": 1
-				}
-			}
-	 * is a thing you can do to ensure length of an array, and it elements.
-	 * 
-	 */
 
 	/**
 	 * The only required function of the Validate module. This function genModules the Module being tested 
@@ -205,27 +194,22 @@
 
 		//load the test.json file
 		that.Vlt.Test = setPid(JSON.parse(that.Par.TestJson));
-		log.d("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
 
 		//build the module inst from test.json required state
 		let inst = {};
 		inst.Module = that.Par.TestModule;
 		inst.Par = that.Vlt.Test.State;
-		log.d("Callig genMod on ", JSON.stringify(inst, null, 2));
+		log.v("Callig genMod on ", JSON.stringify(inst, null, 2));
 		//instantiate the module
 		//this calls setup and start in the instance
 		that.genModule(inst, (err, instApex) => {
-			log.d("In the Callback");
 			that.Vlt.InstModule = instApex;
 			that.Vlt.Test = setPid(that.Vlt.Test);
-			log.d("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
+			log.v("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
 			RunTests();
 		});
-
-
 		//finish start:May happen before the test commences 
 		fun(null, com);
-
 	}
 
 	// //**
@@ -234,7 +218,7 @@
 	//  * @param {Function} fun 
 	//  */
 	function DummyCatch(com, fun) {
-		log.d(`Validate::DummyCatch ${JSON.stringify(com, null, 2)}`);
+		log.v(`Validate::DummyCatch ${JSON.stringify(com, null, 2)}`);
 
 		if (!this.Vlt.SentMessages)
 			this.Vlt.SentMessages = {};

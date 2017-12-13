@@ -60,7 +60,7 @@
 
 			getscripts();
 
-			// Load the Scripts.json form the server. These are the scripts required by Nxs (Web version of Nexus).
+			// Load the Scripts.json from the server. These are the scripts required by Nxs (Web version of Nexus).
 			function getscripts() {
 				that.getFile('scripts.json', function (err, data) {
 					if (err) {

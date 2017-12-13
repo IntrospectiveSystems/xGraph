@@ -7,13 +7,13 @@
 			"Module": "xGraph.ValidateModule",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Nexus.Plexus",
-				"TestJson": "@file: ../../Nexus/Plexus/test.json"
+				"TestModule": "xGraph.Perceptron",
+				"TestJson": "@file: ../../Perceptron/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Nexus.Plexus",
+				"Module": "xGraph.Perceptron",
 				"Source": "xGraph"
 			}
 		]
