@@ -469,7 +469,7 @@
 
 
 			//get the module from memory (ModCache) if it has already been retrieved
-			if (ModName in ModCache){log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]);}
+			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
 
 
 			//get the module from the defined broker
@@ -624,8 +624,7 @@
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let dir = ModName.replace(/[\/\:]/g, '.');
-				let ModPath = genPath(dir);
+				let ModPath = genPath(ModName);
 				//read the module from path in the local file system
 				//create the Module.json and add it to ModCache
 
@@ -1001,10 +1000,11 @@
 				log.e('Invalid file name');
 				return '';
 			}
+			
 			var cfg = Params;
 			var path;
 			var parts;
-			var file = filein;
+			var file = filein.replace('.', ':').replace(/\./g, '/');;
 
 			if (Path.isAbsolute(file))
 				return file;
@@ -1065,6 +1065,7 @@
 
 		function GenTemplate(config) {
 			return new Promise((resolve, reject) => {
+				log.d(JSON.stringify(config, null, 2));
 
 				let Config = {};
 				let Modules = {};
@@ -1136,7 +1137,7 @@
 					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
-
+							
 							let modrequest = {
 								"Module": folder,
 								"Source": Modules[folder]
@@ -1185,6 +1186,113 @@
 							});
 						});
 
+					}
+
+					async function symbol(val) {
+						if (typeof val === 'object') {
+							if (Array.isArray(val)) {
+								val.map(v => symbol(v));
+								val = await Promise.all(val);
+							} else {
+								for (let key in val) {
+									val[key] = await symbol(val[key]);
+								}
+							}
+							return val;
+						}
+						if (typeof val !== 'string')
+							return val;
+						var sym = val.substr(1);
+						if (val.charAt(0) === '\\')
+							return sym;
+						if (val.charAt(0) === '@') {
+							val = val.split(":");
+							let key = val[0].toLocaleLowerCase().trim();
+							let encoding = undefined;
+							if (key.split(",").length == 2) {
+								key = key.split(',')[0].trim();
+								let encoding = key.split(',')[1].trim();
+							}
+							val = val.slice(1).join(':').trim();
+							switch (key) {
+								case "@filename":
+								case "@file": {
+									let path;
+									try {
+										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+										if (Path.isAbsolute(val))
+											path = val;
+										else {
+											path = Path.join(Path.resolve(systemPath), val);
+										}
+										log.d(`Path is ${path}`);
+										return fs.readFileSync(path).toString(encoding);
+									} catch (err) {
+										log.e("Error reading file ", path);
+										log.w(`Module ${modnam} may not operate as expected.`);
+									}
+									break;
+								}
+								case "@folder":
+								case "@directory": {
+									try {
+										let dir;
+										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+										if (Path.isAbsolute(val))
+											dir = val;
+										else
+											dir = Path.join(Path.resolve(systemPath), val);
+										return buildDir(dir);
+
+										function buildDir(path) {
+											let dirObj = {};
+											if (fs.existsSync(path)) {
+												files = fs.readdirSync(path);
+												files.forEach(function (file, index) {
+													var curPath = path + "/" + file;
+													if (fs.lstatSync(curPath).isDirectory()) {
+														// recurse
+														dirObj[file] = buildDir(curPath);
+													} else {
+														dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+													}
+												});
+												return dirObj;
+											}
+										}
+									} catch (err) {
+										log.e("Error reading directory ", path);
+										log.w(`Module ${modnam} may not operate as expected.`);
+									}
+									break;
+								}
+								case "@system": {
+									try {
+										let path, config;
+										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+
+										if (Path.isAbsolute(val))
+											path = val;
+										else {
+											path = Path.join(Path.resolve(systemPath), val);
+										}
+
+										config = fs.readFileSync(path).toString(encoding);
+
+										return await GenTemplate(config);
+
+									} catch (err) {
+										log.e("Error reading file ", path);
+										log.w(`Module ${modnam} may not operate as expected.`);
+									}
+									break;
+								}
+								default: {
+									log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
+								}
+							}
+						}
+						return val;
 					}
 				}
 

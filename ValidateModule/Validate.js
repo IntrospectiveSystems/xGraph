@@ -193,6 +193,7 @@
 
 
 		//load the test.json file
+		log.d(that.Par.TestJson);
 		that.Vlt.Test = setPid(JSON.parse(that.Par.TestJson));
 
 		//build the module inst from test.json required state
