@@ -51,11 +51,10 @@
 			//To run the tests
 			const RunTests = async _ => {
 				let Results = [];
-
+				log.i("\n\n\nBeginning the tests.");
 				log.v(that.Vlt.Test.Cases.length + " Tests");
-				log.d("RunTest", JSON.stringify(that.Vlt.SentMessages, null, 2));
-
 				for (let tidx = 0; tidx < that.Vlt.Test.Cases.length; tidx++) {
+					log.v(`Performing test ${tidx + 1}`);
 					let test = that.Vlt.Test.Cases[tidx];
 					await new Promise((resolve, reject) => {
 						if (test.Command.Cmd == "Setup" || test.Command.Cmd == "Start") {
@@ -64,27 +63,15 @@
 							if ("SentMessages" in test) {
 								for (msgIdx = 0; msgIdx < test.SentMessages.length; msgIdx++) {
 									hash = MD5(JSON.stringify(test.SentMessages[msgIdx]));
-									log.d(`test ${JSON.stringify(test.SentMessages[msgIdx], null, 2)}`);
-
 									hashStash.push(hash);
-									log.d('test', hash);
-									log.d(JSON.stringify(that.Vlt.SentMessages, null, 2));
-
 									if (hash in that.Vlt.SentMessages) {
 										that.Vlt.SentMessages[hash]--;
-										log.d("IN!!!");
-
 									} else {
-
-										log.d("Not In!!");
-
 										bMatch = false;
 										break;
 									}
 								}
 							}
-
-							log.d(JSON.stringify(that.Vlt.SentMessages, null, 2));
 
 							for (msgIdx = 0; msgIdx < hashStash.lenth; msgIdx++) {
 								if (that.Vlt.SentMessages[hashStash[msgIdx]] != 0) {
@@ -95,13 +82,14 @@
 
 
 							//test dom appedings
-							if ((typeof document!= 'undefined') && test.Document) {
+							if ((typeof document != 'undefined') && test.Document) {
 								let arr = test.Document;
 								for (let index = 0; index < arr.length; index++) {
 									let id = arr[index];
-									log.d(document.getElementById(`XGRAPH-${id}`).id);
 									if (!document.getElementById(`XGRAPH-${id}`)) {
 										bMatch = false;
+									} else{
+										log.v(`XGRAPH-${id} appended to document appropriately`);
 									}
 								}
 							}
@@ -109,10 +97,6 @@
 
 							let result = {};
 							result[test.Command.Cmd] = bMatch;
-
-
-
-
 
 
 							Results.push(result);
@@ -128,37 +112,41 @@
 						}
 
 						that.Vlt.SentMessages = {};
-
-						log.v(tidx);
+						log.v(`Test Sent ${JSON.stringify(test.Command, null, 2)}`);
 						that.send(test.Command, that.Vlt.InstModule, (err, returnedCommand) => {
-							log.v(JSON.stringify(returnedCommand, null, 2));
 							let bMatch = true;
 							let keys, key, hash, hashStash = [], msgIdx;
 
 							//check for a binary match with the test.json test callback
 							if ('Response' in test) {
+								delete returnedCommand.Passport;
+								log.v(`Test Returned ${JSON.stringify(returnedCommand, null, 2)}`);
+
 								parseObject(test.Response, returnedCommand);
 
 								function parseObject(ob, ret) {
-									log.v(JSON.stringify(ob, null, 2));
-									log.v(JSON.stringify(ret, null, 2));
+									// log.d(JSON.stringify(ob, null, 2));
+									// log.d(JSON.stringify(ret, null, 2));
 									keys = Object.keys(ob);
 									for (let i = 0; i < keys.length; i++) {
+										let key = keys[i];
 
-										if (typeof ob[keys[i]] === 'object' && ob[keys[i]] !== null) {
-											if (!(keys[i] in ret)) {
+										if (typeof ob[key] === 'object' && ob[key] !== null) {
+											log.v(`Recursive check on key ${key}`);
+											if (!(key in ret)) {
 												bMatch = false;
 												return;
 											}
-											parseObject(ob[keys[i]], ret[keys[i]]);
+											parseObject(ob[key], ret[key]);
 											return;
 										}
 										///fail if either the values are not equal, 
 										///or the value is "*" and key is in the returned command 
-										if ((ob[keys[i]] !== ret[keys[i]])
-											&& !((ob[keys[i]] == "*") && (keys[i] in ret))) {
+										if ((ob[key] !== ret[key])
+											&& !((ob[key] == "*") && (key in ret))) {
+											log.d(ob[key], ob[key] == "*", (key in ret));
 											bMatch = false;
-											break;
+											return;
 										}
 									}
 								}
@@ -214,7 +202,6 @@
 
 
 			//load the test.json file
-			log.v(that.Par.TestJson);
 			that.Vlt.Test = setPid(JSON.parse(that.Par.TestJson));
 
 			//build the module inst from test.json required state
@@ -251,18 +238,13 @@
 		//  * @param {Function} fun 
 		//  */
 		function DummyCatch(com, fun) {
-			log.v(`Validate::DummyCatch ${JSON.stringify(com, null, 2)}`);
-
 			if (!this.Vlt.SentMessages)
 				this.Vlt.SentMessages = {};
-
 			if ("Passport" in com)
 				delete com.Passport;
+			log.v(`${this.Par.TestModule} sent ${JSON.stringify(com, null, 2)}`);
 
-			log.d(`in ${JSON.stringify(com, null, 2)}`);
 			let hash = MD5(JSON.stringify(com));
-			log.d("in ", hash);
-
 			this.Vlt.SentMessages[hash] = (this.Vlt.SentMessages[hash] || 0) + 1;
 
 			if (fun)

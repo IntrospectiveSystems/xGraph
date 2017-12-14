@@ -75,14 +75,15 @@
 	 */
 	function APILookup(com, fun = _ => _) {
 		if (!("editor" in this.Vlt) || !(com.Cmd in this.Vlt.editor)) {
-			log.d(`${com.Cmd} not in Ace API`);
+			log.v(`${com.Cmd} not in Ace API`);
 			fun(null, com);
 			return;
 		}
 		let err = "";
-		log.v(`--Ace/APILookup: ${com.Cmd} Arguments: ${com.Arguments}`);
+		com.Arguments = com.Arguments ||[];
+		log.v(`--Ace/APILookup: ${com.Cmd} Arguments: ${com.Arguments.map((v)=>v.substr(0,Math.min(v.length, 100)))}`);
 		try {
-			this.Vlt.editor[com.Cmd](...com.Arguments);
+			com.Data = this.Vlt.editor[com.Cmd](...com.Arguments);
 		} catch (e) {
 			if (e) {
 				err = e;
