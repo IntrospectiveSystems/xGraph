@@ -1,0 +1,39 @@
+{
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			}
+		],
+		"opts": [
+			{
+				"Cmd": "Subscribe",
+				"required": {
+					"Chan": "string"
+				}
+			},
+			{
+				"Cmd": "Publish",
+				"required": {
+					"Chan": "string",
+					"Host": "string"
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"opts": []
+	},
+	"par": {
+		"required": {},
+		"opts": {}
+	},
+	"name": "Plexus",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"src": "xGraph:Nexus/Plexus"
+}

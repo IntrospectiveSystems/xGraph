@@ -1,0 +1,8 @@
+{
+  "name": "2dview",
+  "version": "1.0.0",
+  "description": "xGraph's Pixi.js wrapper",
+  "main": "2DView.js",
+  "author": "Introspective Systems, LLC.",
+  "license": "ISC"
+}

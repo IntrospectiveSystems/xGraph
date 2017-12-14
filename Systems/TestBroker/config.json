@@ -1,0 +1,18 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.TestBroker",
+			"Source": "xGraph",
+			"Par": {
+				"ApexList": {},
+				"Port": 8088,
+				"Paths":{
+					"xGraph": "/home/tjgionet/xGraph"
+				}
+			}
+		}
+	}
+}

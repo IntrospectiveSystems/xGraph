@@ -17,7 +17,7 @@
 				}
 			]
 		},
-        {
+		{
 			"Command": {
 				"Cmd":"Subscribe", 
 				"Name":"TestDestination",

@@ -1,0 +1,17 @@
+{
+	"Modules": {
+		"RootView": {
+			"Module": "xGraph:Widgets/RootView",
+			"Par": {
+				"Layout": "$View3D"
+			}
+		},
+		"View3D": {
+			"Module":"xGraph:Eve/View3D",
+			"Par": {
+				"Navigation":"xGraph.Eve.Mouse",
+				"Controller":"$Controller"
+			}
+		}
+	}
+}

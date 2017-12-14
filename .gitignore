@@ -11,6 +11,9 @@ EventLog.txt
 Work/*/package.json
 Systems/*/package.json
 Work/WobbleTest/Simulations/*
+-renders/
+-bin/**/*.*
+-src/gen/**/*.*
 
 # Runtime data
 pids
@@ -88,4 +91,5 @@ Work/*/*.js
 bin/**/*.*
 bin/**/*
 bin/*.*
+!bin/*.md
 src/gen/**/*.*

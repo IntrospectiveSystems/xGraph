@@ -1,15 +1,18 @@
 {
-  "name": "systemview",
+  "name": "aceeditorview",
   "version": "1.0.0",
-  "description": "",
-  "main": "SystemView.js",
+  "description": "xGraph's Ace Code Editor wrapper",
+  "main": "AceEditorView.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-	"dialogs": "^1.1.19",
-	"ace-code-editor":"*"
-  }
+  "keywords": [
+    "Text Editor",
+    "Text",
+    "Code",
+    "Ace",
+    "Editor"
+  ],
+  "author": "Introspective Systems, LLC.",
+  "license": "ISC"
 }

@@ -1,18 +1,29 @@
 {
   "input": {
+    "required":[
+      {
+				"Cmd": "Setup"
+			}
+    ],
+    "opts":[
+      {
+        "Cmd": "*",
+        "required":{
+          "Forward": "string"
+        }
+			}
+    ]
+  },
+  "output":{
     "required":[],
     "opts":[]
   },
-  "output":{
-    "required":[{"par":"ApexList"}],
-    "opts":[{"par":"Login","cmd":["GenPage"]}]
-  },
   "par": {
     "required":["ApexList","Url"],
-    "opts":["Port","Login"]
+    "opts":["Port"]
   },
-  "name": "Server",
-  "icon": "icon.png",
-  "doc": "Server.md",
-  "src": "xGraph:Web/Server"
+  "name": "WebViewer",
+  "icon": null,
+  "doc": "README.md",
+  "src": "xGraph:Web/WebViewer"
 }

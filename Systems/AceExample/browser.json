@@ -12,7 +12,7 @@
 		},
 		"AceView": {
 			"Module":"xGraph:Widgets/AceEditorView",
-			"Source": "xGraph",			
+			"Source": "xGraph",
 			"Par": {
 			}
 		}

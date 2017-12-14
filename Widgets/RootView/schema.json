@@ -1,7 +1,6 @@
 {
 	"Apex": {
 		"Entity": "RootView.js",
-		"$Start": "Start",
-		"$Setup": "Setup"
+		"$Start": "Start"
 	}
 }

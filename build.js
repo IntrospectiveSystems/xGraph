@@ -1,11 +1,13 @@
 (async _ => {
 	
+	
 	const Preprocessor = require('preprocessor');
 	const fs = require('fs');
 	const tar = require('targz');
 	const { compile } = require('nexe');
 	const createPackage = require('osx-pkg');
 	var createMsi = require('msi-packager');
+	const pkg = require("./package.json");
 
 	ensureDir('bin');
 	ensureDir('src/gen');
@@ -24,7 +26,7 @@
 
 	function doImports(filename) {
 		let file = fs.readFileSync(filename).toString();
-		let outfile = '';
+		let outfile = `const version = "${pkg.version}"\n`;
 		for (let line of file.split('\n')) {
 			line = line.trim();
 			if (line.startsWith('// $')) {
@@ -78,9 +80,9 @@
 	});
 
 
-	//move all required files to lib of system bin.                       -17 is errno: EEXISTS
-	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if (e.errno != -17) console.log(e); } }
-	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if (e.errno != -17) console.log(e); } }
+	//move all required files to lib of system bin.
+	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) {if ((e.errno != -17) &&(e.errno != -4075)) console.log(e); } }
+	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 
 
 	// copy everything into bin/lib
@@ -115,50 +117,42 @@
 	//make for linux 
 	tar.compress({
 		src: "bin/linux/",
-		dest: 'bin/xgraph.tar.gz'
+		dest: 'bin/xgraph_linux.tar.gz'
 	}, function (err) {
 		if (err) {
 			console.log(err);
 		} else {
-			console.log("Done!");
+			console.log("Linux: Done!");
 		}
 	});
 
 	// //make for mac
-	// var opts = {
-	// 	dir: 'bin/linux', // the contents of this dir will be installed in install Location 
-	// 	installLocation: '/usr/bin',
-	// 	identifier: 'com.IntrospectiveSystems.xgraph.pkg',
-	// 	title: 'xGraph'
-	// }
-	// createPackage(opts)
-	// 	.pipe(fs.createWriteStream('bin/xgraph.pkg'))
+	tar.compress({
+		src: "bin/mac/",
+		dest: 'bin/xgraph_mac.tar.gz'
+	}, function (err) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Mac: Done!");
+		}
+	});
 
-
-	// //make for windows
-	// var options = {
-
-	// 	source: 'bin/windows',
-	// 	output: 'bin/xgraph.msi',
-	// 	name: 'xGraph',
-	// 	upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
-	// 	version: '1.0.0',
-	// 	manufacturer: 'IntrospectiveSystems.com',
-	// 	iconPath: 'IS.png',
-	// 	executable: 'xgraph.exe',
-
-	// 	// optional 
-	// 	description: "install xgraph CLI",
-	// 	arch: 'x64',
-	// 	localInstall: true
-	// };
+	//make for windows
+	var options = {
+		source: 'bin/windows',
+		output: 'bin/xgraph.msi',
+		name: 'xGraph',
+		upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
+		version: pkg.version,
+		manufacturer: 'Introspective Systems, LLC.',
+		iconPath: 'IS.png',
+		executable: 'bin/windows/bin/xgraph.exe',
+		arch: 'x64',
+	};
 
 	// createMsi(options, function (err) {
 	// 	if (err) throw err
-	// 	console.log('Outputed to ' + options.output);
+	// 	console.log('Windows: Done!');
 	// });
-
-	//https://wiki.gnome.org/msitools/HowTo/CreateMSI
-
-
 })();

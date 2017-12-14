@@ -22,7 +22,7 @@
 			q.Cmd = "SetObjects";
 			q.Objects = [];
 			//add 10 ellipsoids with random location and scales
-			for (let idx = 0; idx < 10; idx++) {
+			for (let idx = 0; idx < 100; idx++) {
 				obj = {
 					id: idx,
 					geometry: {

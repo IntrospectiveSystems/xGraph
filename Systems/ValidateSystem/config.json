@@ -7,13 +7,13 @@
 			"Module": "xGraph.ValidateModule",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Web.Router",
-				"TestJson": "@file: ../../Web/Router/test.json"
+				"TestModule": "xGraph.Perceptron",
+				"TestJson": "@file: ../../Perceptron/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Web.Router",
+				"Module": "xGraph.Perceptron",
 				"Source": "xGraph"
 			}
 		]

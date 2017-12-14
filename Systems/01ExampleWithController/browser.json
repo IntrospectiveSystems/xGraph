@@ -11,24 +11,25 @@
 			}
 		},
 		"3DView": {
-			"Module":"xGraph:Widgets/3DView",
+			"Module": "xGraph:Widgets/3DView",
+			"Source": "xGraph",
 			"Par": {
-				"Controller":"$ControllerProxy",
-				"Server":"$ServerProxy"
+				"Controller": "$ControllerProxy",
+				"Server": "$ServerProxy"
 			}
 		},
 		"ControllerProxy": {
-			"Module":"xGraph.Web.WebProxy",
-			"Source":"xGraph",
-			"Par":{
-				"Link": "Controller"				
+			"Module": "xGraph.Web.WebProxy",
+			"Source": "xGraph",
+			"Par": {
+				"Link": "Controller"
 			}
 		},
 		"ServerProxy": {
-			"Module":"xGraph.Web.WebProxy",
-			"Source":"xGraph",
-			"Par":{
-				"Link": "Server"				
+			"Module": "xGraph.Web.WebProxy",
+			"Source": "xGraph",
+			"Par": {
+				"Link": "Server"
 			}
 		},
 		"Deferred": [
