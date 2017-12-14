@@ -8,9 +8,9 @@ Introspective Systems, LLC.
 ---
 #### 2DView
 
-The 2DView entity is the Apex and only entity of the 2DView Module. This entity requres its Setup function invoked during the Setup phase of Nexus startup. As well as its Start function invoked during the Start phase of Nexus startup.
+The 2DView entity is the Apex and only entity of the 2DView Module. This entity requres its Setup function to be invoked during the Setup phase of Nexus startup as well as its Start function to beinvoked during the Start phase of Nexus startup.
 
-The main capability of this entity is to add and render a Pixi.js stage on the div provided by the Viewify class (its stored in this.Vlt.div). Currently only Pixi primitives can be added to the scene/reneered.
+The main capability of this entity is to add and render a Pixi.js stage on the div provided by the Viewify class (the pixi.js stage is stored in this.Vlt.div). Currently only Pixi primitives can be added to the scene/reneered.
 
 ---
 

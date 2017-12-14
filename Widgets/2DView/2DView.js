@@ -3,9 +3,9 @@
 	/**
 	 * The 2DView entity is the Apex and only entity of the 2DView Module.
 	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup as well as
-	 * its Start functio invoked during the Start phase of Nexus' startup.
+	 * its Start function invoked during the Start phase of Nexus' startup.
 	 * The main capability of this entity is to add and render a Pixi.js stage on the div provided by 
-	 * the Viewify class (its stored in this.Vlt.div). Currently only Pixi primitive graphics objects can be 
+	 * the Viewify class (the pixi.js stage is stored in this.Vlt.div). Currently only Pixi primitive graphics objects can be 
 	 * added to the stage and rendered.
 	 */
 	function _2DView() {
@@ -81,14 +81,14 @@
 		/**
 		 * Retreives the data from this.Par.Source if defined. Also subscribes 
 		 * to the server to allow for server communications to reach this module.
-		 * If there was a controller defined we also register with that.
+		 * If there was a controller defined we also register with that controller.
 		 * @param {Object} com 
 		 * @param {Function} fun 
 		 */
 		function Start(com, fun) {
 			log.i("--2DView/Start");
 
-			//allow for communcations from the server side to this module
+			//allow for communications from the server side to this module
 			if ("Server" in this.Par) {
 				this.send({ Cmd: "Subscribe", Pid: this.Par.Pid, Link: "2DView" }, this.Par.Server, (err, com) => {
 					log.v("Subscribed with Server");
@@ -129,7 +129,7 @@
 			//
 			//
 			//
-			//			EXAMPLE CODE FOR ADDING OBJECTS TO Stage
+			//			START EXAMPLE CODE FOR ADDING OBJECTS TO Stage
 			//
 			//
 			//
@@ -256,7 +256,6 @@
 			let div = this.Vlt.div;
 			div.append($(this.Vlt.View.Renderer.view));
 			let View = this.Vlt.View;
-			//View.Renderer.resize(div.width(), div.height());
 
 			this.super(com, fun);
 		}
@@ -269,7 +268,6 @@
 		function Render(com, fun) {
 			log.v("--2DView/Render", this.Par.Pid.substr(30));
 			this.Vlt.View.Renderer.render(this.Vlt.View.Stage);
-			//this.Vlt.div.append($(this.Vlt.View.Renderer.view));
 			this.super(com, fun);
 		}
 
@@ -281,7 +279,6 @@
 		function Resize(com, fun) {
 			this.super(com, (err, cmd) => {
 				let View = this.Vlt.View;
-				//View.Renderer.resize(cmd.width-1, cmd.height-1);
 				fun(null, com);
 			});
 		}
@@ -311,7 +308,7 @@
 			};
 			// /**
 			//  * 
-			//  * the com will contain an Objects key that lists an array of objects
+			//  * The com will contain an Objects key that lists an array of objects
 			//  * to be modified on the 3d view. All of the listed attributes need NOT
 			//  * exist. Only a unit ID is required.
 			//  * 
@@ -458,7 +455,7 @@
 
 		/**
 		 * Take a snapshot of the canvas and send it off to the controller 
-		 * (server side) to be saved. This is how on could make a movie. 
+		 * (server side) to be saved. This is how one could make a movie. 
 		 * @param {Object} com 
 		 * @param {Function=} fun 
 		 * @returns {com.Image} the base 64 of the image

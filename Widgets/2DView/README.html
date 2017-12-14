@@ -251,9 +251,9 @@ input[type="search"]::-webkit-search-cancel-button {
 
                             <p>The 2DView entity is the Apex and only entity of the 2DView Module.
 This entity requres its Setup function invoked during the Setup phase of Nexus startup as well as
-its Start functio invoked during the Start phase of Nexus' startup.
+its Start function invoked during the Start phase of Nexus' startup.
 The main capability of this entity is to add and render a Pixi.js stage on the div provided by
-the Viewify class (its stored in this.Vlt.div). Currently only Pixi primitive graphics objects can be
+the Viewify class (the pixi.js stage is stored in this.Vlt.div). Currently only Pixi primitive graphics objects can be
 added to the stage and rendered.</p>
 
 
@@ -359,7 +359,7 @@ added to the stage and rendered.</p>
 
                             <p>Retreives the data from this.Par.Source if defined. Also subscribes
 to the server to allow for server communications to reach this module.
-If there was a controller defined we also register with that.</p>
+If there was a controller defined we also register with that controller.</p>
 
 
                         </div>
@@ -568,8 +568,9 @@ rendered.</p>
                                         <td>
                                             <code>Object</code>
                                         </td>
-                                        <td><p>The array of pixi graphics objects to be displayed</p>
-</td>
+                                        <td>
+                                            <p>The array of pixi graphics objects to be displayed</p>
+                                        </td>
                                         <td>
                                         </td>
                                     </tr>
@@ -689,7 +690,7 @@ rendered.</p>
                         <div class="description lead">
 
                             <p>Take a snapshot of the canvas and send it off to the controller
-(server side) to be saved. This is how on could make a movie.</p>
+(server side) to be saved. This is how one could make a movie.</p>
 
 
                         </div>
