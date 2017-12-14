@@ -2,12 +2,7 @@
 	"name": "RootView",
 	"version": "1.0.0",
 	"info": {
-		"authors": [
-			{
-				"Name": "Marcus Gosselin",
-				"Company": "Introspective Systems LLC"
-			}
-		]
+		"author": "Introspective Systems LLC"
 	},
 	"doc": "README.md",
 	"input": {
