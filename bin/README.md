@@ -86,14 +86,14 @@ Examples:
 ---
 ### Contributing
 
-Please read [CONTRIBUTING.md] (add link .....) for details on our code of 
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of 
 conduct, and the process for submitting pull requests to us.
 
 ### Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available,
- see the [tags on this repository] (tags link ....). 
+We use [SemVer](http://semver.org/) for versioning. 
 
 
 ### License
- ...
+This software is licensesd under the [GNU AFFERO GENERAL PUBLIC LICENSE Version 3](https://www.gnu.org/licenses/agpl-3.0.html).  
+Please contact us at sales@introspectivesystems.com if you are interested in pursuing one of our Enterprise licenses.
