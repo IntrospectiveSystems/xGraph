@@ -3,16 +3,15 @@
 (function Popup() {
 
 	/*
-        The PopupView class is a Root Container View.
-        PopupView attaches itself to the DOM, rendering on top of the existing page.
-
-     */
+	* The PopupView class is a Root Container View.
+	* PopupView attaches itself to the DOM, rendering on top of the existing page.
+	*/
 	class Popup {
 
-        //-----------------------------------------------------Setup
+		//-----------------------------------------------------Setup
 		Setup(com, fun) {
 			this.super(com, (err, com)=>{
-				console.log("Viewify/Setup");
+				log.i("Popup/Setup");
 				if(!('View' in this.Par)) {
 					fun('Par.View not set', com);
 					this.deleteEntity(this.Par.Pid)
@@ -114,7 +113,7 @@
 		}
 
 		Cleanup(com, fun){
-			console.log("--Popup/Cleanup");
+			log.i("--Popup/Cleanup");
 			this.Vlt.popup.remove();
 			fun(null, com);
 		}

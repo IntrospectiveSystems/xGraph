@@ -13,21 +13,15 @@ port to servers requesting publication. Plexus registers a server with a
 channel name and host, and assigns that server a port. Plexus handles
 connection requests by channel name.
 
-Plexus requires the Setup function invoked during instantiation.
-
 
 
 ---
-
-### API Documentation
-
-The next section is the API documentation for this module.
 
 #### Module Definition Parameters
 
 Plexus has the following module definition parameters.
 
-***(Plexus does not have any parameters to be defined in the
+***(Plexus does not require any parameters to be defined in the
 config.json file.)***
 
 ---

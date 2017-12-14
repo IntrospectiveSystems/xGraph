@@ -1,5 +1,6 @@
 (async _ => {
 	
+	
 	const Preprocessor = require('preprocessor');
 	const fs = require('fs');
 	const tar = require('targz');
@@ -150,8 +151,8 @@
 		arch: 'x64',
 	};
 
-	createMsi(options, function (err) {
-		if (err) throw err
-		console.log('Windows: Done!');
-	});
+	// createMsi(options, function (err) {
+	// 	if (err) throw err
+	// 	console.log('Windows: Done!');
+	// });
 })();

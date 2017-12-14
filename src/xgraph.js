@@ -188,10 +188,9 @@ async function compile() {
 function startNexusProcess() {
 	const { spawn } = require('child_process');
 	let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
-	console.log("Process Path is ", processPath);
 
 	let cacheDir = pathOverrides["cache"];
-	console.log(cacheDir);
+	console.log(`Starting from ${cacheDir}`);
 	// #ifdef LINUX
 	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
 	// #endif
@@ -207,7 +206,8 @@ function startNexusProcess() {
 	process.stdin.on('data', _ => ls.stdin.write(_));
 
 	ls.on('close', (code) => {
-		console.log(`child process exited with code ${code}`);
+		console.log(`xGraph exiting with code ${code}`);
+		process.exit(code);
 	});
 }
 

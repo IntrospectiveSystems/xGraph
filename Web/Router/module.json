@@ -1,61 +1,55 @@
 {
-  "input": {
-    "required":[
-		{
-			"Cmd":"Start"
-		}
-	],
-    "opts":[
-		{
-			"Cmd":"*"
-		},
-		{
-			"Cmd":"Subscribe", 
-			"Attributes":{
-				"required":{
-					"Name":"moduleName",
-					"Pid":"xGraphPid"
+	"input": {
+		"required": [
+			{
+				"Cmd": "Start"
+			}
+		],
+		"opts": [
+			{
+				"Cmd": "*"
+			},
+			{
+				"Cmd": "Subscribe",
+				"required": {
+					"Name": "moduleName",
+					"Pid": "xGraphPid"
 				}
 			}
-		}
-	]
-  },
-  "output":{
-    "required":[
-		{
-			"par":"Server",
-			"Command":[
-				{
-					"Cmd":"Subscribe", 
-					"Attributes":{
-						"required":{
-							"Pid":"xGraphPid"
+		]
+	},
+	"output": {
+		"required": [
+			{
+				"par": "Server",
+				"Command": [
+					{
+						"Cmd": "Subscribe",
+						"required": {
+							"Pid": "xGraphPid"
 						}
 					}
-				}
-			]	
-		}
-	],
-    "opts":[]
-  },
-  "par": {
-    "required":[
-		{
-			"key":"Server", 
-			"format":"xGraphPid"
-		},
-		{
-			"key":"Table", 
-			"format":{
-				"moduleName":"xGraphPid"
+				]
 			}
-		}
-	],
-    "opts":[]
-  },
-  "name": "Router",
-  "icon": null,
-  "doc": null,
-  "info":{"author":"TrevrGionet"},
-  "src": "xGraph:Web/Router"
+		],
+		"opts": []
+	},
+	"par": {
+		"required": [
+			{
+				"Server": "xGraphPid",
+				"Table": {
+					"moduleName": "xGraphPid"
+				}
+			}
+		],
+		"opts": []
+	},
+	"name": "Router",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "TrevrGionet"
+	},
+	"src": "xGraph:Web/Router"
 }

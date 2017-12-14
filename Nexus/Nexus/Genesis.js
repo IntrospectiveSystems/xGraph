@@ -6,6 +6,13 @@
 			state = 'development';
 		}
 
+		process.on('unhandledRejection', event => {
+			log.e('------------------ [Stack] ------------------');
+			log.e(event);
+			log.e('------------------ [/Stack] -----------------');
+			process.exit(1);
+		});
+
 		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
 
 		const fs = require('fs');
@@ -20,8 +27,8 @@
 		let ModCache = {};					// {<folder>: <module>}
 		let packagejson = {};				// The compiled package.json, built from Modules
 		let args = process.argv;			// The input arguments --under consideration for deprication
-		let Params = {};					// The set of Macros for defining paths 
-		let CWD = '';						// The current working directory 
+		let Params = {};					// The set of Macros for defining paths
+		let CWD = '';						// The current working directory
 
 		//
 		// Logging Functionality
@@ -37,9 +44,9 @@
 			};
 			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
 			// Levels include:
-			// v : verbose		Give too much information 
+			// v : verbose		Give too much information
 			// d : debug		For debugging purposes not in production level releases
-			// i : info			General info presented to the end user 
+			// i : info			General info presented to the end user
 			// w : warn			Failures that dont result in a system exit
 			// e : error 		Critical failure should always follow with a system exit
 			log = {
@@ -121,7 +128,7 @@
 			/**
 			 * Read in macros and set parameters from process.argv
 			 * these are also set in the binary in pathOverrides
-			 * examples are  xGraph={path to xGraph} 
+			 * examples are  xGraph={path to xGraph}
 			 * in binary they look like --xGraph {path to xGraph}
 			 */
 			function defineMacros() {
@@ -222,13 +229,15 @@
 		}
 
 		/**
-		 * Builds a cache from a config.json. 
+		 * Builds a cache from a config.json.
 		 */
 		async function genesis() {
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
 
 			generateModuleCatalog();
+
+			log.v(`About to load ${Object.keys(Modules)}`);
 
 			await recursiveBuild();
 
@@ -265,7 +274,7 @@
 							logModule(mod);
 						});
 					} else {
-						log.v(`Compiling ${Config.Modules[key].Module}`);
+						log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2))
@@ -275,12 +284,12 @@
 
 					/**
 					 * Add the module to the Modules object if unique
-					 * @param {object} mod 		The module object 
+					 * @param {object} mod 		The module object
 					 * @param {string} mod.Module	The name of the module
 					 * @param {object, string} mod.Source The Module broker or path reference
 					 */
 					function logModule(mod) {
-						let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+						let folder = mod.Module.replace(/[\/\:]/g, '.');
 						let source = mod.Source;
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
@@ -303,7 +312,7 @@
 				let modArray = [];
 				let moduleKeys = Object.keys(Modules);
 
-				//loop over module keys to build Promise array 
+				//loop over module keys to build Promise array
 				for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 					modArray.push(new Promise((res, rej) => {
 						let folder = moduleKeys[ifolder];
@@ -313,9 +322,16 @@
 							"Source": Modules[folder]
 						};
 
+						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
+
 						GetModule(modrequest, function (err, mod) {
-							if (err) { rej(err); reject(err); }
-							else {
+							if (err) {
+								log.w(`Failed to retreive ${modrequest.Modue}`);
+								log.e(err);
+								rej(err);
+								reject(err);
+							} else {
+								log.v(`Successfully retrieved ${mod.ModName}`);
 								res(ModCache[folder] = mod);
 							}
 
@@ -331,7 +347,6 @@
 			async function populate() {
 				log.v('--populate : Writing Cache to Disk');
 				// Write cache to CacheDir
-
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
 					let mod = ModCache[folder];
@@ -420,7 +435,7 @@
 					var ents = await compileInstance(pidinst, inst);
 					folder = inst.Module;
 					// The following is for backword compatibility only
-					var folder = folder.replace(/\:/, '.').replace(/\//g, '.');
+					var folder = folder.replace(/[\/\:]/g, '.');
 					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
 					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
@@ -448,20 +463,20 @@
 		/**
 		 * For loading modules
 		 * Modules come from a defined broker, or disk depending on the module definition
-		 * @param {Object} modRequest 
+		 * @param {Object} modRequest
 		 * @param {String} modRequest.Module the dot notation of the module name
-		 * @param {String} modRequest.Source the source Broker or path reference for the module 
+		 * @param {String} modRequest.Source the source Broker or path reference for the module
 		 * @param {Function} fun  the callback has form (error, module.json)
 		 */
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
 			let source = Config.Sources[modRequest.Source];
 			let mod = {};
-			let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+			let ModName = modnam.replace(/[\/\:]/g, '.');
 
 
 			//get the module from memory (ModCache) if it has already been retrieved
-			if (ModName in ModCache) return fun(null, ModCache[ModName]);
+			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
 
 
 			//get the module from the defined broker
@@ -616,10 +631,10 @@
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let dir = ModName.replace('.', ':').replace(/\./g, '/');
-				let ModPath = genPath(dir);
+				let ModPath = genPath(ModName);
 				//read the module from path in the local file system
 				//create the Module.json and add it to ModCache
+
 				fs.readdir(ModPath, function (err, files) {
 					if (err) {
 						err += 'Module <' + ModPath + '? not available'
@@ -633,7 +648,6 @@
 
 					function scan() {
 						ifile++;
-
 						if (ifile >= nfile) {
 							mod.ModName = ModName;
 							if ('schema.json' in mod) {
@@ -648,12 +662,14 @@
 										mod.Save = apx['$Save'];
 								}
 							}
+							log.v(`${ModName} returned from local file system`);
 							ModCache[ModName] = mod;
 							fun(null, ModCache[ModName]);
 							return;
 						}
 						var file = files[ifile];
 						var path = ModPath + '/' + file;
+
 						fs.lstat(path, function (err, stat) {
 							if (stat) {
 								if (!stat.isDirectory()) {
@@ -665,12 +681,29 @@
 										}
 										mod[file] = data.toString();
 										scan();
-										return;
 									});
-									return;
+								} else {
+									mod[file] = buildDir(path);
+									scan();
+
+									function buildDir(path) {
+										let dirObj = {};
+										if (fs.existsSync(path)) {
+											let files = fs.readdirSync(path);
+											files.forEach(function (file, index) {
+												var curPath = path + "/" + file;
+												if (fs.lstatSync(curPath).isDirectory()) {
+													// recurse
+													dirObj[file] = buildDir(curPath);
+												} else {
+													dirObj[file] = fs.readFileSync(curPath).toString();
+												}
+											});
+											return dirObj;
+										}
+									}
 								}
 							}
-							scan();
 						});
 					}
 				});
@@ -678,14 +711,14 @@
 		}
 
 		//----------------------------------------------------CompileModule
-		// 
+		//
 
 		/**
 		 * Generate array of entities from module
-		 * Module must be in cache 
-		 * 
+		 * Module must be in cache
+		 *
 		 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-		 * @param {object} inst 
+		 * @param {object} inst
 		 * @param {string} inst.Module	The module definition in dot notation
 		 * @param {object} inst.Par		The par object that defines the par of the instance
 		 * @param {boolean} saveRoot	Add the setup and start functions to the Root.Setup and start
@@ -696,7 +729,7 @@
 			var modnam = inst.Module;
 			var mod;
 			var ents = [];
-			var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+			var modnam = modnam.replace(/[\/\:]/g, '.');
 
 			if (modnam in ModCache) {
 				mod = ModCache[modnam];
@@ -749,8 +782,7 @@
 			async function symbol(val) {
 				if (typeof val === 'object') {
 					if (Array.isArray(val)) {
-						val.map(v => symbol(v));
-						val = await Promise.all(val);
+						val = await Promise.all(val.map(v => symbol(v)));
 					} else {
 						for (let key in val) {
 							val[key] = await symbol(val[key]);
@@ -967,17 +999,18 @@
 
 		/**
 		 * build a path from the file system using defined Macros and Params
-		 * @param {string} filein 
+		 * @param {string} filein
 		 */
 		function genPath(filein) {
 			if (!filein) {
 				log.e('Invalid file name');
 				return '';
 			}
+
 			var cfg = Params;
 			var path;
 			var parts;
-			var file = filein;
+			var file = filein.replace('.', ':').replace(/\./g, '/');;
 
 			if (Path.isAbsolute(file))
 				return file;
@@ -1016,7 +1049,7 @@
 		/**
 		 * Recursive directory deletion
 		 * Used for cache cleanup
-		 * @param {string} path the directory to be recursively removed 
+		 * @param {string} path the directory to be recursively removed
 		 */
 		function remDir(path) {
 			var files = [];
@@ -1037,7 +1070,7 @@
 		}
 
 		function GenTemplate(config) {
-			return new Promise((resolve, reject) => {
+			return new Promise(async (resolve, reject) => {
 
 				let Config = {};
 				let Modules = {};
@@ -1045,9 +1078,9 @@
 
 				parseConfig(config);
 
-				generateModuleCatalog();
+				await generateModuleCatalog();
 
-				recursiveBuild();
+				await recursiveBuild();
 
 
 				/////////////////////////////////////////////////////////////////////////////////////////////
@@ -1059,7 +1092,7 @@
 				/**
 				 * Create a list of all required modules and their brokers
 				 */
-				function generateModuleCatalog() {
+				async function generateModuleCatalog() {
 					// Create new cache and install high level
 					// module subdirectories. Each of these also
 					// has a link to the source of that module (Module.json).
@@ -1068,21 +1101,21 @@
 						let key = keys[i];
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
-							arr.forEach(function (mod) {
-								logModule(mod);
-							});
+							for (let idx = 0; idx <arr.length; idx++){
+									await logModule(arr[idx]);
+							}
 						} else {
-							logModule(Config.Modules[key]);
+							await logModule(Config.Modules[key]);
 						}
 
 						/**
 						 * Add the module to the Modules object if unique
-						 * @param {object} mod 		The module object 
+						 * @param {object} mod 		The module object
 						 * @param {string} mod.Module	The name of the module
 						 * @param {object, string} mod.Source The Module broker or path reference
 						 */
-						function logModule(mod) {
-							let folder = mod.Module.replace(/\//g, '.').replace(/:/g, '.');
+						async function logModule(mod) {
+							let folder = mod.Module.replace(/[\/\:]/g, '.');
 							let source = mod.Source;
 							if (!(folder in Modules)) {
 								Modules[folder] = source;
@@ -1093,7 +1126,111 @@
 									reject();
 								}
 							}
+							for (let key in mod.Par) {
+								mod.Par[key] = await symbol(mod.Par[key])
+							}
 						}
+					}
+
+					async function symbol(val) {
+						if (typeof val === 'object') {
+							if (Array.isArray(val)) {
+								val = await Promise.all(val.map(v => symbol(v)));
+							} else {
+								for (let key in val) {
+									val[key] = await symbol(val[key]);
+								}
+							}
+							return val;
+						}
+						if (typeof val !== 'string')
+							return val;
+						var sym = val.substr(1);
+						if (val.charAt(0) === '\\')
+							return sym;
+						if (val.charAt(0) === '@') {
+							val = val.split(":");
+							let key = val[0].toLocaleLowerCase().trim();
+							let encoding = undefined;
+							if (key.split(",").length == 2) {
+								key = key.split(',')[0].trim();
+								let encoding = key.split(',')[1].trim();
+							}
+							val = val.slice(1).join(':').trim();
+							switch (key) {
+								case "@filename":
+								case "@file": {
+									let path;
+									try {
+										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+										if (Path.isAbsolute(val))
+											path = val;
+										else {
+											path = Path.join(Path.resolve(systemPath), val);
+										}
+										return fs.readFileSync(path).toString(encoding);
+									} catch (err) {
+										log.e("Error reading file ", path);
+										log.w(`Module ${modnam} may not operate as expected.`);
+									}
+									break;
+								}
+								case "@folder":
+								case "@directory": {
+									try {
+										let dir;
+										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+										if (Path.isAbsolute(val))
+											dir = val;
+										else
+											dir = Path.join(Path.resolve(systemPath), val);
+										return buildDir(dir);
+
+										function buildDir(path) {
+											let dirObj = {};
+											if (fs.existsSync(path)) {
+												files = fs.readdirSync(path);
+												files.forEach(function (file, index) {
+													var curPath = path + "/" + file;
+													if (fs.lstatSync(curPath).isDirectory()) {
+														// recurse
+														dirObj[file] = buildDir(curPath);
+													} else {
+														dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+													}
+												});
+												return dirObj;
+											}
+										}
+									} catch (err) {
+										log.e("Error reading directory ", path);
+										log.w(`Module ${modnam} may not operate as expected.`);
+									}
+									break;
+								}
+								case "@system": {
+									try {
+										let path, config;
+										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+										if (Path.isAbsolute(val))
+											path = val;
+										else {
+											path = Path.join(Path.resolve(systemPath), val);
+										}
+										config = fs.readFileSync(path).toString(encoding);
+										return await GenTemplate(config);
+									} catch (err) {
+										log.e("Error reading file ", path);
+										log.w(`Module ${modnam} may not operate as expected.`);
+									}
+									break;
+								}
+								default: {
+									log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
+								}
+							}
+						}
+						return val;
 					}
 				}
 
@@ -1105,7 +1242,7 @@
 					let modArray = [];
 					let moduleKeys = Object.keys(Modules);
 
-					//loop over module keys to build Promise array 
+					//loop over module keys to build Promise array
 					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
@@ -1114,10 +1251,9 @@
 								"Module": folder,
 								"Source": Modules[folder]
 							};
-
 							GetModule(modrequest, function (err, mod) {
 								if (err) { rej(err); reject(err); }
-								else  {
+								else {
 									res(ModCache[folder] = mod);
 								}
 							});
@@ -1128,7 +1264,7 @@
 					populate();
 
 					/**
-					 * Write the modules.json to a zipped cache and set as Par.System 
+					 * Write the modules.json to a zipped cache and set as Par.System
 					 */
 					function populate() {
 						const jszip = require("jszip");
@@ -1144,12 +1280,12 @@
 							let path = dir + '/Module.json';
 							man.push(path);
 							zip.file(path, mod, {
-								date: new Date("December 5, 2017 00:00:01")
+								date: new Date("April 2, 2010 00:00:01")
 								//the date is required for zip consistency
 							});
 						}
 						zip.file('manifest.json', JSON.stringify(man), {
-							date: new Date("December 5, 2017 00:00:01")
+							date: new Date("April 2, 2010 00:00:01")
 							//the date is required for zip consistency
 						});
 						zip.generateAsync({ type: 'base64' }).then(function (data) {
@@ -1158,7 +1294,6 @@
 								"Cache": data
 							});
 						});
-
 					}
 				}
 
