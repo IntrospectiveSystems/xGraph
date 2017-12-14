@@ -58,13 +58,15 @@ The format of the test.json for any module has 2 main components: the State and 
 
 State is a json object that defines the pars that must be defined to perform the tests as defined in Cases.
 
-Cases is an array of test cases. Each test case must have the "Command" key defined. This key references the Json object that is the message the module being tested will accept. The test case can also have a "SentMessages" key, a "Response" key, or both. The "SentMessages" key references an array of messages that are expected to be sent from the module being tested. The "Response' key references the expected results from the returned command as was delivered in the callback of the original "Command".
+Setup and Start Test cases (if they exist) must be in order as the first 2 test cases in the Cases Array. If only one of these exist, then it must come as the first test in the array.
+
+Cases is an array of test cases. Each test case must have the "Command" key defined. This key references the Json object that is the message the module being tested will accept. The test case can also have a "SentMessages" key, a "Response" key, or both. The "SentMessages" key references an array of messages that are expected to be sent from the module being tested these must be defined and match exactly since they are checked by a hash code on the message. The "Response' key references the expected results from the returned command as was delivered in the callback of the original "Command".
 
 Three specific string values are important to know.
 
 "xGraphSelfPid" is the pid of the Module apex being tested.
 "xGraphTesterPid" is the pid of the Validate Module (the module performing the test). 
-"*" is available to test for a value but not defining what it is exactly. 
+"*" is available to test for a value but not defining what it is exactly Only for use in the Response object. 
 
 Example:
 ```json

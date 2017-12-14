@@ -1,13 +1,9 @@
 {
 	"State": {
-		"Server": "xGraphTesterPid"
+		"Server": "xGraphTesterPid",
+		"Source": "xGraphTesterPid"
 	},
 	"Cases": [
-		{
-			"Command": {
-				"Cmd": "Setup"
-			}
-		},
 		{
 			"Command": {
 				"Cmd": "Start"
@@ -17,7 +13,21 @@
 					"Cmd": "Subscribe",
 					"Pid": "xGraphSelfPid",
 					"Link": "2DView"
+				},
+				{
+					"Cmd": "GetData",
+					"DataChannels": [
+						{
+						"Channel": "Data",
+						"Flow": null,
+						"Handler": "xGraphSelfPid"
+						}
+					],
+					"Pid": "xGraphSelfPid"
 				}
+			],
+			"Document": [
+				"xGraphSelfPid"
 			]
 		}
 	]

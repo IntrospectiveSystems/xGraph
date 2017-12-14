@@ -114,7 +114,7 @@
 					Pid: this.Par.Pid
 				}, this.Par.Source, (err, com) => {
 					if (err) {
-						log.w("error getting data from source in Par.Source")
+						log.w("error getting data from source in Par.Source");
 						return;
 					}
 					com.Cmd = "DrawObjects";
@@ -344,6 +344,13 @@
 			// 		}
 			//  * ]
 			//  */
+
+			//return if com.Objects is not an array
+			if ((!com.Objects) || (!Array.isArray(com.Objects))) {
+				fun("com.Objects must be an array (Array.isArray(com.Objects) == true)", com);
+				return;
+			}
+
 			for (let i = 0; i < com.Objects.length; i++) {
 
 				let unit = com.Objects[i];

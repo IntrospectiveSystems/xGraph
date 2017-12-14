@@ -956,21 +956,18 @@
 						val[key] = await symbol(val[key]);
 					}
 				}
+				return val;
 			}
-			if (esc == '$') {
-				var sym = str.substr(1);
-				if (sym in Root.Apex)
-					return Root.Apex[sym];
-				if (sym in Config)
-					return Config[sym];
-				var err = 'Invalide global symbol <' + sym + '>';
-				EventLog(' ** ERR:' + err);
-				throw 'Invalid global symbol';
-			}
-			if (esc == '\\') {
-				return str.substr(1);
-			}
-			return str;
+			if (typeof val !== 'string')
+				return val;
+			var sym = val.substr(1);
+			if (val.charAt(0) === '$' && sym in Apex)
+				return Apex[sym];
+			if (val.charAt(0) === '#' && sym in Local)
+				return Local[sym];
+			if (val.charAt(0) === '\\')
+				return sym;
+			return val;
 		}
 	}
 

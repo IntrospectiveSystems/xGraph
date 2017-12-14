@@ -389,7 +389,7 @@
 			 */
 
 			//return if com.Objects is not an array
-			if (!Array.isArray(com.Objects)) {
+			if ((!com.Objects)||(!Array.isArray(com.Objects))) {
 				fun("com.Objects must be an array (Array.isArray(com.Objects) == true)", com);
 				return;
 			}

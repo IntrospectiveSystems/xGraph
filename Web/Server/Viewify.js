@@ -177,7 +177,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root.css('overflow', 'hidden');
 
 			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}" 
-				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `Z${this.Par.Pid}`)}"
+				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `XGRAPH-${this.Par.Pid}`)}"
 				style="
 				height: 100%;
 				display: block;
