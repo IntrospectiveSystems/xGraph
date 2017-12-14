@@ -306,8 +306,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.Vlt.root.append(this.Vlt.div);
 			fun(null, com);
 		}
-				/**
-   		 * @description Set the color of the View
+		/**
+		 * @description Set the color of the View
 		 * 
 		 * @deprecated
 		 * @param {any} com 
