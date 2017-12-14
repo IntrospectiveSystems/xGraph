@@ -9,14 +9,14 @@
 			{
 				"Cmd": "Subscribe",
 				"required": {
-					"Chan": "String"
+					"Chan": "string"
 				}
 			},
 			{
 				"Cmd": "Publish",
 				"required": {
-					"Chan": "String",
-					"Host": "String"
+					"Chan": "string",
+					"Host": "string"
 				}
 			}
 		]
@@ -26,8 +26,8 @@
 		"opts": []
 	},
 	"par": {
-		"required": [],
-		"opts": []
+		"required": {},
+		"opts": {}
 	},
 	"name": "Plexus",
 	"icon": null,

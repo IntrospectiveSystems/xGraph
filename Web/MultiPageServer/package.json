@@ -9,6 +9,7 @@
     "le-challenge-dns": "*",
     "le-challenge-fs": "*",
     "le-challenge-sni": "*",
+    "lodash": "^4.17.4",
     "socket.io": "*"
   }
 }

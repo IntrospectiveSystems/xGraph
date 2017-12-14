@@ -188,10 +188,9 @@ async function compile() {
 function startNexusProcess() {
 	const { spawn } = require('child_process');
 	let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
-	console.log("Process Path is ", processPath);
 
 	let cacheDir = pathOverrides["cache"];
-	console.log(cacheDir);
+	console.log(`Starting from ${cacheDir}`);
 	// #ifdef LINUX
 	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
 	// #endif
@@ -472,7 +471,7 @@ function initModule(names) {
 		else {
 			let moduleDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Modules');
 			modulePath = path.join(moduleDir, name);
-			console.log("Module dir is ", systemDir);
+			console.log("Module dir is ", moduleDir);
 
 			try {
 				fs.mkdirSync(moduleDir);

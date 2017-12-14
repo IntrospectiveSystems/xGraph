@@ -1,24 +1,128 @@
-# TestModule
-Loads tests from json and sends commands to a specified module. Returns true for each test that matches expected results.
-Use by providing a Json file of commands (Add path to TestModule config as Par.TestCases).
+# Validate 
 
-for an example look at xGraph/Web/Router/test.json
+v1.0.0
 
-test.json Format:
+Introspective Systems, LLC.
 
+
+---
+#### Validate
+
+The Validate entity is the Apex and only entity of the Validate Module. This entity requres its Start function invoked during the Start phase of Nexus startup.
+
+The main capability of this entity is to GenModule the module being tested and then perform the tests laid out it the test.json file. 
+
+---
+
+### Module Definition Parameters
+
+Parameters are defined in the module definition and stored in the Par attribute 
+of the Entities this attribute.
+
+Two Pars must be set in the module definition, they are both required. 
+
+`{"TestModule":"xGraphModuleAddress"}` - where xGraphModuleAddress defines the address of the module to be loaded.
+
+`{"TestJson":"@file String"}` - where String is set to the path of the test.json for this module
+
+An example of how this looks in the module definition of a config.json. Note that the Test Module defined by the xGraphModuleAddress also needs to be in the array of deferred modules so that it's code is loaded during compile. 
+
+``` json
+{
+	"Module": "xGraph.ValidateModule",
+	"Source": "xGraph",
+	"Par": {
+		"TestModule": "xGraphModuleAddress",
+		"TestJson": "@file: {PathTo}test.json"
+	}
+}
+```
+
+---
+
+### Output Commands
+
+None
+
+---
+
+### Input Commands
+
+None
+
+---
+
+### How To
+
+The format of the test.json for any module has 2 main components: the State and the Cases.
+
+State is a json object that defines the pars that must be defined to perform the tests as defined in Cases.
+
+Setup and Start Test cases (if they exist) must be in order as the first 2 test cases in the Cases Array. If only one of these exist, then it must come as the first test in the array.
+
+Cases is an array of test cases. Each test case must have the "Command" key defined. This key references the Json object that is the message the module being tested will accept. The test case can also have a "SentMessages" key, a "Response" key, or both. The "SentMessages" key references an array of messages that are expected to be sent from the module being tested these must be defined and match exactly since they are checked by a hash code on the message. The "Response' key references the expected results from the returned command as was delivered in the callback of the original "Command".
+
+Three specific string values are important to know.
+
+"xGraphSelfPid" is the pid of the Module apex being tested.
+"xGraphTesterPid" is the pid of the Validate Module (the module performing the test). 
+"*" is available to test for a value but not defining what it is exactly Only for use in the Response object. 
+
+Example:
+```json
 {
 	"State": {
-		"Par": "value.... Required pars (key:value pairs) that allow the module to do it's job
+		"Server":"xGraphTesterPid",
+		"Table":{
+			"Test":"xGraphTesterPid"
+		}	
 	},
-	"Cases": [
-			{
-				"Command": <Object> Command object to send,
-				"SentMessages":[
+    "Cases": [
+		{
+			"Command": {
+				"Cmd":"Start"
+			},
+			"SentMessages":[
 				{
-					"Command": <Object> command to be caught by test.
+					"Cmd":"Subscribe", 
+					"Pid":"xGraphSelfPid"
 				}
 			]
-			"Callback": <Object> Expected return command (Omit if no callback expected)
+		},
+		{
+			"Command": {
+				"Cmd":"Subscribe", 
+				"Name":"TestDestination",
+				"Pid": "xGraphTesterPid"
+			}
+		},
+		{
+			"Command": {
+				"Cmd":"Test", 
+				"Destination":"TestDestination",
+				"Pid": "xGraphTesterPid"
+			},
+			"Response": {
+				"Cmd": "Test",
+				"Pid": "*"				
+			}
 		}
-	]
+    ]
 }
+```
+To Check for array length and values  use 
+
+```json
+{
+	"Response": {
+		"Documents": {
+			"0": {
+				"String": "Beta",
+				"Null": null,
+				"Number": 6
+			},
+			"length": 1
+		}
+	}
+}
+```

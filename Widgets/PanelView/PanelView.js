@@ -352,7 +352,9 @@
 		Resize(com, fun) {
 			//console.log("PANEL RESIZE!!!");
 			this.send({ Cmd: "correctRatioAndDirection" }, this.Par.Pid, () => { });
-			this.super(com, (err, cmd) => { });
+			this.super(com, (err, cmd) => {
+				fun(null, com);
+			});
 		}
 	}
 

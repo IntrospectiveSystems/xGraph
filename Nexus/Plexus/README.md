@@ -14,12 +14,6 @@ This entity requres its Setup function invoked during the Setup phase of Nexus s
 
 ---
 
-### API Documentation
-
-The next section is the API documentation for this module.
-
----
-
 ### Module Definition Parameters
 
 Parameters are defined in the module definition and stored in this.Par.

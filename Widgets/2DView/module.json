@@ -1,0 +1,114 @@
+{
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			},
+			{
+				"Cmd": "Start"
+			}
+		],
+		"opts": [
+			{
+				"Cmd": "DrawObjects",
+				"required": {
+					"Objects": []
+				}
+			},
+			{
+				"Cmd": "GetCanvas"
+			},
+			{
+				"Cmd":"ImageCapture"
+			},
+			{
+				"Cmd": "EvokeExample",
+				"required": {
+					"id": "string",
+					"mouse": {
+						"x": "number",
+						"y": "number"
+					}
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"opts": [
+			{
+				"par": "Server",
+				"Command": [
+					{
+						"Cmd": "Subscribe",
+						"required": {
+							"Pid": "xGraphPid",
+							"Link": "string"
+						}
+					}
+				]
+			},
+			{
+				"par": "Source",
+				"Command": [
+					{
+						"Cmd": "GetData",
+						"required": {
+							"Pid": "xGraphPid",
+							"DataChannels": [
+								{
+									"Channel": "string",
+									"Flow": "string",
+									"Handler": "string"
+								}
+							]
+						}
+					}
+				]
+			},
+			{
+				"par": "Controller",
+				"Command": [
+					{
+						"Cmd": "Register",
+						"required": {
+							"Pid": "xGraphPid"
+						}
+					},
+					{
+						"Cmd": "SaveImage",
+						"required": {
+							"Image": "string",
+							"Name": "string"
+						}
+					}
+				]
+			}
+		]
+	},
+	"par": {
+		"required": {},
+		"opts": {
+			"Server": "xGraphPid",
+			"Controller": "xGraphPid",
+			"EvokeView": "xGraphModuleAddress",
+			"Source": "xGraphPid",
+			"DataChannels": [
+				{
+					"Channel": "string",
+					"Flow": "Push || other",
+					"Handler": "functionstring"
+				}
+			],
+			"Hidden": "boolean",
+			"BackgroundColor": "string"
+		}
+	},
+	"name": "2DView",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"src": "xGraph:Widgets/2DView"
+}

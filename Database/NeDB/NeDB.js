@@ -18,7 +18,9 @@
 			});
 		}
 		/**
-		 * @description com.Document will be inserted in to the database
+		 * @description com.Document will be inserted in to
+		 * the database and be given an _id: string. in the database.
+		 * the id will be added to com.Document 
 		 * @param {object} com
 		 * @param {object} com.Document
 		 * @param {any} fun 
@@ -48,7 +50,6 @@
 				fun(null, com);
 			});
 		}
-
 		/**
 		 * @description Finds and returns all documents matched by
 		 * the com.Where object. If com.Projection is present, only
