@@ -2,12 +2,12 @@
 (
 	/**
 	 * The 3DView entity is the Apex and only entity of the 3DView Module.
-	 * This entity requres its Setup function invoked during the Setup phase of Nexus startup. As well as its
+	 * This entity requres the Setup function invoked during the Setup phase of Nexus startup. As well as its
 	 * Start function invoked during the Start phase of Nexus startup.
 	 * 
 	 * The main capability of this entity is to add and render a Three.js scene on the div provided by 
-	 * the Viewify class (its stored in this.Vlt.div). Currently only Three.js primitives and generative 
-	 * object3D models can be added to the scene/reneered.
+	 * the Viewify class (which is stored in this.Vlt.div). Currently only Three.js primitives and generative 
+	 * object3D models can be added to the scene/rendered.
 	 */
 	function _3DView() {
 
@@ -93,7 +93,7 @@
 					//end TEST
 
 					View.Renderer.render(View.Scene, View.Camera);
-				}, 20);
+				}, 20);  // updates roughly every 20 milliseconds
 
 				fun(null, com);
 			});
@@ -128,7 +128,7 @@
 			//
 			//
 			//
-			//			EXAMPLE CODE FOR ADDING OBJECTS TO WORLD
+			//			START EXAMPLE CODE FOR ADDING OBJECTS TO WORLD
 			//
 			//
 			//
@@ -292,7 +292,7 @@
 					Cmd: "SetDomElement",
 					"DomElement": this.Vlt.div
 				}, pidApex, (err, cmd) => {
-					log.v("GenModed the Mouse and set the DomElement");
+					log.v("GenModded the Mouse and set the DomElement");
 				});
 			});
 			this.super(com, fun);
@@ -327,7 +327,6 @@
 		//  * @param {Function} fun 
 		//  */
 		function Resize(com, fun) {
-			//log.v("--3DView/Resize")
 			this.super(com, (err, cmd) => {
 				let View = this.Vlt.View;
 				View.Renderer.setSize(cmd.width, cmd.height);
@@ -489,7 +488,6 @@
 									var q = {};
 									q.Cmd = 'GetModel';
 									q.Instance = inst.Instance;
-									//debugger;
 									that.send(q, unit.Pid, rply);
 
 									function rply(err, x) {
@@ -629,16 +627,13 @@
 			let info = com.info;
 			let Vlt = this.Vlt;
 			Vlt.Mouse = com.mouse;
-			// log.v(this.Par.Pid.substr(30));
 			var dispatch;
 			if ('Dispatch' in Vlt) {
 				dispatch = Vlt.Dispatch;
 			} else {
-				//log.v('Harvesting for dispatch');
 				Vlt.Dispatch = {};
 				dispatch = Vlt.Dispatch;
 
-				//harvest(Select);
 				harvest(Rotate);
 				harvest(Zoom);
 				harvest(Keyed);
@@ -663,7 +658,6 @@
 			if ('CharKey' in info)
 				key += '.' + info.CharKey;
 			info.Key = key;
-			//log.v(this.Par.View, 'Dispatch', key);
 			if (key in dispatch) {
 				var proc = dispatch[key];
 				proc(info, Vlt);
@@ -677,7 +671,6 @@
 				for (var i = 0; i < q.Keys.length; i++) {
 					var key = q.Keys[i];
 					dispatch[key] = proc;
-					//	log.v('key', key);
 				}
 			}
 		}
@@ -691,8 +684,6 @@
 		//  * @param {Object} Vlt.View
 		//  */
 		function mouseRay(info, Vlt) {
-			//var info = {};
-			//log.v(info.Mouse)
 			let View = Vlt.View;
 			container = Vlt.div;
 			var w = container.width();
@@ -700,20 +691,15 @@
 			var vec = new THREE.Vector2();
 			vec.x = 2 * (info.Mouse.x - container.offset().left) / w - 1;
 			vec.y = 1 - 2 * (info.Mouse.y - container.offset().top) / h;
-			// log.v(vec);
 			View.Ray.setFromCamera(vec, View.Camera);
 			var hits = View.Ray.intersectObjects(View.Scene.children, true);
 			var hit;
 			var obj;
-			log.v('Hits length is', hits);
 			for (var i = 0; i < hits.length; i++) {
 				hit = hits[i];
 				obj = hit.object;
 				var pt;
 				if (obj != null && obj.name) {
-					//log.v('hit', hit);
-					//log.v('mouseRay', data);
-					// debugger;
 					info.obj = {};
 					info.obj.id = obj.name
 					info.obj.responseHandler = Vlt.View.ResponseHandlers[info.obj.id] || undefined;
@@ -738,7 +724,6 @@
 				info.Keys.push('Idle.Wheel');
 				return;
 			}
-			//log.v("Zooooooming");
 			let View = Vlt.View;
 
 			var v = new THREE.Vector3();
@@ -807,7 +792,6 @@
 				dispatch[info.Key]();
 
 			function start() {
-				// log.v('..Rotate/start', info.Key);
 				var mouse = Vlt.Mouse;
 				mouse.Mode = 'Rotate';
 				mouse.x = info.Mouse.x;
@@ -815,7 +799,6 @@
 			}
 
 			function rotate() {
-				// log.v('..Rotate/move', info.Key);
 				var mouse = Vlt.Mouse;
 				var vcam = new THREE.Vector3();
 				vcam.fromArray(View.Camera.position.toArray());
@@ -840,8 +823,6 @@
 			}
 
 			function stop() {
-				// log.v('..Rotate/stop', info.Key);
-				//var Vlt = View;
 				Vlt.Mouse.Mode = 'Idle';
 			}
 		}
