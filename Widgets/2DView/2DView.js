@@ -48,8 +48,8 @@
 				this.Vlt.View.Geometries = {};
 				this.Vlt.View.ResponseHandlers = {};
 				let View = this.Vlt.View;
-
-				View.Renderer = PIXI.autoDetectRenderer(2048, 2048, { "antialias": true });
+				View.Height = View.Width = 2048
+				View.Renderer = PIXI.autoDetectRenderer(View.Height, View.Width, { "antialias": true });
 				div.append($(View.Renderer.view));
 				View.Stage = new PIXI.Container();
 				View.Renderer.backgroundColor = this.Par.BackgroundColor || 0xA2A2A2;
@@ -447,7 +447,7 @@
 			}
 			let View = this.Vlt.View;
 			this.Vlt.WorldPid = com.pid;
-			[com.Width, com.Height] = [View.Width + 1, View.Height + 1];
+			[com.Width, com.Height] = [View.Renderer.width + 1, View.Renderer.height + 1];
 
 			com.canvas = View.Renderer.view;
 			com.Div = this.Par.Pid;
@@ -474,9 +474,11 @@
 			else
 				this.Vlt.Count = 1;
 
+			let View = this.Vlt.View;
+			
 			View.Renderer.render(View.Stage);
 
-			let b64 = this.Vlt.View.Renderer.domElement.toDataURL();
+			let b64 = this.Vlt.View.Renderer.view.toDataURL();
 
 			com.Image = b64;
 			com.Name = this.Vlt.Count;

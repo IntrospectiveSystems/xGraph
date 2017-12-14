@@ -18,9 +18,9 @@
 					"Cmd": "GetData",
 					"DataChannels": [
 						{
-						"Channel": "Data",
-						"Flow": null,
-						"Handler": "xGraphSelfPid"
+							"Channel": "Data",
+							"Flow": null,
+							"Handler": "xGraphSelfPid"
 						}
 					],
 					"Pid": "xGraphSelfPid"
@@ -29,6 +29,26 @@
 			"Document": [
 				"xGraphSelfPid"
 			]
+		},
+		{
+			"Command": {
+				"Cmd": "GetCanvas"
+			},
+			"Response": {
+				"Width": "*",
+				"Height": "*",
+				"canvas": "*",
+				"Div": "xGraphSelfPid"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "ImageCapture"
+			},
+			"Response": {
+				"Image": "*",
+				"Name": "*"
+			}
 		}
 	]
 }
