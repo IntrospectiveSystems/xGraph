@@ -93,8 +93,6 @@
 					}
 				}
 
-				//debugger;
-				//alert(JSON.stringify(par, null, 2));
 				this.genModule(par, (err, pid) => {
 					this.send({Cmd:"AddView", View: pid}, this.Par.Pid, (err, cmd)=>{
 						this.send({Cmd: 'Resize'}, pid, (err, cmd) => {

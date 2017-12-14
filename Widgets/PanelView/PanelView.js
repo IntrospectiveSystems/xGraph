@@ -308,6 +308,12 @@
 			// if (con.Vlt.dragging) con.Vlt.divider.css('background-color', 'var(--accent-color)');
 		}
 
+		/**
+		 * @description change the hover state of the divider
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof Panel
+		 */
 		hoverChange(com, fun) {
 			// console.log('okay:', con.Vlt.hover);
 			// debugger;
