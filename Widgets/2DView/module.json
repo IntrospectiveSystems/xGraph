@@ -8,7 +8,7 @@
 				"Cmd": "Start"
 			}
 		],
-		"opts": [
+		"optional": [
 			{
 				"Cmd": "DrawObjects",
 				"required": {
@@ -35,7 +35,7 @@
 	},
 	"output": {
 		"required": [],
-		"opts": [
+		"optional": [
 			{
 				"par": "Server",
 				"Command": [
@@ -88,7 +88,7 @@
 	},
 	"par": {
 		"required": {},
-		"opts": {
+		"optional": {
 			"Server": "xGraphPid",
 			"Controller": "xGraphPid",
 			"EvokeView": "xGraphModuleAddress",

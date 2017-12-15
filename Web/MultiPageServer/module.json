@@ -1,15 +1,15 @@
 {
   "input": {
     "required":[],
-    "opts":[]
+    "optional":[]
   },
   "output":{
     "required":[{"par":"Apex"}],
-    "opts":[{"par":"Login","cmd":["GenPage"]}]
+    "optional":[{"par":"Login","cmd":["GenPage"]}]
   },
   "par": {
     "required":["Apex","Url"],
-    "opts":["Port","Login"]
+    "optional":["Port","Login"]
   },
   "name": "Server",
   "icon": "icon.png",

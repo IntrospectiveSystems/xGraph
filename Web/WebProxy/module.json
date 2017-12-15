@@ -1,15 +1,15 @@
 {
   "input": {
     "required":[],
-    "opts":[]
+    "optional":[]
   },
   "output":{
     "required":[],
-    "opts":[]
+    "optional":[]
   },
   "par": {
     "required":[],
-    "opts":[]
+    "optional":[]
   },
   "name": "WebProxy",
   "icon": null,
