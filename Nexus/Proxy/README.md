@@ -20,13 +20,13 @@ Server | Role, Link, Port
 
 ### Parameters
 
-`Role:` _String_ - Set to either 'Client' or 'Server'. Determines the Proxy's operation mode.
+**Role**: _String_ - Set to either 'Client' or 'Server'. Determines the Proxy's operation mode.
 
-`Host:` _String_ - Set to the URL of the server the Proxy will connect to.
+**Host**: _String_ - Set to the URL of the server the Proxy will connect to.
 
-`Port:` _Integer_ - Set to the port to open as a server, or the port to connect to as a client.
+**Port**: _Integer_ - Set to the port to open as a server, or the port to connect to as a client.
 
-`Link:` _String_ - Used in Server mode to route incoming commands received over the TCP connection to another module in the system.
+**Link**: _String_ - Used in Server mode to route incoming commands received over the TCP connection to another module in the system.
 
 ### Input Commands
 
