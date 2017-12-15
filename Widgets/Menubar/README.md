@@ -2,7 +2,7 @@
 
 Version 1.0.0
 
-Marcus Gosselin, Introspective Systems LLC.
+Introspective Systems, LLC.
 
 ---
 
