@@ -209,7 +209,7 @@
 							if(isQuery) {
 								r.Passport.Reply = true;
 								str = JSON.stringify(r);
-								let msg = Vlt_Role.STX + str + Vlt.ETX;
+								let msg = Vlt.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
 							}
 						}
