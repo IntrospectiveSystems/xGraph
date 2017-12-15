@@ -2,11 +2,11 @@
 
 Version 1.0.0
 
-Marcus Gosselin, Introspective Systems LLC.
+Introspective Systems, LLC.
 
 ---
 
-This module is a wrapper for the npm package NeDB, located [here](https://github.com/louischatriot/nedb).
+This module is a wrapper for the npm package [NeDB](https://github.com/louischatriot/nedb).
 
 ## `Par` Configuration
 
