@@ -15,7 +15,7 @@
 
 	/**
 	 * Any message received by this ServerProxy Module will immediately be sent to the WebViewer Module 
-	 * and forwarded to any subscribed browsers-side modules listening on that link.
+	 * and forwarded to any subscribed browser-side modules listening on that link.
 	 * @param {Object} com   message object
 	 * @param {Function=} fun   callback
 	 */
