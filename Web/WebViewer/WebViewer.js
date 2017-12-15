@@ -30,7 +30,7 @@
 		 * @return {com}
 		 */
 		function Setup(com, fun) {
-			log.v('--Http/Setup');
+			log.v('--WebViewer/Setup');
 			var that = this;
 			var http = this.require('http');
 			var sockio = this.require('socket.io');
