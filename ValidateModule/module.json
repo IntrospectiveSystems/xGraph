@@ -5,18 +5,18 @@
 				"Cmd": "Start"
 			}
 		],
-		"opts": []
+		"optional": []
 	},
 	"output": {
 		"required": [],
-		"opts": []
+		"optional": []
 	},
 	"par": {
 		"required": {
 			"TestModule": "xGraphModuleAddress",
 			"TestJson": "string"
 		},
-		"opts": {}
+		"optional": {}
 	},
 	"name": "Validate",
 	"icon": null,

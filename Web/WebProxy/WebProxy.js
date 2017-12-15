@@ -1,5 +1,11 @@
 //# sourceURL=WebProxy
-(function WebProxy() {
+(
+	/**
+	 * The WebProxy Entity is the Apex and only Entity of the WebProxy Module.
+	 * 
+	 * This Module should be deployed browser-side and is used to communicate with Modules on the server. 
+	 */
+	function WebProxy() {
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
@@ -8,13 +14,15 @@
 
 	return { dispatch };
 
-
-	//-------------------------------------------------------Publish
-	// This is called when message needs to be sent to all
-	// browsers that have subscribed
-	function Publish(com, fun) {
+	/**
+	 * Any message received by this WebProxy Module will immediately be sent to the WebViewer Module 
+	 * and forwarded to any subscribed server-side modules listening on that link.
+	 * @param {Object} com   message object
+	 * @param {Function=} fun   callback
+	 */
+	function Publish(com, fun = _=>_) {
 		let that = this;
-		log.v(`Publishing from ${this.Par.Link} webProxy: ${JSON.stringify(com, null, 2)}`);
+		log.v(`Publishing from ${this.Par.Link} WebProxy: ${com.Cmd}`);
 
 		//set the destination on the server side
 		com.Passport.To = this.Par.Link;
@@ -22,7 +30,6 @@
 		this.Par.sendSock(com, async (err, com) => {
 
 			if(com.PidInterchange) {
-				// log.d('read pid interchange!');
 				com = await recurse(com);
 
 				async function recurse(obj) {

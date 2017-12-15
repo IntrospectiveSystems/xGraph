@@ -20,7 +20,8 @@ Parameters are defined in the module definition and stored in the Par attribute
 of the Entities this attribute.
 The Parameters that Mouse expects to be defined include.
 
-One Pars must be set in the module definition. 
+One Par must be set in the module definition. 
+
 `{"Handler" : "xGraphPid"}`  - where xGraphPid shall be replaced by the pid of the View Module that is the destination of Mouse module DispatchEvent commands.
 
 An example of how this looks in the module definition of a config.json
@@ -37,12 +38,12 @@ An example of how this looks in the module definition of a config.json
 
 ### Output Commands
 
-The Output Commands are all the command that Mouse can send to
+The Output Commands are all the commands that Mouse can send to
 other modules.
 
-The only message sent form the Mouse module is to Par.Handler and is of the form:
+The only message sent from the Mouse module is to Par.Handler and is of the form:
 
-`{ Cmd: "DispatchEvent", info: "Object , mouse: "Object }` -- where info is set as the info about the event (ex. LeftMouseDown), and mouse is set to the current state of the mouse (ex. Mode:"idle", inPanel: true). 
+`{ Cmd: "DispatchEvent", info: "Object , mouse: "Object }` -- where info is set as the information about the event (ex. LeftMouseDown), and mouse is set to the current state of the mouse (ex. Mode:"idle", inPanel: true). 
 
 ---
 
