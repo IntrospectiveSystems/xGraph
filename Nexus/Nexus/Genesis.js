@@ -780,6 +780,7 @@
 			return ents;
 
 			async function symbol(val) {
+				log.d(val);
 				if (typeof val === 'object') {
 					if (Array.isArray(val)) {
 						val = await Promise.all(val.map(v => symbol(v)));
