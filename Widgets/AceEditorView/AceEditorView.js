@@ -24,7 +24,7 @@
 	 */
 	function Setup(com, fun) {
 		log.v("-Ace/Setup");
-		//we hoist the setup command to View.js in the viewif script.
+		//we hoist the setup command to View.js in the viewify script.
 		this.super(com, (err, cmd) => {
 
 			this.Vlt.editor = ace.edit(this.Vlt.div[0]);
@@ -70,7 +70,7 @@
 	 * Provides access to the Ace API, currently only access to the editor session is available and thus 
 	 * only methods and attributes of the "EditSession" are available. 
 	 * @param {Object} com 
-	 * @param {String} com.Cmd 	the command we're hoping to try and call in the Ace API
+	 * @param {String} com.Cmd 	the command we're calling in the Ace API
 	 * @param {Function=} fun 
 	 */
 	function APILookup(com, fun = _ => _) {

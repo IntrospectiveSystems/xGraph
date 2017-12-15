@@ -18,12 +18,13 @@ The main capability of this entity is to add and render an Ace Editor Session to
 
 Parameters are defined in the module definition and stored in the Par attribute 
 of the Entities this attribute.
-Some are required, while some are optional. Below, the Parameters
+Some are required, while some are optional. Below are the Parameters
 that AceEditorView expects to be defined.
 
-Three Pars can be set in the module definition, but they are all optional. 
-"Controller": "xGraphPid"  - where xGraphPid should be replaced by the pid of the Module acting as this Modules controller. 
-"EvokeView": "xGraphModuleAddress"  - where xGraphModuleAddress should be replaced by the address of the view that should be popped up when evoked. 
+Two Pars can be set in the module definition, but they are all optional. 
+
+- `"Controller": "xGraphPid"`  - where xGraphPid should be replaced by the pid of the Module acting as this Modules controller. 
+- `"EvokeView": "xGraphModuleAddress"`  - where xGraphModuleAddress should be replaced by the address of the view that should be popped up when evoked. 
 
 An example of how this looks in the module definition of a config.json
 ``` json
@@ -43,24 +44,32 @@ An example of how this looks in the module definition of a config.json
 
 ### Output Commands
 
-The Output Commands are all the command that AceEditorView can send to other modules.
+The Output Commands are all the commands that AceEditorView can send to other modules.
 
-If included in the Par, the AceEditorView will send 2 functions to the Par.Controller module:
+If included in the Par, the AceEditorView will send two functions to the Par.Controller module:
 
 `{"Cmd":"Save", "Data":"String"}` - where Data is the string of the text.
 
 ---
 
 ### Input Commands
-The Input Commands are all the commands that AceEditorView can
-receive.
+The Input Commands are all the commands that AceEditorView can receive.
 
-Utilizing the Ace API
-Example: 
+Utilizing the [Ace API](https://ace.c9.io/#about=&nav=api)
 
+Examples: 
+
+Returns the string of text currently highlighted.
+```json
+{
+  "Cmd":"getCopyText"
+}
+```
+
+Sets the current document text to `value` at `cursorPos`
 ```json
 { 
   "Cmd": "setValue", 
-  "Arguments": ["function arguments"] }
+  "Arguments": ["value", cursorPos] }
 ```
 
