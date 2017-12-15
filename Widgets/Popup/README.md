@@ -2,13 +2,13 @@
 
 Version 1.0.0
 
-Marcus Gosselin, Introspective Systems LLC.
+Introspective Systems, LLC.
 
 ---
 
 ## Getting Started
 
-`View` is the only required Parameter, a [Module Address](#). It will define the Module to generate and show inside the popup.
+`View` is the only required Parameter, and is a Module Address. It will define the Module to generate and show inside the popup.
 
 Example
 
