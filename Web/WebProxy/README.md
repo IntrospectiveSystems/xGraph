@@ -20,7 +20,7 @@ This Module should be deployed browser-side and is used to communicate with Modu
 Parameters are defined in the module definition and stored in the Par attribute 
 of the Entity's _this_ attribute.
 
-One Pars must be set in the module definition, and it is required. 
+One Par must be set in the module definition, and it is required. 
 
 - `{"Link" : "string"}`  - where string is to be replaced with the name of the module this WebProxy is
 proxying. This string must match the key in the ApexList of the WebViewer module.

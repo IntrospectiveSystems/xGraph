@@ -8,12 +8,14 @@
     "optional":[]
   },
   "par": {
-    "required":[],
+    "required":{
+      "Link": "string"
+    },
     "optional":[]
   },
   "name": "ServerProxy",
   "icon": null,
   "doc": null,
-  "info":{"author":"TrevrGionet"},
+  "info":{"author":"Introspective Systems, LLC."},
   "src": "xGraph:Web/ServerProxy"
 }
