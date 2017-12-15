@@ -1,7 +1,11 @@
 {
-  "name": "nedb",
-  "version": "0.0.1",
+  "name": "NeDB",
+  "version": "1.0.0",
+  "description": "xGraph's NeDB wrapper",
+  "main": "NeDB.js",
+  "author": "Introspective Systems, LLC.",
+  "license": "ISC",
   "dependencies": {
-    "nedb": "*"
+    "nedb": "1.8.0"
   }
 }

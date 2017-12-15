@@ -122,20 +122,57 @@ async function generate(args) {
 
 function help() {
 	console.log(`
-xGraph ${version}
-Introspective Systems LLC
-Commands:
-help: displays this help screen.
-execute: Starts a system from cache or config if cache does not exist.
-\x20\x20\x20Example: xgraph execute --config config.json
-\x20\x20\x20\x20\x20\x20\x20\x20xgraph execute --cache cache/
-reset: Starts a system from config, removing the cache.
-deploy: Starts a system from an existing cache.
-compile: Generates a cache from a config.
-generate <module|system>: Generates a template xGraph module|system with 
-\x20\x20\x20\x20\x20the given name. 
-\x20\x20\x20Example: xgraph generate module MyFirstModule
-`);
+		xGraph ${version}
+		Introspective Systems LLC
+		
+		Compile and Run xGraph systems with a few simple commands.
+		
+		Unless otherwise specified, commands will look in the current working
+		directory for a config.json file or cache directory, depending on the
+		command.
+		
+		If the system includes local module sources, these must be listed after
+		the command and options, [--source directory ...].
+		
+		xGraph
+		
+		Usage: xgraph [command] [options] [--source directory ...]
+		
+		Command:
+		\thelp \t\th \t\t\t: Displays this help screen.
+        \tcompile \tc \t\t\t: Generates a cache from a system
+        					\t\t\t\t\t\t\tstructure file.
+        \n
+        \tdeploy \t\td \t\t\t: Run a system from it's cache.
+    	\treset \t\tr \t\t\t: Run a system from system structure
+        					\t\t\t\t\t\t\tfile, resetting the system's cache.
+		\tgenerate <module|system> \tg <m|s> : Generate a new module or system
+							\t\t\t\t\t\t\tfrom a template with the given
+							\t\t\t\t\t\t\tname.
+		\n
+	    \texecute \tx run \t\t\t: Run a system from it's cache, or
+          					\t\t\t\t\t\t\tit's system structure file if
+                            \t\t\t\t\t\t\tthe cache does not exist.
+		\n
+		Options:
+    	\t--cwd \t\t\t\t\t: Sets the current working directory
+                            \t\t\t\t\t\t\tfor the command.
+    	\t--config \t\t\t\t: Specifies a system's structure file.
+		\t--cache \t\t\t\t: Specifies a system's cache directory.
+		\n 
+		Examples:
+		\tCompile the system in the current directory.
+			\t\txgraph compile
+		\n
+		\tDeploy a module from a system structure file.
+			\t\txgraph deploy --config .\\ExampleSystems\\HelloWorld\\config.json
+		\n	
+		\tReset a system in a different working directory with an external source.
+			\t\txgraph reset --cwd .\\MultipleSystemsTemplate\\Systems\\Plexus\\ --xGraph ..\\xGraph --xGraphTemplates ..\\..\\xGraphTemplates
+		\n
+		\tGenerate a new module called MyFirstModule.
+			\txgraph generate module MyFirstModule
+	`);
 }
 
 async function reset() {
@@ -439,7 +476,6 @@ function initSystem(names) {
 			try {
 				fs.mkdirSync(systemDir);
 			} catch (e) {
-				console.error(e);
 				console.log(`${systemDir} directory already exists`);
 			}
 		}
@@ -447,8 +483,7 @@ function initSystem(names) {
 		try {
 			fs.mkdirSync(systemPath);
 		} catch (e) {
-			console.error(e);
-			console.log(`${systemPath} directory already exists`);
+			console.log(`The system already exists: ${systemPath}`);
 		}
 
 		fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
@@ -476,7 +511,6 @@ function initModule(names) {
 			try {
 				fs.mkdirSync(moduleDir);
 			} catch (e) {
-				console.error(e);
 				console.log(`${moduleDir} directory already exists`);
 			}
 		}
@@ -485,7 +519,7 @@ function initModule(names) {
 			fs.mkdirSync(modulePath);
 		} catch (e) {
 			console.error(e);
-			console.log(`${modulePath} directory already exists`);
+			console.log(`The module already exists: ${modulePath}`);
 		}
 
 		let jsTemplate =
@@ -512,31 +546,59 @@ function initModule(names) {
 		Schema.Apex.Entity = `${name}.js`
 
 		let moduleJson = {
+			"name": "",
+			"version": "",
+			"info": {
+				"author": ""
+			},
+			"doc": "README.md",
 			"input": {
-				"required": [
+				"required":[
 					{
-						"Cmd": "Setup"
-					},
-					{
-						"Cmd": "Start"
+						"Cmd": "",
+						"required": {
+						},
+						"optional": {
+						}
 					}
 				],
-				"opts": []
+				"optional":[
+					{
+						"Cmd": "",
+						"required": {
+						},
+						"optional": {
+						}
+					}
+				]
 			},
-			"output": {
-				"required": [],
-				"opts": []
+			"output":{
+				"required":[
+					{
+						"par":"",
+						"Cmd": "",
+						"required": {
+						},
+						"optional": {
+						}
+					}
+				],
+				"optional":[
+					{
+						"par":"",
+						"Cmd": "",
+						"required": {
+						},
+						"optional": {
+						}
+					}
+				]
 			},
 			"par": {
-				"required": [],
-				"opts": []
-			},
-			"name": name,
-			"icon": null,
-			"doc": null,
-			"info": { "author": "NEMO" },
-			"src": modulePath
-		}
+				"required": {},
+				"optional": {}
+			}
+		};
 
 		fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
 		fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);

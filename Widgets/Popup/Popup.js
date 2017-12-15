@@ -68,7 +68,6 @@
 				this.Vlt.closeButton.css('background-color', 'var(--accent-error)');
 				
 				this.Vlt.closeButton.on("click", () => {
-					// debugger;
 					this.send({Cmd:"Destroy"}, this.Par.Pid, (err, cmd)=>{});
 				});
 
@@ -80,8 +79,7 @@
 				let par = {
 					Module: this.Par.View
 				};
-				// aight, lemme 'splain
-				// this.par is the par that you gen'd
+				// this.par is the par that you genenerated
 				// this module with. this.Par.Par is the
 				// pars to pass to the module we're 
 				// generating.
@@ -118,8 +116,6 @@
 				await this.ascend('Destroy');
 				return fun(null, com);
 			}
-
-			// debugger;
 
 			this.Vlt.contentDiv.children().detach();
 			this.Vlt.contentDiv.append(this.Vlt.viewDivs[0]);
