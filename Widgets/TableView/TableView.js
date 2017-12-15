@@ -180,7 +180,6 @@
 		}
 
 		Render(com, fun) {
-			debugger;
 			if(this.Vlt.div.children().length == 0) {
 				this.Vlt.table.append(this.Vlt.tablehead);
 				this.Vlt.table.append(this.Vlt.tablebody);
