@@ -2,27 +2,29 @@
 	"name": "TableView",
 	"version": "1.0.0",
 	"info": {
-		"authors": [
-			{
-				"Name": "Marcus Gosselin",
-				"Company": "Introspective Systems LLC"
-			}
-		]
+		"author": "Inrtospective Systems LLC"
 	},
 	"doc": "README.md",
 	"input": {
 		"optional": []
 	},
 	"output": {
-		"optional": {
-			
-		}
+		"required": [
+			{
+				"Cmd": "GetData",
+				"required": {
+					"Data": "array"
+				}
+			}
+		]
 	},
 	"par": {
-		"required": [],
+		"required": {
+			"Source": "xGraphPid",
+			"Columns": "array"
+		},
 		"optional": {
-			"Ratio": "number",
-			"Horizontal": "boolean"
+			"Evoke": "string"
 		}
 	}
 }

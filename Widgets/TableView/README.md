@@ -8,65 +8,76 @@ Marcus Gosselin, Introspective Systems LLC.
 
 ## Getting Started
 
-The Most Basic Panel Require no Pars. by default it will fill the space proveided by its parent, split it in half veritcally (one panel on the left, one on the right), and place its first two children inside the panels.
+TableView is a module for creating a sortable HTML Table.
+
+To show data, the TableView needs at least 2 Pars, `Source` and `Columns`.
+
+`Source` is the module that TableView will send `GetData` to, to obtain the data that will go in the rows.
+
+`Columns` is an array of objects of `Name` and `Key` values that tell the table what columns it should be pulling out of the response from `Source`. `Key` is the name of the Data in com, and `Name` is the name to be shown in the table headers.
 
 Example
 
 ``` json
 {
-    "RootView": {
-        "Module": "xGraph.Widgets.RootView",
-        "Par": {
-            "Layout": {
-                "View": "$Panel",
-                "Children": [
-                    "$EditorLeft",
-                    "$EditorRight"
-                ]
+    "Module": "xGraph.Widgets.TableView",
+    "Par": {
+        "Source": "$Tickets",
+        "Columns": [
+            {
+                "Name": "#",
+                "Key": "Pid"
+            },
+            {
+                "Name": "Summary",
+                "Key": "Summary"
+            },
+            {
+                "Name": "Priority",
+                "Key": "Priority"
+            },
+            {
+                "Name": "Severity",
+                "Key": "Severity"
             }
-        }
-    },
-    "Menubar": {
-        "Module": "xGraph.Widgets.PanelView",
-        "Par": {}
-    },
-    "EditorLeft": {
-        "Module": "xGraph.Widgets.AceEditorView",
-        "Par": {}
-    },
-    "EditorRight": {
-        "Module": "xGraph.Widgets.AceEditorView",
-        "Par": {}
+        ]
     }
 }
 ```
 
-## Panel Sizing
+## Evoke
 
-To change the sizes of the panels There is a parameter called Ratio. Itt is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
+If your rows are references to modules in the system, you can use the `Evoke` Par. When set, it will add a column to the right, and each row will have its Value. So if the Evoke was to View that module, you would set `"Evoke": "View"`. 
 
-For example, if you wanted the left panel to be a third of the overall space, you would set `"Ratio": 0.33`
+Note: this will only work if the Data you are requesting from `Source` returns a `Pid` for each row.
 
 Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.PanelView",
+    "Module": "xGraph.Widgets.TableView",
     "Par": {
-      "Ratio": 0.33
+        "Source": "$Tickets",
+        "Evoke": "View",
+        "Columns": [
+            {
+                "Name": "#",
+                "Key": "Pid"
+            },
+            {
+                "Name": "Summary",
+                "Key": "Summary"
+            },
+            {
+                "Name": "Priority",
+                "Key": "Priority"
+            },
+            {
+                "Name": "Severity",
+                "Key": "Severity"
+            }
+        ]
     }
 }
 ```
 
-## Flow Direction
-
-To change the flow from Left to Right to Top to Bottom, set `"Horizontal": true`. The Parameter references the direction of the dividing line between the panels. Vertical line: Left to right. Horizontal Line: Top to Bottom.
-
-``` json
-{
-    "Module": "xGraph.Widgets.PanelView",
-    "Par": {
-      "Horintal": true
-    }
-}
-```
