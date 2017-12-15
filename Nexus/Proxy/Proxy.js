@@ -1,7 +1,6 @@
-//# sourceURL='Proxy.js'
 (function Proxy() {
 
-	//-----------------------------------------------------dispatch
+
 	var dispatch = {
 		Setup: Setup,
 		Start: Start,
@@ -12,14 +11,19 @@
 		dispatch: dispatch
 	};
 
-	//-----------------------------------------------------Setup
+
+	/**
+	 * Determines which role Proxy is operating as (Client or Server). Role defined in Par.Role
+	 * Starts Server or connects to defined external server as set in Par.
+	 * @param {Object} com
+	 * @param {function} fun Must be returned
+	 */
 	function Setup(com, fun) {
 		var Par = this.Par;
 		if((Par.Chan == 'Plexus')||(!("Plexus" in Par))) {
-			console.log('--Proxy/Setup ', this.Par.Pid);
+			log.i('--Proxy/Setup ', this.Par.Pid);
 			if ("Plexus" in Par)
-				console.log("--     Proxy-Chan", (Par.Chan));
-			//console.log('Par', JSON.stringify(Par, null, 2));
+				log.i("--     Proxy-Chan", (Par.Chan));
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -28,7 +32,8 @@
 				genClient.call(this, fun);
 				return;
 			default: 
-				let err= ""+Par.Role+ " is not an acceptible Role"
+				let err= ""+Par.Role+ " is not an acceptable Role";
+				log.w('ERR:Proxy:Setup: ', err);
 				if(fun)
 					fun(err, com);
 				return;
@@ -38,13 +43,18 @@
 			fun(null, com);
 	}
 
-	//-----------------------------------------------------Start
+
+	/**
+	 * Determines which role Proxy is operating as (Client or Server). Role defined in Par.Role
+	 * Starts Server or connects to defined external server as set in Par.
+	 * @param {Object} com
+	 * @param {function} fun Must be returned
+	 */
 	function Start(com, fun) {
 		var Par = this.Par;
 		if(Par.Chan != 'Plexus'&& "Plexus" in Par) {
-			console.log('--Proxy/Start', this.Par.Pid);
-			console.log("--     Proxy-Chan", (Par.Chan));
-			//console.log('Par', JSON.stringify(Par, null, 2));
+			log.i('--Proxy/Start', this.Par.Pid);
+			log.i("--     Proxy-Chan", (Par.Chan));
 			switch(Par.Role) {
 			case 'Server':
 				genServer.call(this, fun);
@@ -53,7 +63,8 @@
 				genClient.call(this, fun);
 				return;
 			default: 
-				let err= ""+Par.Role+ " is not an acceptible Role"
+				let err= ""+Par.Role+ " is not an acceptable Role";
+				log.w('ERR:Proxy:Start: ', err);
 				if(fun)
 					fun(err, com);
 				return;
@@ -63,20 +74,21 @@
 			fun(null, com);
 	}
 
-	//-----------------------------------------------------genServer
+
+	/**
+	 * Run at Setup/Start if Proxy role is set to Server
+	 * Creates an open TCP port defined by Par.Port and routes commands received to Module set in Par.Link
+	 * @param {function} fun
+	 */
 	function genServer(fun) {
-		//console.log('--genServer');
 		var that = this;
 		var Par = this.Par;
 		var Vlt = this.Vlt;
-		//console.log('Par', JSON.stringify(Par, null, 2));
 		var err;
 
 		if ("Plexus" in Par){
 			if(!('Chan' in Par))
 				err = 'No Chan in Par';
-			// if(!('Plexus' in Par))
-			// 	err = 'No Plexus in Par';
 			if(!('Link' in Par))
 				err = 'No Link in Par';
 			if(err) {
@@ -109,12 +121,12 @@
 
 		function connect(err, r) {
 			if(err) {
-				console.log(' ** ERR:' + err);
+				log.w('ERR:Proxy:genServer: ' + err);
 				if (fun)
 					fun(err);
 				return;
 			}
-			console.log('..connect', r);
+			log.i('..connect', r);
 			var net = that.require('net');
 			var err;
 			var tmp = new Buffer(2);
@@ -123,30 +135,28 @@
 			tmp[0] = 2;
 			tmp[1] = 3;
 			var str = tmp.toString();
+
 			Vlt.STX = str.charAt(0);
 			Vlt.ETX = str.charAt(1);
 			Vlt.Buf = '';
 			Vlt.State = 0;
 			Vlt.Subscribed = false;
-			var Msg;
 			var port = r.Port;
 			Vlt.Server = true;
 			Vlt.Socks = [];
+
 			net.createServer(function(sock) {
-				console.log('#### Portal connection from',
+				log.i('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
-				Vlt.Socks.push(sock);
+				Vlt.Socks.push(sock);console.log
 				sock._userData = {};
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
 
-				// var msg = Vlt.STX + JSON.stringify({Cmd:"SomethingCool",Passport:{}}) + Vlt.ETX;
-				// sock.write(msg);
-
 				sock.on('error', (err) => {
-					console.log(' ** ERR2:' + err);
+					log.w('ERR:Proxy:genServer:' + err);
 					if ("Chan" in Par)
-						console.log('    Proxy:' + Par.Chan);
+						log.w('		Proxy:Chan' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -171,7 +181,6 @@
 								break;
 							case 1:
 								i2 = i;
-								let str = data.toString();
 								if(data[i] == ETX) {
 									Buf += data.toString('utf8', i1, i2);
 									var obj = JSON.parse(Buf);
@@ -182,7 +191,7 @@
 						}
 					}
 					if(State == 1)
-						Buf += data.toString('utf8', i1, i2+1);
+						Buf += data.toString('utf8', i1, i2+1); // Unused
 					sock._userData.State = State;
 					loop();
 
@@ -200,37 +209,40 @@
 							if(isQuery) {
 								r.Passport.Reply = true;
 								str = JSON.stringify(r);
-								let msg = Vlt.STX + str + Vlt.ETX;
+								let msg = Vlt_Role.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
 							}
 						}
 					}
 				});
 			}).listen(port);
-			console.log('Portal listening on port', port);
+			log.i('Portal listening on port', port);
 			if(fun)
 				fun();
 		}
 	}
 
-	//-----------------------------------------------------genClient
+
+	/**
+	 * Run at Setup/Start if Proxy role is set to Client
+	 * Creates a TCP socket connection to a host defined in Par.Host and Par.Port
+	 * @param {function} fun
+	 */
 	function genClient(fun) {
-		//console.log('--genClient');
-		var that = this;
-		var Par = this.Par;
-		var Vlt = this.Vlt;
-		//console.log('Par', JSON.stringify(Par, null, 2));
+		let that = this;
+		let Par = this.Par;
+		let Vlt = this.Vlt;
 		var err;
 		if ("Plexus" in Par){
 			if(!('Chan' in Par))
 				err = 'No Chan in Par';
 			if(err) {
-				console.log("ERROR in PROXY genClient"+err);
+				log.w("ERR:Proxy:genClient: "+err);
 				if(fun)
 					fun(err);
 				return;
 			}
-			var q = {};
+			let q = {};
 			q.Cmd = 'Subscribe';
 			if('Name' in Par)
 				q.Name = Par.Name;
@@ -250,7 +262,7 @@
 			if(!('Host' in Par))
 				err = 'No Host in Par';
 			if(err) {
-				console.log("ERROR in PROXY genClient"+err);
+				log.w("ERR:Proxy:genClient: "+err);
 				if(fun)
 					fun(err);
 				return;
@@ -264,8 +276,8 @@
 
 		function connect(err, r) {
 			if(err) {
-				console.log(' ** ERR:' + err);
-				console.log('    Proxy:' + Par.Chan);
+				log.w('ERR:Proxy:genClient: ' + err);
+				log.w('    Proxy:' + Par.Chan);
 				if(fun)
 					fun(err);
 				return;
@@ -273,31 +285,31 @@
 			var net = that.require('net');
 			var err;
 			var tmp = new Buffer(2);
-			var STX = 2;
-			var ETX = 3;
 			tmp[0] = 2;
 			tmp[1] = 3;
 			var str = tmp.toString();
+
 			Vlt.STX = str.charAt(0);
 			Vlt.ETX = str.charAt(1);
 			Vlt.Buf = '';
 			Vlt.State = 0;
 			Vlt.Subscribed = false;
-			var Msg;
 			var port = r.Port;
 			var host = r.Host;
 			var sock = new net.Socket();
 			Vlt.Server = false;
+
 			connectLoop();
+
 			function connectLoop(){
 				sock.removeAllListeners();
-				sock.connect(port, host, function () {console.log("trying to connect")});
+				sock.connect(port, host, function () {log.i("Proxy:: trying to connect")});
 
 				sock.on('connect', function () {
 					if ("Chan" in Par){
-						console.log('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+						log.i('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
 					}else{
-						console.log('Proxy - Connected to server on host:' + host + ', port:' + port);
+						log.i('Proxy - Connected to server on host:' + host + ', port:' + port);
 					}
 					Vlt.Sock = sock;
 					if (!("Replied" in Vlt)||Vlt.Replied ==false){
@@ -308,12 +320,11 @@
 				});
 
 				sock.on('error', (err) => {
-					console.log(' ** ERR3:' + err);
+					log.w('ERR:Proxy:genClient: ' + err);
 					if ("Chan" in Par)
-						console.log('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
 					if (Par.Poll){
 						if (!("Timer" in Vlt) && "Timeout" in Par){
-							//console.log("\n\n setting timer for timeout \n\n");
 							Vlt.Timer = setTimeout(()=>{
 								log.e("Error: Proxy "+Par.Pid+ " connection timeout. Last Attempt.");
 								Par.Poll = false;
@@ -323,7 +334,6 @@
 						if ("Sock" in Vlt)
 							delete Vlt["Sock"];
 						setTimeout(connectLoop,3000);
-						//Vlt.Polling = true;
 						if (!("Replied" in Vlt)||Vlt.Replied ==false){
 							Vlt.Replied = true;
 							if(fun)
@@ -340,7 +350,7 @@
 				});
 
 				sock.on('disconnect', (err) => {
-					console.log(' ** Socket disconnected:' + err);
+					log.i(' ** Socket disconnected:' + err);
 					
 					if (Par.Poll){
 						if ("Sock" in Vlt)
@@ -348,12 +358,6 @@
 						setTimeout(connectLoop,3000);
 						
 					}else{
-
-
-						//this code needs to be worked on... 
-						//not sure what happens on disconnected
-
-
 						//Return a hard fail. Should be only called once.
 						if (!("Replied" in Vlt)||Vlt.Replied ==false){
 							Vlt.Replied = true;
@@ -397,16 +401,14 @@
 						default:
 							Vlt.Buf += data.toString('utf8', i1, i2);
 							Vlt.State = 0;
-							var com = JSON.parse(Vlt.Buf);
+							let com = JSON.parse(Vlt.Buf);
 							if('Reply' in com.Passport) {
 								if(Vlt.Fun[com.Passport.Pid])
 									Vlt.Fun[com.Passport.Pid](null, com);
 							} else {
-								//console.log('**Proxy/client', Par.Link, JSON.stringify(com, null, 2));
 
-
-								//do we really want links in clients?
 								that.send(com, Par.Link);
+
 							}
 							break;
 					}
@@ -418,11 +420,14 @@
 
 
 	//-----------------------------------------------------Proxy
+	/**
+	 * Routes messages to their intended destination based on how the Proxy has been setup.
+	 * @param {Object} com Command to be sent through Proxy
+	 * @param {function} fun Callback function returned after command is received and processed at it's destination.
+	 */
 	function Proxy(com, fun) {
 		let that = this;
-		//console.log('--Proxy/Proxy', com.Cmd);
 		var Par = this.Par;
-		//console.log('  Name:' + Par.Name, 'Chan:' + Par.Chan);
 		var Vlt = this.Vlt;
 		if('Role' in Par) {
 			switch(Par.Role) {
@@ -433,21 +438,21 @@
 					server();
 					break;
 				default:
-					console.log('Par', JSON.stringify(Par, null, 2));
+					log.i('Par', JSON.stringify(Par, null, 2));
 					var err = 'Proxy role is unknown';
-					console.log(' ** ERR:' + err);
+					log.w('ERR:Proxy:Proxy: ' + err);
 					if ("Chan" in Par)
-						console.log('    Proxy:' + Par.Chan);
+						log.w('    Proxy:' + Par.Chan);
 					if(fun)
 						fun(err);
 					return;
 			}
 		} else {
-			console.log('Par', JSON.stringify(Par, null, 2));
+			log.i('Par', JSON.stringify(Par, null, 2));
 			var err = 'Proxy has no role';
-			console.log(' ** ERR:' + err);
+			log.w('ERR:Proxy:Proxy' + err);
 			if ("Chan" in Par)
-				console.log('    Proxy:' + Par.Chan);
+				log.w('    Proxy:' + Par.Chan);
 			if(fun)
 				fun(err);
 		}
@@ -473,14 +478,10 @@
 		}
 
 		function client() {
-			var STX = 2;
-			var ETX = 3;
 			var sock = Vlt.Sock;
 			if(!sock) {
 				log.v('No Socket');
 				//we are purposely withholding the callback we should call it back once the socket is formed but we need an event listener for this
-				// if(fun)
-				// 	fun('Proxy not connected');
 				return;
 			}
 			if (!(Vlt.Fun))
@@ -493,7 +494,6 @@
 			else {
 				Vlt.Fun[com.Passport.Pid] = null;
 			}
-			var str = JSON.stringify(com);
 			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
 			sock.write(msg);
 		}
