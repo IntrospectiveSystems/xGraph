@@ -3,7 +3,7 @@
 _Introspective Systems, LLC_
 
 ---
-The Proxy module is a core module used to create TCP socket connections between two modules in different systems. Can 
+Proxy is a core module used to create TCP socket connections between two modules in different systems. Can 
 operate as either a Server linked to a specific Module within the same system, or as a Client connected to another Proxy
 or other TCP connection. Modules send commands to the Proxy as if it were the destination module without requiring 
 additional parameters.
