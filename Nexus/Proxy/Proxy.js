@@ -77,7 +77,7 @@
 
 	/**
 	 * Run at Setup/Start if Proxy role is set to Server
-	 * Creates an open TCP port defined by Par.Port and routes commands received to Module set in Par.Link
+	 * Creates a TCP server as defined by Par.Port and routes commands received to Module set in Par.Link
 	 * @param {function} fun
 	 */
 	function genServer(fun) {
@@ -148,7 +148,7 @@
 			net.createServer(function(sock) {
 				log.i('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
-				Vlt.Socks.push(sock);console.log
+				Vlt.Socks.push(sock);
 				sock._userData = {};
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
@@ -163,7 +163,7 @@
 				// bracketed by STX(02) and ETX(03). Note that messages
 				// may not be complete spanning multiple sends, or the
 				// data content may contain multiple messages
-				// TBD: Implement more flexible buffering policy
+				// TODO: Implement more flexible buffering policy
 				sock.on('data', function (data) {
 					var Buf = sock._userData.Buf;
 					var State = sock._userData.State;
@@ -406,9 +406,7 @@
 								if(Vlt.Fun[com.Passport.Pid])
 									Vlt.Fun[com.Passport.Pid](null, com);
 							} else {
-
 								that.send(com, Par.Link);
-
 							}
 							break;
 					}
@@ -421,7 +419,9 @@
 
 	//-----------------------------------------------------Proxy
 	/**
-	 * Routes messages to their intended destination based on how the Proxy has been setup.
+	 * Routes commands depending on role defined in Par.Role
+	 * Client:: Routes to module defined in Par.Link.
+	 * Server:: Routes to TCP connection defined in Par.Host and Par.Port.
 	 * @param {Object} com Command to be sent through Proxy
 	 * @param {function} fun Callback function returned after command is received and processed at it's destination.
 	 */
