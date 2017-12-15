@@ -8,7 +8,7 @@ Introspective Systems, LLC.
 
 This module is a wrapper for the npm package [NeDB](https://github.com/louischatriot/nedb).
 
-## `Par` Configuration
+## Getting Started
 
 ### `Filename`
 
