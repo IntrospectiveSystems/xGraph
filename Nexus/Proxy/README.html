@@ -389,7 +389,7 @@ Starts Server or connects to defined external server as set in Par.</p>
                         <div class="description lead">
 
                             <p>Run at Setup/Start if Proxy role is set to Server
-Creates an open port for other systems to connect to, as set in Par (Port, Link)</p>
+Creates an open TCP port defined by Par.Port and routes commands received to Module set in Par.Link</p>
 
 
                         </div>
@@ -454,7 +454,7 @@ Creates an open port for other systems to connect to, as set in Par (Port, Link)
                         <div class="description lead">
 
                             <p>Run at Setup/Start if Proxy role is set to Client
-Creates a websocket connection as defined in Par.Host and Par.Port</p>
+Creates a TCP socket connection to a host defined in Par.Host and Par.Port</p>
 
 
                         </div>
