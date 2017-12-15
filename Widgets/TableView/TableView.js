@@ -2,6 +2,14 @@
 (function TableView() {
 
 	class TableView {
+
+		/**
+		 * @description create the table in DOM and apply a number of styles
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof TableView
+		 */
 		Setup(com, fun) {
 
 			this.super(com, (err, cmd) => {
@@ -79,6 +87,16 @@
 
 		}
 
+		/**
+		 * @description 
+		 * 1) Set Headers to `Par.Columns`
+		 * 
+		 * 2) send `Source` GetData, and add its Rows.
+		 * @override
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		async Start(com, fun) {
 
 			if('Source' in this.Par && 'Columns' in this.Par) {
@@ -107,7 +125,21 @@
 				fun(null, com);
 		}
 
-
+		/**
+		 * @description Create the thead and load the
+		 * column information into Vlt
+		 * 
+		 * if Evoke is present, add a column for that.
+		 * 
+		 * internal use only
+		 * @param {object} com 
+		 * @param {object[]} com.Headers
+		 * @param {string} com.Headers.Name
+		 * @param {string} com.Headers.Key
+		 * @param {string=} com.Evoke
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		SetDataHeaders(com, fun) {
 
 			let headers = com.Headers;
@@ -136,6 +168,16 @@
 				fun(null, com);
 		}
 
+		/**
+		 * @description Create the tbody, trs, and tds and
+		 * append them to the table.
+		 * 
+		 * internal use only
+		 * @param {object} com 
+		 * @param {object[]} com.Rows
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		SetRows(com, fun) {
 			if (!(this.Vlt.rows))
 				this.Vlt.rows = [];
@@ -179,6 +221,15 @@
 				fun(null, com);
 		}
 
+		/**
+		 * @description if our View DOM is not appended yet, do so.
+		 * otherwise, do nothing.
+		 * 
+		 * @override
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		Render(com, fun) {
 			debugger;
 			if(this.Vlt.div.children().length == 0) {
@@ -186,10 +237,6 @@
 				this.Vlt.table.append(this.Vlt.tablebody);
 				this.Vlt.div.append(this.Vlt.table);
 			}
-			this.super(com, fun);
-		}
-
-		DOMLoaded(com, fun) {
 			this.super(com, fun);
 		}
 	}
