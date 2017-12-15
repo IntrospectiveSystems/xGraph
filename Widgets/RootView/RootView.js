@@ -1,13 +1,9 @@
-//# sourceURL=RootView.js
-//jshint esversion: 6
-//test change
 (function RootView() {
 
 	class RootView {
 		Setup(com, fun) {
 			this.super(com, (err, cmd) => {
 				log.v(`--RootView::Setup`);
-				//debugger;
 				fun(null, com);
 			});
 		}
@@ -22,7 +18,7 @@
 		 * 
 		 * 3) Appends itself to the DOM
 		 * 
-		 * 4) Propogates a Render, Resize, DOMLoaded, Resize, in that order.
+		 * 4) Propagates a Render, Resize, DOMLoaded, Resize, in that order.
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof RootView
@@ -32,10 +28,8 @@
 			this.super(com, async (err, cmd) => {
 
 				let that = this;
-				// debugger;
 				async function parseView(view) {
 					if (typeof view == 'string') {
-						// console.log('PID ' + view);
 						return view;
 					} else {
 						let basePid = view.View;
@@ -50,12 +44,9 @@
 				}
 
 				let apexPid = await parseView(this.Par.Layout);
-				// debugger;
 				this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
-					// debugger;
 
 					let apexDiv = com.Div;
-					// apexDiv.css('opacity', '0.0');
 					$(document.body).append(apexDiv);
 					
 					this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
@@ -72,7 +63,6 @@
 						$(window).resize(() => {
 							this.send({ Cmd: "Resize" }, apexPid, () => { });
 						});
-						// apexDiv.css('opacity', '1.0');
 						fun(null, com);
 					});
 				});
