@@ -308,8 +308,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 		
 		/**
-		 * @description deprecated
-		 * Set the color of the View
+		 * @description Set the color of the View
+		 * 
+		 * @deprecated
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof View
