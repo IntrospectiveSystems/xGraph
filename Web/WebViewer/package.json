@@ -1,6 +1,8 @@
 {
   "name" : "webviewer",
-  "version" : "0.0.3",
+  "version" : "1.0.0",
+  "author": "Introspective Systems, LLC.",
+  "license": "ISC",
   "dependencies" : {
     "socket.io" : "2.0.4"
   }
