@@ -1,5 +1,12 @@
 (function NeDB() {
 	class NeDB {
+
+		/**
+		 * @description Starts NeDB
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof NeDB
+		 */
 		Start(com, fun) {
 			console.assert(typeof this.Par.Filename === 'string');
 
