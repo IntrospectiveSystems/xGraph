@@ -15,8 +15,8 @@
 	return { dispatch };
 
 	/**
-	 * Any message received by this ServerProxy Module will immediately be sent to the WebViewer Module 
-	 * and forwarded to any subscribed browsers-side modules listening on that link.
+	 * Any message received by this WebProxy Module will immediately be sent to the WebViewer Module 
+	 * and forwarded to any subscribed server-side modules listening on that link.
 	 * @param {Object} com   message object
 	 * @param {Function=} fun   callback
 	 */
@@ -30,7 +30,6 @@
 		this.Par.sendSock(com, async (err, com) => {
 
 			if(com.PidInterchange) {
-				// log.d('read pid interchange!');
 				com = await recurse(com);
 
 				async function recurse(obj) {
