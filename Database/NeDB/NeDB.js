@@ -2,7 +2,9 @@
 	class NeDB {
 
 		/**
-		 * @description Starts NeDB
+		 * @description Starts NeDB by either creating or
+		 * loading in to memory, the database file
+		 * specified in `Par.Filename`
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof NeDB
