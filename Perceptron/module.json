@@ -43,11 +43,11 @@
   },
   "output": {
     "required": [],
-    "opts": []
+    "optional": []
   },
   "par": {
     "required": {},
-    "opts": {
+    "optional": {
       "InitializeOnSetup": "boolean",
       "TrainingSetSize": "number",
       "NetworkDimensions": [
