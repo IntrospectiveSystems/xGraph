@@ -567,9 +567,11 @@ __Nexus = (_ => {
 		});
 
 		async function symbol(val) {
+			log.d(val);
 			if (typeof val === 'object') {
+				// debugger;
 				if (Array.isArray(val)) {
-					val.map(v => symbol(v));
+					val = val.map(v => symbol(v));
 					val = await Promise.all(val);
 				} else {
 					for (let key in val) {

@@ -7,6 +7,7 @@
 			this.super(com, (err, cmd) => {
 
 				this.Vlt.table = $(document.createElement('table'));
+				this.Vlt.table.addClass('sortable');
 				this.Vlt.table.addClass('table');
 				this.Vlt.table.css('width', '100%')
 				this.Vlt.tablehead = $(document.createElement('thead'));
@@ -179,14 +180,12 @@
 		}
 
 		Render(com, fun) {
-			let oldThings = this.Vlt.div.children();
-
-			this.Vlt.table.append(this.Vlt.tablehead);
-			this.Vlt.table.append(this.Vlt.tablebody);
-			this.Vlt.div.append(this.Vlt.table);
-
-			oldThings.remove();
-
+			debugger;
+			if(this.Vlt.div.children().length == 0) {
+				this.Vlt.table.append(this.Vlt.tablehead);
+				this.Vlt.table.append(this.Vlt.tablebody);
+				this.Vlt.div.append(this.Vlt.table);
+			}
 			this.super(com, fun);
 		}
 
