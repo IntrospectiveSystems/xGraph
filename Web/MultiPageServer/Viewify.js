@@ -1,5 +1,4 @@
 //# sourceURL=Viewify.js
-// debugger;
 
 /// check if ?debug is in the URL. if so, turn on debug mode.
 /// this will enable more complex logging
@@ -63,7 +62,7 @@ if (window.emptyImage == undefined) window.emptyImage = function emptyImage() {
 	let emptyImage;
 	emptyImage = $('#THISISANEMPTYIMAGEANDAUNIQUEIDPLSNOREUSE');
 	if (emptyImage.length == 1) return emptyImage[0];
-	emptyImage = IMG('http://placehold.it/1x1');
+	emptyImage = IMG('https://placehold.it/1x1');
 	emptyImage.css('position', 'fixed');
 	emptyImage.css('left', '-100px');
 	emptyImage.css('top', '-100px');
@@ -81,7 +80,7 @@ if (window.IMG == undefined) window.IMG = function IMG(width, height, src) {
 	} else if (!src) {
 		elem.css('width', width);
 		elem.css('height', height);
-		src = `http://placehold.it/${width}x${height}`;
+		src = `https://placehold.it/${width}x${height}`;
 	}
 
 	elem.attr('src', src);
@@ -211,7 +210,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		GetViewRoot(com, fun) {
 			// debugger;
-			if (!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before its setup!`);
+			if (!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before it is setup!`);
 			com.Div = this.Vlt.root;
 			// debugger;
 			fun(new ViewNotInitializedError(), com);
@@ -235,8 +234,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @description used to add styles to this View
 		 * @param {object} com 
 		 * @param {string} com.Selector The css selector to apply rules to
-		 * @param {Object=} com.Rules Associative array where keys are rules
-		 * and values are css values
+		 * @param {Object=} com.Rules Associative array where keys are rules and values are css values
 		 * @param {any} fun 
 		 * @returns 
 		 * @memberof View
@@ -268,15 +266,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				return;
 			}
 			function append(str) {
-				// debugger;
 				vlt.styletag.html(vlt.styletag.html() + str);
 			}
 			fun(null, com);
 		}
 
 		/**
-		 * @description Used to be used to disable a title bar,
-		 * which no longer exists.
+		 * @description Used to be used to disable a title bar,  which no longer exists.
 		 * 
 		 * @deprecated
 		 * @memberof View
@@ -322,15 +318,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let border = com.Border || value;
 			this.Vlt._color = value;
 			this.Vlt.root.css('background-color', value);
-			// this.Vlt.root.css('border', '1px solid ' + border);
 			fun(null, com);
 		}
 
 		/**
-		 * @description Called when a child of this View has been
-		 * destroyed.
-		 * 
-		 * overriding this command is not supported
+		 * @description Called when a child of this View has been destroyed. Overriding this command is not supported.
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof View
@@ -351,8 +343,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Add com.View as a Child View
-		 * this forces a render after the child gives us its div.
+		 * @description Add com.View as a Child View this forces a render after the child gives us its div.
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof View
@@ -364,7 +355,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.views.push(com.View);
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
-				// debugger;
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
 			});
 		}
@@ -452,7 +442,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		async DOMLoaded(com, fun) {
-			// debugger;
 			//console.log('DOMLoaded - ' + this.Vlt.type);
 
 			let that = this;
@@ -588,7 +577,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					div = createDragDom();
 
 					event = evt;
-					// debugger;
 					div.css('pointer-events', 'none');
 					div.css('opacity', '.6');
 					div.css('position', 'fixed');
@@ -598,9 +586,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 			});
 			root.addEventListener('drag', function (evt) {
-				// console.log("DRAG!", evt.pageX, evt.pageY);
 				if (evt.pageX == 0 && evt.pageY == 0) {
-					// console.log('RIDICULOUS');
 					return;
 				}
 				if (div) {
@@ -611,13 +597,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 			});
 			root.addEventListener('dragend', function (evt) {
-				if (div)
+				if (div) {
 					div.remove();
-				// console.log('LOOKING FOR ');
-
+				}
 				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
 				if (version >= new SemVer('3.2')) {
-					// console.log('new thing');
 					while (elem.hasClass('dropArea') == null) {
 						elem = elem.parent();
 					}
@@ -641,7 +625,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					}, viewpid, () => { });
 
 				} else {
-					// console.log('old thing');
 					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
 						elem = elem.parent();
 					}
@@ -667,7 +650,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Destroy will force a View togracefully
+		 * @description Destroy will force a View to gracefully
 		 * shut down. Sending itself a cleanup before garbage
 		 * collection, if anything needs to be done.
 		 * @param {any} com 
@@ -677,7 +660,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		async Destroy(com, fun) {
 			console.log(` ${this.emoji(0x1F4A3)} ${this.Vlt.type}::Destroy`);
-			if (this.Par.Destroying) return (console.log('This is a duplicate destroy, no action made.'), fun(null, com));
+			if (this.Par.Destroying) return (console.log('This is a duplicate destroy, no action taken.'), fun(null, com));
 			this.Par.Destroying = true;
 			for (let item of this.Vlt.views)
 				await this.ascend('Destroy', {}, item);
@@ -686,8 +669,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Event Command; sent right before 
-		 * a View will be garbage collected.
+		 * @description Event Command; sent right before a View will be garbage collected.
 		 * 
 		 * Overridable
 		 * @param {any} com 
@@ -724,11 +706,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	function injections() {
 		let that = this;
 
-		// heh
 		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
 
-		// this.super
-		// this.ascend
 		if (version >= new SemVer('3.0')) {
 			this.super = function (com, fun) {
 				if (com.Cmd in View.prototype) {
@@ -746,7 +725,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 		} else return;
 
-		// this.ascend with [err, com] rejection
 		if (version >= new SemVer('3.3')) {
 			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
 				this.send(Object.assign({ Cmd: name }, opts), pid, (err, cmd) => {
@@ -756,11 +734,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 		} else return;
 
-		// this.asuper
-		// this.evoke
-		// this.genmoduleasync
-		// this.cdnImportCss
-		// this.this.id
 		if (version >= new SemVer('3.4')) {
 			this.asuper = function (com) {
 				return new Promise((resolve, reject) => {
@@ -801,7 +774,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	}
 
 	function Command(com, fun) {
-		// console.log(' >> ', com.Cmd);
 		fun = fun || (() => { });
 		if (com.Cmd == 'Setup' || !('super' in this)) {
 			injections.call(this);
