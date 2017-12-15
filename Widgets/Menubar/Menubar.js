@@ -26,6 +26,14 @@
 			// okay, seriously, every time I change this thing,
 			// past me is always exceptionally more stupid than
 			// I currently am. Viewify works now, super's the same.
+			// * * * * * * * * * * * * * * * * * * * * * * * *
+			// H E L L O   T R A V E L E R,
+			// Heres the run down:
+			// Buttons is [] of {} with To, Group, Option, and
+			// Command. in Group, <Group> there is a button
+			// named <Option> that when clicked will send command
+			// <Command> to Pid <To>
+			// Hotkey modifiers Guide: ^shift, /alt, ~ctrl, #meta
 
 			this.Vlt.disableTitleBar = true;
 			// debugger;
@@ -34,7 +42,6 @@
 				this.Vlt.groups = [];
 				this.Vlt.hotkeys = {};
 				//console.time("MenuBar");
-				window.MenubarVlt = this.Vlt;
 
 				if ('Buttons' in this.Par) {
 					for (let i = 0; i < this.Par.Buttons.length; i++) {
@@ -44,7 +51,8 @@
 							To: obj.To,
 							Group: obj.Group,
 							Option: obj.Option,
-							OnClick: obj.Command
+							OnClick: obj.Command,
+							Hotkey: 'Hotkey' in obj ? obj.Hotkey.split('').sort().join('') : undefined
 						}, () => { });
 					}
 				}
@@ -249,6 +257,33 @@
 		/// however, if you do not continue to add more items or signal
 		/// you are finished, a timeout will be called after 2 seconds
 		/// and automatically reconstruct the bar.
+
+		/**
+		 * @description Adds a button to the menubar named com.Option,
+		 * in the group of buttons: com.Group. When clicked (or hotkey pressed)
+		 * A message with Cmd: com.Command will be sent to the Pid: com.To
+		 * 
+		 * Optionally, to assign a hotkey, provide the key combination
+		 * in com.Hotkey.
+		 * 
+		 * for example, control + N is represented as '~n'
+		 * 
+		 * modifiers are as follows:
+		 * 
+		 * ctrl: ~
+		 * alt: /
+		 * shift: ^
+		 * meta (windows key / command key): #
+		 * 
+		 * @param {object} com 
+		 * @param {string} com.Group
+		 * @param {string} com.Option
+		 * @param {string} com.Command
+		 * @param {string} com.To
+		 * @param {string=} com.Hotkey
+		 * @param {any} fun 
+		 * @memberof MenuBar
+		 */
 		AddMenuItem(com, fun) {
 			let vlt = this.Vlt;
 			let group = com.Group;
@@ -306,6 +341,14 @@
 				return null;
 			}
 		}
+		/**
+		 * @description Reloads the DOM based on new Buttons. If not called
+		 * manually, this will always get called 2 seconds after an
+		 * add menu item call.
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof MenuBar
+		 */
 		Reconstruct(com, fun) {
 			if (!!this.Vlt.updateCallback && this.Vlt.updateCallback !== null) clearTimeout(this.Vlt.updateCallback);
 			this.Vlt.bar.html('');
@@ -329,6 +372,12 @@
 			}
 
 		}
+		/**
+		 * @description 
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof MenuBar
+		 */
 		Render(com, fun) {
 			this.Vlt.div.append(this.Vlt.bar);
 			// debugger;

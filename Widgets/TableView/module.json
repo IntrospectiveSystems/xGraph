@@ -1,0 +1,30 @@
+{
+	"name": "TableView",
+	"version": "1.0.0",
+	"info": {
+		"author": "Inrtospective Systems LLC"
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": []
+	},
+	"output": {
+		"required": [
+			{
+				"Cmd": "GetData",
+				"required": {
+					"Data": "array"
+				}
+			}
+		]
+	},
+	"par": {
+		"required": {
+			"Source": "xGraphPid",
+			"Columns": "array"
+		},
+		"optional": {
+			"Evoke": "string"
+		}
+	}
+}
