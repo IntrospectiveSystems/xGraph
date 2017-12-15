@@ -23,7 +23,7 @@
 		};
 
 		/**
-		 * Setup the required servers and socekts and define all functions that are required to handle browers 
+		 * Setup the required servers and sockets and define all functions that are required to handle browers 
 		 * communications
 		 * @param {Object} com 
 		 * @param {Function} fun 
@@ -77,7 +77,7 @@
 			function getnxs() {
 				that.getFile('Nxs.js', function (err, data) {
 					if (err) {
-						log.e(' ** ERR:Cannot read Nxs file');
+						log.e('Cannot read Nxs file');
 						return;
 					}
 					Vlt.Browser.Nxs = data;
@@ -131,7 +131,7 @@
 						//are we subscribing to the server
 						if (com.Cmd == 'Subscribe') {
 							if (!("Link" in com)){
-								log.e(`A Broswer module tried to Subscribe, but not Link (com.Link) provided`);
+								log.e(`A Browser module tried to subscribe, but a Link (com.Link) was not provided.`);
 								return;
 							}
 							obj.User.Publish[com.Link] = com.Pid;
@@ -146,7 +146,7 @@
 
 						//The message came from a module make sure there is a message Passport defined
 						if (!('Passport' in com)) {
-							log.e('No Passport in routed msg');
+							log.e('No Passport in routed message');
 							return;
 						}
 
@@ -163,7 +163,7 @@
 						if (com.Passport.To in that.Par.ApexList)
 							com.Passport.To = that.Par.ApexList[com.Passport.To];
 						else {
-							reply(`${com.Passport.To} is not a known destinaton on the server (ApexList key)`);
+							reply(`${com.Passport.To} is not a known destination on the server (ApexList key)`);
 							return;
 						}
 
@@ -293,7 +293,7 @@
 				// /**
 				//  * Recursive object search
 				//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
-				//  * @param {Object} st 		The directort we're searching in 
+				//  * @param {Object} st 		The directory we're searching in 
 				//  */
 				function subSearch(ar, st) {
 					if (ar[0] in st) {
@@ -317,7 +317,7 @@
 					ship(null, Par.HTML);
 				else {
 					res.writeHead(404);
-					res.end('You are out of your verbial guord');
+					res.end('Not Found Error');
 					return;
 				}
 			}

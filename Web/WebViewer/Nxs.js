@@ -305,7 +305,7 @@ __Nexus = (_ => {
 		}
 
 		/**
-		 * Make sure all the required modules were in the cachezip
+		 * Make sure all the required modules were in the cache zip
 		 */
 		function recursiveBuild() {
 			let moduleKeys = Object.keys(Modules);
@@ -402,7 +402,7 @@ __Nexus = (_ => {
 		 */
 		function unpackCache() {
 			return new Promise((resolve, reject) => {
-				//unpack the zipped cache put all modules inot the ModCache
+				//unpack the zipped cache put all modules into the ModCache
 				const zipmod = new JSZip();
 				zipmod.loadAsync(Cache, { base64: true }).then(function (zip) {
 					zip.file('manifest.json').async('string').then(async (cacheArray) => {
@@ -863,7 +863,6 @@ __Nexus = (_ => {
 		 * @callback fun 
 		 */
 		function genModule(mod, fun) {
-			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
 
