@@ -10,7 +10,7 @@ Introspective Systems, LLC.
 
 The WebProxy Entity is the Apex and only Entity of the WebProxy Module.
 
-This Module should be deployed browser-side and is used to communicate with Modules on the server.
+This Module should be deployed browser-side and is used to communicate with Modules on a system running in a server side arrangement.
 
 
 ---

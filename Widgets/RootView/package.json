@@ -1,6 +1,6 @@
 {
-  "name": "Menubar",
+  "name": "RootView",
   "version": "1.0.0",
-  "main": "Menubar.js",
+  "main": "RootView.js",
   "author": "Introspective Systems, LLC."
 }

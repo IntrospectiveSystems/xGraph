@@ -1,6 +1,6 @@
 {
-  "name": "Menubar",
+  "name": "Popup",
   "version": "1.0.0",
-  "main": "Menubar.js",
+  "main": "Popup.js",
   "author": "Introspective Systems, LLC."
 }

@@ -1,33 +1,6 @@
-//# sourceURL=Menubar.js
-//jshint esversion: 6
 (function Menubar() {
 	class MenuBar {
 		Setup(com, fun) {
-			// we use super here as opposed to bubble because
-			// the only difference between bubble and super,
-			// is that super can be passed params in its com.
-			// bubble simply blindly bubbles the command up
-			// the mod chain
-			// * * * * * * * * * * * * * * * * * * * * * * * *
-			// future Marcus here, Past marcus was dumb. really
-			// dumb. see, none of this works like that anymore.
-			// bubble and super were basically the same thing,
-			// so in the new marxy based system of inheritance,
-			// super takes care of everything, and dispatch
-			// sends a command back to the marxy, essentially
-			// looping it back to here, but refreshing its com 
-			// vault par, and all other atrocities to make
-			// this system work.
-			//
-			// Have fun,
-			//                        A N D   G O O D   L U C K
-			// * * * * * * * * * * * * * * * * * * * * * * * *
-			// Super future marcus here.
-			// okay, seriously, every time I change this thing,
-			// past me is always exceptionally more stupid than
-			// I currently am. Viewify works now, super's the same.
-			// * * * * * * * * * * * * * * * * * * * * * * * *
-			// H E L L O   T R A V E L E R,
 			// Heres the run down:
 			// Buttons is [] of {} with To, Group, Option, and
 			// Command. in Group, <Group> there is a button
@@ -36,12 +9,9 @@
 			// Hotkey modifiers Guide: ^shift, /alt, ~ctrl, #meta
 
 			this.Vlt.disableTitleBar = true;
-			// debugger;
-			// console.log('HEY JUST SO YOU KNOW, MENUBAR START IS A THING');
 			this.super(com, (err, cmd) => {
 				this.Vlt.groups = [];
 				this.Vlt.hotkeys = {};
-				//console.time("MenuBar");
 
 				if ('Buttons' in this.Par) {
 					for (let i = 0; i < this.Par.Buttons.length; i++) {
@@ -56,14 +26,10 @@
 						}, () => { });
 					}
 				}
-				// console.log('AND WE CALLED ITS SUPER');
-				// console.log('DO WE HAVE A VIEWDIVS? ' + ('viewDivs' in com.Vlt));
 				if (!('viewDivs' in this.Vlt)) debugger;
 				let that = this;
 				this.Vlt.menubarHeight = 30;
 				this.Vlt.bar = DIV();
-				// com.Vlt.bar.css('border-bottom', '2px solid rgb(156, 156, 142)');
-				// com.Vlt.bar.css('padding-top', '2px');
 				this.Vlt.bar.addClass('menubar');
 
 				{ // superstyles
@@ -71,9 +37,7 @@
 						Cmd: "Style",
 						Selector: '.menubar',
 						Rules: {
-							//'font-family': 'monospace',
 							'height': '' + (that.Vlt.menubarHeight) + 'px',
-							// 'line-height': '' + (com.Vlt.menubarHeight) + 'px',
 							'border-bottom': '1px solid var(--view-border-color-light)',
 							'padding-left': '5px',
 							'color': 'var(--white-text)',
@@ -86,16 +50,12 @@
 						Selector: '.groupButton',
 						Rules: {
 							'cursor': 'pointer',
-							// 'border': '1px solid rgba(0, 0, 0, 0)',
-							// 'margin-top': '1px',
-							// 'margin-right': '2px',
 							'transition': 'border 200ms, background-color 200ms',
 							'outline': 'none',
 							'display': 'inline-block',
 							'padding': '0px 8px',
 							'height': '100%',
 							'line-height': '' + that.Vlt.menubarHeight + 'px'
-							// 'padding-left': '4px'
 						}
 					}, () => { });
 					this.super({
@@ -103,7 +63,6 @@
 						Selector: '.groupButton:hover',
 						Rules: {
 							'background-color': 'var(--view-border-color-light)'
-							// 'border': '1px solid var(--view-border-color)'
 						}
 					}, () => { });
 					this.super({
@@ -112,7 +71,6 @@
 						Rules: {
 							'background-color': 'var(--accent-color)',
 							'color': 'var(--accent-text)'
-							// 'border': '1px solid var(--accent-color)'
 						}
 					}, () => { });
 					this.super({
@@ -122,7 +80,6 @@
 							'display': 'none',
 							'min-width': '150px',
 							'position': 'fixed',
-							//'left': '94px',
 							'top': '29px',
 							'padding': '5px 0px',
 							'background-color': 'var(--view-color)',
@@ -177,7 +134,6 @@
 					let char = String.fromCharCode(e.charCode || e.which);
 					if (char.match(/[A-Za-z0-9]/) !== null) if (keys.indexOf(char) == -1) keys += char;
 					keys = keys.split('').sort().join('');
-					//console.log(keys);
 					if (keys in that.Vlt.hotkeys) {
 						that.Vlt.hotkeys[keys]();
 					}
@@ -185,37 +141,23 @@
 				};
 				window.onkeyup = (e) => {
 					let char = String.fromCharCode(e.charCode || e.which);
-					//console.log('');
 					if (char.match(/[A-Za-z0-9]/) !== null) keys = keys.replace(char, '');
 
 					keys = keys.split('').sort().join('');
-					//console.log(keys);
 				};
 
 				that.Vlt.contentHolder = DIV();
 				that.Vlt.contentHolder.css('height', 'calc(100% - ' + (that.Vlt.menubarHeight) + 'px)');
 				that.Vlt.contentHolder.css('box-sizing', 'border-box');
-				// this.super({
-				// 	Cmd: "Append",
-				// 	Divs: [
-				// 		// com.Vlt.styles,
-				// 		com.Vlt.bar,
-				// 		com.Vlt.contentHolder
-				// 	]
-				// }, () => { });
+
 
 				that.dispatch({ Cmd: 'Reconstruct' });
 
 				that.Vlt.currentFocus = null;
 
 				that.Vlt.div.on('click', '.groupButton', function () {
-					//console.log('');
-					//console.log('Menu Button Clicked');
 
 					let clickedFocus = (that.Vlt.currentFocus != null && '0' in that.Vlt.currentFocus ? this == that.Vlt.currentFocus[0] : false);
-
-					//console.log('Current Focus: ' + com.Vlt.currentFocus);
-					//console.log('Clicked Focused? ' + clickedFocus);
 
 					if (clickedFocus) {
 						that.Vlt.currentFocus.removeClass('focus');
@@ -228,22 +170,15 @@
 
 					$(this).addClass('focus');
 					that.Vlt.currentFocus = $(this);
-
-					// } else {
-					// 	com.Vlt.currentFocus = null;
-					// 	$(this).removeClass('focus');
-					// }
 				});
 				that.Vlt.div.on('mouseover', '.groupButton', function () {
 					if (that.Vlt.currentFocus != null) {
-						//console.log('Moved');
 						that.Vlt.currentFocus.removeClass('focus');
 						$(this).addClass('focus');
 						that.Vlt.currentFocus = $(this);
 					}
 				});
 
-				//console.timeEnd("MenuBar");
 				fun(null, com);
 
 			});
@@ -289,7 +224,6 @@
 			let group = com.Group;
 			let option = com.Option;
 			let onclick;
-			// debugger;
 			if (typeof com.OnClick == 'string') {
 				onclick = function() {
 					that.send({ Cmd: com.OnClick}, com.To, () => {});
@@ -380,7 +314,6 @@
 		 */
 		Render(com, fun) {
 			this.Vlt.div.append(this.Vlt.bar);
-			// debugger;
 			if (this.Vlt.viewDivs.length > 0) {
 				this.Vlt.contentHolder.children().detach();
 				this.Vlt.contentHolder.append(this.Vlt.viewDivs[0])
