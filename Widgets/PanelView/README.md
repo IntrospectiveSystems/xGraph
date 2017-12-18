@@ -2,7 +2,7 @@
 
 Version 1.0.0
 
-Marcus Gosselin, Introspective Systems LLC.
+Introspective Systems, LLC.
 
 ---
 
@@ -43,7 +43,7 @@ Example
 
 ## Panel Sizing
 
-To change the sizes of the panels There is a parameter called Ratio. Itt is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
+To change the sizes of the panels There is a parameter called Ratio. It is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
 
 For example, if you wanted the left panel to be a third of the overall space, you would set `"Ratio": 0.33`
 
