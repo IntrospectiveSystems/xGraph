@@ -1,6 +1,7 @@
 {
 	"State": {
-		"View": "xGraoph.Widgets.PanelView"
+		"View": "xGraoph.Widgets.PanelView",
+		"Par": {}
 	},
 	"Cases": [
 		{
