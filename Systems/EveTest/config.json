@@ -1,9 +1,10 @@
 {
+	//this is old and broken
 	"xGraph": "{xGraph}",
 	"Cache": "cache",
 	"Modules": {
 		"Server": {
-			"Module": "xGraph.Web.Server",
+			"Module": "xGraph.Web.WebViewer",
 			"Par": {
 				"ApexList": {
 					"Controller":"$Controller"
