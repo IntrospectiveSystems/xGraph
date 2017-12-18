@@ -95,6 +95,7 @@
 					this.send({Cmd:"AddView", View: pid}, this.Par.Pid, (err, cmd)=>{
 						this.send({Cmd: 'Resize'}, pid, (err, cmd) => {
 							this.send({Cmd: 'DOMLoaded'}, pid, (err, cmd) => {
+								fun(null, com);
 							});
 						});
 					});
