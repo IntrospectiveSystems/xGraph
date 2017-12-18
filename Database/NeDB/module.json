@@ -6,7 +6,7 @@
 	},
 	"doc": "README.md",
 	"input": {
-		"opts": [
+		"optional": [
 			{
 				"Cmd": "Insert",
 				"required": [
@@ -17,7 +17,7 @@
 				"Cmd": "Count",
 				"required": [
 				],
-				"opts": [
+				"optional": [
 					"Filter"
 				]
 			},
@@ -26,7 +26,7 @@
 				"required": [
 					"Where"
 				],
-				"opts": [
+				"optional": [
 					"Projection"
 				]
 			},
@@ -49,7 +49,7 @@
 		"required": [
 			"Filename"
 		],
-		"opts": [
+		"optional": [
 			"Reset"
 		]
 	}
