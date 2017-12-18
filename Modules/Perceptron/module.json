@@ -1,0 +1,66 @@
+{
+  "name": "Perceptron",
+  "doc": "README.md",
+  "version": "1.0.0",
+  "info": {
+    "author": "Introspective Systems, LLC."
+  },
+  "input": {
+    "required": [
+      {
+        "Cmd": "Setup"
+      }
+    ],
+    "optional": [
+      {
+        "Cmd": "Initialize",
+        "required": {},
+        "optional": {
+          "TrainingSetSize": "number",
+          "NetworkDimensions": [
+            "number",
+            "number",
+            "number"
+          ]
+        }
+      },
+      {
+        "Cmd": "Train",
+        "required": {
+          "Input": [
+            "number"
+          ],
+          "Output": [
+            "number"
+          ]
+        },
+        "optional": {}
+      },
+      {
+        "Cmd": "Evaluate",
+        "required": {
+          "Input": [
+            "number"
+          ]
+        },
+        "optional": {}
+      }
+    ]
+  },
+  "output": {
+    "required": [],
+    "optional": []
+  },
+  "par": {
+    "required": {},
+    "optional": {
+      "InitializeOnSetup": "boolean",
+      "TrainingSetSize": "number",
+      "NetworkDimensions": [
+        "number",
+        "number",
+        "number"
+      ]
+    }
+  }
+}

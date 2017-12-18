@@ -1,0 +1,73 @@
+{
+	"name": "SQLite",
+	"version": "1.0.0",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": [
+			{
+				"Cmd": "Configure",
+				"required": {
+					"Option": "String",
+					"Value": "*"
+				}
+			},
+			{
+				"Cmd": "Close"
+			},
+			{
+				"Cmd": "Run",
+				"required": {
+					"Sql": "String"
+				},
+				"optional": {
+					"Param": "*"
+				}
+			},
+			{
+				"Cmd": "Get",
+				"required": {
+					"Sql": "String"
+				},
+				"optional": {
+					"Param": "*"
+				}
+			},
+			{
+				"Cmd": "All",
+				"required": {
+					"Sql": "String"
+				},
+				"optional": {
+					"Param": "*"
+				}
+			},
+			{
+				"Cmd": "Each",
+				"required": {
+					"Sql": "String",
+					"Callback": "Function"
+				},
+				"optional": {
+					"Param": "*"
+				}
+			},
+			{
+				"Cmd": "Exec",
+				"required": {
+					"Sql": "String"
+				}
+			}
+		]
+	},
+	"output": {},
+	"par": {
+		"required": {},
+		"optional": {
+			"Filename": "String",
+			"Mode": "*"
+		}
+	}
+}

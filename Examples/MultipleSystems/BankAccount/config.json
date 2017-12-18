@@ -1,0 +1,18 @@
+{
+	"Sources": {
+        "xGraph": "{xGraph}"
+    },
+    "Modules": {
+        "Bank": {
+            "Module": "xGraph:Modules/BankAccount"
+        }, 
+        "BankServer": {
+            "Module": "xGraph:Modules/Proxy",
+            "Par": {
+                "Port": 27002,
+				"Role": "Server",
+				"Link": "$Bank"
+            }
+		}
+    }
+}

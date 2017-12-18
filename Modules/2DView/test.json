@@ -1,0 +1,54 @@
+{
+	"State": {
+		"Server": "xGraphTesterPid",
+		"Source": "xGraphTesterPid"
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Start"
+			},
+			"SentMessages": [
+				{
+					"Cmd": "Subscribe",
+					"Pid": "xGraphSelfPid",
+					"Link": "2DView"
+				},
+				{
+					"Cmd": "GetData",
+					"DataChannels": [
+						{
+							"Channel": "Data",
+							"Flow": null,
+							"Handler": "xGraphSelfPid"
+						}
+					],
+					"Pid": "xGraphSelfPid"
+				}
+			],
+			"Document": [
+				"xGraphSelfPid"
+			]
+		},
+		{
+			"Command": {
+				"Cmd": "GetCanvas"
+			},
+			"Response": {
+				"Width": "*",
+				"Height": "*",
+				"canvas": "*",
+				"Div": "xGraphSelfPid"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "ImageCapture"
+			},
+			"Response": {
+				"Image": "*",
+				"Name": "*"
+			}
+		}
+	]
+}

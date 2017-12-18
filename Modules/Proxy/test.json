@@ -1,0 +1,14 @@
+{
+	"State": {
+		"Host": "127.0.0.1",
+		"Port": 27000,
+		"Role": "Server"
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			}
+		}
+	]
+}

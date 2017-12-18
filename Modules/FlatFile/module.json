@@ -1,0 +1,39 @@
+{
+	"name": "FlatFile",
+	"version": "1.0.0",
+	"info": {
+		"authors": "Introspective Systems, LLC"
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": [
+			{
+				"Cmd": "Get",
+				"required": {
+					"Key": "String"
+				}
+			},
+			{
+				"Cmd": "Put",
+				"required": {
+					"Data": "Object"
+				}
+			},
+			{
+				"Cmd": "Delete",
+				"required": {
+					"Data": "Array"
+				}
+			},
+			{
+				"Cmd": "List"
+			}
+		]
+	},
+	"par": {
+		"required": {
+		},
+		"optional": {
+		}
+	}
+}

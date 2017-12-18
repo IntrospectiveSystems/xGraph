@@ -1,0 +1,14 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"HelloWorld":{
+			"Module": "xGraph:Modules.HelloWorld",
+			"Source": "xGraph",
+			"Par":{
+				"SomePar": "Hello Mars"
+			}
+		}
+	}
+}
