@@ -71,6 +71,7 @@
 		 * @param {object} com 
 		 * @param {object} com.Where
 		 * @param {object} com.Projection
+		 * @param {object[]} com.Documents out
 		 * @param {any} fun 
 		 * @memberof NeDB
 		 */
@@ -110,7 +111,9 @@
 		/**
 		 * @description Delete all documents matching com.Where from the database
 		 * number of records deleted is returned in com.DeletedCount.
-		 * @param {any} com 
+		 * @param {object} com 
+		 * @param {object} com.Where
+		 * @param {number} com.DeletedCount out
 		 * @param {any} fun 
 		 * @memberof NeDB
 		 */
