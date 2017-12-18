@@ -110,7 +110,6 @@
 				});
 	
 				let data = await this.ascend("GetData", {}, this.Par.Source);
-				// debugger;
 				// add rows
 				this.ascend("SetRows", {
 					Rows: data.Data,
@@ -151,7 +150,6 @@
 			for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 				str += `<th>${this.Vlt.headers[colIdx].Name}</th>`;
 				if('Enum' in this.Vlt.headers[colIdx]) {
-					// debugger;
 					this.Vlt.enums[colIdx] = this.Vlt.headers[colIdx].Enum;
 				}
 			}
@@ -192,7 +190,6 @@
 				str = `<tr>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
-					// log.d(key, row[key]);
 					if(typeof row[key] == 'object' && 'Value' in row[key]) {
 						row[key] = row[key].Value;
 					}
@@ -201,7 +198,6 @@
 					else
 						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 				}
-				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
 					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}
@@ -213,7 +209,6 @@
 			
 			let that = this;
 			$(`.${this.id('EvokeButton')}`).on('click', function() {
-				// debugger;
 				that.evoke($(this).attr('pid'));
 			});
 
