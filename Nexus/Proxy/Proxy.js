@@ -13,7 +13,7 @@
 
 
 	/**
-	 * Determines which role Proxy is operating as (Client or Server). Role defined in Par.Role
+	 * @description Determines which role Proxy is operating as (Client or Server). Role defined in `Par.Role`
 	 * Starts Server or connects to defined external server as set in Par.
 	 * @param {Object} com
 	 * @param {function} fun Must be returned
@@ -45,8 +45,8 @@
 
 
 	/**
-	 * Determines which role Proxy is operating as (Client or Server). Role defined in Par.Role
-	 * Starts Server or connects to defined external server as set in Par.
+	 * @description Determines which role Proxy is operating as (Client or Server). Role defined in Par.Role
+	 * Starts Server or connects to defined external server as set in `Par`.
 	 * @param {Object} com
 	 * @param {function} fun Must be returned
 	 */
@@ -76,8 +76,8 @@
 
 
 	/**
-	 * Run at Setup/Start if Proxy role is set to Server
-	 * Creates a TCP server as defined by Par.Port and routes commands received to Module set in Par.Link
+	 * @description Run at Setup/Start if Proxy role is set to Server
+	 * Creates a TCP server as defined by `Par.Port` and routes commands received to Module set in `Par.Link`
 	 * @param {function} fun
 	 */
 	function genServer(fun) {
@@ -160,10 +160,9 @@
 				});
 
 				// Process data received from socket. The messages are
-				// bracketed by STX(02) and ETX(03). Note that messages
+				// bracketed by STX(0x02) and ETX(0x03). Note that messages
 				// may not be complete spanning multiple sends, or the
 				// data content may contain multiple messages
-				// TODO: Implement more flexible buffering policy
 				sock.on('data', function (data) {
 					var Buf = sock._userData.Buf;
 					var State = sock._userData.State;
@@ -191,7 +190,7 @@
 						}
 					}
 					if(State == 1)
-						Buf += data.toString('utf8', i1, i2+1); // Unused
+						Buf += data.toString('utf8', i1, i2+1);
 					sock._userData.State = State;
 					loop();
 
@@ -224,8 +223,8 @@
 
 
 	/**
-	 * Run at Setup/Start if Proxy role is set to Client
-	 * Creates a TCP socket connection to a host defined in Par.Host and Par.Port
+	 * @description Run at Setup/Start if Proxy role is set to Client
+	 * Creates a TCP socket connection to a host defined in `Par.Host` and `Par.Port`
 	 * @param {function} fun
 	 */
 	function genClient(fun) {
@@ -307,9 +306,9 @@
 
 				sock.on('connect', function () {
 					if ("Chan" in Par){
-						log.i('Proxy - Connected to '+Par.Chan+ ' on host:' + host + ', port:' + port);
+						log.i('Proxy - Connected to '+Par.Chan+ ' on host: ' + host + ', port: ' + port);
 					}else{
-						log.i('Proxy - Connected to server on host:' + host + ', port:' + port);
+						log.i('Proxy - Connected to server on host: ' + host + ', port: ' + port);
 					}
 					Vlt.Sock = sock;
 					if (!("Replied" in Vlt)||Vlt.Replied ==false){
@@ -322,11 +321,11 @@
 				sock.on('error', (err) => {
 					log.w('ERR:Proxy:genClient: ' + err);
 					if ("Chan" in Par)
-						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+						log.w('    Name: ' + Par.Name, ', Chan: ', Par.Chan, ', Hose: ' + host, ', Port: ' + port);
 					if (Par.Poll){
 						if (!("Timer" in Vlt) && "Timeout" in Par){
 							Vlt.Timer = setTimeout(()=>{
-								log.e("Error: Proxy "+Par.Pid+ " connection timeout. Last Attempt.");
+								log.e(`Error: Proxy ${Par.Pid} connection timeout. Last Attempt.`);
 								Par.Poll = false;
 							},Par.Timeout);
 						}
@@ -419,11 +418,12 @@
 
 	//-----------------------------------------------------Proxy
 	/**
-	 * Routes commands depending on role defined in Par.Role
-	 * Client:: Routes to module defined in Par.Link.
-	 * Server:: Routes to TCP connection defined in Par.Host and Par.Port.
+	 * @description Routes commands depending on role defined in `Par.Role`
+	 * Client:: Routes to module defined in `Par.Link`.
+	 * Server:: Routes to TCP connection defined in `Par.Host` and `Par.Port`.
 	 * @param {Object} com Command to be sent through Proxy
-	 * @param {function} fun Callback function returned after command is received and processed at it's destination.
+	 * @param {function} fun Callback function returned after command is received
+	 * and processed at it's destination.
 	 */
 	function Proxy(com, fun) {
 		let that = this;
@@ -481,7 +481,8 @@
 			var sock = Vlt.Sock;
 			if(!sock) {
 				log.v('No Socket');
-				//we are purposely withholding the callback we should call it back once the socket is formed but we need an event listener for this
+				// we are purposely withholding the callback we should call it back
+				// once the socket is formed but we need an event listener for this
 				return;
 			}
 			if (!(Vlt.Fun))
