@@ -546,8 +546,8 @@ function initModule(names) {
 		Schema.Apex.Entity = `${name}.js`
 
 		let moduleJson = {
-			"name": "",
-			"version": "",
+			"name": `${name}`,
+			"version": "0.0.1",
 			"info": {
 				"author": ""
 			},
