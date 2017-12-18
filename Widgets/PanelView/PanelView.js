@@ -3,9 +3,9 @@
 (function Panel() {
 	class Panel {
 		setHover(elem, name) {
-			console.log('SET HOVER ON ' + name);
+			console.log('set hover on ' + name);
 			elem.on('mouseover', function () {
-				console.log('HOVERING IS HAPPENING');
+				console.log('hovering is happening');
 			})
 		}
 
@@ -18,13 +18,10 @@
 		 * @memberof Panel
 		 */
 		Setup(com, fun) {
-			// debugger;
-			console.time("Panel View");
 			let that = this;
 			this.Vlt.disableTitleBar = true;
 			let vlt = this.Vlt;
 			this.super(com, (err, com) => {
-				// debugger;
 				vlt.view1 = null;
 				vlt.view2 = null;
 				vlt._vertical = false;
@@ -37,25 +34,19 @@
 
 				vlt.leftFlexPane = DIV('pane');
 				vlt.leftFlexPane.attr('id', "leftPane");
-				// vlt.leftFlexPane.css('position', 'absolute');
-				// vlt.leftFlexPane.css('top', 'none');
 				vlt.rightFlexPane = DIV('pane');
 				vlt.rightFlexPane.attr('id', "rightPane");
 				vlt.divider = DIV('divider');
 
 
 
-				// setHover(vlt.divider, that.Par.Name);
 
 				vlt.divider.on('mouseover', function (event) {
-					// event.bubbles = true;
-					// console.log('YO SRS THO');
 					vlt.hover = true;
 					that.send({ Cmd: "hoverChange" }, that.Par.Pid, () => { });
 					that.send({ Cmd: "correctRatioAndDirection" }, that.Par.Pid, () => { });
 				});
 				vlt.divider.on('mouseout', function (event) {
-					// event.bubbles = true;
 					if (!vlt.dragging) {
 						vlt.hover = false;
 						that.send({ Cmd: "hoverChange" }, that.Par.Pid, () => { });
@@ -63,12 +54,10 @@
 					that.send({ Cmd: "correctRatioAndDirection" }, that.Par.Pid, () => { });
 				});
 				vlt.divider.on('mousedown', function (event) {
-					// event.bubbles = true;
 					vlt.mouseDown = true;
 					that.send({ Cmd: "correctRatioAndDirection" }, that.Par.Pid, () => { });
 				});
 				vlt.div.on('mouseup', function (event) {
-					// event.bubbles = true;
 					if (!vlt.dragging && vlt.mouseDown) {
 						//just a click
 						vlt.horizontal = !vlt.horizontal;
@@ -78,19 +67,15 @@
 					that.send({ Cmd: "correctRatioAndDirection" }, that.Par.Pid, () => { });
 				});
 				vlt.div.on('mousemove', function (event) {
-					// event.bubbles = true;
 					if (vlt.mouseDown) vlt.dragging = true;
 					if (vlt.dragging) {
-						// debugger;
 						if (!vlt.horizontal) vlt.ratio = (event.clientY - vlt.div.position().top) / vlt.div.height();
 						else vlt.ratio = (event.clientX - vlt.div.position().left) / vlt.div.width();
 						that.send({ Cmd: "correctRatioAndDirection" }, that.Par.Pid, () => { });
 					}
 				});
 
-				// debugger; TODO
 				vlt.div.on('click', '.optionButton', function () {
-					// debugger;
 					this.blur();
 				});
 
@@ -113,7 +98,6 @@
 						}
 					}
 
-					// debugger;
 					vlt.root.css('border', 'none');
 					vlt.root.css('padding', '0px');
 
@@ -153,10 +137,7 @@
 
 				let elems = $(vlt.leftFlexPane).add(vlt.rightFlexPane).add(vlt.divider);
 				vlt.elems = elems;
-				// debugger;
 				vlt.horizontal = this.Par.Horizontal || false;
-
-				// debugger;
 
 				let panes = $(vlt.leftFlexPane).add(vlt.rightFlexPane);
 				panes.css('box-sizing', 'border-box');
@@ -165,16 +146,12 @@
 				vlt.div.append(vlt.divider);
 				vlt.div.append(vlt.rightFlexPane);
 
-				// debugger;
 				if ('Ratio' in this.Par) {
 					this.Vlt.ratio = this.Par.Ratio;
 				}
 
-				//correctRatioAndDirection(com, that);
-				// debugger;
 				this.send({ Cmd: "correctRatioAndDirectionPercents" }, this.Par.Pid, () => { });
 
-				console.timeEnd("Panel View");
 				fun(null, com);
 			});
 		}
@@ -188,9 +165,6 @@
 		 */
 		Render(com, fun) {
 			var that = this;
-
-			// // debugger;
-			// this.dispatch({Cmd: "Clear"}, (err, cmd) => {
 
 			let view1 = this.Vlt.viewDivs[0];
 			let view2 = this.Vlt.viewDivs[1];
@@ -219,9 +193,6 @@
 				fun(null, com)
 			});
 
-
-
-			// });
 		}
 
 		/**
@@ -231,12 +202,10 @@
 		 * @memberof Panel
 		 */
 		correctRatioAndDirection(com, fun) {
-			// debugger;
 			let regularPanePadding = ((this.Vlt.dividerMargin * 2 + this.Vlt.dividerSize) / 2);
 			this.Vlt.elems.addClass(this.Vlt.horizontal ? 'horizontal' : 'vertical');
 			this.Vlt.elems.removeClass(this.Vlt.horizontal ? 'vertical' : 'horizontal');
 
-			// console.log('Correcting Ratio ...');
 
 			if (this.Vlt.horizontal) {
 				let width = Math.floor((this.Vlt.leftFlexPane.parent().width() * (this.Vlt.ratio) - regularPanePadding));
@@ -259,16 +228,13 @@
 
 			}
 
-			// debugger;
 			for (let i in this.Vlt.views) {
 				let pid = this.Vlt.views[i];
 				this.send({ Cmd: 'Resize' }, pid, () => { });
 			}
-			// 
+			
 			fun(null, com);
 
-			// if (con.Vlt.hover) con.Vlt.divider.css('background-color', 'var(--view-border-color)');
-			// if (con.Vlt.dragging) con.Vlt.divider.css('background-color', 'var(--accent-color)');
 		}
 
 		/**
@@ -280,7 +246,6 @@
 		 * @memberof Panel
 		 */
 		correctRatioAndDirectionPercents(com, fun) {
-			// debugger;
 			let regularPanePadding = ((this.Vlt.dividerMargin * 2 + this.Vlt.dividerSize) / 2);
 			this.Vlt.elems.addClass(this.Vlt.horizontal ? 'horizontal' : 'vertical');
 			this.Vlt.elems.removeClass(this.Vlt.horizontal ? 'vertical' : 'horizontal');
@@ -304,8 +269,6 @@
 			}
 
 			fun(null, com);
-			// if (con.Vlt.hover) con.Vlt.divider.css('background-color', 'var(--view-border-color)');
-			// if (con.Vlt.dragging) con.Vlt.divider.css('background-color', 'var(--accent-color)');
 		}
 
 		/**
@@ -315,8 +278,6 @@
 		 * @memberof Panel
 		 */
 		hoverChange(com, fun) {
-			// console.log('okay:', con.Vlt.hover);
-			// debugger;
 			if (this.Vlt.hover)
 				this.Vlt.divider.css('background-color', 'var(--accent-color)');
 			else
@@ -335,7 +296,6 @@
 		DOMLoaded(com, fun) {
 			this.send({ Cmd: "correctRatioAndDirection" }, this.Par.Pid, () => {});
 
-			// debugger;
 			this.super(com, () => {
 				fun(null, com);
 			})
@@ -350,7 +310,6 @@
 		 * @memberof Panel
 		 */
 		Resize(com, fun) {
-			//console.log("PANEL RESIZE!!!");
 			this.send({ Cmd: "correctRatioAndDirection" }, this.Par.Pid, () => { });
 			this.super(com, (err, cmd) => {
 				fun(null, com);
