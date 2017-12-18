@@ -1,0 +1,47 @@
+{
+	"name": "FlatFile",
+	"version": "1.0.0",
+	"info": {
+		"authors": [
+			{
+				"Company": "Introspective Systems, LLC"
+			}
+		]
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": [
+			{
+				"Cmd": "OpenFile",
+				"required": {
+					"Path": "String"
+				},
+				"optional": {
+					"Delimiters": {
+						"Text": "Character",
+						"Field": "Character"
+					}
+				}
+			},
+			{
+				"Cmd": "SaveFile",
+				"required": {
+					"Path": "String",
+					"Info": "Array"
+				},
+				"optional": {
+					"Delimiters": {
+						"Text": "Character",
+						"Field": "Character"
+					}
+				}
+			}
+		]
+	},
+	"par": {
+		"required": {
+		},
+		"optional": {
+		}
+	}
+}

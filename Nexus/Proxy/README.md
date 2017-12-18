@@ -8,6 +8,9 @@ operate as either a Server linked to a specific Module within the same system, o
 or other TCP connection. Modules send commands to the Proxy as if it were the destination module without requiring 
 additional parameters.
 
+Proxy can be setup to connect directly to another Proxy or TCP socket, or by linking through the Plexus Module. To connect
+through a Plexus simply set the Plexus Parameter to the name of the Plexus server
+
 ---
 Proxy requires different parameters depending on what role it has been defined.
 
@@ -28,6 +31,7 @@ Server | Role, Link, Port
 
 **Link**: _String_ - Used in Server mode to route incoming commands received over the TCP connection to another module in the system.
 
+**Plexus** _String_ - 
 ### Input Commands
 
 Proxy will route any dispatched command other than Start or Setup to the socket connection.
