@@ -1,4 +1,6 @@
-# xgraph  
+# xGraph  
+
+![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph") 
 
 v1.0.0
 
