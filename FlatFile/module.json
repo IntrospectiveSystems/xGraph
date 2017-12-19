@@ -12,29 +12,25 @@
 	"input": {
 		"optional": [
 			{
-				"Cmd": "OpenFile",
+				"Cmd": "Get",
 				"required": {
-					"Path": "String"
-				},
-				"optional": {
-					"Delimiters": {
-						"Text": "Character",
-						"Field": "Character"
-					}
+					"Key": "String"
 				}
 			},
 			{
-				"Cmd": "SaveFile",
+				"Cmd": "Put",
 				"required": {
-					"Path": "String",
-					"Info": "Array"
-				},
-				"optional": {
-					"Delimiters": {
-						"Text": "Character",
-						"Field": "Character"
-					}
+					"Data": "Object"
 				}
+			},
+			{
+				"Cmd": "Delete",
+				"required": {
+					"Data": "Array"
+				}
+			},
+			{
+				"Cmd": "List"
 			}
 		]
 	},
