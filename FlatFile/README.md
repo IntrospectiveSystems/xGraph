@@ -19,28 +19,28 @@ Records are simply overwritten on new Put commands.
 **Get** -  Get a single record value by key, return in com.Info[key].
 ```json
 {
- "Cmd": "Get", 
- "Key": "KeyName"
+  "Cmd": "Get", 
+  "Key": "KeyName"
 }
 ```
 
 **Put** - Add a record to the database, stores all key value pairs contained in com.Data.
 ```json
 {
- "Cmd": "Put", 
- "Data": {
-	"Key1": "Value1",
-	"Key2": "Value2",
-	"Key3": "Value3"
- }
+  "Cmd": "Put", 
+  "Data": {
+    "Key1": "Value1",
+    "Key2": "Value2",
+    "Key3": "Value3"
+  }
 }
 ```
 
 **Delete** - Deletes every record as defined in com.Data.
 ```json
 {
- "Cmd": "Delete", 
- "Data": ["Key1", "Key2", "Key3"]
+  "Cmd": "Delete", 
+  "Data": ["Key1", "Key2", "Key3"]
 }
 ```
 
@@ -50,4 +50,4 @@ Records are simply overwritten on new Put commands.
 
 ### Output Commands
 
-Proxy will route any command received through the socket connection to the module defined in Par.
+*None*
