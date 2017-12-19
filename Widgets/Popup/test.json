@@ -1,0 +1,16 @@
+{
+	"State": {
+		"View": "xGraoph.Widgets.PanelView",
+		"Par": {}
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			},
+			"Document": [
+				"xGraphSelfPid"
+			]
+		}
+	]
+}

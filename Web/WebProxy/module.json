@@ -1,19 +1,21 @@
 {
   "input": {
     "required":[],
-    "opts":[]
+    "optional":[]
   },
   "output":{
     "required":[],
-    "opts":[]
+    "optional":[]
   },
   "par": {
-    "required":[],
-    "opts":[]
+    "required":{
+      "Link": "string"
+    },
+    "optional":[]
   },
   "name": "WebProxy",
   "icon": null,
   "doc": null,
-  "info":{"author":"TrevrGionet"},
+  "info":{"author":"Introspective Systems, LLC."},
   "src": "xGraph:Web/WebProxy"
 }

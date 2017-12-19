@@ -1,5 +1,14 @@
 (function NeDB() {
 	class NeDB {
+
+		/**
+		 * @description Starts NeDB by either creating or
+		 * loading in to memory, the database file
+		 * specified in `Par.Filename`
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof NeDB
+		 */
 		Start(com, fun) {
 			console.assert(typeof this.Par.Filename === 'string');
 
@@ -17,6 +26,7 @@
 				fun(null, com);
 			});
 		}
+
 		/**
 		 * @description com.Document will be inserted in to
 		 * the database and be given an _id: string. in the database.
@@ -33,6 +43,7 @@
 				fun(null, com);
 			});
 		}
+
 		/**
 		 * @description count how many records are in
 		 * the database. If Filter object is present
@@ -50,6 +61,7 @@
 				fun(null, com);
 			});
 		}
+
 		/**
 		 * @description Finds and returns all documents matched by
 		 * the com.Where object. If com.Projection is present, only
@@ -59,6 +71,7 @@
 		 * @param {object} com 
 		 * @param {object} com.Where
 		 * @param {object} com.Projection
+		 * @param {object[]} com.Documents out
 		 * @param {any} fun 
 		 * @memberof NeDB
 		 */
@@ -70,6 +83,7 @@
 				fun(null, com);
 			});
 		}
+
 		/**
 		 * @description Updates All documents matching com.Where 
 		 * with the values inside com.Set
@@ -93,10 +107,13 @@
 				fun(err, com);
 			});
 		}
+		
 		/**
 		 * @description Delete all documents matching com.Where from the database
 		 * number of records deleted is returned in com.DeletedCount.
-		 * @param {any} com 
+		 * @param {object} com 
+		 * @param {object} com.Where
+		 * @param {number} com.DeletedCount out
 		 * @param {any} fun 
 		 * @memberof NeDB
 		 */

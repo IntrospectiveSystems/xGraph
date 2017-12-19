@@ -5,19 +5,20 @@ v1.0.0
 Introspective Systems, LLC.
 
 ---
-## xGraph Executable
+### xGraph Executable
 The xGraph command line tool accelerates the building and running of xGraph
 Systems.
 
 ---
-### Getting Started
-
-Download the system dependent installer from the Introspective Systems website.
+#### Getting Started
+First, download the system dependent installer from the Introspective
+Systems website.
 
 ##### On Windows:
-You will have to add the xgraph path variable to your systems environment
-variable. This can be done for a single session through the command line,
-or you can set the environment variable permanently through windows settings.
+If you are running a Windows operating system, you will have to add the
+xgraph path variable to your systems environment variable. This can be
+done for a single session through the command line, or you can set the
+environment variable permanently through windows settings.
 
 The xgraph path variable is ``` {path to...}ProgramFiles/xGraph```.
 Append this to your your Environmental Path Variable ($PATH).
@@ -31,7 +32,7 @@ Simply unpack the installation file (.tar or .gz) and restart your terminal
 session.
 
 ---
-## API
+### API
 ```
 Compile and Run xGraph systems with a few simple commands.
 
@@ -83,17 +84,16 @@ Examples:
 
 
 ---
-## Contributing
+### Contributing
 
-Please read [CONTRIBUTING.md] (add link .....) for details on our code of 
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of 
 conduct, and the process for submitting pull requests to us.
 
-## Versioning
+### Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available,
- see the [tags on this repository] (tags link ....). 
+We use [SemVer](http://semver.org/) for versioning. 
 
 
-## License
-
-....
+### License
+This software is licensesd under the [GNU AFFERO GENERAL PUBLIC LICENSE Version 3](https://www.gnu.org/licenses/agpl-3.0.html).  
+Please contact us at sales@introspectivesystems.com if you are interested in pursuing one of our Enterprise licenses.

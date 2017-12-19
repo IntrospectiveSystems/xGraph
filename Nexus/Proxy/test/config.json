@@ -1,0 +1,15 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.ValidateModule",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.Nexus.Proxy",
+				"TestJson": "@file: ../test.json"
+			}
+		}
+	}
+}

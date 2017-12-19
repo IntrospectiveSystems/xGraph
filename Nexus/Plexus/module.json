@@ -5,7 +5,7 @@
 				"Cmd": "Setup"
 			}
 		],
-		"opts": [
+		"optional": [
 			{
 				"Cmd": "Subscribe",
 				"required": {
@@ -23,11 +23,11 @@
 	},
 	"output": {
 		"required": [],
-		"opts": []
+		"optional": []
 	},
 	"par": {
 		"required": {},
-		"opts": {}
+		"optional": {}
 	},
 	"name": "Plexus",
 	"icon": null,

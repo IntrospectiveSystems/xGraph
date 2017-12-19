@@ -7,13 +7,13 @@
 			"Module": "xGraph.ValidateModule",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Widgets.AceEditorView",
-				"TestJson": "@file: ../../Widgets/AceEditorView/test.json"
+				"TestModule": "xGraph.Widgets.2DView",
+				"TestJson": "@file: ../../Widgets/2DView/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Widgets.AceEditorView",
+				"Module": "xGraph.Widgets.2DView",
 				"Source": "xGraph"
 			},
 			{

@@ -1,0 +1,29 @@
+{
+  "input": {
+    "required":[
+      {
+				"Cmd": "Setup"
+			}
+    ],
+    "optional":[
+      {
+        "Cmd": "*",
+        "required":{
+          "Forward": "string"
+        }
+			}
+    ]
+  },
+  "output":{
+    "required":[],
+    "optional":[]
+  },
+  "par": {
+    "required":["ApexList","Url"],
+    "optional":["Port"]
+  },
+  "name": "WebViewer",
+  "icon": null,
+  "doc": "README.md",
+  "src": "xGraph:Web/WebViewer"
+}

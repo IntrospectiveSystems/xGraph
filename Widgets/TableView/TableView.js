@@ -2,6 +2,14 @@
 (function TableView() {
 
 	class TableView {
+
+		/**
+		 * @description create the table in DOM and apply a number of styles
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @override
+		 * @memberof TableView
+		 */
 		Setup(com, fun) {
 
 			this.super(com, (err, cmd) => {
@@ -79,6 +87,16 @@
 
 		}
 
+		/**
+		 * @description 
+		 * 1) Set Headers to `Par.Columns`
+		 * 
+		 * 2) send `Source` GetData, and add its Rows.
+		 * @override
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		async Start(com, fun) {
 
 			if('Source' in this.Par && 'Columns' in this.Par) {
@@ -92,7 +110,6 @@
 				});
 	
 				let data = await this.ascend("GetData", {}, this.Par.Source);
-				// debugger;
 				// add rows
 				this.ascend("SetRows", {
 					Rows: data.Data,
@@ -107,7 +124,21 @@
 				fun(null, com);
 		}
 
-
+		/**
+		 * @description Create the thead and load the
+		 * column information into Vlt
+		 * 
+		 * if Evoke is present, add a column for that.
+		 * 
+		 * internal use only
+		 * @param {object} com 
+		 * @param {object[]} com.Headers
+		 * @param {string} com.Headers.Name
+		 * @param {string} com.Headers.Key
+		 * @param {string=} com.Evoke
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		SetDataHeaders(com, fun) {
 
 			let headers = com.Headers;
@@ -119,7 +150,6 @@
 			for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 				str += `<th>${this.Vlt.headers[colIdx].Name}</th>`;
 				if('Enum' in this.Vlt.headers[colIdx]) {
-					// debugger;
 					this.Vlt.enums[colIdx] = this.Vlt.headers[colIdx].Enum;
 				}
 			}
@@ -136,6 +166,16 @@
 				fun(null, com);
 		}
 
+		/**
+		 * @description Create the tbody, trs, and tds and
+		 * append them to the table.
+		 * 
+		 * internal use only
+		 * @param {object} com 
+		 * @param {object[]} com.Rows
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		SetRows(com, fun) {
 			if (!(this.Vlt.rows))
 				this.Vlt.rows = [];
@@ -150,7 +190,6 @@
 				str = `<tr>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
-					// log.d(key, row[key]);
 					if(typeof row[key] == 'object' && 'Value' in row[key]) {
 						row[key] = row[key].Value;
 					}
@@ -159,7 +198,6 @@
 					else
 						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 				}
-				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
 					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}
@@ -171,7 +209,6 @@
 			
 			let that = this;
 			$(`.${this.id('EvokeButton')}`).on('click', function() {
-				// debugger;
 				that.evoke($(this).attr('pid'));
 			});
 
@@ -179,16 +216,21 @@
 				fun(null, com);
 		}
 
+		/**
+		 * @description if our View DOM is not appended yet, do so.
+		 * otherwise, do nothing.
+		 * 
+		 * @override
+		 * @param {any} com 
+		 * @param {any} fun 
+		 * @memberof TableView
+		 */
 		Render(com, fun) {
 			if(this.Vlt.div.children().length == 0) {
 				this.Vlt.table.append(this.Vlt.tablehead);
 				this.Vlt.table.append(this.Vlt.tablebody);
 				this.Vlt.div.append(this.Vlt.table);
 			}
-			this.super(com, fun);
-		}
-
-		DOMLoaded(com, fun) {
 			this.super(com, fun);
 		}
 	}

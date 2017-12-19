@@ -8,43 +8,44 @@ Introspective Systems, LLC.
 ---
 #### Plexus
 
-The Plexus entity is the Apex and only entity of the Plexus Module.
-This entity requres its Setup function invoked during the Setup phase of Nexus startup.
+Plexus is a dynamic router that routes connections, and assigns the
+port to servers requesting publication. Plexus registers a server with a
+channel name and host, and assigns that server a port. Plexus handles
+connection requests by channel name.
+
 
 
 ---
 
-### Module Definition Parameters
+#### Module Definition Parameters
 
-Parameters are defined in the module definition and stored in this.Par.
-Some are required, while some may be optional. Below, the Parameters
-that Plexus expects to be defined.
+Plexus has the following module definition parameters.
 
 ***(Plexus does not require any parameters to be defined in the
 config.json file.)***
 
 ---
 
-### Output Commands
+#### Output Commands
 
 The Output Commands are all the command that Plexus can send to
 other modules.
 
-***(Plexus does not send any commands)***
+*(Plexus does not send any commands.)*
 
 ---
 
-### Input Commands
+#### Input Commands
 The Input Commands are all the commands that Plexus can
 receive.
 
 
-#### Setup(com, fun) 
+##### Setup(com, fun)
 
 Setup the required vault variables
 
 
-##### Parameters
+###### Parameters
 
 | Name | Type | Description |  |
 | ---- | ---- | ----------- | -------- |
@@ -54,21 +55,21 @@ Setup the required vault variables
 
 
 
-##### Returns
+###### Returns
 
 
 - `com`  
 
 
 
-#### Publish(com, fun) 
+##### Publish(com, fun)
 
 Publish a Proxy (server) to the Plexus
 
 
 
 
-##### Parameters
+###### Parameters
 
 | Name | Type | Description |  |
 | ---- | ---- | ----------- | -------- |
@@ -80,21 +81,21 @@ Publish a Proxy (server) to the Plexus
 
 
 
-##### Returns
+###### Returns
 
 
 - `com.Port`  the port that the server shall listen at
 
 
 
-#### Subscribe(com, fun) 
+##### Subscribe(com, fun)
 
 A Proxy (client) can request the data of a Proxy server
 
 
 
 
-##### Parameters
+###### Parameters
 
 | Name | Type | Description |  |
 | ---- | ---- | ----------- | -------- |
@@ -105,7 +106,7 @@ A Proxy (client) can request the data of a Proxy server
 
 
 
-##### Returns
+###### Returns
 
 
 - `com.Host`  The host for the client to connect on

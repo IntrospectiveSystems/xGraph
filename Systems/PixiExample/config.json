@@ -4,7 +4,7 @@
 	},
 	"Modules": {
 		"Server": {
-			"Module": "xGraph.Web.Server",
+			"Module": "xGraph.Web.WebViewer",
 			"Source": "xGraph",
 			"Par": {
 				"ApexList": {},

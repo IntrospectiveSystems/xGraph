@@ -105,7 +105,7 @@
 
 		/**
 		 * The setup procedures for genesis.
-		 * This includes defining macros and other Params.
+		 * This includes defining macros and other parameters.
 		 * Parse the configuration file
 		 * and clean the cache.
 		 */
@@ -126,7 +126,7 @@
 			//
 
 			/**
-			 * Read in macros and set Params from process.argv
+			 * Read in macros and set parameters from process.argv
 			 * these are also set in the binary in pathOverrides
 			 * examples are  xGraph={path to xGraph}
 			 * in binary they look like --xGraph {path to xGraph}

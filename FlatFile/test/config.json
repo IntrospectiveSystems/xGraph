@@ -1,0 +1,18 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.ValidateModule",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.FlatFile",
+				"TestJson": "@file: ../test.json"
+			}
+		},
+		"Deferred": [
+			{ "Module": "xGraph.FlatFile" }
+		]
+	}
+}

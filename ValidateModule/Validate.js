@@ -155,7 +155,7 @@
 							if ("SentMessages" in test) {
 								for (msgIdx = 0; msgIdx < test.SentMessages.length; msgIdx++) {
 									hash = MD5(JSON.stringify(test.SentMessages[msgIdx]));
-									hashStash.push(hash); Response
+									hashStash.push(hash);
 									if (hash in that.Vlt.SentMessages)
 										that.Vlt.SentMessages[hash]--;
 									else {

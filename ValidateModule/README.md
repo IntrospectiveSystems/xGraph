@@ -1,4 +1,4 @@
-# Validate 
+### ValidateModule
 
 v1.0.0
 
@@ -6,67 +6,54 @@ Introspective Systems, LLC.
 
 
 ---
-#### Validate
+#### ValidateModule
 
-The Validate entity is the Apex and only entity of the Validate Module. This entity requres its Start function invoked during the Start phase of Nexus startup.
-
-The main capability of this entity is to GenModule the module being tested and then perform the tests laid out it the test.json file. 
-
----
-
-### Module Definition Parameters
-
-Parameters are defined in the module definition and stored in the Par attribute 
-of the Entities this attribute.
-
-Two Pars must be set in the module definition, they are both required. 
-
-`{"TestModule":"xGraphModuleAddress"}` - where xGraphModuleAddress defines the address of the module to be loaded.
-
-`{"TestJson":"@file String"}` - where String is set to the path of the test.json for this module
-
-An example of how this looks in the module definition of a config.json. Note that the Test Module defined by the xGraphModuleAddress also needs to be in the array of deferred modules so that it's code is loaded during compile. 
-
-``` json
-{
-	"Module": "xGraph.ValidateModule",
-	"Source": "xGraph",
-	"Par": {
-		"TestModule": "xGraphModuleAddress",
-		"TestJson": "@file: {PathTo}test.json"
-	}
-}
-```
+ValidateModule is a module that tests other modules. The tests for a module
+are described in a test.json file, which should be included with each module.
+ValidateModule generates the module being tested, and then perform
+the tests that are laid out it the test.json file.
 
 ---
 
-### Output Commands
+#### How To Use ValidateModule
 
-None
+To test a module using ValidateModule, you need to supply ValidateModule
+with a list of tests in the form of a JSON object. For existing modules,
+these tests should be included in the test.json file. Next we will look at
+how to build a test.json for a module.
 
----
+The JSON object of the test.json for any module has 2 main sections:
+`State` and `Cases`.
 
-### Input Commands
+State references a json object that defines the parameters, (`this.Par`),
+that must be defined to run the module or perform the tests given.
 
-None
+Cases references an array of test cases. Each test case must have the
+`"Command"` key defined. This key references the JSON object that is the
+message the that will be sent to the module being tested. The module must
+accept this command for the test to pass.
 
----
+The test case can also have a `"SentMessages"` key, a `"Response"` key,
+or both.
 
-### How To
+`"SentMessages"` references an array of messages that should be sent
+when the module being tested receives the test command. The command object
+in the "SendMessages" array and the command object as sent must match exactly.
 
-The format of the test.json for any module has 2 main components: the State and the Cases.
+`"Response"` references an object that is expected to be returned from
+the original command.
 
-State is a json object that defines the pars that must be defined to perform the tests as defined in Cases.
+Setup and Start test cases (if they exist) must be in order as the first
+2 test cases in the `"Cases"` array. If only one of these exist, then it
+must come as the first test in the array.
 
-Setup and Start Test cases (if they exist) must be in order as the first 2 test cases in the Cases Array. If only one of these exist, then it must come as the first test in the array.
+Three special string values are important to know.
 
-Cases is an array of test cases. Each test case must have the "Command" key defined. This key references the Json object that is the message the module being tested will accept. The test case can also have a "SentMessages" key, a "Response" key, or both. The "SentMessages" key references an array of messages that are expected to be sent from the module being tested these must be defined and match exactly since they are checked by a hash code on the message. The "Response' key references the expected results from the returned command as was delivered in the callback of the original "Command".
-
-Three specific string values are important to know.
-
-"xGraphSelfPid" is the pid of the Module apex being tested.
-"xGraphTesterPid" is the pid of the Validate Module (the module performing the test). 
-"*" is available to test for a value but not defining what it is exactly Only for use in the Response object. 
+- `"xGraphSelfPid"` is the pid of the Module apex being tested.
+- `"xGraphTesterPid"` is the pid of ValidateModule (this module, the
+                        module performing the test).
+- `"*"` is a wildcard available to test for a key without defining the
+        value. The wildcard can only be used in the Response object.
 
 Example:
 ```json
@@ -75,7 +62,7 @@ Example:
 		"Server":"xGraphTesterPid",
 		"Table":{
 			"Test":"xGraphTesterPid"
-		}	
+		}
 	},
     "Cases": [
 		{
@@ -84,33 +71,33 @@ Example:
 			},
 			"SentMessages":[
 				{
-					"Cmd":"Subscribe", 
+					"Cmd":"Subscribe",
 					"Pid":"xGraphSelfPid"
 				}
 			]
 		},
 		{
 			"Command": {
-				"Cmd":"Subscribe", 
+				"Cmd":"Subscribe",
 				"Name":"TestDestination",
 				"Pid": "xGraphTesterPid"
 			}
 		},
 		{
 			"Command": {
-				"Cmd":"Test", 
+				"Cmd":"Test",
 				"Destination":"TestDestination",
 				"Pid": "xGraphTesterPid"
 			},
 			"Response": {
 				"Cmd": "Test",
-				"Pid": "*"				
+				"Pid": "*"
 			}
 		}
     ]
 }
 ```
-To Check for array length and values  use 
+To Check for array length and values  use
 
 ```json
 {
@@ -126,3 +113,48 @@ To Check for array length and values  use
 	}
 }
 ```
+
+
+---
+
+#### Module Definition Parameters
+
+Parameters are defined in the module definition and stored in the Par attribute 
+of the Entities this attribute.
+
+Validate requires two parameters must be defined in the module definition.
+
+- `{"TestModule":"xGraphModuleAddress"}`: Where xGraphModuleAddress is
+                                        the xGraph module that will be tested.
+- `{"TestJson":"@file String"}`: Where String is the path of the test.json
+                                    containing the tests.
+
+The following is an example of how this looks in the module definition.
+Note that the module being tested, defined by the xGraphModuleAddress,
+also needs to be in included in the array of deferred modules so that
+its code is compiled.
+
+``` json
+{
+	"Module": "xGraph.ValidateModule",
+	"Source": "xGraph",
+	"Par": {
+		"TestModule": "xGraphModuleAddress",
+		"TestJson": "@file: {PathTo}test.json"
+	}
+}
+```
+
+---
+
+### Output Commands
+The Output Commands are all the command that ValidateModule can send.
+
+*(ValidateModule does not send any commands.)*
+
+---
+
+### Input Commands
+The Input Commands are all the command that Plexus can receive.
+
+*(ValidateModule does not send any commands.)*
