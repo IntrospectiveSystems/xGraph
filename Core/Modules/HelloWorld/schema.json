@@ -1,0 +1,12 @@
+{
+	"Apex": {
+		"$Setup": "Setup",
+		"$Start": "Start",
+		"Entity": "HelloWorld.js",
+		"Friend": "#OtherEntity"
+	},
+	"OtherEntity": {
+		"$Start": "Start",
+		"Entity": "HelloWorld2.js"
+	}
+}

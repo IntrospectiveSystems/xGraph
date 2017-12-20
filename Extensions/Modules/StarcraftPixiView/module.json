@@ -1,0 +1,52 @@
+{
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			},
+			{
+				"Cmd": "Start"
+			}
+		],
+		"opts": [
+			{
+				"Cmd": "Subscribe",
+				"required": {
+					"Chan": "String"
+				}
+			},
+			{
+				"Cmd": "Publish",
+				"required": {
+					"Chan": "String",
+					"Host": "String"
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"opts": []
+	},
+	"par": {
+		"required": [],
+		"opts": {
+			"Source": "xGraphPid",
+			"DataChannels": [
+				{
+					"Channel": "string",
+					"Flow": "Push || other",
+					"Handler": "functionString"
+				}
+			],
+			"Hidden": "boolean"
+		}
+	},
+	"name": "Plexus",
+	"icon": null,
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"src": "xGraph:Nexus/Plexus"
+}

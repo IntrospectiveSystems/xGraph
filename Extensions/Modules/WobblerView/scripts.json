@@ -1,0 +1,6 @@
+{
+	"THREE": "three.min.js",
+	"projector.js": "projector.js",
+	"CanvasRenderer.js": "CanvasRenderer.js",
+	"Controls": "Controls.js"
+}

@@ -1,0 +1,22 @@
+{
+  "input": {
+    "required":[],
+    "opts":[
+      "GetGraph",
+      "Subscribe"
+    ]
+  },
+  "output":{
+    "required":[],
+    "opts":[
+      {"par":"Inst","cmd":["AddInstance"]}]
+  },
+  "par":{
+    "required": [],
+    "opts": []
+  },
+  "name": "Scene",
+  "icon": null,
+  "doc": "Scene.md",
+  "src": "xGraph:Scene/Scene"
+}

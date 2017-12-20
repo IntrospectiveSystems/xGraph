@@ -1,0 +1,8 @@
+{
+  "Apex": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"$Global":"Scene",
+	"Entity": "Scene.js"
+  }
+}

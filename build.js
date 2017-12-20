@@ -151,8 +151,8 @@
 		arch: 'x64',
 	};
 
-	// createMsi(options, function (err) {
-	// 	if (err) throw err
-	// 	console.log('Windows: Done!');
-	// });
+	createMsi(options, function (err) {
+		//if (err) throw err
+		console.log('Windows: Done!');
+	});
 })();

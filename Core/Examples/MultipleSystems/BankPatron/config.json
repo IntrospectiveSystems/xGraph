@@ -1,0 +1,22 @@
+{
+	"Sources": {
+      "xGraph": "{xGraph}"
+    },
+    "Modules": {
+        "BankPatron": {
+			"Module": "xGraph:Modules/BankPatron",
+			"Par":{
+				"BankAccount":"$BankServer"
+			}
+        }, 
+        "BankServer": {
+            "Module": "xGraph:Modules/Proxy",
+            "Par": {
+				"Host": "127.0.0.1",
+				"Port": 27002,
+				"Role": "Client",
+				"Poll": true
+            }
+        }
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "Sources": {
+        "xGraph": "{xGraph}"
+    },
+    "Modules": {
+        "Plexus": {
+            "Module": "xGraph:Modules.Plexus",
+            "Source": "xGraph",
+            "Par": {}
+        },
+        "Proxy": {
+            "Module": "xGraph:Modules.Proxy",
+            "Source": "xGraph",
+            "Par": {
+                "Plexus": "$Plexus",
+                "Name": "Plexus",
+                "Chan": "Plexus",
+                "Link": "$Plexus",
+                "Role": "Server"
+            }
+        }
+    }
+}

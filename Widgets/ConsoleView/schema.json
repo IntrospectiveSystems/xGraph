@@ -1,7 +1,0 @@
-{
-	"Apex": {
-		"Entity": "ConsoleView.js",
-		"$Setup": "Setup",
-		"$Start": "Start"
-	}
-}

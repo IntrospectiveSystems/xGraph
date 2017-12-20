@@ -1,0 +1,10 @@
+{
+  "Apex": {
+	"$Setup": "Setup",
+	"$Start": "Start",
+	"Entity": "Instance.js",
+	"Position": [0,0,0],
+	"Axis":[0,0,1],
+	"Angle":0.0
+  }
+}
