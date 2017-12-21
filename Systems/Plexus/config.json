@@ -1,21 +1,20 @@
 {
-  "xGraph": "{xGraph}",
-  "Cache": "cache",
-   "Modules": {
-	 "Nexus": {
-	   "Module": "xGraph:Nexus/Nexus"
-	 },
-	 "Plexus": {
-	   "Module":"xGraph:Nexus/Plexus",
-	   "Par":{
-	   }
-	 },
-	 "Proxy": {
-	   "Module":"xGraph:Nexus/Proxy",
-	   "Par":{
-		 "Plexus":"127.0.0.1:2700",
-		 "Role":"Server"
-	   }
-	 }
-   }
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Plexus": {
+			"Module": "xGraph:Nexus/Plexus",
+			"Source": "xGraph",
+			"Par": {}
+		},
+		"Proxy": {
+			"Module": "xGraph:Nexus/Proxy",
+			"Source": "xGraph",
+			"Par": {
+				"Plexus": "127.0.0.1:2700",
+				"Role": "Server"
+			}
+		}
+	}
 }
