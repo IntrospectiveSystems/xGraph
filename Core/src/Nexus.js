@@ -465,9 +465,13 @@
 		 * @param {string} filename  	The file to get from this module's module.json
 		 * @callback fun 				return the file to caller
 		 */
-		function getFile(filename, fun) {
+		function getFile(filename, type, fun) {
+			if (!fun && (typeof type =='function')){
+				fun = type;
+				type = 'text';
+			}
 			log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
-			nxs.getFile(Par.Module, filename, fun);
+			nxs.getFile(Par.Module, type, filename, fun);
 		}
 
 		/**
@@ -592,7 +596,7 @@
 		if (impkey in ImpCache) {
 			imp = ImpCache[impkey];
 		} else {
-			imp = (1, eval)(mod[par.Entity]);
+			imp = (1, eval)(Buffer.from(mod[par.Entity], 'base64').toString());
 			ImpCache[impkey] = imp;
 		}
 
@@ -726,15 +730,28 @@
 	 * @param {string} filename 	the name of the file we're looking for
 	 * @callback fun				the callback to return the pid of the generated entity to
 	 */
-	function getFile(module, filename, fun = _ => _) {
+	function getFile(module, type, filename, fun = _ => _) {
 		let mod = ModCache[module];
-		if (filename in mod) {
-			fun(null, mod[filename])
-			return;
-		}
+		let file;
+
+		if (!(filename in mod)) {
 		let err = `Error: File ${filename} does not exist in module ${module}`;
 		log.e(err);
 		fun(err);
+	}
+		switch (type) {
+			case "text": {
+				file = Buffer.from(mod[filename], 'base64').toString();
+				break;
+			}
+			case "binary": {
+				file = Buffer.from(mod[filename], "base64")
+				break;
+			}
+		}
+
+		fun(null, file)
+		return;
 	}
 
 	/**
@@ -797,12 +814,13 @@
 					fun('Module not available');
 					return;
 				}
+				ModCache[folder]= mod;
 				if (!(par.Entity in mod)) {
 					log.e('<' + par.Entity + '> not in module <' + folder + '>');
 					fun('Null entity');
 					return;
 				}
-				imp = (1, eval)(mod[par.Entity]);
+				imp = (1, eval)(Buffer.from(mod[par.Entity], 'base64').toString());
 				ImpCache[impkey] = imp;
 				BuildEnt();
 			});
@@ -829,6 +847,7 @@
 				fun(err);
 				return;
 			}
+			ModCache[inst.Module]= mod;
 			let pidapx = genPid();
 			ApexIndex[pidapx] = mod.ModName;
 			await compileInstance(pidapx, inst);
@@ -890,7 +909,7 @@
 			process.exit(1);
 			return;
 		}
-		var schema = JSON.parse(mod['schema.json']);
+		var schema = JSON.parse(Buffer.from(mod['schema.json'], 'base64').toString());
 		var entkeys = Object.keys(schema);
 
 		//set Pids for each entity in the schema
@@ -1008,8 +1027,7 @@
 							fun(err);
 							return;
 						}
-						ModCache[ModName] = JSON.parse(data.toString());
-						fun(null, ModCache[ModName]);
+						fun(null, JSON.parse(data.toString()));
 						return;
 					});
 				}

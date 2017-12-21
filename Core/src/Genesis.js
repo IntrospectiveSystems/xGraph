@@ -361,7 +361,7 @@
 						let packagejson;
 						let mod = ModCache[folder];
 						if ('package.json' in mod) {
-							packagejson = JSON.parse(mod['package.json']);
+							packagejson =JSON.parse(Buffer.from(mod['package.json'], 'base64').toString());
 						} else {
 							resolve();
 							return;
@@ -581,7 +581,7 @@
 						if (typeof response.Module == 'object') {
 							mod = response.Module;
 							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
+								var schema = JSON.parse(Buffer.from(mod['schema.json'], 'base64').toString());
 								if ('Apex' in schema) {
 									var apx = schema.Apex;
 									if ('$Setup' in apx)
@@ -592,8 +592,7 @@
 										mod.Save = apx['$Save'];
 								}
 							}
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
+							fun(null, mod);
 							return;
 						} else {
 							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
@@ -606,7 +605,7 @@
 								zip.file('module.json').async('string').then(function (str) {
 									mod = JSON.parse(str);
 									if ('schema.json' in mod) {
-										var schema = JSON.parse(mod['schema.json']);
+										var schema = JSON.parse(Buffer.from(mod['schema.json'], 'base64').toString());
 										if ('Apex' in schema) {
 											var apx = schema.Apex;
 											if ('$Setup' in apx)
@@ -617,8 +616,7 @@
 												mod.Save = apx['$Save'];
 										}
 									}
-									ModCache[ModName] = mod;
-									fun(null, ModCache[ModName]);
+									fun(null, mod);
 								});
 							});
 						}
@@ -651,7 +649,7 @@
 						if (ifile >= nfile) {
 							mod.ModName = ModName;
 							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
+								var schema = JSON.parse(Buffer.from(mod['schema.json'], 'base64').toString());
 								if ('Apex' in schema) {
 									var apx = schema.Apex;
 									if ('$Setup' in apx)
@@ -663,8 +661,7 @@
 								}
 							}
 							log.v(`${ModName} returned from local file system`);
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
+							fun(null, mod);
 							return;
 						}
 						var file = files[ifile];
@@ -679,7 +676,8 @@
 											fun(err);
 											return;
 										}
-										mod[file] = data.toString();
+										mod[file] = data.toString('base64');
+
 										scan();
 									});
 								} else {
@@ -739,7 +737,7 @@
 				reject();
 				return;
 			}
-			var schema = JSON.parse(mod['schema.json']);
+			var schema = JSON.parse(Buffer.from(mod['schema.json'], 'base64').toString());
 			var entkeys = Object.keys(schema);
 
 			//set Pids for each entity in the schema
@@ -971,7 +969,7 @@
 							if (param in Params)
 								s += Params[param];
 							else
-								throw 'Parameter <' + param + '> not defined';
+								throw 'Local path parameter <' + param + '> not defined';
 							state = 1;
 						} else {
 							param += chr;
