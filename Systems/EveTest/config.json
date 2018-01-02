@@ -1,10 +1,11 @@
 {
-	//this is old and broken
-	"xGraph": "{xGraph}",
-	"Cache": "cache",
+	"Sources":{
+		"xGraph": "{xGraph}"
+	},
 	"Modules": {
 		"Server": {
 			"Module": "xGraph.Web.WebViewer",
+			"Source": "xGraph",
 			"Par": {
 				"ApexList": {
 					"Controller":"$Controller"
@@ -15,6 +16,7 @@
 		},
 		"Controller": {
 			"Module": "xGraph.Eve.Controller",
+			"Source": "xGraph",
 			"Par":{
 				"Server":"$Server"
 			}

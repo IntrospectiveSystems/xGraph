@@ -1,0 +1,20 @@
+{
+  "input": {
+    "required":[],
+    "opts":[
+      "GetModel"
+      ]
+  },
+  "output":{
+    "required":[],
+    "opts":[]
+  },
+  "par":{
+    "required": ["Texture"],
+    "opts":["Size","TextureSize"]
+  },
+  "name": "Flatland",
+  "icon": null,
+  "doc": "Flatland.md",
+  "src": "xGraph:Scene/Flatland"
+}

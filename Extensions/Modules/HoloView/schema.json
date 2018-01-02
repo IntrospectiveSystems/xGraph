@@ -1,0 +1,21 @@
+{
+	"Apex": {
+		"$Setup": "Setup",
+		"$Start": "Start",
+		"Entity": "View3D.js",
+		"Gen": {
+			"X3D": "#X3D"
+		}
+	},
+	"Mouse": {
+		"$Setup": "Setup",
+		"$Start": "Start",
+		"Entity": "Mouse.js",
+		"View": "#Apex"
+	},
+	"X3D": {
+		"$Setup": "Setup",
+		"$Start": "Start",
+		"Entity": "X3D.js"
+	}
+}

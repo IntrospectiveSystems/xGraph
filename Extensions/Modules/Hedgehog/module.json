@@ -1,0 +1,20 @@
+{
+  "input": {
+    "required":[],
+    "opts":[
+      ]
+  },
+  "output":{
+    "required":[],
+    "opts":[]
+  },
+  "par":{
+    "required": [],
+    "opts":[]
+  },
+  "name": "Hedgehog",
+  "icon": null,
+  "doc": null,
+  "info":{"author":"TrevrGionet"},
+  "src": "xGrid:Modules/Hedgehog"
+}
