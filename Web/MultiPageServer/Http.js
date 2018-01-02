@@ -389,9 +389,12 @@
 								Scripts: Vlt.Scripts
 							}
 
-							for (let key in that.Vlt.RoutingTable[com.Path.toLowerCase()])
-								cfg[key] = that.Vlt.RoutingTable[com.Path.toLowerCase()][key];
-
+							if (com.Path.toLowerCase() in that.Vlt.RoutingTable)
+								for (let key in that.Vlt.RoutingTable[com.Path.toLowerCase()])
+									cfg[key] = that.Vlt.RoutingTable[com.Path.toLowerCase()][key];
+							else {
+								cfg.Error = 404;
+							}
 							// log.d('----------------- cfg');
 							// for(let k in cfg) {
 							// 	log.d(`[${k}]: ${cfg[k].toString().substr(0, 100)}`);

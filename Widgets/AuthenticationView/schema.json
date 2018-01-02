@@ -1,0 +1,6 @@
+{
+	"Apex": {
+		"Entity": "AuthView.js",
+		"$Setup": "Setup"
+	}
+}

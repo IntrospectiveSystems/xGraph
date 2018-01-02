@@ -769,7 +769,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.cdnImportCss = (url) => {
 				$(document.head).append($(`<link href="${url}" rel="stylesheet">`));
 			};
-			this.id = str => md5(this.Par.Pid + str);
+			this.id = str => `XGRAPH-${this.Vlt.type}-${md5(this.Par.Pid + str)}-${str}`;
 		}
 	}
 

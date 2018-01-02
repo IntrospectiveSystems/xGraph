@@ -1,0 +1,132 @@
+(function LoginView() {
+
+	class LoginView {
+		Start(com, fun) {
+			this.super(com, (err, cmd) => {
+
+				fun(null, com);
+			});
+		}
+		Setup(com, fun) {
+			this.super(com, (err, cmd) => {
+				this.Vlt.Name = $(document.createElement('h2'));
+				this.Vlt.Email = $(document.createElement('h4'));
+				// this.Vlt.
+				fun(null, com);
+			});
+		}
+
+		async ShowLogin(com, fun) {
+			await new Promise ((resolve) =>  gapi.load('auth2', _ => resolve()));
+			// debugger;
+			let cmd = await new Promise (
+				(resolve) => 
+					this.send({Cmd: 'GetClientCredentials'}, this.Par.Google, (err, cmd) => 
+					resolve(cmd)
+				)
+			);
+
+			log.v('loaded auth2');
+
+			this.Vlt.button = DIV('#google-signin');
+			this.Vlt.button.css('width', '240px');
+			this.Vlt.button.css('margin', '0px auto');
+			this.Vlt.div.append($(`<h1>${this.Par.Text || `Log in or Sign up!`}</h1><hr/>`))
+			this.Vlt.div.append(this.Vlt.button);
+
+			gapi.auth2.init({ client_id: cmd.ClientID });
+
+			log.v('init with ' + cmd.ClientID);
+
+			let onSuccess = (g) => {
+				log.v('success');
+
+				if(this.Par.Logout) {
+					gapi.auth2.getAuthInstance().signOut();
+					location.href = this.Par.Redirect;
+				}
+				
+				let Id = g.getId();
+				let token_type = g.getAuthResponse().token_type;
+				let token = g.getAuthResponse().id_token;
+
+				// gapi.auth2.getAuthInstance().signOut()
+				Cookies('UserPassport', `{"IDToken": "${token}", "UserID": "${Id}"}`);
+				Cookies('Provider', 'google');
+				Cookies('Email', g.getBasicProfile().getEmail());
+				Cookies('DisplayName', g.getBasicProfile().getName());
+				Cookies('authenticated', true);
+				location.href = this.Par.Redirect;
+				// console.log("Login succeeded");
+
+				// let name = g.get
+				// this.Vlt.Name.html('' + Id);
+
+				this.Vlt.div.append(this.Vlt.Name);
+				// console.log(Id, token_type, token);
+				// this.send({
+				// 	Cmd: 'ValidateUser',
+				// 	IDToken: token,
+				// 	UserID: Id
+				// }, this.Par.Server, (err, cmd) => {
+				// 	// debugger;
+				// });
+				// debugger;
+			}
+
+			let onFailure = (a, b, c) => {
+				debugger;
+			}
+
+			this.Vlt.button.css('color', 'initial');
+			await new Promise((resolve, reject) => {
+				gapi.load('signin2', _ => {
+					resolve();
+				});
+			});
+			log.v('loaded signin2');
+
+			gapi.signin2.render('google-signin', {
+				'scope': 'profile email',
+				'width': 240,
+				'height': 50,
+				'longtitle': false,
+				// 'theme': 'dark',
+				'onsuccess': onSuccess,
+				'onfailure': onFailure
+			});
+			this.super({
+				Cmd: 'Style',
+				Selector: '.abcRioButtonContents > span',
+				Rules: {
+					color: 'initial'
+				}
+			}, (err, cmd) => {
+				// debugger;
+			});
+			this.super({
+				Cmd: 'Style',
+				Selector: '#google-signin',
+				Rules: {
+					'margin-top': '24px !important'
+				}
+			}, (err, cmd) => {
+				// debugger;
+			});
+			
+
+			log.v('fin');
+			fun(null, com);
+		}
+
+		DOMLoaded(com, fun) {
+			this.dispatch({Cmd: 'ShowLogin'}, (err, cmd) => {});
+			this.super(com, (err, cmd) => {
+				fun(null, com);
+			});
+		}
+	}
+
+	return Viewify(LoginView);
+
+})();

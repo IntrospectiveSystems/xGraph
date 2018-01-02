@@ -11,7 +11,7 @@
 				md5 = this.require('md5');
 				this.Vlt.Users = new nedb({filename: 'Users.nedb'});
 				this.Vlt.Users.loadDatabase((err) => {
-					console.log('Users Database Loaded');
+					log.i('Users Database Loaded');
 					fun(null, com);
 				});
 			}
@@ -36,27 +36,27 @@
 				let token = com.IDToken;
 				let CLIENT_ID = this.Par.ClientID;
 
-				console.log(" |> Authentication::ValidateUser");
+				log.v(" |> Authentication::ValidateUser");
 	
 				// debugger;
 				let GoogleAuth = this.require('google-auth-library');
 				let auth = new GoogleAuth;
 				let client = new auth.OAuth2(CLIENT_ID, '', '');
 				client.verifyIdToken(token, CLIENT_ID, (e, login) => {
-					// console.log(`ERROR?!?!?!?!?!? "${e}"`);
+					// log.v(`ERROR?!?!?!?!?!? "${e}"`);
 					if(e) {
 						let needsRefresh = e.message.startsWith("Token used too late");
 						if(true) {
 
-							console.log(token.substr(0, 11) + " + " + com.UserID.substr(0, 10));
-							console.log("Maybe Valid, Token needs to refresh, try again...");
+							log.v(token.substr(0, 11) + " + " + com.UserID.substr(0, 10));
+							log.v("Maybe Valid, Token needs to refresh, try again...");
 
-							// console.log('setting refresh...');
+							// log.v('setting refresh...');
 							com.Refresh = 'Refresh' in com ? com.Refresh + 1 : 1;
-							// console.log('setting error...');
+							// log.v('setting error...');
 							com.Err = 'refresh auto';
-							// console.log(JSON.stringify(com, null, 2));
-							// console.log('calling back...');
+							// log.v(JSON.stringify(com, null, 2));
+							// log.v('calling back...');
 							fun('refresh auth', com);
 						}
 
@@ -71,13 +71,13 @@
 					//because only a user will know both their ID and their current token.
 					if(userid != com.UserID) {
 						com.Valid = false;
-						console.log(name, "=> Imposter!!");
-						console.log(userid + " != " + com.UserID);
+						log.v(name, "=> Imposter!!");
+						log.v(userid + " != " + com.UserID);
 						fun('INVALID ID TOKEN OR USER ID', com);
 						return;
 					}
 
-					console.log(name, "=> Authenticated!");
+					log.v(name, "=> Authenticated!");
 					
 					//look up the user, now that we've validated them with googleTwitterReport
 					this.Vlt.Users.find({
@@ -96,11 +96,11 @@
 				});
 	
 				let createUser = (userid, email, name) => {
-					console.log("User does not exist yet...");
+					log.v("User does not exist yet...");
 					let Pids = {};
 					
 					async.each(this.Par.LinkedModules, (item, next) => {
-						console.log("Creating Linked " + item.Key);
+						log.v("Creating Linked " + item.Key);
 						//create Linked Entities
 						let par = {
 							Module: item.Module,
@@ -109,7 +109,7 @@
 						par.Par.User = userid;
 						this.genModule(par, (err, apex) => {
 							Pids[item.Key] = apex;
-							console.log(item.Key + " => " + apex);
+							log.v(item.Key + " => " + apex);
 							next();
 						});
 					}, (err, cmd) => {
@@ -176,7 +176,7 @@
 			// com.Module in, com.Module out
 			GetLinkedModule(com, fun) {
 
-				console.log(" |> Authentication::GetLinkedModule ", com.Module);
+				log.v(" |> Authentication::GetLinkedModule ", com.Module);
 				//first validate the user is real.
 				this.send({
 					Cmd: 'ValidateUser',
@@ -187,18 +187,18 @@
 						if('Refresh' in cmd) {
 							com.Refresh = cmd.Refresh;
 							com.Err = err;
-							console.log("returning thingy");
+							log.v("returning thingy");
 						}
 						return fun(err, com);
 					}
-					// console.log("Valid?", cmd.Valid);
+					// log.v("Valid?", cmd.Valid);
 					if(cmd.Valid && !err) {
 						//no error and the user checks out
 						this.Vlt.Users.find({
 							userid: com.UserID
 						}, (err, docs) => {
 							if(docs.length == 1 && com.Module in docs[0]) {
-								console.log("Returning Linked " + com.Module + " => " + docs[0][com.Module]);
+								log.v("Returning Linked " + com.Module + " => " + docs[0][com.Module]);
 								com.Module = docs[0][com.Module];
 								fun(null, com);
 							} else {
@@ -216,7 +216,7 @@
 				// this.Vlt.Users.find({name: })
 
 				com.Users = [];
-				console.log('com.Search', com.Search);
+				log.v('com.Search', com.Search);
 				this.Vlt.Users.find({
 					search: {
 						$regex: new RegExp(`.*${com.Search.toUpperCase()}.*`)
