@@ -1,13 +1,13 @@
 {
 	"Modules": {
 		"RootView": {
-			"Module": "xGraph:Widgets/RootView",
+			"Module": "xGraph:Core/Modules/RootView",
 			"Par": {
 				"Layout": "$View3D"
 			}
 		},
 		"View3D": {
-			"Module":"xGraph:Eve/View3D",
+			"Module":"xGraph:Extensionss/View3D",
 			"Par": {
 				"Navigation":"xGraph.Eve.Mouse",
 				"Controller":"$Controller"
