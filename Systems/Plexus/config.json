@@ -4,12 +4,12 @@
 	},
 	"Modules": {
 		"Plexus": {
-			"Module": "xGraph:Nexus/Plexus",
+			"Module": "xGraph.Core.Modules.Plexus",
 			"Source": "xGraph",
 			"Par": {}
 		},
 		"Proxy": {
-			"Module": "xGraph:Nexus/Proxy",
+			"Module": "xGraph.Core.Modules.Proxy",
 			"Source": "xGraph",
 			"Par": {
 				"Plexus": "127.0.0.1:2700",
