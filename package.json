@@ -1,6 +1,6 @@
 {
   "name": "build-cli",
-  "version": "0.9.7",
+  "version": "1.0.0",
   "description": "",
   "main": "build.js",
   "scripts": {

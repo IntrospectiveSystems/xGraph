@@ -81,6 +81,8 @@ xcuserdata/
 *.xcscmblueprint
 
 
+# installer build items
+darwin/
 
 
 **/cache/**/*.*

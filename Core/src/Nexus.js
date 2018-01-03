@@ -126,7 +126,8 @@
 			// #ifndef BUILT
 		}
 		log.i("Building the Cache");
-		let genesisString = fs.readFileSync(`${Params.xgraph}/src/Genesis.js`).toString();
+		log.i(process.argv[1]);
+		let genesisString = fs.readFileSync(`${process.argv[1].substr(0,process.argv[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
 		await eval(genesisString);
 		// #endif
 	}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="initial-scale=1">
-<title>Ping 1.0.0</title>
+<title>build-cli 1.0.0</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
 <style>
@@ -161,7 +161,7 @@ input[type="search"]::-webkit-search-cancel-button {
     <div class="container">
 
         <h1>
-                Ping
+                <a href="https://github.com/IntrospectiveSystems/xGraph#readme">build-cli</a>
             <small>1.0.0</small>
         </h1>
 
@@ -185,22 +185,27 @@ input[type="search"]::-webkit-search-cancel-button {
 
 
                     <li>
-                        <a href="#Ping.js" class="file"><b>Ping.js</b></a>
+                        <a href="#Nexus/Plexus/Plexus.js" class="file"><b>Nexus/Plexus/Plexus.js</b></a>
                         <ul>
 
 
                         <li class="method-link scope-public">
-                            <a href="#ping.js-ping" title="Ping">Ping</a>
+                            <a href="#nexus-plexus-plexus.js-plexus" title="Plexus">Plexus</a>
                         </li>
 
 
                         <li class="method-link scope-public">
-                            <a href="#ping.js-start" title="Start">Start</a>
+                            <a href="#nexus-plexus-plexus.js-setup" title="Setup">Setup</a>
                         </li>
 
 
                         <li class="method-link scope-public">
-                            <a href="#ping.js-pong" title="Pong">Pong</a>
+                            <a href="#nexus-plexus-plexus.js-publish" title="Publish">Publish</a>
+                        </li>
+
+
+                        <li class="method-link scope-public">
+                            <a href="#nexus-plexus-plexus.js-subscribe" title="Subscribe">Subscribe</a>
                         </li>
 
 
@@ -216,21 +221,50 @@ input[type="search"]::-webkit-search-cancel-button {
             <div class="col-md-9">
 
 
-                <a id="Ping.js"></a>
+                <a id="Nexus/Plexus/Plexus.js"></a>
 
 
                     <div class="method scope-public">
 
-                        <h2 id="ping.js-ping">
-                            <a href="#ping.js-ping" class="permalink">#</a>
-                            <span class="method-name" title="Ping()">Ping()</span>
+                        <h2 id="nexus-plexus-plexus.js-plexus">
+                            <a href="#nexus-plexus-plexus.js-plexus" class="permalink">#</a>
+                            <span class="method-name" title="Plexus()">Plexus()</span>
                         </h2>
 
                         <div class="description lead">
 
-                            <p>The Ping entity communicates with the Pong entities.
-Starting with the Ping module, the Start() function calls Pong.
-Encapsulating module is defined in the PingPong system config file.</p>
+                            <p>The Plexus entity, the Apex and only entity of the Plexus Module.
+This entity requres its Setup function called during the Setup phase of Nexus startup</p>
+
+
+                        </div>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="nexus-plexus-plexus.js-setup">
+                            <a href="#nexus-plexus-plexus.js-setup" class="permalink">#</a>
+                            <span class="method-name" title="Setup(com, fun)">Setup(com, fun)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <p>Setup the required vault variables</p>
 
 
                         </div>
@@ -254,11 +288,103 @@ Encapsulating module is defined in the PingPong system config file.</p>
 
                                     <tbody>
                                     <tr>
-                                        <td>this.Par.Pong</td>
+                                        <td>com</td>
                                         <td>
-                                            <code>pid</code>
+                                            <code>Object</code>
                                         </td>
-                                        <td><p>The Pid of the Pong entity.</p>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>fun</td>
+                                        <td>
+                                            <code>Function</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </section>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="nexus-plexus-plexus.js-publish">
+                            <a href="#nexus-plexus-plexus.js-publish" class="permalink">#</a>
+                            <span class="method-name" title="Publish(com)">Publish(com)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <p>Publish a Proxy (server) to the Plexus</p>
+
+
+                        </div>
+
+
+                        <section class="parameters">
+
+                            <h3>Parameters</h3>
+
+                            <div class="table-responsive">
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr>
+                                        <td>com</td>
+                                        <td>
+                                            <code>Object</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>com.Chan</td>
+                                        <td>
+                                            <code>String</code>
+                                        </td>
+                                        <td><p>the channel that the server will be supporting</p>
+</td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>com.Host</td>
+                                        <td>
+                                            <code>String</code>
+                                        </td>
+                                        <td><p>the host that the server will be listening on</p>
 </td>
                                         <td>
                                         </td>
@@ -288,15 +414,14 @@ Encapsulating module is defined in the PingPong system config file.</p>
 
                     <div class="method scope-public">
 
-                        <h2 id="ping.js-start">
-                            <a href="#ping.js-start" class="permalink">#</a>
-                            <span class="method-name" title="Start(com)">Start(com)</span>
+                        <h2 id="nexus-plexus-plexus.js-subscribe">
+                            <a href="#nexus-plexus-plexus.js-subscribe" class="permalink">#</a>
+                            <span class="method-name" title="Subscribe(com)">Subscribe(com)</span>
                         </h2>
 
                         <div class="description lead">
 
-                            <p>The Start command sets up a setTimeout function that will send the first &quot;Ping&quot; command
-to the entity referenced in this.Par.Pong.</p>
+                            <p>A Proxy (client) can request the data of a Proxy server</p>
 
 
                         </div>
@@ -322,76 +447,18 @@ to the entity referenced in this.Par.Pong.</p>
                                     <tr>
                                         <td>com</td>
                                         <td>
-                                            <code>object</code>
+                                            <code>Object</code>
                                         </td>
-                                        <td><p>The command object.</p>
-</td>
+                                        <td></td>
                                         <td>
                                         </td>
                                     </tr>
-                                    </tbody>
-
-                                </table>
-                            </div>
-
-                        </section>
-
-
-
-
-                        <section class="returns">
-
-                            <h3>Returns</h3>
-
-
-                            <p><code>Void</code></p>
-
-
-                        </section>
-
-                    </div>
-
-
-                    <div class="method scope-public">
-
-                        <h2 id="ping.js-pong">
-                            <a href="#ping.js-pong" class="permalink">#</a>
-                            <span class="method-name" title="Pong(com)">Pong(com)</span>
-                        </h2>
-
-                        <div class="description lead">
-
-                            <p>The Pong command is sent from the Pong entity, Pong.js. When Pong is received,
-this module prints &quot;Pong&quot; in the console, then sends a 'Ping' command to the
-module referenced in this.Par.Pong.</p>
-
-
-                        </div>
-
-
-                        <section class="parameters">
-
-                            <h3>Parameters</h3>
-
-                            <div class="table-responsive">
-                                <table class="table">
-
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Type</th>
-                                            <th>Description</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
                                     <tr>
-                                        <td>com</td>
+                                        <td>com.Chan</td>
                                         <td>
-                                            <code>object</code>
+                                            <code>String</code>
                                         </td>
-                                        <td><p>The command object.</p>
+                                        <td><p>the channel that the client will be connecting to</p>
 </td>
                                         <td>
                                         </td>
