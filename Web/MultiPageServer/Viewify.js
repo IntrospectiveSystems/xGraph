@@ -356,6 +356,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
+				this.send({ Cmd: 'RegisterDestroyListener' }, com.View, _ => _);
 			});
 		}
 
