@@ -564,7 +564,7 @@ __Nexus = (_ => {
 			ent.Apex = pidapx;
 
 			//give the webProxy modules access to the websocket and callback message stack
-			if (modnam == 'xGraph.Web.WebProxy') ent.sendSock = sendSocket;
+			if (modnam.split(/[\.\/]/g)[modnam.split(/[\.\/]/g).length-1] == 'WebProxy') ent.sendSock = sendSocket;
 
 			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
