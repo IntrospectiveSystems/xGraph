@@ -1,7 +1,7 @@
 (function CommandAuthenticator() {
 	class CommandAuthenticator {
-		AuthCommand(com, fun) {
-			com.Passport.User = {
+		Authenticate(com, fun) {
+			com.Passport.Authentication = {
 				_id: Cookies('xGraph-Id'),
 				DisplayName: Cookies('DisplayName'),
 				Email: Cookies('Email'),

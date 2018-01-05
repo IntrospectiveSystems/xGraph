@@ -325,6 +325,9 @@
 						}
 						
 						
+						if('Authentication' in com.Passport) {
+							//if there is an authentication passport
+						}
 						that.send(com, com.Passport.To, reply);
 	
 						async function reply(err, cmd) {
