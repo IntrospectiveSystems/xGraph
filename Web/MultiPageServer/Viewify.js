@@ -344,7 +344,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Add com.View as a Child View this forces a render after the child gives us its div.
-		 * @param {any} com 
+		 * @param {any} com
+		 * @param {string} com.View view pid
 		 * @param {any} fun 
 		 * @memberof View
 		 */
@@ -764,6 +765,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							Module: cmd.Container || 'xGraph:Widgets/Popup',
 							Par: newPar
 						});
+						this.ascend('AddView', {}, this.Par.Pid);
 					}
 				});
 			};
@@ -771,6 +773,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				$(document.head).append($(`<link href="${url}" rel="stylesheet">`));
 			};
 			this.id = str => `XGRAPH-${this.Vlt.type}-${md5(this.Par.Pid + str)}-${str}`;
+		}
+		if (version >= new SemVer('3.5')) {
+			
 		}
 	}
 

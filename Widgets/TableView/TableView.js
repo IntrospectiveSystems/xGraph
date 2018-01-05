@@ -198,6 +198,7 @@
 					else
 						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 				}
+				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
 					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}

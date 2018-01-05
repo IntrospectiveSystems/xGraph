@@ -49,6 +49,9 @@
 							});
 						});
 						obj.Format = 'is.xgraph.pid';
+						obj.toString = function() {
+							return this.Value;
+						}
 						return obj;
 					}
 					for(let key in obj) {
