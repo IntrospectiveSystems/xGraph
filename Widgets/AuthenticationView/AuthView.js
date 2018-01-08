@@ -10,7 +10,7 @@
 		async Render(com, fun) {
 			com = await this.asuper(com);
 			if(this.Vlt.div.children().length == 0) {
-				if(Cookies('authenticated')) {
+				if (Cookies('xGraph-Authenticated')) {
 					this.Vlt.div.append(`
 						<div base style="
 							height: 48px;
@@ -22,7 +22,7 @@
 							cursor: default;
 							display: inline-block;">
 	
-							<img src="https://www.gravatar.com/avatar/${md5(Cookies('Email'))}?&d=identicon" alt="" style="
+							<img src="https://www.gravatar.com/avatar/${md5(Cookies('xGraph-Email'))}?&d=identicon" alt="" style="
 								display: inline;
 								height: 36px;
 								border-radius: 50%;
@@ -32,13 +32,13 @@
 								vertical-align: top;
 								display: inline-block;">
 								
-							<span title="${Cookies('Email')}" style="
+							<span title="${Cookies('xGraph-Email')}" style="
 								padding-left: 6px;
-								">${Cookies('DisplayName')}</span><br><span style="
+								">${Cookies('xGraph-DisplayName')}</span><br><span style="
 								font-size: 13px;
 								display: inline;
 								padding-left: 6px;
-								opacity: 1;">Not ${Cookies('DisplayName')}?<a href="${this.Par.LogoutHref || "logout"}" style="color: inherit; text-decoration: none;"> Logout</a></span>
+								opacity: 1;">Not ${Cookies('xGraph-DisplayName')}?<a href="${this.Par.LogoutHref || "logout"}" style="color: inherit; text-decoration: none;"> Logout</a></span>
 	
 						</div>
 					`);

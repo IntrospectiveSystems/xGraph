@@ -1,14 +1,21 @@
 (function CommandAuthenticator() {
 	class CommandAuthenticator {
+		Setup(com, fun) {
+			window.CommandAuthenticator = this.Par.Pid;
+			fun(null, com);
+		}
 		Authenticate(com, fun) {
-			com.Passport.Authentication = {
+			com.Command.Passport = com.Command.Passport || {}
+			com.Command.Passport.Authentication = {
 				_id: Cookies('xGraph-Id'),
-				DisplayName: Cookies('DisplayName'),
-				Email: Cookies('Email'),
-				Provider: Cookies('Provider'),
-				Passport: Cookies('UserPassport')
+				DisplayName: Cookies('xGraph-DisplayName'),
+				Email: Cookies('xGraph-Email'),
+				Provider: Cookies('xGraph-Provider'),
+				Passport: Cookies('xGraph-UserPassport')
 			};
 			fun(null, com);
 		}
 	}
+
+	return {dispatch: CommandAuthenticator.prototype };
 })();

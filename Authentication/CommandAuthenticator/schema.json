@@ -1,5 +1,6 @@
 {
 	"Apex": {
-		"Entity": "CommandAuthenticator.js"
+		"Entity": "CommandAuthenticator.js",
+		"$Setup": "Setup"
 	}
 }

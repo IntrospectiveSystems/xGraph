@@ -278,7 +278,7 @@
 						delete Sockets[pidsock];
 					});
 	
-					socket.on('message', function (msg) {
+					socket.on('message', async function (msg) {
 						// debugger;
 						let err, com = JSON.parse(msg);
 						// log.d('msg', err, com);
@@ -326,7 +326,26 @@
 						
 						
 						if('Authentication' in com.Passport) {
+							log.d(JSON.stringify(com.Passport.Authentication, null, 2))
 							//if there is an authentication passport
+							com.Passport.Authentication.Valid = false;
+							// actually do validation here
+
+							if(com.Passport.Authentication.Provider in (that.Par.Providers || [])) {
+								// com.Passport.Authentication.DisplayName = 'Fake McFakerson';
+								// okay so we have a provider, so lets unpack our validation passport.
+								let User = JSON.parse(com.Passport.Authentication.Passport);
+								let provider = that.Par.Providers[com.Passport.Authentication.Provider];
+								await new Promise((resolve, reject) => {
+									that.send({
+										Cmd: 'ValidateUser',
+										User
+									}, provider, (err, cmd) => {
+
+									});
+								})
+							}
+
 						}
 						that.send(com, com.Passport.To, reply);
 	

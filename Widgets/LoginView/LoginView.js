@@ -51,11 +51,11 @@
 				let token = g.getAuthResponse().id_token;
 
 				// gapi.auth2.getAuthInstance().signOut()
-				Cookies('UserPassport', `{"IDToken": "${token}", "UserID": "${Id}"}`);
-				Cookies('Provider', 'google');
-				Cookies('Email', g.getBasicProfile().getEmail());
-				Cookies('DisplayName', g.getBasicProfile().getName());
-				Cookies('authenticated', true);
+				Cookies('xGraph-UserPassport', `{"IDToken": "${token}", "UserID": "${Id}"}`);
+				Cookies('xGraph-Provider', 'google');
+				Cookies('xGraph-Email', g.getBasicProfile().getEmail());
+				Cookies('xGraph-DisplayName', g.getBasicProfile().getName());
+				Cookies('xGraph-Authenticated', true);
 				location.href = this.Par.Redirect;
 				// console.log("Login succeeded");
 

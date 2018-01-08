@@ -775,8 +775,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.id = str => `XGRAPH-${this.Vlt.type}-${md5(this.Par.Pid + str)}-${str}`;
 		}
 		if (version >= new SemVer('3.5')) {
-			this.authenticate() = async (cmd) => {
-				return await this.ascend('Authenticate', {Command: cmd}, this.Par.CommandAuthenticator)
+			this.authenticate = async (cmd) => {
+				return (await this.ascend('Authenticate', {Command: cmd}, window.CommandAuthenticator)).Command;
 			}
 		}
 	}
