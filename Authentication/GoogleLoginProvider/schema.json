@@ -1,5 +1,5 @@
 {
 	"Apex": {
-		"Entity": "Authentication.js"
+		"Entity": "GoogleLoginProvider.js"
 	}
 }

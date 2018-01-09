@@ -336,14 +336,18 @@
 								// okay so we have a provider, so lets unpack our validation passport.
 								let User = JSON.parse(com.Passport.Authentication.Passport);
 								let provider = that.Par.Providers[com.Passport.Authentication.Provider];
-								await new Promise((resolve, reject) => {
+								let auth = await new Promise((resolve, reject) => {
 									that.send({
 										Cmd: 'ValidateUser',
 										User
 									}, provider, (err, cmd) => {
-
+										if('Refresh' in com&& com.Refresh > 0) {
+											// oh man, we need to refresh our login information.
+										}
+										resolve({valid: !err, DisplayName: cmd.DisplayName, Email: cmd.Email});
 									});
-								})
+								});
+								com.Passport.Authentication.Valid = auth.valid;
 							}
 
 						}

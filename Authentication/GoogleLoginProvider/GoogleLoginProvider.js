@@ -8,7 +8,6 @@
 			
 			async ValidateUser(com, fun) {
 				// first, verify against google.
-				log.d('-----------------------\n' + JSON.stringify(com, null, 2));
 				let token = com.User.IDToken;
 				let CLIENT_ID = this.Par.ClientID;
 
@@ -53,6 +52,9 @@
 						return;
 					}
 
+					com.Valid = true;
+					com.DisplayName = name;
+					com.Email = email;
 					log.v(name, "=> Authenticated!");
 					fun(null, com);
 					

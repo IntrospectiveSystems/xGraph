@@ -56,6 +56,7 @@
 				Cookies('xGraph-Email', g.getBasicProfile().getEmail());
 				Cookies('xGraph-DisplayName', g.getBasicProfile().getName());
 				Cookies('xGraph-Authenticated', true);
+				Cookies('xGraph-Expires', new Date().getTime() + (g.getAuthResponse().expires_in * 1000))
 				location.href = this.Par.Redirect;
 				// console.log("Login succeeded");
 
