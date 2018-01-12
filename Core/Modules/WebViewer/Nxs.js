@@ -324,7 +324,7 @@ __Nexus = (_ => {
 				function styles() {
 					if ('styles.json' in modjson) {
 						log.v(`Loading styles.json from ${folder}`);
-						var obj = JSON.parse(atob(modjson["styles.json"]));
+						var obj = JSON.parse(modjson["styles.json"]);
 						var keys = Object.keys(obj);
 
 						for (let idx = 0; idx < keys.length; idx++) {
@@ -353,7 +353,7 @@ __Nexus = (_ => {
 				function scripts() {
 					if ('scripts.json' in modjson) {
 						log.v(`Loading scripts.json from ${folder}`);
-						var obj = JSON.parse(atob(modjson["scripts.json"]));
+						var obj = JSON.parse(modjson["scripts.json"]);
 						var keys = Object.keys(obj);
 						for (let idx = 0; idx < keys.length; idx++) {
 							let key = keys[idx];
@@ -362,7 +362,7 @@ __Nexus = (_ => {
 							}
 
 							var file = obj[key];
-							let scr = atob(modjson[file]);
+							let scr = modjson[file];
 							Scripts[key] = scr;
 
 							eval(scr);
@@ -378,7 +378,7 @@ __Nexus = (_ => {
 				function fonts() {
 					if ('fonts.json' in modjson) {
 						log.v(`Loading fonts.json from ${folder}`);
-						var obj = JSON.parse(atob(modjson["fonts.json"]));
+						var obj = JSON.parse(modjson["fonts.json"]);
 						var keys = Object.keys(obj);
 						for (let idx = 0; idx < keys.length; idx++) {
 							let key = keys[idx];
@@ -442,7 +442,7 @@ __Nexus = (_ => {
 				if (instname === 'Deferred')
 					continue;
 				var inst = Config.Modules[instname];
-				log.v(instname + '\n', JSON.stringify(inst, null, 2));
+				//log.v(instname + '\n', JSON.stringify(inst, null, 2));
 				var pidinst = Root.ApexList[instname];
 				await compileInstance(pidinst, inst, true);
 			}
@@ -528,7 +528,7 @@ __Nexus = (_ => {
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot) {
-		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
+		log.v('compileInstance', inst.Module, pidapx);
 		var Local = {};
 		var modnam = inst.Module;
 		var mod;
@@ -542,7 +542,7 @@ __Nexus = (_ => {
 			return;
 		}
 
-		var schema = JSON.parse(atob(mod['schema.json']));
+		var schema = JSON.parse(mod['schema.json']);
 		var entkeys = Object.keys(schema);
 
 		//set Pids for each entity in the schema
@@ -595,7 +595,7 @@ __Nexus = (_ => {
 			if (impkey in ImpCache) {
 				imp = ImpCache[impkey];
 			} else {
-				imp = (1, eval)(atob(mod[par.Entity]));
+				imp = (1, eval)(mod[par.Entity]);
 				ImpCache[impkey] = imp;
 			}
 			EntCache[par.Pid] = new Entity(Nxs, imp, par);
