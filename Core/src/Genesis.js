@@ -348,61 +348,67 @@
 				// Write cache to CacheDir
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					let mod = ModCache[folder];
 					let dir = CacheDir + '/' + folder;
 					try { fs.mkdirSync(dir); } catch (e) { }
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
-					let path = dir + '/Module.json';
-					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
+					let path = dir + '/Module.zip';
+					fs.writeFileSync(path, ModCache[folder]);
+
+					const jszip = require("jszip");
+					const zipmod = new jszip();
 
 					//install npm dependencies
 					npmDependenciesArray.push(new Promise((resolve, reject) => {
 						let packagejson;
-						let mod = ModCache[folder];
-						if ('package.json' in mod) {
-							packagejson = JSON.parse(mod['package.json']);
-						} else {
-							resolve();
-							return;
-						}
 
-						log.i(`${folder}: Updating and installing dependencies`);
-						let packageString = JSON.stringify(packagejson, null, 2);
-						log.v(packageString);
-						//write the compiled package.json to disk
+						zipmod.loadAsync(ModCache[folder]).then(function (zip) {
+							log.d(JSON.stringify(zip, null,2));
+							if ('package.json' in zip) {
 
-						fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
 
-						//call npm install on a childprocess of node
-						const proc = require('child_process');
+								zip.file('package.json').async('uint8array').then(function (str) {
+									packagejson = JSON.parse(str);
 
-						let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-						let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
+									log.i(`${folder}: Updating and installing dependencies`);
+									let packageString = JSON.stringify(packagejson, null, 2);
+									log.v(packageString);
+									//write the compiled package.json to disk
 
-						ps.stdout.on('data', _ => {
-							process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-						});
-						ps.stderr.on('data', _ => {
-							process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-						});
+									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
 
-						ps.on('err', function (err) {
-							log.e('Failed to start child process.');
-							log.e('err:' + err);
-							reject(err);
-						});
+									//call npm install on a childprocess of node
+									const proc = require('child_process');
 
-						ps.on('exit', function (code) {
-							process.stderr.write(`\r\n`);
-							if (code == 0)
-								log.i(`${folder}: dependencies installed correctly`);
-							else {
-								log.e(`${folder}: npm process exited with code: ${code}`);
-								process.exit(1);
-								reject();
+									let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+									let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
+
+									ps.stdout.on('data', _ => {
+										process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+									});
+									ps.stderr.on('data', _ => {
+										process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+									});
+
+									ps.on('err', function (err) {
+										log.e('Failed to start child process.');
+										log.e('err:' + err);
+										reject(err);
+									});
+
+									ps.on('exit', function (code) {
+										process.stderr.write(`\r\n`);
+										if (code == 0)
+											log.i(`${folder}: dependencies installed correctly`);
+										else {
+											log.e(`${folder}: npm process exited with code: ${code}`);
+											process.exit(1);
+											reject();
+										}
+										fs.unlinkSync(Path.join(dir, 'package.json'));
+										resolve();
+									});
+								});
 							}
-							fs.unlinkSync(Path.join(dir, 'package.json'));
-							resolve();
 						});
 					}));
 				}
@@ -577,135 +583,71 @@
 							return;
 
 						let response = Fifo.shift();
-						if (typeof response.Module == 'object') {
-							mod = response.Module;
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-							}
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
-							return;
-						} else {
-							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-							const jszip = require("jszip");
-							const zipmod = new jszip();
 
-							zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
-								var dir = zipmod.file(/.*./);
-
-								zip.file('module.json').async('string').then(function (str) {
-									mod = JSON.parse(str);
-									if ('schema.json' in mod) {
-										var schema = JSON.parse(mod['schema.json']);
-										if ('Apex' in schema) {
-											var apx = schema.Apex;
-											if ('$Setup' in apx)
-												mod.Setup = apx['$Setup'];
-											if ('$Start' in apx)
-												mod.Start = apx['$Start'];
-											if ('$Save' in apx)
-												mod.Save = apx['$Save'];
-										}
-									}
-									ModCache[ModName] = mod;
-									fun(null, ModCache[ModName]);
-								});
-							});
-						}
+						fun(null, response.Module);
 					}
 				});
 			}
-
 
 			/**
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let ModPath = genPath(ModName);
-				//read the module from path in the local file system
-				//create the Module.json and add it to ModCache
+				(async () => {
+					let ModPath = genPath(ModName);
+					//read the module from path in the local file system
+					//create the Module.json and add it to ModCache
+					let jszip = require("jszip");
+					let zipmod = new jszip();
 
-				fs.readdir(ModPath, function (err, files) {
-					if (err) {
-						err += 'Module <' + ModPath + '? not available'
-						log.e(err);
-						fun(err);
-						return;
-					}
-					var nfile = files.length;
-					var ifile = -1;
-					scan();
+					//recursively zip the module
+					await zipDirChidren(zipmod, ModPath);
 
-					function scan() {
-						ifile++;
-						if (ifile >= nfile) {
-							mod.ModName = ModName;
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-							}
-							log.v(`${ModName} returned from local file system`);
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
+					zipmod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
+						if (fail) {
+							log.w("Genesis failed to create zip.");
 							return;
 						}
-						var file = files[ifile];
-						var path = ModPath + '/' + file;
 
-						fs.lstat(path, function (err, stat) {
+						log.v(`${ModName} returned from local file system`);
+						fun(null, dat);
+					});
+
+					async function zipDirChidren(ziproot, contianingPath) {
+						try {
+							let files = fs.readdirSync(contianingPath);
+						} catch (err) {
+							err += 'Module <' + contianingPath + '? not available'
+							log.e(err);
+							fun(err);
+							return;
+						}
+
+						for (let ifile = 0; ifile < files.length; ifile++) {
+							var file = files[ifile];
+							var path = contianingPath + '/' + file;
+							let stat = await new Promise(async (res, rej) => {
+								fs.lstat(path, (err, stat) => {
+									if (err) rej(err)
+									else res(stat);
+								})
+							});
+
 							if (stat) {
 								if (!stat.isDirectory()) {
-									fs.readFile(path, function (err, data) {
-										if (err) {
-											log.e(err);
-											fun(err);
-											return;
-										}
-										mod[file] = data.toString();
-										scan();
-									});
-								} else {
-									mod[file] = buildDir(path);
-									scan();
-
-									function buildDir(path) {
-										let dirObj = {};
-										if (fs.existsSync(path)) {
-											let files = fs.readdirSync(path);
-											files.forEach(function (file, index) {
-												var curPath = path + "/" + file;
-												if (fs.lstatSync(curPath).isDirectory()) {
-													// recurse
-													dirObj[file] = buildDir(curPath);
-												} else {
-													dirObj[file] = fs.readFileSync(curPath).toString();
-												}
-											});
-											return dirObj;
-										}
+									try {
+										var dat = fs.readFileSync(path);
+									} catch (err) {
+										log.e(`error reading file ${path}: ${err}`);
 									}
+									ziproot.file(file, dat);
+								} else {
+									await zipDirChidren(ziproot.folder(file), path)
 								}
 							}
-						});
+						}
 					}
-				});
+				})();
 			}
 		}
 
@@ -1100,8 +1042,8 @@
 						let key = keys[i];
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
-							for (let idx = 0; idx <arr.length; idx++){
-									await logModule(arr[idx]);
+							for (let idx = 0; idx < arr.length; idx++) {
+								await logModule(arr[idx]);
 							}
 						} else {
 							await logModule(Config.Modules[key]);
