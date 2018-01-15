@@ -778,6 +778,25 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.authenticate = async (cmd) => {
 				return (await this.ascend('Authenticate', {Command: cmd}, window.CommandAuthenticator)).Command;
 			}
+
+			this.evoke = async (pid, options) => {
+				this.send(Object.assign({
+					Cmd: 'Evoke'
+				}, options), pid, async (err, cmd) => {
+					if (cmd.Type == 'View') {
+						let newPar = {
+							View: cmd.View,
+							Par: cmd.Par || {},
+							Width: 500
+						};
+						let popup = await this.genModuleAsync({
+							Module: cmd.Container || 'xGraph:Widgets/Popup',
+							Par: newPar
+						});
+						this.ascend('AddView', {}, this.Par.Pid);
+					}
+				});
+			};
 		}
 	}
 
