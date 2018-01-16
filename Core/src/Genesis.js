@@ -713,7 +713,19 @@
 				ent.Module = modnam;
 				ent.Apex = pidapx;
 
-				//unpack the config pars to the par of the apex of the instance
+				//load pars from schema
+				//this is where $Setup, $Start and $Save come in to play
+				var pars = Object.keys(ent);
+				log.d(`pars are ${pars}`)
+				for (ipar = 0; ipar < pars.length; ipar++) {
+					var par = pars[ipar];
+					var val = ent[par];
+					ent[par] = await symbol(val);
+				}
+
+				//load the pars from the config
+				//these only apply to the Apex entity
+				//config takes precedence so we unpack it last
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
 					for (var ipar = 0; ipar < pars.length; ipar++) {
@@ -722,13 +734,6 @@
 					}
 				}
 
-				//load pars from schema
-				var pars = Object.keys(ent);
-				for (ipar = 0; ipar < pars.length; ipar++) {
-					var par = pars[ipar];
-					var val = ent[par];
-					ent[par] = await symbol(val);
-				}
 				ents.push(ent);
 			}
 			return ents;

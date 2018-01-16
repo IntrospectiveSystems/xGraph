@@ -127,7 +127,7 @@
 		}
 		log.i("Building the Cache");
 		log.i(process.argv[1]);
-		let genesisString = fs.readFileSync(`${process.argv[1].substr(0,process.argv[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
+		let genesisString = fs.readFileSync(`${process.argv[1].substr(0, process.argv[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
 		await eval(genesisString);
 		// #endif
 	}
@@ -209,30 +209,35 @@
 		function loadCache() {
 			var folders = fs.readdirSync(CacheDir);
 
+
 			for (var ifold = 0; ifold < folders.length; ifold++) {
 				let folder = folders[ifold];
-				let dir = CacheDir + '/' + folder;
-				let path = dir + '/Module.json';
+				let path = `${CacheDir}/${folder}/Module.zip`;
 				if (!fs.existsSync(path))
 					continue;
-				let data = fs.readFileSync(path).toString();
-				let mod = JSON.parse(data);
-				parseMod(mod, dir, folder);
 
-				function parseMod(mod, dir, folder) {
-					//Modules[folder] = mod;
-					var files = fs.readdirSync(dir);
-					for (var ifile = 0; ifile < files.length; ifile++) {
-						var file = files[ifile];
+				parseMod(folder)
+
+				function parseMod(folder) {
+					let dir = CacheDir + '/' + folder;
+					var instancefiles = fs.readdirSync(dir);
+					for (var ifile = 0; ifile < instancefiles.length; ifile++) {
+						var file = instancefiles[ifile];
+
+						//check that it's an instance of the module
 						if (file.length !== 32)
 							continue;
+
 						var path = dir + '/' + file;
 						if (fs.lstatSync(path).isDirectory()) {
 							ApexIndex[file] = folder;
-							if ('Setup' in mod)
-								Setup[file] = mod.Setup;
-							if ('Start' in mod)
-								Start[file] = mod.Start;
+							let instJson = JSON.parse(fs.readFileSync(`${path}/${file}.json`));
+
+							log.d(Object.keys(instJson));
+							if ('$Setup' in instJson)
+								Setup[file] = instJson.$Setup;
+							if ('$Start' in instJson)
+								Start[file] = instJson.$Start;
 						}
 					}
 				}
@@ -570,7 +575,7 @@
 	 * @param {string=} par.Pid	the pid to define as the pid of the entity
 	 * @callback fun 			the callback to return the pid of the generated entity to
 	 */
-	function genEntity(apx, par, fun = _ => log.e(_)) {
+	async function genEntity(apx, par, fun = _ => log.e(_)) {
 		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
@@ -579,23 +584,24 @@
 		var impkey = ApexIndex[apx] + '/' + par.Entity;
 		var mod = ModCache[ApexIndex[apx]];
 
-		if (!(par.Entity in mod)) {
+		if (!(par.Entity in mod.files)) {
 			log.e('<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
 			fun('Null entity');
 			return;
 		}
 
+		if (!(impkey in ImpCache)) {
+			let entString = await new Promise(async (res, rej) => {
+				mod.file(par.Entity).async("string").then((string) => res(string))
+			});
+			ImpCache[impkey] = (1, eval)(entString);
+		}
+
+		let imp = ImpCache[impkey];
+
 		par.Pid = par.Pid || genPid();
 		par.Module = mod.ModName;
 		par.Apex = apx;
-
-		let imp;
-		if (impkey in ImpCache) {
-			imp = ImpCache[impkey];
-		} else {
-			imp = (1, eval)(mod[par.Entity]);
-			ImpCache[impkey] = imp;
-		}
 
 		EntCache[par.Pid] = new Entity(Nxs, imp, par);
 		fun(null, par.Pid);
@@ -787,28 +793,35 @@
 			let impkey = folder + '/' + par.Entity;
 			let imp;
 			if (impkey in ImpCache) {
-				imp = ImpCache[impkey];
 				BuildEnt();
 				return;
 			}
 
-			GetModule(folder, function (err, mod) {
+			GetModule(folder, async function (err, mod) {
+				log.d(Object.keys(mod.files));
+
 				if (err) {
 					log.e('Module <' + folder + '> not available');
 					fun('Module not available');
 					return;
 				}
-				if (!(par.Entity in mod)) {
+
+				if (!(par.Entity in mod.files)) {
 					log.e('<' + par.Entity + '> not in module <' + folder + '>');
 					fun('Null entity');
 					return;
 				}
-				imp = (1, eval)(mod[par.Entity]);
-				ImpCache[impkey] = imp;
+
+				let entString = await new Promise(async (res, rej) => {
+					mod.file(par.Entity).async("string").then((string) => res(string))
+				});
+
+				ImpCache[impkey] = (1, eval)(entString);
 				BuildEnt();
 			});
 
 			function BuildEnt() {
+				imp = ImpCache[impkey];
 				EntCache[pid] = new Entity(Nxs, imp, par);
 				fun(null, EntCache[pid]);
 			}
@@ -974,7 +987,7 @@
 
 	/**
 	 * For retrieving modules
-	 * Modules come from memory, a defined broker, or disk depending on the module definition
+	 * Modules come from the cache directory on the harddrive or the ModCache if its already been read to RAM.
 	 * @param {Object} modRequest 
 	 * @param {String} modRequest.Module
 	 * @param {String=} modRequest.Source
@@ -995,7 +1008,7 @@
 		if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
 		//get the module from cache
-		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
+		var cachedMod = `${CacheDir}/${ModName}/Module.zip`;
 		fs.lstat(cachedMod, function (err, stat) {
 			if (err) {
 				log.e(`Error retreiving ${cachedMod} from cache`);
@@ -1004,12 +1017,16 @@
 			}
 			if (stat) {
 				if (!stat.isDirectory()) {
-					fs.readFile(cachedMod, function (err, data) {
+					fs.readFile(cachedMod, async function (err, data) {
 						if (err) {
 							fun(err);
 							return;
 						}
-						ModCache[ModName] = JSON.parse(data.toString());
+						ModCache[ModName] = await new Promise(async (res, rej) => {
+							let jszip = require("jszip");
+							let zip = new jszip();
+							zip.loadAsync(data).then((mod) => res(mod));
+						});
 						fun(null, ModCache[ModName]);
 						return;
 					});
