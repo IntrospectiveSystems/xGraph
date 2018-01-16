@@ -665,11 +665,21 @@
 					let mod = ModCache[ApexIndex[apx]];
 					if (pid == apx) {
 						fs.mkdirSync(modpath);
-						let path = modpath + '/Module.json';
-						log.v("Saved Module.json at " + path);
+						let path = modpath + '/Module.zip';
 						let str = JSON.stringify(mod, null, 2);
-						fs.writeFileSync(path, str);
-						checkApex();
+						mod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
+							if (fail) {
+								log.w("Genesis failed to create zip.");
+								return;
+							}
+	
+							fs.writeFileSync(path, str);
+							log.v("Saved Module.zip at " + path);
+
+							checkApex();
+						});
+						
+
 					} else {
 						if (!("Save" in mod)) {
 							fun("Save Not Implemented in Module's Apex", modpath);
