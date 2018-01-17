@@ -401,13 +401,10 @@
 		let pid = com.Passport.To;
 		let apx = com.Passport.Apex || pid;
 
-		log.d(`Pid is ${pid}`);
 		if (pid in EntCache) {
-			log.d('pid is in the entcache');
 			done(null, EntCache[pid]);
 			return;
 		} else {
-			log.d("pid is not in the entcache");
 			getEntityContext(apx, pid, done);
 		}
 
@@ -963,7 +960,7 @@
 				}
 			}
 
-			//pars all values for symbols
+			//pars all values for symbols 
 			var pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
