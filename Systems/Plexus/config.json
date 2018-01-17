@@ -4,12 +4,12 @@
     },
     "Modules": {
         "Plexus": {
-            "Module": "local.Core.Modules.Plexus",
+            "Module": "Core.Modules.Plexus",
             "Source": "local",
             "Par": {}
         },
         "Proxy": {
-            "Module": "local.Core.Modules.Proxy",
+            "Module": "Core.Modules.Proxy",
             "Source": "local",
             "Par": {
                 "Plexus": "$Plexus",

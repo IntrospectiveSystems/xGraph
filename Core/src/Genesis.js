@@ -291,10 +291,8 @@
 					 */
 					function logModule(mod) {
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
-						if (!(folder.split('.')[0] in Params)){
-							log.v("Source must be defined");
-						}
 						let source = mod.Source;
+
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
@@ -325,6 +323,15 @@
 							"Module": folder,
 							"Source": Modules[folder]
 						};
+
+						//if source is string and it's not already part of the module name then append it to the request
+						if (!(folder.split('.')[0].toLowerCase() in Params)) {
+							if (typeof Modules[folder] == "string"){
+								modrequest.Module=`${modrequest.Source}.${modrequest.Module}`;
+							}
+						}else{
+							log.w("Including the Source in the Module name is Depricated");
+						}
 
 						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
 
@@ -477,10 +484,8 @@
 			let mod = {};
 			let ModName = modnam.replace(/[\/\:]/g, '.');
 
-
 			//get the module from memory (ModCache) if it has already been retrieved
 			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
-
 
 			//get the module from the defined broker
 			if (typeof source == "object") return loadModuleFromBroker();
