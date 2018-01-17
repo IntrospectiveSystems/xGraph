@@ -597,13 +597,11 @@
 			ImpCache[impkey] = (1, eval)(entString);
 		}
 
-		let imp = ImpCache[impkey];
-
 		par.Pid = par.Pid || genPid();
 		par.Module = mod.ModName;
 		par.Apex = apx;
 
-		EntCache[par.Pid] = new Entity(Nxs, imp, par);
+		EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 		fun(null, par.Pid);
 	}
 
@@ -650,48 +648,52 @@
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return the pid of the generated entity to
 	 */
-	function saveEntity(apx, pid, fun = _ => _) {
+	function saveEntity(apx, pid, fun = (err, pid) => {if (err) log.e(err)}) {
 		let modpath = `${CacheDir}/${ApexIndex[apx]}`;
 		let apxpath = `${modpath}/${apx}`;
 		let entpath = `${apxpath}/${pid}.json`;
 
-		//	this function checks to make sure the entities Module.json 
+		//	this function checks to make sure the entities Module.zip 
 		// 	file pre-exists or writes it if the entity is the module apex. 
 		let checkModule = (() => {
 			fs.lstat(modpath, function (err, stat) {
 				if (stat) {
 					checkApex();
 				} else {
-					let mod = ModCache[ApexIndex[apx]];
-					if (pid == apx) {
-						fs.mkdirSync(modpath);
-						let path = modpath + '/Module.zip';
-						let str = JSON.stringify(mod, null, 2);
-						mod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
-							if (fail) {
-								log.w("Genesis failed to create zip.");
-								return;
-							}
-	
-							fs.writeFileSync(path, str);
-							log.v("Saved Module.zip at " + path);
+					//the following code is depricated since including deferred modules all module zip files 
+					//must exist in the cache prior to starting the system
 
-							checkApex();
-						});
+					fun(`No Module.zip for the requrested module: ${ApexIndex[apx]}`);
+					// let mod = ModCache[ApexIndex[apx]];
+					// if (pid == apx) {
+					// 	fs.mkdirSync(modpath);
+					// 	let path = modpath + '/Module.zip';
+					// 	let str = JSON.stringify(mod, null, 2);
+					// 	mod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
+					// 		if (fail) {
+					// 			log.w("Genesis failed to create zip.");
+					// 			return;
+					// 		}
+	
+					// 		fs.writeFileSync(path, str);
+					// 		log.v("Saved Module.zip at " + path);
+
+					// 		checkApex();
+					// 	});
 						
 
-					} else {
-						if (!("Save" in mod)) {
-							fun("Save Not Implemented in Module's Apex", modpath);
-							return;
-						}
-						let com = {};
-						com.Cmd = mod["Save"];
-						com.Passport = {};
-						com.Passport.To = pidapx;
-						com.Passport.Pid = genPid();
-						sendMessage(com, checkApex);
-					}
+					// } else {
+					// 	if (!("Save" in mod)) {
+					// 		fun("Save Not Implemented in Module's Apex", modpath);
+					// 		return;
+					// 	}
+					// 	let com = {};
+					// 	com.Cmd = mod["Save"];
+					// 	com.Passport = {};
+					// 	com.Passport.To = pidapx;
+					// 	com.Passport.Pid = genPid();
+					// 	sendMessage(com, checkApex);
+					// }
 				}
 			})
 		});
@@ -745,8 +747,10 @@
 	 */
 	function getFile(module, filename, fun = _ => _) {
 		let mod = ModCache[module];
-		if (filename in mod) {
-			fun(null, mod[filename])
+		if (filename in mod.files) {
+			mod.file(filename).async("string").then((dat)=>{
+				fun(null, dat)
+			})
 			return;
 		}
 		let err = `Error: File ${filename} does not exist in module ${module}`;
@@ -831,8 +835,7 @@
 			});
 
 			function BuildEnt() {
-				imp = ImpCache[impkey];
-				EntCache[pid] = new Entity(Nxs, imp, par);
+				EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
 				fun(null, EntCache[pid]);
 			}
 		});
@@ -914,7 +917,19 @@
 			process.exit(1);
 			return;
 		}
-		var schema = JSON.parse(mod['schema.json']);
+		var schema = await new Promise(async (res, rej) => {
+			if ('schema.json' in mod.files) {
+				mod.file('schema.json').async('string').then(function (schemaString) {
+					res(JSON.parse(schemaString));
+				});
+			} else {
+				log.e('Module <' + modnam + '> schema not in ModCache');
+				process.exit(1);
+				rej();
+				reject();
+				return;
+			}
+		});
 		var entkeys = Object.keys(schema);
 
 		//set Pids for each entity in the schema
@@ -935,16 +950,7 @@
 			ent.Module = modnam;
 			ent.Apex = pidapx;
 
-			//unpack the config pars to the par of the apex of the instance
-			if (entkey == 'Apex' && 'Par' in inst) {
-				var pars = Object.keys(inst.Par);
-				for (var ipar = 0; ipar < pars.length; ipar++) {
-					var par = pars[ipar];
-					ent[par] = inst.Par[par];
-				}
-			}
-
-			//load pars from schema
+			//unpack the schema pars
 			var pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
@@ -955,19 +961,28 @@
 				}
 				ent[par] = await symbol(val);
 			}
+			
+			//unpack the config pars to the par of the apex of the instance
+			if (entkey == 'Apex' && 'Par' in inst) {
+				var pars = Object.keys(inst.Par);
+				for (var ipar = 0; ipar < pars.length; ipar++) {
+					var par = pars[ipar];
+					ent[par] = inst.Par[par];
+				}
+			}
+
 			ents.push(ent);
 		}
 
 		ents.forEach(function (par) {
 			let impkey = modnam + par.Entity;
-			let imp;
-			if (impkey in ImpCache) {
-				imp = ImpCache[impkey];
-			} else {
-				imp = (1, eval)(mod[par.Entity]);
-				ImpCache[impkey] = imp;
+			if (!(impkey in ImpCache)) {
+				let entString = await new Promise(async (res, rej) => {
+					mod.file(par.Entity).async("string").then((string) => res(string))
+				});
+				ImpCache[impkey] = (1, eval)(entString);
 			}
-			EntCache[par.Pid] = new Entity(Nxs, imp, par);;
+			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);;
 		});
 
 		async function symbol(val) {

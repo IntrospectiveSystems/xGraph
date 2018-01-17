@@ -687,13 +687,13 @@
 						res(JSON.parse(schemaString));
 					});
 				} else {
-					log.e('Module <' + modnam + '> not in ModCache');
+					log.e('Module <' + modnam + '> schema not in ModCache');
 					process.exit(1);
 					rej();
 					reject();
 					return;
 				}
-			})
+			});
 			var entkeys = Object.keys(schema);
 
 			//set Pids for each entity in the schema
