@@ -711,20 +711,11 @@
 			//unpack the par of each ent
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
+				//start with the pars from the schema
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
 				ent.Module = modnam;
 				ent.Apex = pidapx;
-
-				//load pars from schema
-				//this is where $Setup, $Start and $Save come in to play
-				var pars = Object.keys(ent);
-				log.d(`pars are ${pars}`)
-				for (ipar = 0; ipar < pars.length; ipar++) {
-					var par = pars[ipar];
-					var val = ent[par];
-					ent[par] = await symbol(val);
-				}
 
 				//load the pars from the config
 				//these only apply to the Apex entity
@@ -737,6 +728,13 @@
 					}
 				}
 
+				//iterate over all the pars to pars out symbols
+				var pars = Object.keys(ent);
+				for (ipar = 0; ipar < pars.length; ipar++) {
+					var par = pars[ipar];
+					var val = ent[par];
+					ent[par] = await symbol(val);
+				}
 				ents.push(ent);
 			}
 			return ents;

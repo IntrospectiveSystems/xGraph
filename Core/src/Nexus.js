@@ -233,7 +233,6 @@
 							ApexIndex[file] = folder;
 							let instJson = JSON.parse(fs.readFileSync(`${path}/${file}.json`));
 
-							log.d(Object.keys(instJson));
 							if ('$Setup' in instJson)
 								Setup[file] = instJson.$Setup;
 							if ('$Start' in instJson)
@@ -401,10 +400,14 @@
 
 		let pid = com.Passport.To;
 		let apx = com.Passport.Apex || pid;
+
+		log.d(`Pid is ${pid}`);
 		if (pid in EntCache) {
+			log.d('pid is in the entcache');
 			done(null, EntCache[pid]);
 			return;
 		} else {
+			log.d("pid is not in the entcache");
 			getEntityContext(apx, pid, done);
 		}
 
@@ -812,8 +815,6 @@
 			}
 
 			GetModule(folder, async function (err, mod) {
-				log.d(Object.keys(mod.files));
-
 				if (err) {
 					log.e('Module <' + folder + '> not available');
 					fun('Module not available');
@@ -945,22 +946,13 @@
 		//unpack the par of each ent
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
+			//start with the pars from the schema
 			let ent = schema[entkey];
 			ent.Pid = Local[entkey];
 			ent.Module = modnam;
 			ent.Apex = pidapx;
 
-			//unpack the schema pars
-			var pars = Object.keys(ent);
-			for (ipar = 0; ipar < pars.length; ipar++) {
-				var par = pars[ipar];
-				var val = ent[par];
-				if (entkey == "Apex" && saveRoot) {
-					if (par == "$Setup") { Setup[ent.Pid] = val; }
-					if (par == "$Start") { Start[ent.Pid] = val; }
-				}
-				ent[par] = await symbol(val);
-			}
+
 			
 			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
@@ -971,6 +963,17 @@
 				}
 			}
 
+			//pars all values for symbols
+			var pars = Object.keys(ent);
+			for (ipar = 0; ipar < pars.length; ipar++) {
+				var par = pars[ipar];
+				var val = ent[par];
+				if (entkey == "Apex" && saveRoot) {
+					if (par == "$Setup") { Setup[ent.Pid] = val; }
+					if (par == "$Start") { Start[ent.Pid] = val; }
+				}
+				ent[par] = await symbol(val);
+			}
 			ents.push(ent);
 		}
 
