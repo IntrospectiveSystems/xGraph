@@ -974,7 +974,7 @@
 			ents.push(ent);
 		}
 
-		ents.forEach(function (par) {
+		ents.forEach(async function (par) {
 			let impkey = modnam + par.Entity;
 			if (!(impkey in ImpCache)) {
 				let entString = await new Promise(async (res, rej) => {
