@@ -291,6 +291,9 @@
 					 */
 					function logModule(mod) {
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
+						if (!(folder.split('.')[0] in Params)){
+							log.v("Source must be defined");
+						}
 						let source = mod.Source;
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
