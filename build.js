@@ -106,7 +106,7 @@
 	ensureDir('bin/lib')
 	ensureDir('bin/lib/Nexus');
 
-	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('Nexus/Nexus/Nexus.js'), '.').process({ BUILT: true }));
+	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('Core/src/Nexus.js'), '.').process({ BUILT: true }));
 	
 	//copy bin/lib into bin/linux/lib
 	ensureDir('bin/linux');

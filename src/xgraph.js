@@ -34,7 +34,7 @@ let mac = false;
 let unix = false;
 // #endif
 
-// $genesis $load('./Nexus/Nexus/Genesis.js')
+// $genesis $load('./Core/src/Genesis.js')
 
 processSwitches();
 
