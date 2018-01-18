@@ -1,4 +1,4 @@
-//# sourceURL=Viewify.js
+//# sourceURL=Viewify
 
 /// check if ?debug is in the URL. if so, turn on debug mode.
 /// this will enable more complex logging
@@ -765,7 +765,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							Module: cmd.Container || 'xGraph:Widgets/Popup',
 							Par: newPar
 						});
-						this.ascend('AddView', {}, this.Par.Pid);
 					}
 				});
 			};
@@ -793,7 +792,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							Module: cmd.Container || 'xGraph:Widgets/Popup',
 							Par: newPar
 						});
-						this.ascend('AddView', {}, this.Par.Pid);
+						this.ascend('AddView', {View: popup}, this.Par.Pid);
 					}
 				});
 			};
