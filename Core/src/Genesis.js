@@ -702,6 +702,7 @@
 					return;
 				}
 			});
+
 			var entkeys = Object.keys(schema);
 
 			//set Pids for each entity in the schema
@@ -1234,16 +1235,13 @@
 					function populate() {
 						var zip = new jszip();
 						var man = [];
-						zip.folder("cache");
 						for (let folder in ModCache) {
 							let mod = ModCache[folder];
-							if (typeof mod == "object")
-								mod = JSON.stringify(mod);
-							let dir = "cache/" + folder;
-							zip.folder(dir);
-							let path = dir + '/Module.json';
-							man.push(path);
-							zip.file(path, mod, {
+							// let dir = folder;
+							//zip.folder(folder);
+							// let path = dir;
+							man.push(folder);
+							zip.file(folder, mod, {
 								date: new Date("April 2, 2010 00:00:01")
 								//the date is required for zip consistency
 							});

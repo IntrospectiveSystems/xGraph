@@ -982,7 +982,7 @@
 				});
 				ImpCache[impkey] = (1, eval)(entString);
 			}
-			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);;
+			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 		});
 
 		async function symbol(val) {
