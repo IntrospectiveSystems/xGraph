@@ -15,6 +15,7 @@
 
 	const fs = require('fs');
 	const Path = require('path');
+	const jszip = require("jszip");
 	const endOfLine = require('os').EOL;
 	var consoleNotification = false;
 	var Uuid;
@@ -1048,7 +1049,6 @@
 							return;
 						}
 						ModCache[ModName] = await new Promise(async (res, rej) => {
-							let jszip = require("jszip");
 							let zip = new jszip();
 							zip.loadAsync(data).then((mod) => res(mod));
 						});

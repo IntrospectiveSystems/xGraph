@@ -224,7 +224,7 @@
 					}
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
-					log.v(`Removed cacheDir: "{CacheDir}"`);
+					log.v(`Removed cacheDir: "${CacheDir}"`);
 				}
 			}
 		}

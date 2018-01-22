@@ -349,19 +349,18 @@ __Nexus = (_ => {
 				//unpack the zipped cache put all modules into the ModCache
 				const zipmod = new JSZip();
 				zipmod.loadAsync(Cache, { base64: true }).then(function (zip) {
-					log.d(`Cache files are ${Object.keys(zip.files)}`);
 					zip.file('manifest.json').async('string').then(async (cacheArray) => {
 						//unpack all of the modules into the ModCache
 						cacheArray = JSON.parse(cacheArray);
 						log.v(`Modules array is [${cacheArray}]`);
 						let ModulePromiseArray = [];
 						for (let idx = 0; idx < cacheArray.length; idx++) {
-							log.d(`Unpacking Module: ${cacheArray[idx]}`);
+							log.v(`Unpacking Module: ${cacheArray[idx]}`);
 							ModulePromiseArray.push(new Promise((res, rej) => {
 								zip.file(cacheArray[idx]).async("uint8array").then((modzip) => {
 									let modunzip = new JSZip();
 									modunzip.loadAsync(modzip).then((mod) => {
-										log.d(`Module ${cacheArray[idx]} files are ${Object.keys(mod.files)}`);
+										log.v(`Module ${cacheArray[idx]} files are ${Object.keys(mod.files)}`);
 										ModCache[cacheArray[idx]] = mod;
 										res();
 									});
@@ -468,7 +467,7 @@ __Nexus = (_ => {
 						if ('fonts.json' in modjson.files) {
 							log.v(`Loading fonts.json from ${folder}`);
 							let fonts = await new Promise((res2, rej2) => {
-								modjson.file("styles.json").async("string").then((dat) => {
+								modjson.file("fonts.json").async("string").then((dat) => {
 									res2(dat);
 								});
 							});
@@ -684,8 +683,6 @@ __Nexus = (_ => {
 			}
 			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 		}
-
-		log.d(`Ents are ${Object.keys(EntCache)}`);
 
 		async function symbol(val) {
 			if (typeof val === 'object') {
