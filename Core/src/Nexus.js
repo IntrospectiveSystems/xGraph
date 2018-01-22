@@ -599,7 +599,7 @@
 		}
 
 		par.Pid = par.Pid || genPid();
-		par.Module = mod.ModName;
+		par.Module = ApexIndex[apx];
 		par.Apex = apx;
 
 		EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
@@ -638,7 +638,6 @@
 				delete EntCache[subpid];
 			}
 		}
-
 		fun(null, pid);
 	}
 
@@ -649,7 +648,7 @@
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return the pid of the generated entity to
 	 */
-	function saveEntity(apx, pid, fun = (err, pid) => {if (err) log.e(err)}) {
+	function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
 		let modpath = `${CacheDir}/${ApexIndex[apx]}`;
 		let apxpath = `${modpath}/${apx}`;
 		let entpath = `${apxpath}/${pid}.json`;
@@ -675,13 +674,13 @@
 					// 			log.w("Genesis failed to create zip.");
 					// 			return;
 					// 		}
-	
+
 					// 		fs.writeFileSync(path, str);
 					// 		log.v("Saved Module.zip at " + path);
 
 					// 		checkApex();
 					// 	});
-						
+
 
 					// } else {
 					// 	if (!("Save" in mod)) {
@@ -702,7 +701,7 @@
 		//this function checks to make sure the entities Apex directory
 		//pre-exists or writes it if the entity is the module apex. 
 		let checkApex = (() => {
-			fs.lstat(apxpath, function (err, stat) {
+			fs.lstat(apxpath, async function (err, stat) {
 				if (stat) {
 					checkEntity();
 				} else {
@@ -711,12 +710,24 @@
 						log.v("Made directory " + apxpath);
 						checkEntity();
 					} else {
-						if (!("Save" in mod)) {
+						var schema = await new Promise(async (res, rej) => {
+							if ('schema.json' in ModCache[ApexIndex[apx]]) {
+								ModCache[ApexIndex[apx]].file('schema.json').async('string').then(function (schemaString) {
+									res(JSON.parse(schemaString));
+								});
+							} else {
+								log.e('Module <' + modnam + '> schema not in ModCache');
+								res();
+								return;
+							}
+						});
+						
+						if (!("Save" in schema)) {
 							fun("Apex has not been saved", apx);
 							return;
 						}
 						let com = {};
-						com.Cmd = mod["Save"];
+						com.Cmd = schema["Save"];
 						com.Passport = {};
 						com.Passport.To = pidapx;
 						com.Passport.Pid = genPid();
@@ -749,7 +760,7 @@
 	function getFile(module, filename, fun = _ => _) {
 		let mod = ModCache[module];
 		if (filename in mod.files) {
-			mod.file(filename).async("string").then((dat)=>{
+			mod.file(filename).async("string").then((dat) => {
 				fun(null, dat)
 			})
 			return;
@@ -856,17 +867,29 @@
 				return;
 			}
 			let pidapx = genPid();
-			ApexIndex[pidapx] = mod.ModName;
+			ApexIndex[pidapx] = inst.Module;
 			await compileInstance(pidapx, inst);
-			setup();
 
+			var schema = await new Promise(async (res, rej) => {
+				if ('schema.json' in mod.files) {
+					mod.file('schema.json').async('string').then(function (schemaString) {
+						res(JSON.parse(schemaString));
+					});
+				} else {
+					log.e('Module <' + modnam + '> schema not in ModCache');
+					res()
+					return;
+				}
+			});
+
+			setup();
 			function setup() {
-				if (!("Setup" in mod)) {
+				if (!("Setup" in schema)) {
 					start();
 					return;
 				}
 				var com = {};
-				com.Cmd = mod["Setup"];
+				com.Cmd = schema["Setup"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
@@ -875,12 +898,12 @@
 
 			// Start
 			function start() {
-				if (!("Start" in mod)) {
+				if (!("Start" in schema)) {
 					fun(null, pidapx);
 					return;
 				}
 				var com = {};
-				com.Cmd = mod["Start"];
+				com.Cmd = schema["Start"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
@@ -907,7 +930,7 @@
 		var modnam = inst.Module;
 		var mod;
 		var ents = [];
-		var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		var modnam = modnam.replace(/\:\//g, '.');
 
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
@@ -916,6 +939,7 @@
 			process.exit(1);
 			return;
 		}
+
 		var schema = await new Promise(async (res, rej) => {
 			if ('schema.json' in mod.files) {
 				mod.file('schema.json').async('string').then(function (schemaString) {
@@ -929,6 +953,7 @@
 				return;
 			}
 		});
+
 		var entkeys = Object.keys(schema);
 
 		//set Pids for each entity in the schema
@@ -950,8 +975,6 @@
 			ent.Module = modnam;
 			ent.Apex = pidapx;
 
-
-			
 			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
 				var pars = Object.keys(inst.Par);
