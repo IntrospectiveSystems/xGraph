@@ -183,7 +183,7 @@
 	/**
 	 *  The main process of starting an xGraph System.
 	 */
-	function initiate() {
+	async function initiate() {
 		log.i(`${endOfLine}--Nexus/Initiate`);
 		ApexIndex = {};
 		Setup = {};
@@ -191,11 +191,11 @@
 
 		loadCache();
 
-		var ipid = -1;
-		var pids = Object.keys(Setup);
+		await setup();
 
-		setup(start);
+		await start();
 
+		run();
 
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
@@ -203,13 +203,11 @@
 		//
 		//
 
-
 		/**
 		 * Load in the cache and poulate setup Setup, Start, and ApexIndex {Objects}
 		 */
 		function loadCache() {
 			var folders = fs.readdirSync(CacheDir);
-
 
 			for (var ifold = 0; ifold < folders.length; ifold++) {
 				let folder = folders[ifold];
@@ -248,43 +246,46 @@
 			log.v('Start', JSON.stringify(Start, null, 2));
 		}
 
-
 		/**
 		 * Call setup on the required Module Apexes
 		 */
-		function setup() {
-			ipid++;
-			if (ipid >= pids.length) {
-				pids = Object.keys(Start);
-				ipid = -1;
-				start();
-				return;
+		async function setup() {
+			//build the setup promise array
+			let setupArray = [];
+
+			for (let pid in Setup) {
+				setupArray.push(new Promise((resolve, reject) => {
+					var com = {};
+					com.Cmd = Setup[pid];
+					com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Pid = genPid();
+					sendMessage(com, resolve);
+				}));
 			}
-			var pid = pids[ipid];
-			var com = {};
-			com.Cmd = Setup[pid];
-			com.Passport = {};
-			com.Passport.To = pids[ipid];
-			com.Passport.Pid = genPid();
-			sendMessage(com, setup);
+
+			await Promise.all(setupArray);
 		}
 
 		/**
 		 * Call Start on the required Module Apexes
 		 */
-		function start() {
-			ipid++;
-			if (ipid >= pids.length) {
-				run();
-				return;
+		async function start() {
+			//build the setup promise array
+			let startArray = [];
+
+			for (let pid in Start) {
+				startArray.push(new Promise((resolve, reject) => {
+					var com = {};
+					com.Cmd = Start[pid];
+					com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Pid = genPid();
+					sendMessage(com, resolve);
+				}));
 			}
-			var pid = pids[ipid];
-			var com = {};
-			com.Cmd = Start[pid];
-			com.Passport = {};
-			com.Passport.To = pids[ipid];
-			com.Passport.Pid = genPid();
-			sendMessage(com, start);
+
+			await Promise.all(startArray);
 		}
 
 		/**
@@ -721,7 +722,7 @@
 								return;
 							}
 						});
-						
+
 						if (!("Save" in schema)) {
 							fun("Apex has not been saved", apx);
 							return;
