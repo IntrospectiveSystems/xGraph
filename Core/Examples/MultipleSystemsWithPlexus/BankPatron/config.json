@@ -4,30 +4,17 @@
     },
     "Modules": {
         "BankPatron": {
-            "Module": "xGraph:Modules.BankPatron",
+            "Module": "Modules.BankPatron",
             "Source": "xGraph",
             "Par": {
                 "BankAccount": "$BankServer"
             }
         },
         "BankServer": {
-            "Module": "xGraph.Modules.Proxy",
+            "Module": "Modules.Proxy",
             "Source": "xGraph",
             "Par": {
-                "Plexus": "$Plexus",
-                "Name": "BankPatron",
                 "Chan": "Bank",
-                "Link": "$BankPatron",
-                "Role": "Client"
-            }
-        },
-        "Plexus": {
-            "Module": "xGraph.Modules.Proxy",
-            "Source": "xGraph",
-            "Par": {
-                "Plexus": "$Plexus",
-                "Name": "BankPatron",
-                "Chan": "Plexus",
                 "Link": "$BankPatron",
                 "Role": "Client"
             }

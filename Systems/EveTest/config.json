@@ -4,7 +4,7 @@
 	},
 	"Modules": {
 		"Server": {
-			"Module": "xGraph.Web.WebViewer",
+			"Module": "xGraph.Core.Modules.WebViewer",
 			"Source": "xGraph",
 			"Par": {
 				"ApexList": {
@@ -15,19 +15,19 @@
 			}
 		},
 		"Controller": {
-			"Module": "xGraph.Eve.Controller",
+			"Module": "xGraph.Extensions.Eve.Controller",
 			"Source": "xGraph",
 			"Par":{
 				"Server":"$Server"
 			}
 		},
 		"Deferred":[
-			"xGraph.Widgets.RootView",
-			"xGraph.Eve.View3D",
-			"xGraph.Eve.Board",
-			"xGraph.Eve.Geometry",
-			"xGraph.Widgets.Mouse",
-			"xGraph.Widgets.Popup"
+			"xGraph.Core.Modules.RootView",
+			"xGraph.Extensions.Eve.View3D",
+			"xGraph.Extensions.Eve.Board",
+			"xGraph.Extensions.Eve.Geometry",
+			"xGraph.Core.Modules.Mouse",
+			"xGraph.Core.Modules.Popup"
 		]
 	}
 }

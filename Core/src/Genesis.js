@@ -18,6 +18,8 @@
 		const fs = require('fs');
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
+		const jszip = null;
+
 		let log;
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
@@ -25,7 +27,6 @@
 		let Apex = {};						// {<Name>: <pid of Apex>}
 		let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
 		let ModCache = {};					// {<folder>: <module>}
-		let packagejson = {};				// The compiled package.json, built from Modules
 		let args = process.argv;			// The input arguments --under consideration for deprication
 		let Params = {};					// The set of Macros for defining paths
 		let CWD = '';						// The current working directory
@@ -223,7 +224,7 @@
 					}
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
-					log.v(`Removed cacheDir: "{CacheDir}"`);
+					log.v(`Removed cacheDir: "${CacheDir}"`);
 				}
 			}
 		}
@@ -239,9 +240,9 @@
 
 			log.v(`About to load ${Object.keys(Modules)}`);
 
-			await recursiveBuild();
-
 			await refreshSystem();
+
+			await retrieveModules();
 
 			await populate();
 
@@ -274,10 +275,10 @@
 							logModule(mod);
 						});
 					} else {
-						log.v(`PreLoading ${Config.Modules[key].Module}`);
+						//log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
-							log.e(JSON.stringify(Config.Modules[key], null, 2))
+							log.e(JSON.stringify(Config.Modules[key], null, 2));
 						}
 						logModule(Config.Modules[key]);
 					}
@@ -291,6 +292,7 @@
 					function logModule(mod) {
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
 						let source = mod.Source;
+
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
@@ -308,7 +310,7 @@
 			 * get the modules from the prebuilt catalog
 			 * from the source defined in config
 			 */
-			async function recursiveBuild() {
+			async function retrieveModules() {
 				let modArray = [];
 				let moduleKeys = Object.keys(Modules);
 
@@ -322,19 +324,27 @@
 							"Source": Modules[folder]
 						};
 
+						//if source is string and it's not already part of the module name then append it to the request
+						if (!(folder.split('.')[0].toLowerCase() in Params)) {
+							if (typeof Modules[folder] == "string"){
+								modrequest.Module=`${modrequest.Source}.${modrequest.Module}`;
+							}
+						}else{
+							log.w("Including the Source in the Module name is Depricated");
+						}
+
 						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
 
 						GetModule(modrequest, function (err, mod) {
 							if (err) {
-								log.w(`Failed to retreive ${modrequest.Modue}`);
+								log.w(`Failed to retreive ${folder}`);
 								log.e(err);
 								rej(err);
 								reject(err);
 							} else {
-								log.v(`Successfully retrieved ${mod.ModName}`);
+								log.v(`Successfully retrieved ${folder}`);
 								res(ModCache[folder] = mod);
 							}
-
 						});
 					}));
 				}
@@ -349,61 +359,61 @@
 				// Write cache to CacheDir
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					let mod = ModCache[folder];
 					let dir = CacheDir + '/' + folder;
 					try { fs.mkdirSync(dir); } catch (e) { }
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
-					let path = dir + '/Module.json';
-					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
+					let path = dir + '/Module.zip';
+					fs.writeFileSync(path, ModCache[folder]);
+
+					if (!jszip) jszip = require("jszip");
+					const zipmod = new jszip();
 
 					//install npm dependencies
 					npmDependenciesArray.push(new Promise((resolve, reject) => {
-						let packagejson;
-						let mod = ModCache[folder];
-						if ('package.json' in mod) {
-							packagejson = JSON.parse(mod['package.json']);
-						} else {
-							resolve();
-							return;
-						}
+						zipmod.loadAsync(ModCache[folder]).then(function (zip) {
+							if ('package.json' in zip.files) {
+								zip.file('package.json').async('string').then(function (packageString) {
+									log.i(`${folder}: Installing dependencies`);
+									log.v(packageString);
 
-						log.i(`${folder}: Updating and installing dependencies`);
-						let packageString = JSON.stringify(packagejson, null, 2);
-						log.v(packageString);
-						//write the compiled package.json to disk
+									//write the compiled package.json to disk
+									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
 
-						fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
+									//call npm install on a childprocess of node
+									const proc = require('child_process');
 
-						//call npm install on a childprocess of node
-						const proc = require('child_process');
+									let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+									let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
 
-						let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-						let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
+									ps.stdout.on('data', _ => {
+										process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+									});
+									ps.stderr.on('data', _ => {
+										process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+									});
 
-						ps.stdout.on('data', _ => {
-							process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-						});
-						ps.stderr.on('data', _ => {
-							process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-						});
+									ps.on('err', function (err) {
+										log.e('Failed to start child process.');
+										log.e('err:' + err);
+										reject(err);
+									});
 
-						ps.on('err', function (err) {
-							log.e('Failed to start child process.');
-							log.e('err:' + err);
-							reject(err);
-						});
-
-						ps.on('exit', function (code) {
-							process.stderr.write(`\r\n`);
-							if (code == 0)
-								log.i(`${folder}: dependencies installed correctly`);
-							else {
-								log.e(`${folder}: npm process exited with code: ${code}`);
-								process.exit(1);
-								reject();
+									ps.on('exit', function (code) {
+										process.stderr.write(`\r\n`);
+										if (code == 0)
+											log.i(`${folder}: dependencies installed correctly`);
+										else {
+											log.e(`${folder}: npm process exited with code: ${code}`);
+											process.exit(1);
+											reject();
+										}
+										fs.unlinkSync(Path.join(dir, 'package.json'));
+										resolve();
+									});
+								});
+							} else {
+								resolve();
 							}
-							fs.unlinkSync(Path.join(dir, 'package.json'));
-							resolve();
 						});
 					}));
 				}
@@ -423,7 +433,7 @@
 						continue;
 					Apex[instname] = genPid();
 				}
-				log.v('Apex', JSON.stringify(Apex, null, 2));
+				log.v('Apex List', JSON.stringify(Apex, null, 2));
 
 				// Now populate all of the modules from config.json
 				for (let instname in Config.Modules) {
@@ -474,10 +484,8 @@
 			let mod = {};
 			let ModName = modnam.replace(/[\/\:]/g, '.');
 
-
 			//get the module from memory (ModCache) if it has already been retrieved
 			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
-
 
 			//get the module from the defined broker
 			if (typeof source == "object") return loadModuleFromBroker();
@@ -578,135 +586,71 @@
 							return;
 
 						let response = Fifo.shift();
-						if (typeof response.Module == 'object') {
-							mod = response.Module;
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-							}
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
-							return;
-						} else {
-							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-							const jszip = require("jszip");
-							const zipmod = new jszip();
 
-							zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
-								var dir = zipmod.file(/.*./);
-
-								zip.file('module.json').async('string').then(function (str) {
-									mod = JSON.parse(str);
-									if ('schema.json' in mod) {
-										var schema = JSON.parse(mod['schema.json']);
-										if ('Apex' in schema) {
-											var apx = schema.Apex;
-											if ('$Setup' in apx)
-												mod.Setup = apx['$Setup'];
-											if ('$Start' in apx)
-												mod.Start = apx['$Start'];
-											if ('$Save' in apx)
-												mod.Save = apx['$Save'];
-										}
-									}
-									ModCache[ModName] = mod;
-									fun(null, ModCache[ModName]);
-								});
-							});
-						}
+						fun(null, response.Module);
 					}
 				});
 			}
-
 
 			/**
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let ModPath = genPath(ModName);
-				//read the module from path in the local file system
-				//create the Module.json and add it to ModCache
+				(async () => {
+					let ModPath = genPath(ModName);
+					//read the module from path in the local file system
+					//create the Module.json and add it to ModCache
+					if (!jszip) jszip = require("jszip");
+					let zipmod = new jszip();
 
-				fs.readdir(ModPath, function (err, files) {
-					if (err) {
-						err += 'Module <' + ModPath + '? not available'
-						log.e(err);
-						fun(err);
-						return;
-					}
-					var nfile = files.length;
-					var ifile = -1;
-					scan();
+					//recursively zip the module
+					await zipDirChidren(zipmod, ModPath);
 
-					function scan() {
-						ifile++;
-						if (ifile >= nfile) {
-							mod.ModName = ModName;
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-							}
-							log.v(`${ModName} returned from local file system`);
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
+					zipmod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
+						if (fail) {
+							log.w("Genesis failed to create zip.");
 							return;
 						}
-						var file = files[ifile];
-						var path = ModPath + '/' + file;
 
-						fs.lstat(path, function (err, stat) {
+						log.v(`${ModName} returned from local file system`);
+						fun(null, dat);
+					});
+
+					async function zipDirChidren(ziproot, contianingPath) {
+						try {
+							let files = fs.readdirSync(contianingPath);
+						} catch (err) {
+							err += 'Module <' + contianingPath + '? not available'
+							log.e(err);
+							fun(err);
+							return;
+						}
+
+						for (let ifile = 0; ifile < files.length; ifile++) {
+							var file = files[ifile];
+							var path = contianingPath + '/' + file;
+							let stat = await new Promise(async (res, rej) => {
+								fs.lstat(path, (err, stat) => {
+									if (err) rej(err)
+									else res(stat);
+								})
+							});
+
 							if (stat) {
 								if (!stat.isDirectory()) {
-									fs.readFile(path, function (err, data) {
-										if (err) {
-											log.e(err);
-											fun(err);
-											return;
-										}
-										mod[file] = data.toString();
-										scan();
-									});
-								} else {
-									mod[file] = buildDir(path);
-									scan();
-
-									function buildDir(path) {
-										let dirObj = {};
-										if (fs.existsSync(path)) {
-											let files = fs.readdirSync(path);
-											files.forEach(function (file, index) {
-												var curPath = path + "/" + file;
-												if (fs.lstatSync(curPath).isDirectory()) {
-													// recurse
-													dirObj[file] = buildDir(curPath);
-												} else {
-													dirObj[file] = fs.readFileSync(curPath).toString();
-												}
-											});
-											return dirObj;
-										}
+									try {
+										var dat = fs.readFileSync(path);
+									} catch (err) {
+										log.e(`error reading file ${path}: ${err}`);
 									}
+									ziproot.file(file, dat);
+								} else {
+									await zipDirChidren(ziproot.folder(file), path)
 								}
 							}
-						});
+						}
 					}
-				});
+				})();
 			}
 		}
 
@@ -730,16 +674,35 @@
 			var mod;
 			var ents = [];
 			var modnam = modnam.replace(/[\/\:]/g, '.');
+			var zipmod = new jszip();
 
 			if (modnam in ModCache) {
-				mod = ModCache[modnam];
+				mod = await new Promise(async (res, rej) => {
+					zipmod.loadAsync(ModCache[modnam]).then((zip) => {
+						res(zip);
+					});
+				});
 			} else {
 				log.e('Module <' + modnam + '> not in ModCache');
 				process.exit(1);
 				reject();
 				return;
 			}
-			var schema = JSON.parse(mod['schema.json']);
+
+			var schema = await new Promise(async (res, rej) => {
+				if ('schema.json' in mod.files) {
+					mod.file('schema.json').async('string').then(function (schemaString) {
+						res(JSON.parse(schemaString));
+					});
+				} else {
+					log.e('Module <' + modnam + '> schema not in ModCache');
+					process.exit(1);
+					rej();
+					reject();
+					return;
+				}
+			});
+
 			var entkeys = Object.keys(schema);
 
 			//set Pids for each entity in the schema
@@ -754,12 +717,15 @@
 			//unpack the par of each ent
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
+				//start with the pars from the schema
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
 				ent.Module = modnam;
 				ent.Apex = pidapx;
 
-				//unpack the config pars to the par of the apex of the instance
+				//load the pars from the config
+				//these only apply to the Apex entity
+				//config takes precedence so we unpack it last
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
 					for (var ipar = 0; ipar < pars.length; ipar++) {
@@ -768,7 +734,7 @@
 					}
 				}
 
-				//load pars from schema
+				//iterate over all the pars to pars out symbols
 				var pars = Object.keys(ent);
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
@@ -899,7 +865,7 @@
 		 */
 		function refreshSystem() {
 			return new Promise((resolve, reject) => {
-				log.i(`--refreshSystems: Updating and installing dependencies${endOfLine}`);
+				log.i(`--refreshSystems: Installing xgraph dependencies${endOfLine}`);
 				var packagejson = {};
 
 				if (!packagejson.dependencies) packagejson.dependencies = {};
@@ -1080,7 +1046,7 @@
 
 				await generateModuleCatalog();
 
-				await recursiveBuild();
+				await retrieveModules();
 
 
 				/////////////////////////////////////////////////////////////////////////////////////////////
@@ -1101,8 +1067,8 @@
 						let key = keys[i];
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
-							for (let idx = 0; idx <arr.length; idx++){
-									await logModule(arr[idx]);
+							for (let idx = 0; idx < arr.length; idx++) {
+								await logModule(arr[idx]);
 							}
 						} else {
 							await logModule(Config.Modules[key]);
@@ -1238,7 +1204,7 @@
 				 * get the modules from the prebuilt catalog
 				 * from the source defined in config
 				 */
-				async function recursiveBuild() {
+				async function retrieveModules() {
 					let modArray = [];
 					let moduleKeys = Object.keys(Modules);
 
@@ -1267,19 +1233,15 @@
 					 * Write the modules.json to a zipped cache and set as Par.System
 					 */
 					function populate() {
-						const jszip = require("jszip");
 						var zip = new jszip();
 						var man = [];
-						zip.folder("cache");
 						for (let folder in ModCache) {
 							let mod = ModCache[folder];
-							if (typeof mod == "object")
-								mod = JSON.stringify(mod);
-							let dir = "cache/" + folder;
-							zip.folder(dir);
-							let path = dir + '/Module.json';
-							man.push(path);
-							zip.file(path, mod, {
+							// let dir = folder;
+							//zip.folder(folder);
+							// let path = dir;
+							man.push(folder);
+							zip.file(folder, mod, {
 								date: new Date("April 2, 2010 00:00:01")
 								//the date is required for zip consistency
 							});

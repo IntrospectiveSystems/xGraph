@@ -9,12 +9,9 @@
             "Par": {}
         },
         "Proxy": {
-            "Module": "xGraph:Modules.Proxy",
+            "Module": "Modules.Proxy",
             "Source": "xGraph",
             "Par": {
-                "Plexus": "$Plexus",
-                "Name": "Plexus",
-                "Chan": "Plexus",
                 "Link": "$Plexus",
                 "Role": "Server"
             }
