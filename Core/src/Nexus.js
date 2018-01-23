@@ -930,7 +930,7 @@
 	async function compileInstance(pidapx, inst, saveRoot = false) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
-		var modnam = inst.Module;
+		var modnam = (typeof inst.Module == "object")?inst.Module.Module:inst.Module;
 		var mod;
 		var ents = [];
 		var modnam = modnam.replace(/\:\//g, '.');
@@ -1052,8 +1052,13 @@
 			modnam = modRequest;
 		}
 		let source = modRequest.Source;
+
+		if (!(modnam.split('.')[0].toLowerCase() in Params) && (typeof modRequest == "object") && ("source" in modRequest)) {
+			modnam = `${modrequest.Source}.${modrequest.Module}`;
+		}
+
 		let mod = {};
-		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		let ModName = modnam.replace(/\:\//g, '.');
 		let dir = ModName.replace('.', ':').replace(/\./g, '/');
 
 		//get the module from memory (ModCache) if it has already been retrieved
