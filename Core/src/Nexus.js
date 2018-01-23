@@ -265,6 +265,7 @@
 			}
 
 			await Promise.all(setupArray);
+			log.v(`--Nexus: All Setups Complete`);
 		}
 
 		/**
@@ -286,13 +287,14 @@
 			}
 
 			await Promise.all(startArray);
+			log.v(`--Nexus: All Starts Complete`);
 		}
 
 		/**
 		 * Send Finished command if the process was generated 
 		 */
 		function run() {
-			log.i(`${endOfLine}--Nexus/Run`);
+			log.i(`--Nexus/Run`);
 			if ('send' in process) {
 				process.send('{"Cmd":"Finished"}');
 			}
