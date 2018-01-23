@@ -275,7 +275,7 @@
 							logModule(mod);
 						});
 					} else {
-						log.v(`PreLoading ${Config.Modules[key].Module}`);
+						//log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2));

@@ -184,7 +184,7 @@
 	 *  The main process of starting an xGraph System.
 	 */
 	async function initiate() {
-		log.i(`${endOfLine}--Nexus/Initiate`);
+		log.i(`--Nexus/Initiate`);
 		ApexIndex = {};
 		Setup = {};
 		Start = {};

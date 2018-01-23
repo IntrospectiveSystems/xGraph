@@ -1,5 +1,6 @@
 {
-  "Apex": {
-	"Entity": "Plexus.js"
-  }
+	"Apex": {
+		"$Setup": "Setup",
+		"Entity": "Plexus.js"
+	}
 }

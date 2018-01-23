@@ -2,6 +2,7 @@
 (
 	/**
 	 * The Plexus entity is the Apex and only entity of the Plexus Module.
+	 * This entity requires its Setup function invoked during the Setup phase of Nexus startup.
 	 * The main capability of this entity is to act as a dynamic router that not only routes connections, but
 	 * assigns the port to servers requesting publication.
 	 */
@@ -9,6 +10,7 @@
 
 		// the set of functions that are accessible from the this.send function of an entity
 		let dispatch = {
+			Setup,
 			Publish,
 			Subscribe
 		};
@@ -16,6 +18,32 @@
 		return {
 			dispatch: dispatch
 		};
+
+		/**
+		 * Setup the required vault variables
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 * @return {com}
+		 */
+		//Setup will be depricated in version 2.0
+		function Setup(com, fun) {
+			log.v('--Plexus/Setup');
+
+			//set by publish
+			if ((!this.Vlt.Ports))
+				this.Vlt.Ports = [];	
+			//the list of taken ports
+
+			//set by publish
+			if (!(this.Vlt.Servers))
+				this.Vlt.Servers = {};
+			//	{<channel>:<{	
+			//		Host: com.Host,
+			//		Port: port}>}
+
+
+			fun(null, com);
+		}
 
 		/**
 			* Publish a Proxy (server) to the Plexus
