@@ -4,12 +4,6 @@
 		state = 'development';
 	}
 
-	process.on('unhandledRejection', event => {
-		log.e('------------------ [Stack] ------------------');
-		log.e(event);
-		log.e('------------------ [/Stack] -----------------');
-		process.exit(1);
-	});
 
 	console.log(`\nInitializing the Run Engine`);
 
@@ -108,6 +102,13 @@
 			console.timers[_] = undefined;
 			log.i(`${_}: ${elapsed}ms`);
 		}
+		process.on('unhandledRejection', event => {
+			log.e('------------------ [Stack] ------------------');
+			log.e(event);
+			log.e('------------------ [/Stack] -----------------');
+			process.exit(1);
+		});
+
 	}
 
 	log.i('=================================================');
