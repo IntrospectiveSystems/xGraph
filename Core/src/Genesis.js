@@ -6,19 +6,14 @@
 			state = 'development';
 		}
 
-		process.on('unhandledRejection', event => {
-			log.e('------------------ [Stack] ------------------');
-			log.e(event);
-			log.e('------------------ [/Stack] -----------------');
-			process.exit(1);
-		});
+
 
 		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
 
 		const fs = require('fs');
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
-		const jszip = null;
+		let jszip = null;
 
 		let log;
 		let Uuid;
@@ -87,6 +82,12 @@
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
 			}
+			process.on('unhandledRejection', event => {
+				log.e('------------------ [Stack] ------------------');
+				log.e(event);
+				log.e('------------------ [/Stack] -----------------');
+				process.exit(1);
+			});
 		}
 
 		try {
@@ -365,7 +366,6 @@
 					let path = dir + '/Module.zip';
 					fs.writeFileSync(path, ModCache[folder]);
 
-					if (!jszip) jszip = require("jszip");
 					const zipmod = new jszip();
 
 					//install npm dependencies
@@ -600,7 +600,6 @@
 					let ModPath = genPath(ModName);
 					//read the module from path in the local file system
 					//create the Module.json and add it to ModCache
-					if (!jszip) jszip = require("jszip");
 					let zipmod = new jszip();
 
 					//recursively zip the module
@@ -617,15 +616,21 @@
 					});
 
 					async function zipDirChidren(ziproot, contianingPath) {
+						let files;
 						try {
-							let files = fs.readdirSync(contianingPath);
+							files = fs.readdirSync(contianingPath);
 						} catch (err) {
 							err += 'Module <' + contianingPath + '? not available'
 							log.e(err);
 							fun(err);
 							return;
 						}
-
+						if (!files){
+							err += 'Module <' + contianingPath + '? not available'
+							log.e(err);
+							fun(err);
+							return;
+						}
 						for (let ifile = 0; ifile < files.length; ifile++) {
 							var file = files[ifile];
 							var path = contianingPath + '/' + file;
@@ -887,7 +892,7 @@
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
 				module.paths = [];
-				module.paths.push([Path.resolve(CacheDir)]);
+				module.paths.push(Path.join(Path.resolve(CacheDir),"node_modules"));
 
 				ps.stdout.on('data', _ => { process.stdout.write(_) });
 				ps.stderr.on('data', _ => process.stderr.write(_));
@@ -906,6 +911,7 @@
 						reject();
 					}
 					fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
+					jszip = require("jszip");
 					resolve();
 				});
 			});
