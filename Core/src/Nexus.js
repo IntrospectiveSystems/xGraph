@@ -887,12 +887,12 @@
 
 			setup();
 			function setup() {
-				if (!("Setup" in schema)) {
+				if (!("$Setup" in schema.Apex)) {
 					start();
 					return;
 				}
 				var com = {};
-				com.Cmd = schema["Setup"];
+				com.Cmd = schema.Apex["$Setup"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
@@ -901,12 +901,12 @@
 
 			// Start
 			function start() {
-				if (!("Start" in schema)) {
+				if (!("$Start" in schema.Apex)) {
 					fun(null, pidapx);
 					return;
 				}
 				var com = {};
-				com.Cmd = schema["Start"];
+				com.Cmd = schema.Apex["$Start"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
@@ -930,7 +930,7 @@
 	async function compileInstance(pidapx, inst, saveRoot = false) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
-		var modnam = inst.Module;
+		var modnam = (typeof inst.Module == "object")?inst.Module.Module:inst.Module;
 		var mod;
 		var ents = [];
 		var modnam = modnam.replace(/\:\//g, '.');
@@ -1052,8 +1052,13 @@
 			modnam = modRequest;
 		}
 		let source = modRequest.Source;
+
+		if (!(modnam.split('.')[0].toLowerCase() in Params) && (typeof modRequest == "object") && ("source" in modRequest)) {
+			modnam = `${modrequest.Source}.${modrequest.Module}`;
+		}
+
 		let mod = {};
-		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		let ModName = modnam.replace(/\:\//g, '.');
 		let dir = ModName.replace('.', ':').replace(/\./g, '/');
 
 		//get the module from memory (ModCache) if it has already been retrieved

@@ -22,7 +22,7 @@
 	 */
 	function Publish(com, fun = _=>_) {
 		let that = this;
-		log.v(`Publishing from ${this.Par.Link} WebProxy: ${com.Cmd}`);
+		//log.v(`Publishing from ${this.Par.Link} WebProxy: ${com.Cmd}`);
 
 		//set the destination on the server side
 		com.Passport.To = this.Par.Link;

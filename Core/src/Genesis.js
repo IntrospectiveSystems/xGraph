@@ -326,10 +326,10 @@
 
 						//if source is string and it's not already part of the module name then append it to the request
 						if (!(folder.split('.')[0].toLowerCase() in Params)) {
-							if (typeof Modules[folder] == "string"){
-								modrequest.Module=`${modrequest.Source}.${modrequest.Module}`;
+							if (typeof Modules[folder] == "string") {
+								modrequest.Module = `${modrequest.Source}.${modrequest.Module}`;
 							}
-						}else{
+						} else {
 							log.w("Including the Source in the Module name is Depricated");
 						}
 
@@ -1217,6 +1217,16 @@
 								"Module": folder,
 								"Source": Modules[folder]
 							};
+
+							//if source is string and it's not already part of the module name then append it to the request
+							if (!(folder.split('.')[0].toLowerCase() in Params)) {
+								if (typeof Modules[folder] == "string") {
+									modrequest.Module = `${modrequest.Source}.${modrequest.Module}`;
+								}
+							} else {
+								log.w("Including the Source in the Module name is Depricated");
+							}
+							
 							GetModule(modrequest, function (err, mod) {
 								if (err) { rej(err); reject(err); }
 								else {
