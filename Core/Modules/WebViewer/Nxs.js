@@ -72,7 +72,7 @@ __Nexus = (_ => {
 				// so, you should split it up.
 				var [err, cmd] = cmd;
 			}
-			log.v(' << Msg:' + cmd.Cmd);
+			//log.v(' << Msg:' + cmd.Cmd);
 
 			//if the message is a reply pair it with its callback
 			if ('Passport' in cmd && cmd.Passport.Reply) {
@@ -815,8 +815,8 @@ __Nexus = (_ => {
 		}
 
 		var str = JSON.stringify(com);
-		log.v(' >> Msg:' + com.Cmd);
-		log.v(str.substring(0, (str.length > 100) ? 100 : str.length) + ' ... ');
+		//log.v(' >> Msg:' + com.Cmd);
+		//log.v(str.substring(0, (str.length > 100) ? 100 : str.length) + ' ... ');
 		SockIO.send(str);
 	}
 
