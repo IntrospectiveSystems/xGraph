@@ -787,9 +787,8 @@
 		} catch (e) { }
 
 		let folder = ApexIndex[apx];
-		let path = CacheDir + '/' + folder + '/node_modules/';
 
-		module.paths = [path];
+		module.paths = [CacheDir + '/' + folder + '/node_modules/'];
 		return require(str);
 	}
 

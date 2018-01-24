@@ -891,8 +891,7 @@
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
-				module.paths = [];
-				module.paths.push(Path.join(Path.resolve(CacheDir),"node_modules"));
+				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 
 				ps.stdout.on('data', _ => { process.stdout.write(_) });
 				ps.stderr.on('data', _ => process.stderr.write(_));
