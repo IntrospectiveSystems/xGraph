@@ -38,7 +38,7 @@
 
 			log.v('init with ' + cmd.ClientID);
 
-			let onSuccess = (g) => {
+			let onSuccess = async (g) => {
 				log.v('success');
 
 				if(this.Par.Logout) {
@@ -56,7 +56,19 @@
 				Cookies('xGraph-Email', g.getBasicProfile().getEmail());
 				Cookies('xGraph-DisplayName', g.getBasicProfile().getName());
 				Cookies('xGraph-Authenticated', true);
-				Cookies('xGraph-Expires', (g.getAuthResponse().expires_at))
+				Cookies('xGraph-Expires', (g.getAuthResponse().expires_at));
+
+				// after we log in, try and authenticate a command
+				// so we can tell the auth server about us.
+				try {
+					// debugger;
+					await this.ascend('AddUser', await this.authenticate({}), this.Par.Server);
+				} catch(e) {
+					alert(`${e}\n-------------------\nPage should be refreshed.\nIf that doesnt solved the problem, contact support.`);
+				}
+
+
+
 				location.href = this.Par.Redirect;
 				// console.log("Login succeeded");
 
@@ -128,6 +140,6 @@
 		}
 	}
 
-	return Viewify(LoginView);
+	return Viewify(LoginView, '3.5');
 
 })();
