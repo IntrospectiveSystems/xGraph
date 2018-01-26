@@ -41,7 +41,6 @@
 			//		Host: com.Host,
 			//		Port: port}>}
 
-
 			fun(null, com);
 		}
 
@@ -71,7 +70,7 @@
 
 			if (err) {
 				log.e(err);
-				fun(err);
+				fun(err, com);
 				return;
 			}
 

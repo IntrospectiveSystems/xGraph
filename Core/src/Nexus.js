@@ -104,7 +104,8 @@
 		}
 		process.on('unhandledRejection', event => {
 			log.e('------------------ [Stack] ------------------');
-			log.e(event);
+			log.e(`line ${event.lineNumber}, ${event}`);
+			log.e(event.stack);
 			log.e('------------------ [/Stack] -----------------');
 			process.exit(1);
 		});
@@ -448,6 +449,13 @@
 		var Par = par;
 		var Imp = imp;
 		var Vlt = {};
+		process.on('unhandledRejection', event => {
+			log.e('------------------ [Stack] ------------------');
+			log.e(`Par.Module: ${Par.Module}, Par.Entity: ${Par.Entity}, ${event}`);
+			log.e(event.stack);
+			log.e('------------------ [/Stack] -----------------');
+			process.exit(1);
+		});
 
 		return {
 			Par,
@@ -843,6 +851,7 @@
 					mod.file(par.Entity).async("string").then((string) => res(string))
 				});
 
+				log.v(`Spinning up module ${folder}`);
 				ImpCache[impkey] = (1, eval)(entString);
 				BuildEnt();
 			});

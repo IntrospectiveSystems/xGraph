@@ -84,7 +84,8 @@
 			}
 			process.on('unhandledRejection', event => {
 				log.e('------------------ [Stack] ------------------');
-				log.e(event);
+				log.e(`line ${event.lineNumber}, ${event}`);
+				log.e(event.stack);
 				log.e('------------------ [/Stack] -----------------');
 				process.exit(1);
 			});
@@ -298,7 +299,7 @@
 							Modules[folder] = source;
 						} else {
 							if (Modules[folder] != source) {
-								log.e("Broker Mismatch Exception");
+								log.e(`Broker Mismatch Exception: ${Modules[folder]} - ${source}`);
 								process.exit(2);
 								reject();
 							}
@@ -1092,7 +1093,7 @@
 								Modules[folder] = source;
 							} else {
 								if (Modules[folder] != source) {
-									log.e("Broker Mismatch Exception");
+									log.e(`Broker Mismatch Exception: ${Modules[folder]} - ${source}`);
 									process.exit(2);
 									reject();
 								}
