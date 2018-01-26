@@ -42,8 +42,13 @@
 				log.v('success');
 
 				if(this.Par.Logout) {
-					gapi.auth2.getAuthInstance().signOut();
+					try {
+						gapi.auth2.getAuthInstance().signOut();
+					}catch(e) {
+						log.v('couldnt sign out google...')
+					}
 					location.href = this.Par.Redirect;
+					return;
 				}
 				
 				let Id = g.getId();
@@ -55,14 +60,14 @@
 				Cookies('xGraph-Provider', 'google');
 				Cookies('xGraph-Email', g.getBasicProfile().getEmail());
 				Cookies('xGraph-DisplayName', g.getBasicProfile().getName());
-				Cookies('xGraph-Authenticated', true);
 				Cookies('xGraph-Expires', (g.getAuthResponse().expires_at));
-
+				
 				// after we log in, try and authenticate a command
 				// so we can tell the auth server about us.
 				try {
-					// debugger;
-					await this.ascend('AddUser', await this.authenticate({}), this.Par.Server);
+					await this.ascend('AddUser', await this.authenticate({}), this.Par.Server)
+					Cookies('xGraph-Authenticated', true); // only truly authenticated once
+					// we add ourselves to the database.
 				} catch(e) {
 					alert(`${e}\n-------------------\nPage should be refreshed.\nIf that doesnt solved the problem, contact support.`);
 				}

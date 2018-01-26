@@ -33,11 +33,12 @@
 			/// com.Valid
 
 			GetUserDetails(com, fun) {
-				let Id = com.UserID;
-
-				this.Vlt.Users.find({
-					userid: Id
-				}, (err, docs) => {
+				let q = {}
+				if ('UserID' in com) q.userid = com.UserId;
+				if ('Email' in com) q.email = com.Email;
+				this.Vlt.Users.find(q, (err, docs) => {
+					log.v(docs)
+					log.v(docs.length)
 					if(docs.length == 0) {
 						fun('User not Found', com);
 					} else if(docs.length == 1) {
@@ -87,7 +88,7 @@
 						}
 						// debugger;
 						this.Vlt.Users.find({
-							userid: userid
+							email: email
 						}, (err, docs) => {
 							if (docs.length == 0) {
 								this.Vlt.Users.insert(user, (err, doc) => {
