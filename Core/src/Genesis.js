@@ -293,6 +293,14 @@
 					 */
 					function logModule(mod) {
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
+
+						if ((!"Source" in mod)) {
+							log.e(`No Broker Declared in module: ${key}: ${mod.Module}`);
+							reject();
+							process.exit(2);
+							return;
+						}
+
 						let source = mod.Source;
 
 						if (!(folder in Modules)) {
@@ -325,15 +333,6 @@
 							"Module": folder,
 							"Source": Modules[folder]
 						};
-
-						//if source is string and it's not already part of the module name then append it to the request
-						if (!(folder.split('.')[0].toLowerCase() in Params)) {
-							if (typeof Modules[folder] == "string") {
-								modrequest.Module = `${modrequest.Source}.${modrequest.Module}`;
-							}
-						} else {
-							log.w("Including the Source in the Module name is Depricated");
-						}
 
 						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
 
@@ -483,7 +482,7 @@
 			let modnam = modRequest.Module;
 			let source = Config.Sources[modRequest.Source];
 			let mod = {};
-			let ModName = modnam.replace(/[\/\:]/g, '.');
+			let ModName = modnam;
 
 			//get the module from memory (ModCache) if it has already been retrieved
 			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
@@ -598,6 +597,7 @@
 			 */
 			function loadModuleFromDisk() {
 				(async () => {
+					log.d(`Mod path is ${source} - ${modnam}`);
 					let ModPath = genPath(ModName);
 					//read the module from path in the local file system
 					//create the Module.json and add it to ModCache
