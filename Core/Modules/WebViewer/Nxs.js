@@ -1091,15 +1091,28 @@ __Nexus = (_ => {
 			ApexIndex[pidapx] = mod.ModName;
 			Root.ApexList[pidapx] = pidapx;
 			await compileInstance(pidapx, inst, false);
+
+			var schema = await new Promise(async (res, rej) => {
+				if ('schema.json' in mod.files) {
+					mod.file('schema.json').async('string').then(function (schemaString) {
+						res(JSON.parse(schemaString));
+					});
+				} else {
+					log.e('Module <' + modnam + '> schema not in ModCache');
+					res()
+					return;
+				}
+			});
+			
 			setup();
 
 			function setup() {
-				if (!("Setup" in mod)) {
+				if (!("$Setup" in schema.Apex)) {
 					start();
 					return;
 				}
 				var com = {};
-				com.Cmd = mod["Setup"];
+				com.Cmd = schema.Apex["$Setup"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
@@ -1108,13 +1121,13 @@ __Nexus = (_ => {
 
 			// Start
 			function start() {
-				if (!("Start" in mod)) {
+				if (!("$Start" in schema.Apex)) {
 					fun(null, pidapx);
 					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
-				com.Cmd = mod["Start"];
+				com.Cmd = schema.Apex["$Start"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
