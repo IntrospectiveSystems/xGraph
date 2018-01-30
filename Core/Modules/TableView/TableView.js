@@ -198,6 +198,7 @@
 					else
 						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 				}
+				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
 					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}
@@ -226,7 +227,6 @@
 		 * @memberof TableView
 		 */
 		Render(com, fun) {
-			debugger;
 			if(this.Vlt.div.children().length == 0) {
 				this.Vlt.table.append(this.Vlt.tablehead);
 				this.Vlt.table.append(this.Vlt.tablebody);

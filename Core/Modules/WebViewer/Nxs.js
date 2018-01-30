@@ -523,32 +523,49 @@ __Nexus = (_ => {
 	/**
 	 * Call the setup function in each of the apex entities that requires it
 	 */
-	function Setup() {
+	async function Setup() {
 		log.v(`--Nexus/Setup ${JSON.stringify(Root.Setup, null, 2)}`);
 
 		var pids = Object.keys(Root.Setup);
-		var npid = pids.length;
-		var ipid = 0;
-		setup();
+		for(let pid of pids) {
+			await new Promise(resolve => {
 
-		function setup() {
-			if (ipid >= npid) {
-				Start();
-				return;
-			}
-			var pid = pids[ipid];
-			ipid++;
-			var q = {};
-			q.Cmd = Root.Setup[pid];
-			q.Passport = {};
-			q.Passport.To = pid;
-			q.Passport.Pid = genPid();
-			sendMessage(q, done);
+				// create a timer that checks if we've completed, starting at 1 second
+				// and doubling each time it checks.
+				let time = 1000; // the time to wait
+				let monitor = setTimeout(checkIn, time); // the timer reference, so we can cancel it
+				// function to check in after the timer finishes
+				function checkIn() {
+					// try and get the module name from ApexList (For End User)
+					let name = pid; // default it to the pid
+					for(let key in Root.ApexList) {
+						//search apex list, if we have a pid match, use that.
+						if(Root.ApexList[key] == pid) name = key;
+					}
+					//warn in the console about taking a long time
+					log.w(`${name} taking a while to Setup... Retrying in ${time / 1000}s`);
+					//restart the timer with double the time.
+					time *= 2;
+					monitor = setTimeout(checkIn, time);
+				}
 
-			function done(err, r) {
-				setup();
-			}
+				// send the setup message
+				sendMessage({
+					Cmd: Root.Setup[pid],
+					Passport: {
+						To: pid,
+						Pid: genPid()
+					}
+				}, _ => {
+					// clear the timer that prints warnings, because we're done.
+					clearTimeout(monitor);
+					// resolve this promise, move to next pid.
+					resolve()
+				});
+			});
 		}
+		//after all pids complete, move to Nxsx/Start phase
+		Start();
 	}
 
 	/**
