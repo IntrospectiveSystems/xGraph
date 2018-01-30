@@ -1,0 +1,68 @@
+{
+  "State": {
+    "Filename": "newTest"
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd": "Setup"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Start"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "ObjectsToCSV",
+        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+      },
+      "Response": {
+        "Cmd": "ObjectsToCSV",
+        "DataString": "*"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "CSVToObjects",
+        "DataString": "\"SQL\",\"Blue\",\"Medium\",\"Robotics\",\"Yellow\",\"Small\",\"Compilers\", \"White-Orange-Black\", \"Thick\""
+      },
+      "Response": {
+        "Cmd": "CSVToObjects",
+        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "ReadRecords"
+      },
+      "Response": {
+        "Cmd": "ReadRecords",
+        "Records": "*"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "WriteRecords",
+        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "DeleteRecord",
+        "Record": ["Compilers", "White-Orange-Black", "Thick"]
+      },
+      "Response": {
+        "Cmd": "DeleteRecord",
+        "RecordDeleted": true
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "AppendRecords",
+        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+      }
+    }
+  ]
+}
