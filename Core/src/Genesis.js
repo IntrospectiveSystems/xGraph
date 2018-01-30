@@ -998,8 +998,6 @@
 
 				parseConfig(config);
 
-				log.d(JSON.stringify(Config.Sources, null, 2));
-
 				await generateModuleCatalog();
 
 				await retrieveModules();

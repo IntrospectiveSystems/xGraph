@@ -4,7 +4,6 @@
 		state = 'development';
 	}
 
-
 	console.log(`\nInitializing the Run Engine`);
 
 	const fs = require('fs');
@@ -27,6 +26,7 @@
 	var Nxs = {
 		genPid,
 		genModule,
+		addModule,
 		genEntity,
 		deleteEntity,
 		saveEntity,
@@ -173,7 +173,6 @@
 				}
 			}
 		}
-		log.d(`Args are \n${process.argv}\n\nParams keys are ${Object.keys(Params)}`);
 
 		//set CWD
 		CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
@@ -450,6 +449,7 @@
 		var Par = par;
 		var Imp = imp;
 		var Vlt = {};
+
 		process.on('unhandledRejection', event => {
 			log.e('------------------ [Stack] ------------------');
 			log.e(`Par.Module: ${Par.Module}, Par.Entity: ${Par.Entity}, ${event}`);
@@ -464,6 +464,7 @@
 			dispatch,
 			genModule,
 			genModules,
+			addModule,
 			genEntity,
 			deleteEntity,
 			genPid,
@@ -522,6 +523,16 @@
 			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
+
+	/**
+	 * Add a module into the in memory Module Cache (ModCache)
+	 * @param {string} modName 		the name of the module
+	 * @param {string} modZip 		the zip of the module
+	 * @callback fun 							the callback just returns the name of the module
+	 */
+	function addModule(modName, modZip, fun){
+		nxs.addModule(modName, modZip, fun);
+	}
 
 		/**
 		 * entity access to the genModule command
@@ -687,7 +698,7 @@
 					//the following code is depricated since including deferred modules all module zip files 
 					//must exist in the cache prior to starting the system
 
-					fun(`No Module.zip for the requrested module: ${ApexIndex[apx]}`);
+					fun(`No Directory for the requrested module: ${ApexIndex[apx]}`);
 					// let mod = ModCache[ApexIndex[apx]];
 					// if (pid == apx) {
 					// 	fs.mkdirSync(modpath);
@@ -774,6 +785,22 @@
 		checkModule();
 	}
 
+	/**
+	 * Add a module into the in memory Module Cache (ModCache)
+	 * @param {string} modName 		the name of the module
+	 * @param {string} modZip 		the zip of the module
+	 * @callback fun 							the callback just returns the name of the module
+	 */
+	function addModule(modName, modZip, fun){
+		if (process.argv.indexOf('--allow-add-module')>-1){
+			ModCache[modName] = modZip;
+			fun(null, modName)
+			return;
+		}
+		let err =`addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
+		log.w(err);
+		fun(err);
+	}
 
 	/**
 	 * Access a file that exists in the module.json
