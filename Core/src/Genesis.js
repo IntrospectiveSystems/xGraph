@@ -6,8 +6,6 @@
 			state = 'development';
 		}
 
-
-
 		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
 
 		const fs = require('fs');
@@ -331,7 +329,7 @@
 
 						let modrequest = {
 							"Module": folder,
-							"Source": Modules[folder]
+							"Source": Config.Sources[Modules[folder]]
 						};
 
 						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
@@ -480,7 +478,7 @@
 		 */
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
-			let source = Config.Sources[modRequest.Source];
+			let source = modRequest.Source;
 
 			//get the module from memory (ModCache) if it has already been retrieved
 			if (modnam in ModCache) { log.v(`${modnam} returned from ModCache`); return fun(null, ModCache[modnam]); }
@@ -1000,6 +998,8 @@
 
 				parseConfig(config);
 
+				log.d(JSON.stringify(Config.Sources, null, 2));
+
 				await generateModuleCatalog();
 
 				await retrieveModules();
@@ -1017,7 +1017,7 @@
 				async function generateModuleCatalog() {
 					// Create new cache and install high level
 					// module subdirectories. Each of these also
-					// has a link to the source of that module (Module.json).
+					// has a link to the source of that module (Module.zip).
 					var keys = Object.keys(Config.Modules);
 					for (let i = 0; i < keys.length; i++) {
 						let key = keys[i];
@@ -1181,7 +1181,7 @@
 
 							let modrequest = {
 								"Module": folder,
-								"Source": Modules[folder]
+								"Source": Config.Sources[Modules[folder]]
 							};
 
 							log.v(`Requesting Module:${modrequest.Module} from Source:${modrequest.Source}`);

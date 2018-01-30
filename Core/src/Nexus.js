@@ -173,6 +173,7 @@
 				}
 			}
 		}
+		log.d(`Args are \n${process.argv}\n\nParams keys are ${Object.keys(Params)}`);
 
 		//set CWD
 		CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
@@ -882,7 +883,7 @@
 	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
 	 * @callback fun 				(err, pid of module apex)
 	 */
-	function genModule(inst, fun = _ => _) {
+	async function genModule(inst, fun = _ => _) {
 		if ("Module" in inst && (typeof inst.Module == "string")) {
 			inst = { "Top": inst };
 			// GetModule(inst.Module, async function (err, mod) {
