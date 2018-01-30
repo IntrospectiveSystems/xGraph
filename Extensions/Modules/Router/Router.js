@@ -22,15 +22,23 @@
 		if (!this.Par.Table)
 			this.Par.Table = {}
 		
-		this.Par.Table[com.Name]= com.Pid;
+		this.Par.Table.push(com.Pid);
 
 		if (fun)
 			fun(null, com);
 	}
 
-	function Send(com, fun){
+	async function Send(com, fun){
 		//console.log("Router/Send - ", com.Cmd);
-		this.send(com, this.Par.Table[com.Destination], fun);
+		for(let pid of this.Par.Table) {
+			await new Promise((resolve) => {
+				this.send(com, pid, _ => {
+					resolve();
+				});
+			});
+		}
+
+		fun(null, com);
 	}
 
 })();

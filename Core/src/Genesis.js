@@ -45,24 +45,50 @@
 			// e : error 		Critical failure should always follow with a system exit
 			log = {
 				v: (...str) => {
-					process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				d: (...str) => {
-					process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				i: (...str) => {
-					process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				w: (...str) => {
-					process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				e: (...str) => {
-					process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
+				},
+				parse: (str) => {
+					// process.stdout.write(`parse array ${str.length}`)
+
+					try{
+						let arr = [];
+						for (let obj of str) {
+							if (typeof obj == 'object') {
+								if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+								else {
+									try {
+										arr.push(JSON.stringify(obj, null, 2));
+									} catch (e) {
+										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+									}
+								}
+							} else {
+								arr.push(obj.toString());
+							}
+						}
+						return arr.join(' ');
+					} catch (ex) {
+						process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+						process.stdout.write(ex.toString() + '\u001b[39m');
+					}
+					
 				}
 			};
 			console.microtime = _ => {
@@ -644,7 +670,7 @@
 									try {
 										var dat = fs.readFileSync(path);
 									} catch (err) {
-										log.e(`error reading file ${path}: ${err}`);
+										log.e(`loadModuleFromDisk: error reading file ${path}: ${err}`);
 									}
 									ziproot.file(file, dat);
 								} else {
@@ -790,7 +816,7 @@
 								}
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
-								log.e("Error reading file ", path);
+								log.e("@file: (compileInstance) Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
 							}
 							break;
@@ -829,8 +855,8 @@
 							break;
 						}
 						case "@system": {
+							let path, config;
 							try {
-								let path, config;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 
 								if (Path.isAbsolute(val))
@@ -844,7 +870,7 @@
 								return await GenTemplate(config);
 
 							} catch (err) {
-								log.e("Error reading file ", path);
+								log.e("@system: (compileInstance) Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
 							}
 							break;
@@ -1100,7 +1126,7 @@
 										}
 										return fs.readFileSync(path).toString(encoding);
 									} catch (err) {
-										log.e("Error reading file ", path);
+										log.e("@file: (generateModuleCatalog) Error reading file ", path);
 										log.w(`Module ${modnam} may not operate as expected.`);
 									}
 									break;
@@ -1150,7 +1176,7 @@
 										config = fs.readFileSync(path).toString(encoding);
 										return await GenTemplate(config);
 									} catch (err) {
-										log.e("Error reading file ", path);
+										log.e("@system: (generateModuleCatalog) Error reading file ", path);
 										log.w(`Module ${modnam} may not operate as expected.`);
 									}
 									break;

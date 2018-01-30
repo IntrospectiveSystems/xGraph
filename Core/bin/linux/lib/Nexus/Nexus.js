@@ -62,23 +62,23 @@
 		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
 			v: (...str) => {
-				process.stdout.write(`\u001b[90;7m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			d: (...str) => {
-				process.stdout.write(`\u001b[35;7m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			i: (...str) => {
-				process.stdout.write(`\u001b[36;7m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			w: (...str) => {
-				process.stdout.write(`\u001b[33;7m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			e: (...str) => {
-				process.stdout.write(`\u001b[31;7m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			}
 		};
