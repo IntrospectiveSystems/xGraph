@@ -1,0 +1,82 @@
+{
+	"name": "3DView",
+	"version": "1.0.0",
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			},
+			{
+				"Cmd": "Start"
+			}
+		],
+		"optional": [
+			{
+				"Cmd": "SetObjects",
+				"required": {
+					"Objects": []
+				}
+			},
+			{
+				"Cmd": "ImageCapture"
+			},
+			{
+				"Cmd": "EvokeExample",
+				"required": {
+					"id": "string",
+					"mouse": {
+						"x": "number",
+						"y": "number"
+					}
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"optional": [
+			{
+				"par": "Server",
+				"Command": [
+					{
+						"Cmd": "Subscribe",
+						"required": {
+							"Pid": "xGraphPid",
+							"Link": "string"
+						}
+					}
+				]
+			},
+			{
+				"par": "Controller",
+				"Command": [
+					{
+						"Cmd": "Register",
+						"required": {
+							"Pid": "xGraphPid"
+						}
+					},
+					{
+						"Cmd": "SaveImage",
+						"required": {
+							"Image": "string",
+							"Name": "string"
+						}
+					}
+				]
+			}
+		]
+	},
+	"par": {
+		"required": {},
+		"optional": {
+			"Server": "xGraphPid",
+			"Controller": "xGraphPid",
+			"EvokeView": "xGraphModuleAddress"
+		}
+	}
+}

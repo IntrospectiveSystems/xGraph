@@ -1,4 +1,4 @@
-# [build-cli](https://github.com/IntrospectiveSystems/xGraph#readme) *0.9.7*
+# [build-cli](https://github.com/IntrospectiveSystems/xGraph#readme) *1.0.0*
 
 
 

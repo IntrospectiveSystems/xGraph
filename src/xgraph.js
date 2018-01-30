@@ -34,7 +34,7 @@ let mac = false;
 let unix = false;
 // #endif
 
-// $genesis $load('./Nexus/Nexus/Genesis.js')
+// $genesis $load('./Core/src/Genesis.js')
 
 processSwitches();
 
@@ -139,39 +139,39 @@ function help() {
 		Usage: xgraph [command] [options] [--source directory ...]
 		
 		Command:
-		\thelp \t\th \t\t\t: Displays this help screen.
-        \tcompile \tc \t\t\t: Generates a cache from a system
-        					\t\t\t\t\t\t\tstructure file.
-        \n
-        \tdeploy \t\td \t\t\t: Run a system from it's cache.
-    	\treset \t\tr \t\t\t: Run a system from system structure
-        					\t\t\t\t\t\t\tfile, resetting the system's cache.
-		\tgenerate <module|system> \tg <m|s> : Generate a new module or system
-							\t\t\t\t\t\t\tfrom a template with the given
-							\t\t\t\t\t\t\tname.
+		\x20\x20help         h                    : Displays this help screen.
+    \x20\x20compile      c                    : Generates a cache from a system
+    \x20\x20                                    structure file.
+    \n
+		\x20\x20deploy       d                    : Run a system from the cache.
+    \x20\x20reset        r                    : Run a system from system structure
+		\x20\x20                                    file, resetting the system's cache.
+		\x20\x20generate <module|system>  g <m|s> : Generate a new module or system
+		\x20\x20                                    from a template with the given
+		\x20\x20                                    name.
 		\n
-	    \texecute \tx run \t\t\t: Run a system from it's cache, or
-          					\t\t\t\t\t\t\tit's system structure file if
-                            \t\t\t\t\t\t\tthe cache does not exist.
+	  \x20\x20execute      x                    : Run a system from the cache, or
+    \x20\x20                                    the system structure file if
+    \x20\x20                                    the cache does not exist.
 		\n
 		Options:
-    	\t--cwd \t\t\t\t\t: Sets the current working directory
-                            \t\t\t\t\t\t\tfor the command.
-    	\t--config \t\t\t\t: Specifies a system's structure file.
-		\t--cache \t\t\t\t: Specifies a system's cache directory.
+    \x20\x20--cwd                             : Sets the current working directory
+    \x20\x20                                    for the command.
+		\x20\x20--config                          : Specifies a system's structure file.
+		\x20\x20--cache                           : Specifies a system's cache directory.
 		\n 
 		Examples:
-		\tCompile the system in the current directory.
-			\t\txgraph compile
+		\x20\x20Compile the system in the current directory.
+		\x20\x20\x20\x20\x20\x20xgraph compile
 		\n
-		\tDeploy a module from a system structure file.
-			\t\txgraph deploy --config .\\ExampleSystems\\HelloWorld\\config.json
+		\x20\x20Deploy a module from a system structure file.
+		\x20\x20\x20\x20\x20\x20xgraph deploy --config .\\ExampleSystems\\HelloWorld\\config.json
 		\n	
-		\tReset a system in a different working directory with an external source.
-			\t\txgraph reset --cwd .\\MultipleSystemsTemplate\\Systems\\Plexus\\ --xGraph ..\\xGraph --xGraphTemplates ..\\..\\xGraphTemplates
+		\x20\x20Reset a system in a different working directory with an external source.
+		\x20\x20\x20\x20\x20\x20xgraph reset --cwd .\\Systems\\Plexus\\ ..\\..\\xGraphTemplates
 		\n
-		\tGenerate a new module called MyFirstModule.
-			\txgraph generate module MyFirstModule
+		\x20\x20Generate a new module called MyFirstModule.
+		\x20\x20\x20\x20\x20\x20xgraph generate module MyFirstModule
 	`);
 }
 

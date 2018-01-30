@@ -8,6 +8,8 @@
 	const createPackage = require('osx-pkg');
 	var createMsi = require('msi-packager');
 	const pkg = require("./package.json");
+	const { execSync } = require('child_process');
+	const platform = process.platform;
 
 	ensureDir('bin');
 	ensureDir('src/gen');
@@ -40,6 +42,21 @@
 			outfile += line + '\n';
 		}
 		fs.writeFileSync(filename, outfile);
+	}
+
+	function createMacTarball() {
+		console.log("Alternative Mac tar.gz being created since package capability is not available.")
+		//make for mac
+		tar.compress({
+			src: "bin/mac/",
+			dest: 'bin/xgraph_mac.tar.gz'
+		}, function (err) {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Mac: Done!");
+			}
+		});
 	}
 
 	fs.writeFileSync('src/gen/xgraph-linux.js', new Preprocessor(fs.readFileSync('src/xgraph.js'), '.').process({ LINUX: true }));
@@ -89,7 +106,7 @@
 	ensureDir('bin/lib')
 	ensureDir('bin/lib/Nexus');
 
-	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('Nexus/Nexus/Nexus.js'), '.').process({ BUILT: true }));
+	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('Core/src/Nexus.js'), '.').process({ BUILT: true }));
 	
 	//copy bin/lib into bin/linux/lib
 	ensureDir('bin/linux');
@@ -126,17 +143,31 @@
 		}
 	});
 
-	// //make for mac
-	tar.compress({
-		src: "bin/mac/",
-		dest: 'bin/xgraph_mac.tar.gz'
-	}, function (err) {
-		if (err) {
-			console.log(err);
+	var canCreatePackage = false;
+	if (/^linux/.test(platform)) {
+		let xar = (execSync('which xar').toString());
+		if (xar != '') {
+			let bomUtils = (execSync('which mkbom').toString());
+			if (bomUtils != '') {
+				canCreatePackage = true;
+			} else {
+				console.log("Missing xar: please install using");
+				console.log("  'wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/xar/xar-1.5.2.tar.gz && tar -zxvf ./xar-1.5.2.tar.gz && cd ./xar-1.5.2 && ./configure && make && sudo make install'");
+			}
 		} else {
-			console.log("Mac: Done!");
+			console.log("Missing bomutils: please install using");
+			console.log("  'git clone https://github.com/hogliux/bomutils && cd bomutils && make && sudo make install'")
 		}
-	});
+	} 
+
+	if (canCreatePackage) {
+		console.log("Building mac pkg installer.")
+		let buildResults = (execSync('./build_mac_pkg.sh').toString());
+		console.log(buildResults);
+		console.log("Mac: Done!");
+	} else {
+		createMacTarball();
+	}
 
 	//make for windows
 	var options = {
@@ -151,8 +182,14 @@
 		arch: 'x64',
 	};
 
-	// createMsi(options, function (err) {
-	// 	if (err) throw err
-	// 	console.log('Windows: Done!');
-	// });
+	console.log("Ignore the following DeprecationWarning from msi-packager for asynchronous function without callback.");
+	createMsi(options, function (err) {
+		if (/^win/.test(platform)) {
+			console.log("MSI creation can only be done on mac or linux.");
+			console.log('Windows: FAILED!');
+		} else {
+			if (err) throw err
+			console.log('Windows: Done!');
+		}
+	});
 })();

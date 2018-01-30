@@ -1,0 +1,23 @@
+{
+    "Sources": {
+        "xGraph": "{xGraph}"
+    },
+    "Modules": {
+        "Bank": {
+            "Module": "Modules.BankAccount",
+            "Source": "xGraph",
+            "Par": {
+                "Balance": "10"
+            }
+        }, 
+        "BankServer": {
+            "Module": "Modules.Proxy",
+            "Source": "xGraph",
+            "Par": {
+                "Chan": "Bank", 
+                "Link": "$Bank", 
+                "Role": "Server"
+            }
+        }
+    }
+}
