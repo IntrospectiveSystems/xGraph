@@ -462,6 +462,7 @@
 			Vlt,
 			dispatch,
 			genModule,
+			genModules,
 			genEntity,
 			deleteEntity,
 			genPid,
@@ -517,6 +518,16 @@
 		 * @callback fun 
 		 */
 		function genModule(mod, fun) {
+			//	log.v('--Entity/genModule');
+			nxs.genModule(mod, fun);
+		}
+
+		/**
+		 * entity access to the genModule command
+		 * @param {object} modObj 	an object containing one or more module descriptions
+		 * @callback fun(err,pidofTop,objectOfAllModulesGenerated)
+		 */
+		function genModules(modObj, fun) {
 			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
@@ -866,64 +877,178 @@
 	/**
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
-	 * @param {Object} inst 		Definition of the instance to be spun up
+	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
 	 * @param {string} inst.Module 	The name of the module to spin up
 	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
-		GetModule(inst.Module, async function (err, mod) {
-			if (err) {
-				log.e('GenModule err -', err);
-				fun(err);
-				return;
-			}
-			let pidapx = genPid();
-			ApexIndex[pidapx] = inst.Module;
-			await compileInstance(pidapx, inst);
-
-			var schema = await new Promise(async (res, rej) => {
-				if ('schema.json' in mod.files) {
-					mod.file('schema.json').async('string').then(function (schemaString) {
-						res(JSON.parse(schemaString));
-					});
-				} else {
-					log.e('Module <' + modnam + '> schema not in ModCache');
-					res()
+		if ("Module" in inst && (typeof inst.Module == "string")) {
+			GetModule(inst.Module, async function (err, mod) {
+				if (err) {
+					log.e('GenModule err -', err);
+					fun(err);
 					return;
+				}
+				let pidapx = genPid();
+				ApexIndex[pidapx] = inst.Module;
+				await compileInstance(pidapx, inst);
+
+				var schema = await new Promise(async (res, rej) => {
+					if ('schema.json' in mod.files) {
+						mod.file('schema.json').async('string').then(function (schemaString) {
+							res(JSON.parse(schemaString));
+						});
+					} else {
+						log.e('Module <' + modnam + '> schema not in ModCache');
+						res()
+						return;
+					}
+				});
+
+				setup();
+				function setup() {
+					if (!("$Setup" in schema.Apex)) {
+						start();
+						return;
+					}
+					var com = {};
+					com.Cmd = schema.Apex["$Setup"];
+					com.Passport = {};
+					com.Passport.To = pidapx;
+					com.Passport.Pid = genPid();
+					sendMessage(com, start);
+				}
+
+				// Start
+				function start() {
+					if (!("$Start" in schema.Apex)) {
+						fun(null, pidapx);
+						return;
+					}
+					var com = {};
+					com.Cmd = schema.Apex["$Start"];
+					com.Passport = {};
+					com.Passport.To = pidapx;
+					com.Passport.Pid = genPid();
+					sendMessage(com, () => {
+						fun(null, pidapx);
+					});
 				}
 			});
+		} else {
+			let Setup = {};
+			let Start = {};
+			let KeyPid = {};
 
-			setup();
-			function setup() {
-				if (!("$Setup" in schema.Apex)) {
-					start();
-					return;
-				}
-				var com = {};
-				com.Cmd = schema.Apex["$Setup"];
-				com.Passport = {};
-				com.Passport.To = pidapx;
-				com.Passport.Pid = genPid();
-				sendMessage(com, start);
+			let PromiseArray = [];
+
+			//loop over the keys to assign pids
+			for (let key in inst) {
+				KeyPid[key] = genPid();
 			}
 
-			// Start
-			function start() {
-				if (!("$Start" in schema.Apex)) {
-					fun(null, pidapx);
-					return;
-				}
-				var com = {};
-				com.Cmd = schema.Apex["$Start"];
-				com.Passport = {};
-				com.Passport.To = pidapx;
-				com.Passport.Pid = genPid();
-				sendMessage(com, () => {
-					fun(null, pidapx);
-				});
+			//compile each module
+			for (let key in inst) {
+				//do a GetModule and compile instance for each 
+				PromiseArray.push(new Promise((res, rej) => {
+					let inst = inst[key];
+					GetModule(inst.Module, async function (err, mod) {
+						if (err) {
+							log.e('GenModule err -', err);
+							fun(err);
+							return;
+						}
+						let pidapx = KeyPid[key]
+						ApexIndex[pidapx] = inst.Module;
+						for (par in inst.Par){
+							if (inst.Par[par][[0]=="$"])
+								if (inst.Par[par].substr(1) in KeyPid)
+									inst.Par[par] = KeyPid[inst.Par[par].substr(1)];
+								else 
+									log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`)
+							if ((inst.Par[par][[0]=="\\"]) && ((inst.Par[par][[1]=="$"])||(inst.Par[par][[1]=="\\"])))
+								inst.Par[par] = inst.Par[par].substr(1);
+						}
+						await compileInstance(pidapx, inst);
+
+						var schema = await new Promise(async (res, rej) => {
+							if ('schema.json' in mod.files) {
+								mod.file('schema.json').async('string').then(function (schemaString) {
+									res(JSON.parse(schemaString));
+								});
+							} else {
+								log.e('Module <' + modnam + '> schema not in ModCache');
+								res()
+								return;
+							}
+						});
+
+						if ("$Setup" in schema.Apex)
+							Setup[pidapx]= schema.Apex["$Setup"];
+						if ("$Start" in schema.Apex)
+							Setup[pidapx]= schema.Apex["$Start"];
+						res();
+					});
+				}));
 			}
-		});
+
+			await Promise.all(PromiseArray);
+
+			log.v('Modules', JSON.stringify(KeyPid, null, 2));
+			log.v('Setup', JSON.stringify(Setup, null, 2));
+			log.v('Start', JSON.stringify(Start, null, 2));
+
+			await setup();
+
+			await start();
+
+			fun(null, ("Top" in KeyPid)? KeyPid["Top"]: null, KeyPid);
+
+
+			/**
+		 * Call setup on the required Module Apexes
+		 */
+			async function setup() {
+				//build the setup promise array
+				let setupArray = [];
+
+				for (let pid in Setup) {
+					setupArray.push(new Promise((resolve, reject) => {
+						var com = {};
+						com.Cmd = Setup[pid];
+						com.Passport = {};
+						com.Passport.To = pid;
+						com.Passport.Pid = genPid();
+						sendMessage(com, resolve);
+					}));
+				}
+
+				await Promise.all(setupArray);
+			}
+
+			/**
+			 * Call Start on the required Module Apexes
+			 */
+			async function start() {
+				//build the setup promise array
+				let startArray = [];
+
+				for (let pid in Start) {
+					startArray.push(new Promise((resolve, reject) => {
+						var com = {};
+						com.Cmd = Start[pid];
+						com.Passport = {};
+						com.Passport.To = pid;
+						com.Passport.Pid = genPid();
+						sendMessage(com, resolve);
+					}));
+				}
+
+				await Promise.all(startArray);
+			}
+
+		}
 	}
 
 	/**
@@ -939,7 +1064,7 @@
 	async function compileInstance(pidapx, inst, saveRoot = false) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
-		var modnam = (typeof inst.Module == "object")?inst.Module.Module:inst.Module;
+		var modnam = (typeof inst.Module == "object") ? inst.Module.Module : inst.Module;
 		var mod;
 		var ents = [];
 		var modnam = modnam.replace(/\:\//g, '.');
@@ -1067,7 +1192,6 @@
 			if (err) {
 				log.e(`Error retreiving ${cachedMod} from cache`);
 				fun(err);
-				return;
 			}
 			if (stat) {
 				if (!stat.isDirectory()) {
