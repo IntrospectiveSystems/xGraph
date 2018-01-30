@@ -295,7 +295,7 @@
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
 
 						if (!("Source" in mod)) {
-							log.e(`No Broker Declared in module: ${key}: ${mod.Module}`);
+							log.e(`No Source Declared in module: ${key}: ${mod.Module}`);
 							reject();
 							process.exit(2);
 							return;
@@ -1040,7 +1040,7 @@
 							let folder = mod.Module.replace(/[\/\:]/g, '.');
 
 							if (!("Source" in mod)) {
-								log.e(`No Broker Declared in module: ${key}: ${mod.Module}`);
+								log.e(`No Source Declared in module: ${key}: ${mod.Module}`);
 								reject();
 								process.exit(2);
 								return;
