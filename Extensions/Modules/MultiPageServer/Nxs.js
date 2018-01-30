@@ -408,17 +408,22 @@ __Nexus = (_ => {
 					zip.file('manifest.json').async('string').then(async (cacheArray) => {
 						//unpack all of the modules into the ModCache
 						cacheArray = JSON.parse(cacheArray);
-						let promiseArray = [];
+						log.v(`Modules array is [${cacheArray}]`);
+						let ModulePromiseArray = [];
 						for (let idx = 0; idx < cacheArray.length; idx++) {
-							promiseArray.push(new Promise((res, rej) => {
-								log.d(`Unpacking Module: ${cacheArray[idx]}`);
-								zip.file(cacheArray[idx]).async('string').then((str) => {
-									ModCache[cacheArray[idx].split('/')[1]] = JSON.parse(str);
-									res();
+							log.v(`Unpacking Module: ${cacheArray[idx]}`);
+							ModulePromiseArray.push(new Promise((res, rej) => {
+								zip.file(cacheArray[idx]).async("uint8array").then((modzip) => {
+									let modunzip = new JSZip();
+									modunzip.loadAsync(modzip).then((mod) => {
+										log.v(`Module ${cacheArray[idx]} files are ${Object.keys(mod.files)}`);
+										ModCache[cacheArray[idx]] = mod;
+										res();
+									});
 								});
 							}));
 						}
-						await Promise.all(promiseArray);
+						await Promise.all(ModulePromiseArray);
 						resolve();
 					});
 				});
@@ -559,7 +564,18 @@ __Nexus = (_ => {
 			return;
 		}
 
-		var schema = JSON.parse(mod['schema.json']);
+		var schema = await new Promise(async (res, rej) => {
+			if ('schema.json' in mod.files) {
+				mod.file('schema.json').async('string').then(function (schemaString) {
+					res(JSON.parse(schemaString));
+				});
+			} else {
+				log.e('Module <' + modnam + '> schema not in ModCache');
+				rej();
+				return;
+			}
+		});
+
 		var entkeys = Object.keys(schema);
 
 		//set Pids for each entity in the schema
@@ -581,7 +597,8 @@ __Nexus = (_ => {
 			ent.Apex = pidapx;
 
 			//give the webProxy modules access to the websocket and callback message stack
-			if (modnam == 'xGraph.Web.WebProxy') ent.sendSock = sendSocket;
+			if (modnam.split(/[\.\/]/g)[modnam.split(/[\.\/]/g).length - 1] == 'WebProxy')
+				ent.sendSock = sendSocket;
 
 			//unpack the config pars to the par of the apex of the instance
 			if (entkey == 'Apex' && 'Par' in inst) {
@@ -606,17 +623,17 @@ __Nexus = (_ => {
 			ents.push(ent);
 		}
 
-		ents.forEach(function (par) {
+		for (let entIdx = 0; entIdx < ents.length; entIdx++) {
+			let par = ents[entIdx];
 			let impkey = modnam + par.Entity;
-			let imp;
-			if (impkey in ImpCache) {
-				imp = ImpCache[impkey];
-			} else {
-				imp = (1, eval)(mod[par.Entity]);
-				ImpCache[impkey] = imp;
+			if (!(impkey in ImpCache)) {
+				let entString = await new Promise(async (res, rej) => {
+					mod.file(par.Entity).async("string").then((string) => res(string))
+				});
+				ImpCache[impkey] = (1, eval)(entString);
 			}
-			EntCache[par.Pid] = new Entity(Nxs, imp, par);
-		});
+			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+		}
 
 		async function symbol(val) {
 			if (typeof val === 'object') {
