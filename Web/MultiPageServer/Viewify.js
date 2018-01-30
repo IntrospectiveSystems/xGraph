@@ -796,6 +796,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					}
 				});
 			};
+			//options no longer overrides Cmd param if it has a Cmd Key
+			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
+				this.send(Object.assign(opts, { Cmd: name }), pid, (err, cmd) => {
+					if (err) reject([err, cmd]);
+					else resolve(cmd);
+				});
+			});
 		}
 	}
 
