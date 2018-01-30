@@ -294,7 +294,7 @@
 					function logModule(mod) {
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
 
-						if ((!"Source" in mod)) {
+						if (!("Source" in mod)) {
 							log.e(`No Broker Declared in module: ${key}: ${mod.Module}`);
 							reject();
 							process.exit(2);
@@ -481,11 +481,9 @@
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
 			let source = Config.Sources[modRequest.Source];
-			let mod = {};
-			let ModName = modnam;
 
 			//get the module from memory (ModCache) if it has already been retrieved
-			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
+			if (modnam in ModCache) { log.v(`${modnam} returned from ModCache`); return fun(null, ModCache[modnam]); }
 
 			//get the module from the defined broker
 			if (typeof source == "object") return loadModuleFromBroker();
@@ -597,8 +595,9 @@
 			 */
 			function loadModuleFromDisk() {
 				(async () => {
-					log.d(`Mod path is ${source} - ${modnam}`);
-					let ModPath = genPath(ModName);
+					modnam = modnam.replace(/\./g, Path.sep);
+					let ModPath = Path.join(source, modnam);
+
 					//read the module from path in the local file system
 					//create the Module.json and add it to ModCache
 					let zipmod = new jszip();
@@ -612,7 +611,7 @@
 							return;
 						}
 
-						log.v(`${ModName} returned from local file system`);
+						log.v(`${modnam} returned from local file system`);
 						fun(null, dat);
 					});
 
@@ -626,7 +625,7 @@
 							fun(err);
 							return;
 						}
-						if (!files){
+						if (!files) {
 							err += 'Module <' + contianingPath + '? not available'
 							log.e(err);
 							fun(err);
@@ -970,55 +969,6 @@
 		}
 
 		/**
-		 * build a path from the file system using defined Macros and Params
-		 * @param {string} filein
-		 */
-		function genPath(filein) {
-			if (!filein) {
-				log.e('Invalid file name');
-				return '';
-			}
-
-			var cfg = Params;
-			var path;
-			var parts;
-			var file = filein.replace('.', ':').replace(/\./g, '/');;
-
-			if (Path.isAbsolute(file))
-				return file;
-
-			if (file.charAt(0) == '{') { // Macro
-				parts = file.split('}');
-				if (parts.length != 2) {
-					return;
-				}
-				var name = parts[0].substr(1).toLowerCase();
-				if (name in Params) {
-					path = Path.join(Params[name], parts[1]);
-					return path;
-				} else {
-					log.e('File <' + file + '> {' + name + '} not found');
-					return;
-				}
-			}
-			parts = file.split(':');
-			if (parts.length == 2) {
-				let key = parts[0].toLowerCase();
-				if (key in Params) {
-					path = Path.join(Params[key], parts[1]);
-				} else {
-					log.e('File <' + file + '> prefix not defined');
-					return;
-				}
-			} else {
-				path = file;
-			}
-			return path;
-		}
-
-
-
-		/**
 		 * Recursive directory deletion
 		 * Used for cache cleanup
 		 * @param {string} path the directory to be recursively removed
@@ -1088,7 +1038,16 @@
 						 */
 						async function logModule(mod) {
 							let folder = mod.Module.replace(/[\/\:]/g, '.');
+
+							if (!("Source" in mod)) {
+								log.e(`No Broker Declared in module: ${key}: ${mod.Module}`);
+								reject();
+								process.exit(2);
+								return;
+							}
+
 							let source = mod.Source;
+
 							if (!(folder in Modules)) {
 								Modules[folder] = source;
 							} else {
@@ -1098,6 +1057,7 @@
 									reject();
 								}
 							}
+
 							for (let key in mod.Par) {
 								mod.Par[key] = await symbol(mod.Par[key])
 							}
@@ -1224,15 +1184,8 @@
 								"Source": Modules[folder]
 							};
 
-							//if source is string and it's not already part of the module name then append it to the request
-							if (!(folder.split('.')[0].toLowerCase() in Params)) {
-								if (typeof Modules[folder] == "string") {
-									modrequest.Module = `${modrequest.Source}.${modrequest.Module}`;
-								}
-							} else {
-								log.w("Including the Source in the Module name is Depricated");
-							}
-							
+							log.v(`Requesting Module:${modrequest.Module} from Source:${modrequest.Source}`);
+
 							GetModule(modrequest, function (err, mod) {
 								if (err) { rej(err); reject(err); }
 								else {

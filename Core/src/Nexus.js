@@ -1055,20 +1055,8 @@
 	 * @param {Function} fun 
 	 * @returns mod
 	 */
-	function GetModule(modRequest, fun = _ => _) {
-		let modnam = modRequest.Module;
-		if (typeof modRequest != "object") {
-			modnam = modRequest;
-		}
-		let source = modRequest.Source;
-
-		if (!(modnam.split('.')[0].toLowerCase() in Params) && (typeof modRequest == "object") && ("source" in modRequest)) {
-			modnam = `${modrequest.Source}.${modrequest.Module}`;
-		}
-
-		let mod = {};
-		let ModName = modnam.replace(/\:\//g, '.');
-		let dir = ModName.replace('.', ':').replace(/\./g, '/');
+	function GetModule(ModName, fun = _ => _) {
+		ModName = ModName.replace(/\:\//g, '.');
 
 		//get the module from memory (ModCache) if it has already been retrieved
 		if (ModName in ModCache) return fun(null, ModCache[ModName]);
