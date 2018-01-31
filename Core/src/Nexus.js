@@ -57,24 +57,48 @@
 		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
 			v: (...str) => {
-				process.stdout.write(`\u001b[90;7m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[90;7m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			d: (...str) => {
-				process.stdout.write(`\u001b[35;7m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[35;7m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			i: (...str) => {
-				process.stdout.write(`\u001b[36;7m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[36;7m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			w: (...str) => {
-				process.stdout.write(`\u001b[33;7m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[33;7m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			e: (...str) => {
-				process.stdout.write(`\u001b[31;7m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[31;7m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
+			},
+			parse: (str) => {
+				try {
+					let arr = [];
+					for (let obj of str) {
+						if (typeof obj == 'object') {
+							if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+							else {
+								try {
+									arr.push(JSON.stringify(obj, null, 2));
+								} catch (e) {
+									arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+								}
+							}
+						} else {
+							arr.push(obj.toString());
+						}
+					}
+					return arr.join(' ');
+				} catch (ex) {
+					process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+					process.stdout.write(ex.toString() + '\u001b[39m');
+				}
+
 			}
 		};
 		console.log = function (...str) {

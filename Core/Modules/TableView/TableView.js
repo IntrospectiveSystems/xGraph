@@ -82,7 +82,7 @@
 				}
 
 				if (fun)
-					fun(err, com);ZX
+					fun(err, com);
 			});
 
 		}

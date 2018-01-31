@@ -205,6 +205,13 @@ __Nexus = (_ => {
 		 * Load in the system level scripts from the server
 		 */
 		async function loadScripts() {
+			let Viewify;
+
+			if ("Viewify" in Scripts) {
+				Viewify = Scripts["Viewify"];
+				delete Scripts["Viewify"];
+			}
+
 			let scriptsPromises = [];
 
 			for (let key in Scripts) {
@@ -237,6 +244,35 @@ __Nexus = (_ => {
 			}
 
 			await Promise.all(scriptsPromises);
+
+			if (Viewify) {
+				await new Promise((resolve, reject) => {
+					let q = {};
+					q.Cmd = 'GetFile';
+					q.File = Viewify;
+					q.Passport = {};
+					q.Passport.To = PidServer;
+					q.Passport.Pid = genPid();
+					sendSocket(q, function (err, r) {
+						if (err) {
+							log.w('Script error', err);
+							reject(err);
+							return;
+						}
+						script("Viewify", r.Data);
+					});
+					function script(url, data) {
+						var tag = document.createElement('script');
+						tag.setAttribute("data-script-url", url);
+						tag.setAttribute("type", 'text/javascript');
+						var txt = document.createTextNode(data);
+						tag.appendChild(txt);
+						document.head.appendChild(tag);
+
+						resolve();
+					}
+				});
+			}
 		}
 	}
 
