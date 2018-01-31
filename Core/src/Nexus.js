@@ -815,9 +815,13 @@
 	 * @param {string} modZip 		the zip of the module
 	 * @callback fun 							the callback just returns the name of the module
 	 */
-	function addModule(modName, modZip, fun){
+	async function addModule(modName, modZip, fun){
+		//modZip is the uint8array that can be written directly to the cache directory
 		if (process.argv.indexOf('--allow-add-module')>-1){
-			ModCache[modName] = modZip;
+			ModCache[modName] = await new Promise(async (res, rej) => {
+				let zip = new jszip();
+				zip.loadAsync(modZip).then((mod) => res(mod));
+			});
 			fun(null, modName)
 			return;
 		}
@@ -934,9 +938,9 @@
 	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
 	 * @callback fun 				(err, pid of module apex)
 	 */
-	async function genModule(inst, fun = _ => _) {
-		if ("Module" in inst && (typeof inst.Module == "string")) {
-			inst = { "Top": inst };
+	async function genModule(mods, fun = _ => _) {
+		if ("Module" in mods && (typeof mods.Module == "string")) {
+			mods = { "Top": mods };
 			// GetModule(inst.Module, async function (err, mod) {
 			// 	if (err) {
 			// 		log.e('GenModule err -', err);
@@ -997,29 +1001,30 @@
 		let PromiseArray = [];
 
 		//loop over the keys to assign pids
-		for (let key in inst) {
+		for (let key in mods) {
 			KeyPid[key] = genPid();
 		}
 
 		//compile each module
-		for (let key in inst) {
+		for (let key in mods) {
 			//do a GetModule and compile instance for each 
 			PromiseArray.push(new Promise((res, rej) => {
-				let inst = inst[key];
+				let inst = mods[key];
 				GetModule(inst.Module, async function (err, mod) {
 					if (err) {
 						log.e('GenModule err -', err);
 						fun(err);
 						return;
 					}
-					let pidapx = KeyPid[key]
+					let pidapx = KeyPid[key];
 					ApexIndex[pidapx] = inst.Module;
 					for (par in inst.Par) {
-						if (inst.Par[par][[0] == "$"])
+						if (inst.Par[par][0] == "$"){
 							if (inst.Par[par].substr(1) in KeyPid)
 								inst.Par[par] = KeyPid[inst.Par[par].substr(1)];
 							else
-								log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`)
+								log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`);
+						}
 						if ((inst.Par[par][[0] == "\\"]) && ((inst.Par[par][[1] == "$"]) || (inst.Par[par][[1] == "\\"])))
 							inst.Par[par] = inst.Par[par].substr(1);
 					}
@@ -1212,8 +1217,6 @@
 			if (typeof val !== 'string')
 				return val;
 			var sym = val.substr(1);
-			if (val.charAt(0) === '$' && sym in Apex)
-				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
 			if (val.charAt(0) === '\\')

@@ -549,7 +549,8 @@
 				sock.on('connect', function () {
 					let cmd = {};
 					cmd.Cmd = "GetModule";
-					cmd.Module = modnam;
+					cmd.Name = modnam;
+					
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
