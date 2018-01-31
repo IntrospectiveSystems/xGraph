@@ -791,9 +791,13 @@
 	 * @param {string} modZip 		the zip of the module
 	 * @callback fun 							the callback just returns the name of the module
 	 */
-	function addModule(modName, modZip, fun){
+	async function addModule(modName, modZip, fun){
+		//modZip is the uint8array that can be written directly to the cache directory
 		if (process.argv.indexOf('--allow-add-module')>-1){
-			ModCache[modName] = modZip;
+			ModCache[modName] = await new Promise(async (res, rej) => {
+				let zip = new jszip();
+				zip.loadAsync(modZip).then((mod) => res(mod));
+			});
 			fun(null, modName)
 			return;
 		}
@@ -988,14 +992,15 @@
 						fun(err);
 						return;
 					}
-					let pidapx = KeyPid[key]
+					let pidapx = KeyPid[key];
 					ApexIndex[pidapx] = inst.Module;
 					for (par in inst.Par) {
-						if (inst.Par[par][[0] == "$"])
+						if (inst.Par[par][0] == "$"){
 							if (inst.Par[par].substr(1) in KeyPid)
 								inst.Par[par] = KeyPid[inst.Par[par].substr(1)];
 							else
-								log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`)
+								log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`);
+						}
 						if ((inst.Par[par][[0] == "\\"]) && ((inst.Par[par][[1] == "$"]) || (inst.Par[par][[1] == "\\"])))
 							inst.Par[par] = inst.Par[par].substr(1);
 					}
@@ -1105,7 +1110,6 @@
 		}
 
 		var schema = await new Promise(async (res, rej) => {
-			log.d(`files are ${Object.keys(mod)}`);
 			if ('schema.json' in mod.files) {
 				mod.file('schema.json').async('string').then(function (schemaString) {
 					res(JSON.parse(schemaString));
@@ -1189,8 +1193,6 @@
 			if (typeof val !== 'string')
 				return val;
 			var sym = val.substr(1);
-			if (val.charAt(0) === '$' && sym in Apex)
-				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
 			if (val.charAt(0) === '\\')
