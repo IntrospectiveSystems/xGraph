@@ -917,58 +917,6 @@
 	async function genModule(mods, fun = _ => _) {
 		if ("Module" in mods && (typeof mods.Module == "string")) {
 			mods = { "Top": mods };
-			// GetModule(inst.Module, async function (err, mod) {
-			// 	if (err) {
-			// 		log.e('GenModule err -', err);
-			// 		fun(err);
-			// 		return;
-			// 	}
-			// 	let pidapx = genPid();
-			// 	ApexIndex[pidapx] = inst.Module;
-			// 	await compileInstance(pidapx, inst);
-
-			// 	var schema = await new Promise(async (res, rej) => {
-			// 		if ('schema.json' in mod.files) {
-			// 			mod.file('schema.json').async('string').then(function (schemaString) {
-			// 				res(JSON.parse(schemaString));
-			// 			});
-			// 		} else {
-			// 			log.e('Module <' + modnam + '> schema not in ModCache');
-			// 			res()
-			// 			return;
-			// 		}
-			// 	});
-
-			// 	setup();
-			// 	function setup() {
-			// 		if (!("$Setup" in schema.Apex)) {
-			// 			start();
-			// 			return;
-			// 		}
-			// 		var com = {};
-			// 		com.Cmd = schema.Apex["$Setup"];
-			// 		com.Passport = {};
-			// 		com.Passport.To = pidapx;
-			// 		com.Passport.Pid = genPid();
-			// 		sendMessage(com, start);
-			// 	}
-
-			// 	// Start
-			// 	function start() {
-			// 		if (!("$Start" in schema.Apex)) {
-			// 			fun(null, pidapx);
-			// 			return;
-			// 		}
-			// 		var com = {};
-			// 		com.Cmd = schema.Apex["$Start"];
-			// 		com.Passport = {};
-			// 		com.Passport.To = pidapx;
-			// 		com.Passport.Pid = genPid();
-			// 		sendMessage(com, () => {
-			// 			fun(null, pidapx);
-			// 		});
-			// 	}
-			// });
 		}
 
 		let Setup = {};

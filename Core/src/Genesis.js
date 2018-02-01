@@ -67,7 +67,7 @@
 				parse: (str) => {
 					// process.stdout.write(`parse array ${str.length}`)
 
-					try{
+					try {
 						let arr = [];
 						for (let obj of str) {
 							if (typeof obj == 'object') {
@@ -88,7 +88,7 @@
 						process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
 						process.stdout.write(ex.toString() + '\u001b[39m');
 					}
-					
+
 				}
 			};
 			console.microtime = _ => {
@@ -291,7 +291,8 @@
 					let key = keys[i];
 					if (key == 'Deferred') {
 						var arr = Config.Modules[key];
-						arr.forEach(function (mod) {
+						for (let idx = 0; idx < arr.length; idx++) {
+							let mod = arr[idx];
 							log.v(`Deferring ${mod.Module || mod}`);
 							if (typeof mod == 'string') {
 								log.w('Adding Module names directly to Deferred is deprecated');
@@ -299,7 +300,7 @@
 								mod = { Module: mod };
 							}
 							logModule(mod);
-						});
+						}
 					} else {
 						//log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
@@ -550,7 +551,7 @@
 					let cmd = {};
 					cmd.Cmd = "GetModule";
 					cmd.Name = modnam;
-					
+
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
@@ -1049,9 +1050,18 @@
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
 							for (let idx = 0; idx < arr.length; idx++) {
+								if (typeof arr[idx] == 'string') {
+									log.w('Adding Module names directly to Deferred is deprecated');
+									log.w(`Deferring { Module: '${arr[idx]}' } instead`);
+									mod = { Module: arr[idx] };
+								}
 								await logModule(arr[idx]);
 							}
 						} else {
+							if (typeof Config.Modules[key].Module != 'string') {
+								log.e('Malformed Module Definition');
+								log.e(JSON.stringify(Config.Modules[key], null, 2));
+							}
 							await logModule(Config.Modules[key]);
 						}
 
@@ -1212,8 +1222,14 @@
 							log.v(`Requesting Module:${modrequest.Module} from Source:${modrequest.Source}`);
 
 							GetModule(modrequest, function (err, mod) {
-								if (err) { rej(err); reject(err); }
+								if (err) {
+									log.w(`Failed to retreive ${folder}`);
+									log.e(err);
+									rej(err);
+									reject(err);
+								}
 								else {
+									log.v(`Successfully retrieved ${folder}`);
 									res(ModCache[folder] = mod);
 								}
 							});
@@ -1277,6 +1293,7 @@
 							Config[key] = val;
 						}
 					}
+					log.d(JSON.stringify(Config, null, 2));
 				}
 			});
 		}
