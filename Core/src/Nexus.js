@@ -894,7 +894,7 @@
 					mod.file(par.Entity).async("string").then((string) => res(string))
 				});
 
-				log.v(`Spinning up module ${folder}`);
+				log.v(`Spinning up entity ${folder}-${par.Entity.split('.')[0]}`);
 				ImpCache[impkey] = (1, eval)(entString);
 				BuildEnt();
 			});
