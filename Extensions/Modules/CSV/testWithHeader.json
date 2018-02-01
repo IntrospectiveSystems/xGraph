@@ -17,11 +17,23 @@
     {
       "Command": {
         "Cmd": "ObjectsToCSV",
-        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+        "RecordObjects": [
+          {
+            "Subject": "SQL",
+            "Color": "Blue",
+            "Size": "Medium"
+          },
+          {
+            "Subject": "Robotics",
+            "Color": "Yellow",
+            "Size": "Small"
+          },
+          {
+            "Subject": "Compilers", "Color":"\"White-Orange-Black\"", "Size":"Thick"}]
       },
       "Response": {
         "Cmd": "ObjectsToCSV",
-        "DataString": "*"
+        "Records": "*"
       }
     },
     {
