@@ -450,14 +450,6 @@
 		var Imp = imp;
 		var Vlt = {};
 
-		process.on('unhandledRejection', event => {
-			log.e('------------------ [Stack] ------------------');
-			log.e(`Par.Module: ${Par.Module}, Par.Entity: ${Par.Entity}, ${event}`);
-			log.e(event.stack);
-			log.e('------------------ [/Stack] -----------------');
-			process.exit(1);
-		});
-
 		return {
 			Par,
 			Vlt,
