@@ -60,21 +60,14 @@
 				Vlt.FileHasHeader = true;
 			}
 
-			fs.open(Vlt.File, 'a+', callback);
+			let fd = fs.openSync(Vlt.File, 'r');
+			fs.closeSync(fd);
 
-			function callback(err, fd){
-				log.i("--CSV/Start/callback")
-				if(err){
-					log.e(err);
-					errors = err;
- 				}
- 				Vlt.Fd = fd;
-
-				if(fun) {
-                    fun(errors, com);
-                }
-			}
+            if(fun) {
+                fun(errors, com);
+            }
 		}
+
 
 
         /**
@@ -107,7 +100,7 @@
             		columnCounter++;
             		if(columnCounter != objectLength) {
             			buffer = buffer + ',';
-					} else {
+					} else if (i !== recordObjects.length-1 ) {
             			buffer = buffer + "\n";
 					}
 				}
@@ -160,7 +153,15 @@
             }
         }
 
-        WriteRecords(com, fun){
+
+        /**
+         * WriteFile takes an array of record objects (or arrays) and writes over the file found in Vlt.File. WriteFile
+         * will overwrite any data currently in the file. To add records to an existing file, use AppendRecords.
+         * @param {object} com 					The command object.
+         * @param {array} com.RecordObjects	    An array of records as objects that will be written to the file.
+         * @callback fun
+         */
+        WriteFile(com, fun){
             log.i("--CSV/WriteFile");
             let that = this;
             let Par = this.Par;
@@ -176,6 +177,7 @@
 
 
 			that.send(ObjectsToCSVCommand, Par.Pid, callback);
+
             function callback(err, cmd){
                 log.i("--CSV/WriteRecords/callback")
                 if(err){
@@ -183,30 +185,36 @@
                     errors = err;
                 }
 
+                let fs = Vlt.Fs;
                 let records = cmd.Records;
 
-                Vlt.Fs.writeFileSync(Vlt.Fd, records, backcall);
 
+                let fd = fs.openSync(Vlt.File, 'w');
+                Vlt.Fs.writeFile(fd, records, backcall);
+
+                function backcall(err) {
+                    log.i("--CSV/WriteRecords/callback/backcall");
+                    if (err) {
+                        log.e(err);
+                        errors = err;
+                    }
+
+                    fs.closeSync(fd);
+
+                    if(fun) {
+                        fun(errors, com);
+                    }
+                }
 			}
-
-            function backcall(err) {
-                log.i("I got yo back");
-                if (err) {
-                    log.e(err);
-                    errors = err;
-                }
-
-                if(fun) {
-                    fun(errors, com);
-                }
-            }
         }
 
+
         /**
-		 *
-         * @param com
-         * @param fun
-         * @return com.DataSet
+		 * ReadRecords reads all the records from the file specified in Vlt.File and returns the records as an array
+         * of objects.
+         * @param {object} com 					The command object.
+         * @return {array} com.RecordObjects	An array of records as objects that will be written to the file.
+         * @callback fun
          */
 		ReadRecords(com, fun){
 			log.i("--CSV/ReadRecords");
@@ -215,7 +223,10 @@
 			let Vlt = this.Vlt;
 			let errors = null;
 
-			Vlt.Fs.readFile(Vlt.Fd, "utf8", callback);
+			let fs = Vlt.Fs;
+
+            let fd = fs.openSync(Vlt.File, 'r');
+			Vlt.Fs.readFile(fd, "utf8", callback);
 
 			function callback(err, data){
 				log.i("--CSV/ReadRecords/callback")
@@ -223,6 +234,8 @@
                     log.e(err);
                     errors = err;
                 }
+
+                fs.closeSync(fd);
 
 				let records = data;
 
@@ -246,12 +259,90 @@
                         fun(errors, com);
                     }
 				}
+            }
+		}
 
+
+
+        AppendRecords(com, fun){
+            log.i("--CSV/AppendRecords");
+            let that = this;
+            let Par = this.Par;
+            let Vlt = this.Vlt;
+            let errors = null;
+
+            let recordObjects = com.RecordObjects;
+
+            let ObjectsToCSVCommand = {
+                Cmd: "ObjectsToCSV",
+                RecordObjects: recordObjects
             }
 
 
-		}
+            that.send(ObjectsToCSVCommand, Par.Pid, callback);
 
+            function callback(err, cmd){
+                log.i("--CSV/WriteRecords/callback")
+                if(err){
+                    log.e(err);
+                    errors = err;
+                }
+
+                let fs = Vlt.Fs;
+                let records = cmd.Records;
+
+
+                let fd = fs.openSync(Vlt.File, 'a');
+                fs.writeFile(fd, records, backcall);
+
+                function backcall(err) {
+                    log.i("--CSV/WriteRecords/callback/backcall");
+                    if (err) {
+                        log.e(err);
+                        errors = err;
+                    }
+
+                    fs.closeSync(fd);
+
+                    if(fun) {
+                        fun(errors, com);
+                    }
+                }
+            }
+        }
+
+
+        DeleteRecord(com, fun){
+            log.i("--CSV/ReadRecords");
+            let that = this;
+            let Par = this.Par;
+            let Vlt = this.Vlt;
+            let errors = null;
+
+            let fs = Vlt.Fs;
+
+            let fd = fs.openSync(Vlt.File, 'r+');
+            Vlt.Fs.readFile(fd, "utf8", callback);
+
+            function callback(err, data){
+                log.i("--CSV/ReadRecords/callback")
+                if(err){
+                    log.e(err);
+                    errors = err;
+                }
+
+                let records = data.split("\n");
+                log.i(records);
+
+
+                fs.closeSync(fd);
+
+                if(fun) {
+                    fun(errors, com);
+                }
+
+            }
+        }
 	}
 
 	return {dispatch:CSV.prototype};

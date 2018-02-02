@@ -20,7 +20,7 @@
       },
       "Response": {
         "Cmd": "ObjectsToCSV",
-        "Records": "SQL,Blue,Medium\nRobotics,Yellow,Small\nCompilers,\"White-Orange-Black\",Thick\n"
+        "Records": "SQL,Blue,Medium\nRobotics,Yellow,Small\nCompilers,\"White-Orange-Black\",Thick"
       }
     },
     {
@@ -35,8 +35,8 @@
     },
     {
       "Command": {
-        "Cmd": "WriteRecords",
-        "RecordObjects": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+        "Cmd": "WriteFile",
+        "RecordObjects": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "\"White-Orange-Black\"", "Thick"]]
       }
     },
     {
@@ -45,7 +45,7 @@
       },
       "Response": {
         "Cmd": "ReadRecords",
-        "Records": "*"
+        "RecordObjects": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
       }
     },
     {
@@ -61,7 +61,7 @@
     {
       "Command": {
         "Cmd": "AppendRecords",
-        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+        "RecordObjects": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
       }
     }
   ]
