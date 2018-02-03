@@ -1,6 +1,6 @@
 {
   "State": {
-    "Filename": "newTest",
+    "File": "newTest2.csv",
     "FileHasHeader": true
   },
   "Cases": [
@@ -29,21 +29,60 @@
             "Size": "Small"
           },
           {
-            "Subject": "Compilers", "Color":"\"White-Orange-Black\"", "Size":"Thick"}]
+            "Subject": "Compilers",
+            "Color":"\"White-Orange-Black\"",
+            "Size":"Thick"
+          }]
       },
       "Response": {
         "Cmd": "ObjectsToCSV",
-        "Records": "*"
+        "Records": "SQL,Blue,Medium\nRobotics,Yellow,Small\nCompilers,\"White-Orange-Black\",Thick"
       }
     },
     {
       "Command": {
         "Cmd": "CSVToObjects",
-        "DataString": "\"SQL\",\"Blue\",\"Medium\",\"Robotics\",\"Yellow\",\"Small\",\"Compilers\", \"White-Orange-Black\", \"Thick\""
+        "Records": "SQL,Blue,Medium\nRobotics,Yellow,Small\n\"Compilers\", \"White-Orange-Black\", \"Thick\""
       },
       "Response": {
         "Cmd": "CSVToObjects",
-        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+        "RecordObjects": [
+          {
+            "Subject": "SQL",
+            "Color": "Blue",
+            "Size": "Medium"
+          },
+          {
+            "Subject": "Robotics",
+            "Color": "Yellow",
+            "Size": "Small"
+          },
+          {
+            "Subject": "Compilers",
+            "Color":"\"White-Orange-Black\"",
+            "Size":"Thick"
+          }]
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "WriteRecords",
+        "RecordObjects": [
+          {
+            "Subject": "SQL",
+            "Color": "Blue",
+            "Size": "Medium"
+          },
+          {
+            "Subject": "Robotics",
+            "Color": "Yellow",
+            "Size": "Small"
+          },
+          {
+            "Subject": "Compilers",
+            "Color":"\"White-Orange-Black\"",
+            "Size":"Thick"
+          }]
       }
     },
     {
@@ -52,19 +91,32 @@
       },
       "Response": {
         "Cmd": "ReadRecords",
-        "Records": "*"
-      }
-    },
-    {
-      "Command": {
-        "Cmd": "WriteRecords",
-        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+        "RecordObjects": [
+          {
+            "Subject": "SQL",
+            "Color": "Blue",
+            "Size": "Medium"
+          },
+          {
+            "Subject": "Robotics",
+            "Color": "Yellow",
+            "Size": "Small"
+          },
+          {
+            "Subject": "Compilers",
+            "Color":"\"White-Orange-Black\"",
+            "Size":"Thick"
+          }]
       }
     },
     {
       "Command": {
         "Cmd": "DeleteRecord",
-        "Record": ["Compilers", "White-Orange-Black", "Thick"]
+        "RecordObject": {
+          "Subject": "Robotics",
+          "Color": "Yellow",
+          "Size": "Small"
+        }
       },
       "Response": {
         "Cmd": "DeleteRecord",
@@ -74,7 +126,22 @@
     {
       "Command": {
         "Cmd": "AppendRecords",
-        "Records": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
+        "RecordObjects": [
+          {
+            "Subject": "SQL",
+            "Color": "Blue",
+            "Size": "Medium"
+          },
+          {
+            "Subject": "Robotics",
+            "Color": "Yellow",
+            "Size": "Small"
+          },
+          {
+            "Subject": "Compilers",
+            "Color":"\"White-Orange-Black\"",
+            "Size":"Thick"
+          }]
       }
     }
   ]

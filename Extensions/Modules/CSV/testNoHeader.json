@@ -51,7 +51,7 @@
     {
       "Command": {
         "Cmd": "DeleteRecord",
-        "Record": ["Compilers", "White-Orange-Black", "Thick"]
+        "RecordObject": ["Robotics", "Yellow", "Small"]
       },
       "Response": {
         "Cmd": "DeleteRecord",

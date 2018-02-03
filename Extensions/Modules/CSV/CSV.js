@@ -60,8 +60,10 @@
 				Vlt.FileHasHeader = true;
 			}
 
-			let fd = fs.openSync(Vlt.File, 'r');
-			fs.closeSync(fd);
+			if(!fs.existsSync(Vlt.File)) {
+                let fd = fs.openSync(Vlt.File, 'w+');
+                fs.closeSync(fd);
+            }
 
             if(fun) {
                 fun(errors, com);
@@ -88,6 +90,7 @@
             let recordObjects = com.RecordObjects;
             let buffer = "";
 
+            log.i(recordObjects[0]);
 
             for(var i=0; i<recordObjects.length; i++){
 
@@ -179,7 +182,7 @@
 			that.send(ObjectsToCSVCommand, Par.Pid, callback);
 
             function callback(err, cmd){
-                log.i("--CSV/WriteRecords/callback")
+                log.i("--CSV/WriteFile/callback");
                 if(err){
                     log.e(err);
                     errors = err;
@@ -193,7 +196,7 @@
                 Vlt.Fs.writeFile(fd, records, backcall);
 
                 function backcall(err) {
-                    log.i("--CSV/WriteRecords/callback/backcall");
+                    log.i("--CSV/WriteFile/callback/backcall");
                     if (err) {
                         log.e(err);
                         errors = err;
@@ -263,7 +266,13 @@
 		}
 
 
-
+        /**
+         * AppendRecords takes an array of record obejcts and appends the records to the end of the file
+         * found at Vlt.File. AppendRecords does not overwrite current records.
+         * @param {object} com 					The command object.
+         * @param {array} com.RecordObjects	    An array of records as objects that will be appended to the file.
+         * @callback fun
+         */
         AppendRecords(com, fun){
             log.i("--CSV/AppendRecords");
             let that = this;
@@ -282,7 +291,7 @@
             that.send(ObjectsToCSVCommand, Par.Pid, callback);
 
             function callback(err, cmd){
-                log.i("--CSV/WriteRecords/callback")
+                log.i("--CSV/AppendRecords/callback")
                 if(err){
                     log.e(err);
                     errors = err;
@@ -292,55 +301,117 @@
                 let records = cmd.Records;
 
 
-                let fd = fs.openSync(Vlt.File, 'a');
-                fs.writeFile(fd, records, backcall);
+                let fd = fs.openSync(Vlt.File, 'a+');
+                fs.readFile(fd, "utf8", backcall);
 
-                function backcall(err) {
-                    log.i("--CSV/WriteRecords/callback/backcall");
+
+                function backcall(err, data) {
+                    log.i("--CSV/AppendRecords/callback/backcall");
                     if (err) {
                         log.e(err);
                         errors = err;
                     }
 
-                    fs.closeSync(fd);
+                    if(data != ""){
+                        records = "\n" + records;
+                    }
 
-                    if(fun) {
-                        fun(errors, com);
+
+                    fs.writeFile(fd, records, callbackAgain);
+
+                    function callbackAgain(err) {
+                        if (err) {
+                            log.e(err);
+                            errors = err;
+                        }
+
+                        fs.closeSync(fd);
+
+                        if (fun) {
+                            fun(errors, com);
+                        }
                     }
                 }
             }
         }
 
 
+        /**
+         * DeleteRecord takes a single record object and removes the first instance of that record from the file. If
+         * the record cannot be found in the file, com.DeletedRecord will return as false.
+         * @param {object} com 					The command object.
+         * @param {array} com.RecordObject	    A record as an object that will be deleted from the file.
+         * @return {bool} com.DeletedRecord     True if the record was sucessfully deleted, false if the record could
+         *                                          not be found.
+         * @callback fun
+         */
         DeleteRecord(com, fun){
-            log.i("--CSV/ReadRecords");
+            log.i("--CSV/DeleteRecords");
             let that = this;
             let Par = this.Par;
             let Vlt = this.Vlt;
             let errors = null;
 
             let fs = Vlt.Fs;
+            let recordObject = [com.RecordObject];
 
-            let fd = fs.openSync(Vlt.File, 'r+');
-            Vlt.Fs.readFile(fd, "utf8", callback);
 
-            function callback(err, data){
-                log.i("--CSV/ReadRecords/callback")
+            let ObjectsToCSVCommand = {
+                Cmd: "ObjectsToCSV",
+                RecordObjects: recordObject
+            }
+
+            that.send(ObjectsToCSVCommand, Par.Pid, callback);
+
+
+            function callback(err, cmd){
+                log.i("--CSV/DeleteRecords/callback")
                 if(err){
                     log.e(err);
                     errors = err;
                 }
 
-                let records = data.split("\n");
-                log.i(records);
+                let record = cmd.Records;
+                log.i(record);
 
 
-                fs.closeSync(fd);
+                let fd = fs.openSync(Vlt.File, 'r+');
+                fs.readFile(fd, "utf8", backcall);
 
-                if(fun) {
-                    fun(errors, com);
+                function backcall(err, data) {
+                    log.i("--CSV/DeleteRecords/callback/backcall")
+                    com.RecordDeleted = false;
+
+                    let records = data.split("\n");
+                    let buffer = "";
+                    let recordFound = false;
+                    for(var i=0; i<records.length; i++){
+                        if(recordFound == true || record != records[i]){
+                            buffer = buffer + records[i];
+                            if(i != records.length-1){
+                                buffer = buffer + "\n";
+                            }
+                        } else {
+                            recordFound = true;
+                            com.RecordDeleted = true;
+                        }
+                    }
+                    log.i(buffer);
+                    fs.closeSync(fd);
+                    fd = fs.openSync(Vlt.File, 'w+');
+                    fs.writeFile(fd, buffer, callbackAgain);
+
+                    function callbackAgain(err, msg){
+                        log.i("--CSV/DeleteRecords/callback/backcall/callbackAgain")
+
+                        fs.closeSync(fd);
+
+                        if (fun) {
+                            fun(errors, com);
+                        }
+
+                    }
                 }
-
             }
         }
 	}
