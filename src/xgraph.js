@@ -204,7 +204,7 @@ async function execute() {
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
-			state = 'develop';
+			state = 'development';
 			await genesis();
 			startNexusProcess();
 		}

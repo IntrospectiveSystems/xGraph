@@ -42,7 +42,7 @@
 	{
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
+			fs.appendFile(`${process.cwd()}/xgraph.log`, `${log.parse(str)}${endOfLine}`, (err) => {
 				if (err) {
 					console.error(err); process.exit(1); reject();
 				}
@@ -89,6 +89,8 @@
 									arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
 								}
 							}
+						} else if(typeof obj == 'undefined') {
+							arr.push('undefined');
 						} else {
 							arr.push(obj.toString());
 						}
@@ -474,14 +476,6 @@
 		var Imp = imp;
 		var Vlt = {};
 
-		process.on('unhandledRejection', event => {
-			log.e('------------------ [Stack] ------------------');
-			log.e(`Par.Module: ${Par.Module}, Par.Entity: ${Par.Entity}, ${event}`);
-			log.e(event.stack);
-			log.e('------------------ [/Stack] -----------------');
-			process.exit(1);
-		});
-
 		return {
 			Par,
 			Vlt,
@@ -604,6 +598,7 @@
 		 * @callback fun
 		 */
 		function send(com, pid, fun) {
+			log.v(com, pid);
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -934,100 +929,72 @@
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
-	 * @param {string} inst.Module 	The name of the module to spin up
+	 * @param {string?} inst.Module 	The name of the module to spin up
 	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
 	 * @callback fun 				(err, pid of module apex)
 	 */
-	async function genModule(mods, fun = _ => _) {
-		if ("Module" in mods && (typeof mods.Module == "string")) {
-			mods = { "Top": mods };
-			// GetModule(inst.Module, async function (err, mod) {
-			// 	if (err) {
-			// 		log.e('GenModule err -', err);
-			// 		fun(err);
-			// 		return;
-			// 	}
-			// 	let pidapx = genPid();
-			// 	ApexIndex[pidapx] = inst.Module;
-			// 	await compileInstance(pidapx, inst);
-
-			// 	var schema = await new Promise(async (res, rej) => {
-			// 		if ('schema.json' in mod.files) {
-			// 			mod.file('schema.json').async('string').then(function (schemaString) {
-			// 				res(JSON.parse(schemaString));
-			// 			});
-			// 		} else {
-			// 			log.e('Module <' + modnam + '> schema not in ModCache');
-			// 			res()
-			// 			return;
-			// 		}
-			// 	});
-
-			// 	setup();
-			// 	function setup() {
-			// 		if (!("$Setup" in schema.Apex)) {
-			// 			start();
-			// 			return;
-			// 		}
-			// 		var com = {};
-			// 		com.Cmd = schema.Apex["$Setup"];
-			// 		com.Passport = {};
-			// 		com.Passport.To = pidapx;
-			// 		com.Passport.Pid = genPid();
-			// 		sendMessage(com, start);
-			// 	}
-
-			// 	// Start
-			// 	function start() {
-			// 		if (!("$Start" in schema.Apex)) {
-			// 			fun(null, pidapx);
-			// 			return;
-			// 		}
-			// 		var com = {};
-			// 		com.Cmd = schema.Apex["$Start"];
-			// 		com.Passport = {};
-			// 		com.Passport.To = pidapx;
-			// 		com.Passport.Pid = genPid();
-			// 		sendMessage(com, () => {
-			// 			fun(null, pidapx);
-			// 		});
-			// 	}
-			// });
+	async function genModule(moduleDefinition, fun = _ => _) {
+		// log.d('generating module...', moduleDefinition)
+		moduleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
+		let moduleDefinitions = moduleDefinition;
+		if ("Module" in moduleDefinition && (typeof moduleDefinition.Module == "string")) {
+			moduleDefinitions = { "Top": moduleDefinition };
 		}
 
 		let Setup = {};
 		let Start = {};
-		let KeyPid = {};
-		let PromiseArray = [];
+		let symbols = {};
 
-		//loop over the keys to assign pids
-		for (let key in mods) {
-			KeyPid[key] = genPid();
+		// loop over the keys to assign pids to the local dictionary and the 
+		// module definitions (moduleDefinitions)
+		// log.d(moduleDefinitions);
+		for (let key in moduleDefinitions) {
+			symbols[key] = genPid();
 		}
 
 		//compile each module
-		for (let key in mods) {
-			//do a GetModule and compile instance for each 
-			PromiseArray.push(new Promise((res, rej) => {
-				let inst = mods[key];
+		for (let moduleKey in moduleDefinitions) {
+			let inst = moduleDefinitions[moduleKey];
+			await (new Promise((res, rej) => {
 				GetModule(inst.Module, async function (err, mod) {
 					if (err) {
 						log.e('GenModule err -', err);
 						fun(err);
 						return;
 					}
-					let pidapx = KeyPid[key];
+					let pidapx = symbols[moduleKey];
 					ApexIndex[pidapx] = inst.Module;
-					for (par in inst.Par) {
-						if (inst.Par[par][0] == "$"){
-							if (inst.Par[par].substr(1) in KeyPid)
-								inst.Par[par] = KeyPid[inst.Par[par].substr(1)];
-							else
-								log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`);
+
+					
+					log.d(`--------------------- [ Doing Pars ] ---------------------`);
+					for (let key in inst.Par) {
+						let val = inst.Par[key];
+						log.d(val)
+						
+						if (val.startsWith('$')) {
+							let symbol = val.substr(1);
+							if (symbol in symbols) {
+								log.d(`replacing ${key} with ${symbols[symbol]}`);
+								inst.Par[key] = symbols[symbol];
+							} else {
+								log.e(`${par.substr(1)} not in Module key list`);
+								log.d(`${Object.keys(symbols)}`)
+							}
 						}
-						if ((inst.Par[par][[0] == "\\"]) && ((inst.Par[par][[1] == "$"]) || (inst.Par[par][[1] == "\\"])))
-							inst.Par[par] = inst.Par[par].substr(1);
+
+						if (val.startsWith('\\')) {
+							let escaping = val.charAt(1)
+							if(escaping == '$' || escaping == '\\') {
+								//these are valid escape character
+								inst.Par[key] = val.substr(1);
+							}else {
+								//invalid
+								log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
+							}
+						}
+						
 					}
+					log.d(pidapx, inst)
 					await compileInstance(pidapx, inst);
 
 					var schema = await new Promise(async (res, rej) => {
@@ -1051,9 +1018,7 @@
 			}));
 		}
 
-		await Promise.all(PromiseArray);
-
-		log.v('Modules', JSON.stringify(KeyPid, null, 2));
+		log.v('Modules', JSON.stringify(symbols, null, 2));
 		log.v('Setup', JSON.stringify(Setup, null, 2));
 		log.v('Start', JSON.stringify(Start, null, 2));
 
@@ -1061,7 +1026,7 @@
 
 		await start();
 
-		fun(null, ("Top" in KeyPid) ? KeyPid["Top"] : null, KeyPid);
+		fun(null, ("Top" in symbols) ? symbols["Top"] : null, symbols);
 
 
 		/**

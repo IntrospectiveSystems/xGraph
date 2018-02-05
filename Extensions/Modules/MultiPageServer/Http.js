@@ -281,7 +281,7 @@
 					socket.on('message', async function (msg) {
 						// debugger;
 						let err, com = JSON.parse(msg);
-						// log.d('msg', err, com);
+						log.d('msg', err, com);
 						if(Array.isArray(com))
 							[err, com] = com; // deconstruct the array in com, if it is one.
 
@@ -297,6 +297,8 @@
 						}
 						if(com.Cmd == 'Subscribe') {
 							obj.User.Publish[com.Link] = com.Pid;
+							log.d(obj.User.Publish);
+							reply(null, com);
 							return;
 						}
 						if(com.Cmd == 'GetConfig') {
@@ -483,6 +485,7 @@
 	// This is called when message needs to be sent to all
 	// browsers that have subscribed
 	function Publish(com, fun) {
+		log.d('publish')
 		var Vlt = this.Vlt;
 		var socks = Vlt.Sockets;
 		var keys = Object.keys(socks);
@@ -490,6 +493,7 @@
 			var obj = socks[keys[i]];
 			var sock = obj.Socket;
 			var user = obj.User;
+			log.d(user.Publish);
 
 			if ('Forward' in com) {
 				com.Passport.To = user.Publish[com.Forward];
@@ -500,6 +504,7 @@
 				}
 			}
 			var str = JSON.stringify(com);
+			log.d(str);
 			sock.send(str);
 		}
 	}

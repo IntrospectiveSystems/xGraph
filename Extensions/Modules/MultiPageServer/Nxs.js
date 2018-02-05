@@ -99,6 +99,7 @@ __Nexus = (_ => {
 					ent.dispatch(cmd, _ => _);
 			} else {
 				log.e(pid, 'not in Cache');
+				debugger;
 			}
 			return;
 
@@ -286,7 +287,7 @@ __Nexus = (_ => {
 
 		await unpackCache();
 
-		recursiveBuild();
+		await recursiveBuild();
 
 		await populate();
 
@@ -343,93 +344,121 @@ __Nexus = (_ => {
 		/**
 		 * Make sure all the required modules were in the cache zip
 		 */
-		function recursiveBuild() {
+		async function recursiveBuild() {
 			let moduleKeys = Object.keys(Modules);
 			for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
-				let folder = moduleKeys[ifolder];
-				if (!(folder in ModCache)) {
-					log.w(`Module ${folder} not in Zipped Cache`);
-					continue;
-				}
-				let modjson = ModCache[folder];
-				styles();
+				await new Promise(async (res, rej) => {
 
-				/**
-				 * Load all the scripts that were passed in the styles.json object of the module
-				 */
-				function styles() {
-					if ('styles.json' in modjson) {
-						log.v(`Loading styles.json from ${folder}`);
-						var obj = JSON.parse(modjson["styles.json"]);
-						var keys = Object.keys(obj);
-
-						for (let idx = 0; idx < keys.length; idx++) {
-							let key = keys[idx];
-							if (Css.indexOf(key) >= 0) {
-								continue;
-							}
-							Css.push(key);
-							var file = obj[key];
-							log.v("Evaled styles", file);
-
-							let css = modjson[file];
-							var tag = document.createElement('style');
-							tag.setAttribute("data-css-url", key);
-							tag.setAttribute("type", 'text/css');
-							tag.innerHTML = css;
-							document.head.appendChild(tag);
-						}
+					let folder = moduleKeys[ifolder];
+					if (!(folder in ModCache)) {
+						log.w(`Module ${folder} not in Zipped Cache`);
+						rej();
+						return;
 					}
-					scripts();
-				}
+					let modjson = ModCache[folder];
+					await styles();
 
-				/**
-				 * Load all the scripts that were passed in the scripts.json object of the module
-				 */
-				function scripts() {
-					if ('scripts.json' in modjson) {
-						log.v(`Loading scripts.json from ${folder}`);
-						var obj = JSON.parse(modjson["scripts.json"]);
-						var keys = Object.keys(obj);
-						for (let idx = 0; idx < keys.length; idx++) {
-							let key = keys[idx];
-							if (key in Scripts) {
-								continue;
+					/**
+					 * Load all the scripts that were passed in the styles.json object of the module
+					 */
+					async function styles() {
+						if ('styles.json' in modjson.files) {
+							log.v(`Loading styles.json from ${folder}`);
+							let schema = await new Promise((res2, rej2) => {
+								modjson.file("styles.json").async("string").then((sch) => {
+									res2(sch);
+								});
+							});
+							var obj = JSON.parse(schema);
+							var keys = Object.keys(obj);
+							for (let idx = 0; idx < keys.length; idx++) {
+								let key = keys[idx];
+								if (Css.indexOf(key) >= 0) {
+									continue;
+								}
+								Css.push(key);
+								var file = obj[key];
+								let dat = await new Promise((res1, rej1) => {
+									modjson.file(file).async("string").then((dat) => {
+										res1(dat);
+									});
+								});
+								let css = dat;
+								var tag = document.createElement('style');
+								tag.setAttribute("data-css-url", key);
+								tag.setAttribute("type", 'text/css');
+								tag.innerHTML = css;
+								document.head.appendChild(tag);
+								log.v("Evaled styles", file);
 							}
-
-							var file = obj[key];
-							let scr = modjson[file];
-							Scripts[key] = scr;
-
-							eval(scr);
-							log.v("Evaled scr", file);
 						}
+						await scripts();
 					}
-					fonts();
-				}
 
-				/**
-				 * Load all the fonts that were passed in the fonts.json object of the module
-				 */
-				function fonts() {
-					if ('fonts.json' in modjson) {
-						log.v(`Loading fonts.json from ${folder}`);
-						var obj = JSON.parse(modjson["fonts.json"]);
-						var keys = Object.keys(obj);
-						for (let idx = 0; idx < keys.length; idx++) {
-							let key = keys[idx];
-							if (key in Fonts) {
-								continue;
+					/**
+					 * Load all the scripts that were passed in the scripts.json object of the module
+					 */
+					async function scripts() {
+						if ('scripts.json' in modjson.files) {
+							log.v(`Loading scripts.json from ${folder}`);
+							let scripts = await new Promise((res2, rej2) => {
+								modjson.file("scripts.json").async("string").then((dat) => {
+									res2(dat);
+								});
+							});
+							var obj = JSON.parse(scripts);
+							var keys = Object.keys(obj);
+							for (let idx = 0; idx < keys.length; idx++) {
+								let key = keys[idx];
+								if (key in Scripts) {
+									continue;
+								}
+								var file = obj[key];
+								let script = await new Promise((res3, rej3) => {
+									modjson.file(file).async("string").then((dat) => {
+										res3(dat);
+									});
+								});
+								Scripts[key] = script;
+								eval(script);
+								log.v("Evaled scr", file);
 							}
-							var file = obj[key];
-							log.v("Evaled font", file);
-							let str = modjson[file];
-							var json = JSON.parse(str);
-							var font = new THREE.Font(json);
-							Fonts[key] = font;
 						}
+						await fonts();
 					}
-				}
+
+					/**
+					 * Load all the fonts that were passed in the fonts.json object of the module
+					 */
+					async function fonts() {
+						if ('fonts.json' in modjson.files) {
+							log.v(`Loading fonts.json from ${folder}`);
+							let fonts = await new Promise((res2, rej2) => {
+								modjson.file("fonts.json").async("string").then((dat) => {
+									res2(dat);
+								});
+							});
+							var obj = JSON.parse(fonts);
+							var keys = Object.keys(obj);
+							for (let idx = 0; idx < keys.length; idx++) {
+								let key = keys[idx];
+								if (key in Fonts) {
+									continue;
+								}
+								var file = obj[key];
+								log.v("Evaled font", file);
+								let font = await new Promise((res3, rej3) => {
+									modjson.file(file).async("string").then((dat) => {
+										res3(dat);
+									});
+								});
+								var json = JSON.parse(font);
+								Fonts[key] = new THREE.Font(json);
+							}
+						}
+						res();
+					}
+				});
 			}
 		}
 
@@ -735,6 +764,7 @@ __Nexus = (_ => {
 			done(EntCache[pid]);
 			return;
 		} else {
+			// debugger;
 			let err = 'Ent not in EntCache';
 			log.w(err);
 			fun(err, com);
@@ -1077,15 +1107,28 @@ __Nexus = (_ => {
 			ApexIndex[pidapx] = mod.ModName;
 			Root.ApexList[pidapx] = pidapx;
 			await compileInstance(pidapx, inst, false);
+
+			var schema = await new Promise(async (res, rej) => {
+				if ('schema.json' in mod.files) {
+					mod.file('schema.json').async('string').then(function (schemaString) {
+						res(JSON.parse(schemaString));
+					});
+				} else {
+					log.e('Module <' + modnam + '> schema not in ModCache');
+					res()
+					return;
+				}
+			});
+
 			setup();
 
 			function setup() {
-				if (!("Setup" in mod)) {
+				if (!("$Setup" in schema.Apex)) {
 					start();
 					return;
 				}
 				var com = {};
-				com.Cmd = mod["Setup"];
+				com.Cmd = schema.Apex["$Setup"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
@@ -1094,13 +1137,13 @@ __Nexus = (_ => {
 
 			// Start
 			function start() {
-				if (!("Start" in mod)) {
+				if (!("$Start" in schema.Apex)) {
 					fun(null, pidapx);
 					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
-				com.Cmd = mod["Start"];
+				com.Cmd = schema.Apex["$Start"];
 				com.Passport = {};
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();

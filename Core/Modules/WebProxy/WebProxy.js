@@ -9,7 +9,8 @@
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
-		"*": Publish
+		"*": Publish,
+		Subscribe
 	};
 
 	return { dispatch };
@@ -40,7 +41,7 @@
 						let tag = obj.Value;
 						obj.Value = await new Promise(resolve => {
 							that.genModule({
-								Module: 'xGraph.Web.WebProxy',
+								Module: that.Par.Module,
 								Par: {
 									Link: obj.Value
 								}
@@ -62,6 +63,15 @@
 				}
 			}
 
+			fun(null, com);
+		});
+	}
+
+	async function Subscribe(com, fun) {
+		com.Link = this.Par.Link;
+		com.Pid = com.Pid || com.Passport.From;
+		this.Par.sendSock(com, async _ => {
+			// debugger;
 			fun(null, com);
 		});
 	}
