@@ -1293,7 +1293,6 @@
 							Config[key] = val;
 						}
 					}
-					log.d(JSON.stringify(Config, null, 2));
 				}
 			});
 		}
