@@ -1,3 +1,4 @@
+pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
 (async function () {
 	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
@@ -48,7 +49,7 @@
 				}
 			});
 		};
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
 		// v : verbose		Give too much information 
 		// d : debug		For debugging purposes not in production level releases
@@ -598,7 +599,7 @@
 		 * @callback fun
 		 */
 		function send(com, pid, fun) {
-			log.v(com, pid);
+			// log.v(com, pid);
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -934,7 +935,6 @@
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	async function genModule(moduleDefinition, fun = _ => _) {
-		// log.d('generating module...', moduleDefinition)
 		moduleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
 		let moduleDefinitions = moduleDefinition;
 		if ("Module" in moduleDefinition && (typeof moduleDefinition.Module == "string")) {
@@ -947,7 +947,6 @@
 
 		// loop over the keys to assign pids to the local dictionary and the 
 		// module definitions (moduleDefinitions)
-		// log.d(moduleDefinitions);
 		for (let key in moduleDefinitions) {
 			symbols[key] = genPid();
 		}
@@ -966,19 +965,16 @@
 					ApexIndex[pidapx] = inst.Module;
 
 					
-					log.d(`--------------------- [ Doing Pars ] ---------------------`);
 					for (let key in inst.Par) {
 						let val = inst.Par[key];
-						log.d(val)
 						
 						if (val.startsWith('$')) {
 							let symbol = val.substr(1);
 							if (symbol in symbols) {
-								log.d(`replacing ${key} with ${symbols[symbol]}`);
 								inst.Par[key] = symbols[symbol];
 							} else {
 								log.e(`${par.substr(1)} not in Module key list`);
-								log.d(`${Object.keys(symbols)}`)
+								log.v(`${Object.keys(symbols)}`)
 							}
 						}
 
@@ -992,9 +988,8 @@
 								log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
 							}
 						}
-						
 					}
-					log.d(pidapx, inst)
+
 					await compileInstance(pidapx, inst);
 
 					var schema = await new Promise(async (res, rej) => {

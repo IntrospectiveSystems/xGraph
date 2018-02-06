@@ -31,7 +31,9 @@
 		this.Par.sendSock(com, async (err, com) => {
 
 			if(com.PidInterchange) {
+				let table = [];
 				com = await recurse(com);
+				console.table(table);
 
 				async function recurse(obj) {
 					if('Format' in obj
@@ -46,6 +48,7 @@
 									Link: obj.Value
 								}
 							}, (err, apx) => {
+								table.push({Tag: tag, Apex: apx});
 								resolve(apx);
 							});
 						});

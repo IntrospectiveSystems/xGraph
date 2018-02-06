@@ -46,6 +46,7 @@ __Nexus = (_ => {
 			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color:yellow;background-color:#242424;'),
 			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
 		};
+		window.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function() {return this.Value} } };
 	}
 
 	return {

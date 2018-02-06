@@ -264,7 +264,7 @@
 					"Width": 800,
 					"Height": 600
 				}
-			}, () => {log.d(`returned from genMod of popup`)})
+			}, () => {})
 			fun(null, com)
 		}
 
@@ -476,7 +476,6 @@
 								function scene(err, r) {
 									log.v('..View3D/scene');
 									Inst = r.Inst;
-									log.d('Instances are: ', JSON.stringify(Inst, null, 2));
 									if (err) {
 										log.v(' ** ERR:' + err);
 										if (fun)

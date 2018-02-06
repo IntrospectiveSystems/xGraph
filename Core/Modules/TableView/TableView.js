@@ -211,7 +211,7 @@
 			for (let rowIdx = 0; rowIdx < com.Rows.length; rowIdx++) {
 
 				row = com.Rows[rowIdx];
-				debugger;
+				// debugger;
 				str = `<tr pid="${row.Pid}" class=${this.id('EvokeButton')}>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;

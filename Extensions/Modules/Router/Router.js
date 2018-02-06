@@ -17,7 +17,7 @@
 
 	async function Incomming(com, fun) {
 		this.send(com, this.Par.Extends, fun)
-		fun(null, com);
+		// fun(null, com);
 	}
 
 	function Subscribe(com, fun){
@@ -47,8 +47,8 @@
 				});
 			});
 		}
-
 		fun(null, com);
+
 	}
 
 })();
