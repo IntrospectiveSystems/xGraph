@@ -36,8 +36,8 @@
 		}
 
         /**
-		 * The Start command opends the file that will be read using node.js FileSystems, and records whether the file
-		 * will have a header row.
+		 * The Start command opens the file that will be read using node.js FileSystems, and records whether the file
+		 * will have a header row or not.
          * @param {object} com 	The command object.
          * @callback fun
          */
@@ -56,12 +56,26 @@
 			}
 
 			Vlt.FileHasHeader = false;
-			if(Par.FileHasHeader){
+			if(Par.Header){
+			    log.i(Par.Header);
 				Vlt.FileHasHeader = true;
+				Vlt.Header = Par.Header;
+                let buffer = "";
+                for(let i=0; i<Par.Header.length; i++){
+				    buffer = buffer + Par.Header[i];
+				    if(i < Par.Header.length-1){
+				        buffer = buffer + ',';
+                    }
+                }
+                Vlt.HeaderString = buffer;
 			}
 
 			if(!fs.existsSync(Vlt.File)) {
                 let fd = fs.openSync(Vlt.File, 'w+');
+                if(Vlt.FileHasHeader){
+                    fs.writeFileSync(fd, Vlt.HeaderString);
+                }
+
                 fs.closeSync(fd);
             }
 
@@ -122,7 +136,7 @@
 		 * CSVToObjects takes a CSV string of records and converts it to an array of Objects. If the file has a header,
 		 * objects will use the header strings as keys, and the record strings as values.
          * @param {object} com 					The command object.
-		 * @param {string} com.Records 			A string representation of the CSV records that will be converted to objects.
+		 * @param {array} com.Records 			An array of records as CSV strings.
          * @return {array} com.RecoredObjects	An array of records as objects.
 		 * @callback fun
          */
@@ -133,18 +147,22 @@
             let Vlt = this.Vlt;
             let errors = null;
 
-            let recordString = com.Records;
-            let recordObjectBufferArray = [];
 
-            let records = recordString.split("\n");
+            let recordObjectBufferArray = [];
+            let records = com.Records;
 
 
             for(var i = 0; i<records.length; i++){
             	let recordString = records[i];
             	let recordValues = recordString.split(",");
+
             	let recordObject = {};
             	for(var j = 0; j<recordValues.length; j++){
-					recordObject[j] = recordValues[j];
+                    if(Vlt.FileHasHeader){
+                        recordObject[Vlt.Header[j]] = recordValues[j];
+                    } else {
+                        recordObject[j] = recordValues[j];
+                    }
 				}
 				recordObjectBufferArray.push(recordObject);
 			}
@@ -172,6 +190,10 @@
             let errors = null;
 
             let recordObjects = com.RecordObjects;
+
+            if(Vlt.FileHasHeader){
+                recordObjects.splice(0, 0, Vlt.Header);
+            }
 
             let ObjectsToCSVCommand = {
             	Cmd: "ObjectsToCSV",
@@ -240,7 +262,11 @@
 
                 fs.closeSync(fd);
 
-				let records = data;
+				let records = data.split("\n");
+				if(Vlt.FileHasHeader){
+				    records.splice(0, 1);
+                }
+
 
 				let CSVToObjectsCommand = {
 					Cmd: "CSVToObjects",

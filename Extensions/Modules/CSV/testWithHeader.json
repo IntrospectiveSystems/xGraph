@@ -1,7 +1,7 @@
 {
   "State": {
     "File": "newTest2.csv",
-    "FileHasHeader": true
+    "Header": ["Subject", "Color", "Size"]
   },
   "Cases": [
     {
@@ -32,7 +32,8 @@
             "Subject": "Compilers",
             "Color":"\"White-Orange-Black\"",
             "Size":"Thick"
-          }]
+          }
+        ]
       },
       "Response": {
         "Cmd": "ObjectsToCSV",
@@ -42,7 +43,7 @@
     {
       "Command": {
         "Cmd": "CSVToObjects",
-        "Records": "SQL,Blue,Medium\nRobotics,Yellow,Small\n\"Compilers\", \"White-Orange-Black\", \"Thick\""
+        "Records": ["SQL,Blue,Medium","Robotics,Yellow,Small","\"Compilers\", \"White-Orange-Black\", \"Thick\""]
       },
       "Response": {
         "Cmd": "CSVToObjects",
@@ -66,7 +67,7 @@
     },
     {
       "Command": {
-        "Cmd": "WriteRecords",
+        "Cmd": "WriteFile",
         "RecordObjects": [
           {
             "Subject": "SQL",
@@ -141,7 +142,8 @@
             "Subject": "Compilers",
             "Color":"\"White-Orange-Black\"",
             "Size":"Thick"
-          }]
+          }
+        ]
       }
     }
   ]
