@@ -72,10 +72,10 @@
 			}
 
 			var parts = plex.split(':');
-			var host = parts[0];
-			var port = 27000;
-			if (parts.length === 2)
-				port = parseInt(parts[1]);
+			var host = that.Par.Host || parts[0];
+			var port = that.Par.Port || parts[1] || 27000;
+			if (typeof port != "number")
+				port = parseInt(port);
 			if (!('Chan' in Par)) {
 				connect(host, port);
 				return;
