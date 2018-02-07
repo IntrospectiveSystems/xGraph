@@ -1,10 +1,12 @@
 //# sourceURL=CSV.js
 (
     /**
-	 * The CSV Module saves data in object or array format to a CSV file.
-     * @param {string=} this.Par.File   		The file to be accessed. Defaults to "NewFile.csv".
-	 * @param {bool=} this.Par.FileHasHeader 	True if the CSV file has a header row, false if it does not. Defaults
-	 * 												to false.
+	 * The CSV Module saves data in object or array format to a CSV file. If the file does not exist, it will be created.
+     * If the file already exists, the file will be accessed. If CSV is given a header, the new header will be written
+     * to a new file on creation or on a WriteFile command, and the first row of the file will be ignored on ReadRecords.
+     * @param {string=} this.Par.File   The file (or file path) to be accessed. Defaults to "NewFile.csv".
+	 * @param {array=} this.Par.Header  An array of strings representing the header row of the CSV file. The number of
+     *                                  columns in the header must match the number of columns in each CSV record.
      */
 	function CSV() {
 
@@ -36,8 +38,8 @@
 		}
 
         /**
-		 * The Start command opens the file that will be read using node.js FileSystems, and records whether the file
-		 * will have a header row or not.
+		 * The Start command opens the file that will be read using node.js FileSystems, and records the files header if
+         * the file has a header row.
          * @param {object} com 	The command object.
          * @callback fun
          */
@@ -57,7 +59,6 @@
 
 			Vlt.FileHasHeader = false;
 			if(Par.Header){
-			    log.i(Par.Header);
 				Vlt.FileHasHeader = true;
 				Vlt.Header = Par.Header;
                 let buffer = "";
@@ -87,7 +88,7 @@
 
 
         /**
-		 * ObjectsToCSV takes an array of objects and converts the objects to a CSV string.
+		 * ObjectsToCSV takes an array of objects and returns the objects as a CSV string.
          * @param {object} com 					The command object.
          * @param {array} com.RecordObjects 	An array of objects (or arrays) that should be converted to a CSV string.
 		 * @return {string} com.Records 		A CSV string representation of the objects passed in com.RecordObjects.
@@ -103,8 +104,6 @@
 
             let recordObjects = com.RecordObjects;
             let buffer = "";
-
-            log.i(recordObjects[0]);
 
             for(var i=0; i<recordObjects.length; i++){
 
@@ -133,8 +132,8 @@
 
 
         /**
-		 * CSVToObjects takes a CSV string of records and converts it to an array of Objects. If the file has a header,
-		 * objects will use the header strings as keys, and the record strings as values.
+		 * CSVToObjects takes an array of records as strings and returns the records as an array of record Objects. If
+         * the file has a header, the objects will use the header strings as keys, and the record strings as values.
          * @param {object} com 					The command object.
 		 * @param {array} com.Records 			An array of records as CSV strings.
          * @return {array} com.RecoredObjects	An array of records as objects.
@@ -176,8 +175,9 @@
 
 
         /**
-         * WriteFile takes an array of record objects (or arrays) and writes over the file found in Vlt.File. WriteFile
-         * will overwrite any data currently in the file. To add records to an existing file, use AppendRecords.
+         * WriteFile takes an array of record objects (or arrays) and writes over the file (Vlt.File). WriteFile
+         * will overwrite any data currently in the file. If the file has a header, the header will be the first row
+         * written to the file. To add records to an existing file, use AppendRecords.
          * @param {object} com 					The command object.
          * @param {array} com.RecordObjects	    An array of records as objects that will be written to the file.
          * @callback fun
@@ -204,7 +204,6 @@
 			that.send(ObjectsToCSVCommand, Par.Pid, callback);
 
             function callback(err, cmd){
-                log.i("--CSV/WriteFile/callback");
                 if(err){
                     log.e(err);
                     errors = err;
@@ -218,7 +217,6 @@
                 Vlt.Fs.writeFile(fd, records, backcall);
 
                 function backcall(err) {
-                    log.i("--CSV/WriteFile/callback/backcall");
                     if (err) {
                         log.e(err);
                         errors = err;
@@ -235,14 +233,14 @@
 
 
         /**
-		 * ReadRecords reads all the records from the file specified in Vlt.File and returns the records as an array
+		 * ReadFile reads all the records from the file specified in Vlt.File and returns the records as an array
          * of objects.
          * @param {object} com 					The command object.
-         * @return {array} com.RecordObjects	An array of records as objects that will be written to the file.
+         * @return {array} com.RecordObjects	An array of records as objects read from the file.
          * @callback fun
          */
-		ReadRecords(com, fun){
-			log.i("--CSV/ReadRecords");
+		ReadFile(com, fun){
+			log.i("--CSV/ReadFile");
 			let that = this;
 			let Par = this.Par;
 			let Vlt = this.Vlt;
@@ -254,7 +252,6 @@
 			Vlt.Fs.readFile(fd, "utf8", callback);
 
 			function callback(err, data){
-				log.i("--CSV/ReadRecords/callback")
                 if(err){
                     log.e(err);
                     errors = err;
@@ -276,7 +273,6 @@
 				that.send(CSVToObjectsCommand, Par.Pid, backcall);
 
 				function backcall(err, cmd){
-                    log.i("--CSV/ReadRecords/callback/backcall")
                     if(err){
                         log.e(err);
                         errors = err;
@@ -293,7 +289,7 @@
 
 
         /**
-         * AppendRecords takes an array of record obejcts and appends the records to the end of the file
+         * AppendRecords takes an array of record objects and appends the records to the end of the file
          * found at Vlt.File. AppendRecords does not overwrite current records.
          * @param {object} com 					The command object.
          * @param {array} com.RecordObjects	    An array of records as objects that will be appended to the file.
@@ -317,7 +313,6 @@
             that.send(ObjectsToCSVCommand, Par.Pid, callback);
 
             function callback(err, cmd){
-                log.i("--CSV/AppendRecords/callback")
                 if(err){
                     log.e(err);
                     errors = err;
@@ -332,7 +327,6 @@
 
 
                 function backcall(err, data) {
-                    log.i("--CSV/AppendRecords/callback/backcall");
                     if (err) {
                         log.e(err);
                         errors = err;
@@ -391,21 +385,18 @@
 
 
             function callback(err, cmd){
-                log.i("--CSV/DeleteRecords/callback")
                 if(err){
                     log.e(err);
                     errors = err;
                 }
 
                 let record = cmd.Records;
-                log.i(record);
 
 
                 let fd = fs.openSync(Vlt.File, 'r+');
                 fs.readFile(fd, "utf8", backcall);
 
                 function backcall(err, data) {
-                    log.i("--CSV/DeleteRecords/callback/backcall")
                     com.RecordDeleted = false;
 
                     let records = data.split("\n");
@@ -422,13 +413,11 @@
                             com.RecordDeleted = true;
                         }
                     }
-                    log.i(buffer);
                     fs.closeSync(fd);
                     fd = fs.openSync(Vlt.File, 'w+');
                     fs.writeFile(fd, buffer, callbackAgain);
 
                     function callbackAgain(err, msg){
-                        log.i("--CSV/DeleteRecords/callback/backcall/callbackAgain")
 
                         fs.closeSync(fd);
 

@@ -41,10 +41,10 @@
     },
     {
       "Command": {
-        "Cmd": "ReadRecords"
+        "Cmd": "ReadFile"
       },
       "Response": {
-        "Cmd": "ReadRecords",
+        "Cmd": "ReadFile",
         "RecordObjects": [["SQL","Blue","Medium"],["Robotics","Yellow","Small"],["Compilers", "White-Orange-Black", "Thick"]]
       }
     },
