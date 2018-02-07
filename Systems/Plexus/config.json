@@ -1,20 +1,23 @@
 {
-	"Sources": {
-		"xGraph": "{xGraph}"
-	},
-	"Modules": {
-		"Plexus": {
-			"Module": "xGraph.Core.Modules.Plexus",
-			"Source": "xGraph",
-			"Par": {}
-		},
-		"Proxy": {
-			"Module": "xGraph.Core.Modules.Proxy",
-			"Source": "xGraph",
-			"Par": {
-				"Plexus": "127.0.0.1:2700",
-				"Role": "Server"
-			}
-		}
-	}
+    "Sources": {
+        "local": "{local}"
+    },
+    "Modules": {
+        "Plexus": {
+            "Module": "Core.Modules.Plexus",
+            "Source": "local",
+            "Par": {}
+        },
+        "Proxy": {
+            "Module": "Core.Modules.Proxy",
+            "Source": "local",
+            "Par": {
+                "Plexus": "$Plexus",
+                "Name": "Plexus",
+                "Chan": "Plexus",
+                "Link": "$Plexus",
+                "Role": "Server"
+            }
+        }
+    }
 }

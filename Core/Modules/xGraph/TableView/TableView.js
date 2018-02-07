@@ -10,8 +10,8 @@
 		 * @override
 		 * @memberof TableView
 		 */
-		Setup(com, fun) {
-
+		async Setup(com, fun) {
+			
 			this.super(com, (err, cmd) => {
 
 				this.Vlt.table = $(document.createElement('table'));
@@ -82,9 +82,18 @@
 				}
 
 				if (fun)
-					fun(err, com);
+					fun(err, com);ZX
 			});
 
+		}
+
+		async DataUpdate(com, fun) {
+
+			await this.ascend("AddRows", {
+				Rows: com.Data,
+				Evoke: evoke
+			});
+			fun(null, com);
 		}
 
 		/**
@@ -101,17 +110,22 @@
 
 			if('Source' in this.Par && 'Columns' in this.Par) {
 
-				let evoke = 'Evoke' in this.Par ? this.Par.Evoke : undefined;
+				// set this to undefined for the time being so we can implement
+				// row wide clicking and no extra row
+				let evoke = /*'Evoke' in this.Par ? this.Par.Evoke :*/ undefined;
 
 				//get headers from source
 				this.ascend("SetDataHeaders", {
 					Headers: this.Par.Columns,
 					Evoke: evoke
 				});
+
+				// see: DataUpdate
+				await this.ascend('Subscribe', {}, this.Par.Source);
 	
 				let data = await this.ascend("GetData", {}, this.Par.Source);
 				// add rows
-				this.ascend("SetRows", {
+				this.ascend("AddRows", {
 					Rows: data.Data,
 					Evoke: evoke
 				});
@@ -139,7 +153,7 @@
 		 * @param {any} fun 
 		 * @memberof TableView
 		 */
-		SetDataHeaders(com, fun) {
+		async SetDataHeaders(com, fun) {
 
 			let headers = com.Headers;
 			this.Vlt.headers = headers;
@@ -166,6 +180,15 @@
 				fun(null, com);
 		}
 
+		async SetRows(com, fun) {
+
+			this.Vlt.rows = [];
+			this.Vlt.tablebody.children().remove();
+			await this.ascend('AddRows', com);
+			fun(null, com);
+
+		}
+
 		/**
 		 * @description Create the tbody, trs, and tds and
 		 * append them to the table.
@@ -176,7 +199,7 @@
 		 * @param {any} fun 
 		 * @memberof TableView
 		 */
-		SetRows(com, fun) {
+		async AddRows(com, fun) {
 			if (!(this.Vlt.rows))
 				this.Vlt.rows = [];
 
@@ -198,6 +221,7 @@
 					else
 						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 				}
+				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
 					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}
@@ -225,8 +249,7 @@
 		 * @param {any} fun 
 		 * @memberof TableView
 		 */
-		Render(com, fun) {
-			debugger;
+		async Render(com, fun) {
 			if(this.Vlt.div.children().length == 0) {
 				this.Vlt.table.append(this.Vlt.tablehead);
 				this.Vlt.table.append(this.Vlt.tablebody);
@@ -236,5 +259,5 @@
 		}
 	}
 
-	return Viewify(TableView, '3.4');
+	return Viewify(TableView, '3.5');
 })();

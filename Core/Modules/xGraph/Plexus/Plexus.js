@@ -25,20 +25,23 @@
 		 * @param {Function} fun 
 		 * @return {com}
 		 */
+		//Setup will be depricated in version 2.0
 		function Setup(com, fun) {
 			log.v('--Plexus/Setup');
 
 			//set by publish
-			this.Vlt.Ports = [];	//the list of taken ports
+			if ((!this.Vlt.Ports))
+				this.Vlt.Ports = [];	
+			//the list of taken ports
 
 			//set by publish
-			this.Vlt.Servers = {};
+			if (!(this.Vlt.Servers))
+				this.Vlt.Servers = {};
 			//	{<channel>:<{	
 			//		Host: com.Host,
 			//		Port: port}>}
 
-			if (fun)
-				fun(null, com);
+			fun(null, com);
 		}
 
 		/**
@@ -54,6 +57,9 @@
 			let Vlt = this.Vlt;
 			let port, err = '';
 
+			if (!(Vlt.Ports)) Vlt.Ports = [];
+			if (!(Vlt.Servers)) Vlt.Servers = {};
+
 			//check for an error in the request
 			if (!('Chan' in com))
 				err += 'No channel defined in com (com.Chan) ';
@@ -64,11 +70,11 @@
 
 			if (err) {
 				log.e(err);
-				fun(err);
+				fun(err, com);
 				return;
 			}
 
-			log.v(JSON.stringify(Vlt.Ports, null,2), "is the set of taken ports");
+			log.v(JSON.stringify(Vlt.Ports, null, 2), "is the set of taken ports");
 
 			//The plexus server should always be set first (during setup) and is given the port 27000
 			if (com.Chan == 'Plexus') {
@@ -113,7 +119,7 @@
 			let err;
 
 			//access the registered server
-			if (com.Chan in this.Vlt.Servers) {
+			if (this.Vlt.Servers && (com.Chan in this.Vlt.Servers)) {
 				let srv = this.Vlt.Servers[com.Chan];
 				com.Host = srv.Host;
 				com.Port = srv.Port;

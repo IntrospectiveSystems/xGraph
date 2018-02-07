@@ -1,6 +1,6 @@
 {
   "Apex": {
 	"$Setup": "Setup",
-	"Entity": "Plexus.js"
+	"Entity": "Proxy.js"
   }
 }

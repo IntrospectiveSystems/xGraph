@@ -6,18 +6,13 @@
 			state = 'development';
 		}
 
-		process.on('unhandledRejection', event => {
-			log.e('------------------ [Stack] ------------------');
-			log.e(event);
-			log.e('------------------ [/Stack] -----------------');
-			process.exit(1);
-		});
-
 		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
 
 		const fs = require('fs');
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
+		let jszip = null;
+
 		let log;
 		let Uuid;
 		let CacheDir;						// The location of where the Cache will be stored
@@ -25,7 +20,6 @@
 		let Apex = {};						// {<Name>: <pid of Apex>}
 		let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
 		let ModCache = {};					// {<folder>: <module>}
-		let packagejson = {};				// The compiled package.json, built from Modules
 		let args = process.argv;			// The input arguments --under consideration for deprication
 		let Params = {};					// The set of Macros for defining paths
 		let CWD = '';						// The current working directory
@@ -51,24 +45,50 @@
 			// e : error 		Critical failure should always follow with a system exit
 			log = {
 				v: (...str) => {
-					process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				d: (...str) => {
-					process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				i: (...str) => {
-					process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				w: (...str) => {
-					process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				e: (...str) => {
-					process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+					process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
+				},
+				parse: (str) => {
+					// process.stdout.write(`parse array ${str.length}`)
+
+					try {
+						let arr = [];
+						for (let obj of str) {
+							if (typeof obj == 'object') {
+								if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+								else {
+									try {
+										arr.push(JSON.stringify(obj, null, 2));
+									} catch (e) {
+										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+									}
+								}
+							} else {
+								arr.push(obj.toString());
+							}
+						}
+						return arr.join(' ');
+					} catch (ex) {
+						process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+						process.stdout.write(ex.toString() + '\u001b[39m');
+					}
+
 				}
 			};
 			console.microtime = _ => {
@@ -86,6 +106,13 @@
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
 			}
+			process.on('unhandledRejection', event => {
+				log.e('------------------ [Stack] ------------------');
+				log.e(`line ${event.lineNumber}, ${event}`);
+				log.e(event.stack);
+				log.e('------------------ [/Stack] -----------------');
+				process.exit(1);
+			});
 		}
 
 		try {
@@ -223,7 +250,7 @@
 					}
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
 					remDir(CacheDir);
-					log.v(`Removed cacheDir: "{CacheDir}"`);
+					log.v(`Removed cacheDir: "${CacheDir}"`);
 				}
 			}
 		}
@@ -239,9 +266,9 @@
 
 			log.v(`About to load ${Object.keys(Modules)}`);
 
-			await recursiveBuild();
-
 			await refreshSystem();
+
+			await retrieveModules();
 
 			await populate();
 
@@ -264,7 +291,8 @@
 					let key = keys[i];
 					if (key == 'Deferred') {
 						var arr = Config.Modules[key];
-						arr.forEach(function (mod) {
+						for (let idx = 0; idx < arr.length; idx++) {
+							let mod = arr[idx];
 							log.v(`Deferring ${mod.Module || mod}`);
 							if (typeof mod == 'string') {
 								log.w('Adding Module names directly to Deferred is deprecated');
@@ -272,12 +300,12 @@
 								mod = { Module: mod };
 							}
 							logModule(mod);
-						});
+						}
 					} else {
-						log.v(`PreLoading ${Config.Modules[key].Module}`);
+						//log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
-							log.e(JSON.stringify(Config.Modules[key], null, 2))
+							log.e(JSON.stringify(Config.Modules[key], null, 2));
 						}
 						logModule(Config.Modules[key]);
 					}
@@ -290,12 +318,21 @@
 					 */
 					function logModule(mod) {
 						let folder = mod.Module.replace(/[\/\:]/g, '.');
+
+						if (!("Source" in mod)) {
+							log.e(`No Source Declared in module: ${key}: ${mod.Module}`);
+							reject();
+							process.exit(2);
+							return;
+						}
+
 						let source = mod.Source;
+
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
 							if (Modules[folder] != source) {
-								log.e("Broker Mismatch Exception");
+								log.e(`Broker Mismatch Exception: ${Modules[folder]} - ${source}`);
 								process.exit(2);
 								reject();
 							}
@@ -308,7 +345,7 @@
 			 * get the modules from the prebuilt catalog
 			 * from the source defined in config
 			 */
-			async function recursiveBuild() {
+			async function retrieveModules() {
 				let modArray = [];
 				let moduleKeys = Object.keys(Modules);
 
@@ -319,22 +356,21 @@
 
 						let modrequest = {
 							"Module": folder,
-							"Source": Modules[folder]
+							"Source": Config.Sources[Modules[folder]]
 						};
 
 						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
 
 						GetModule(modrequest, function (err, mod) {
 							if (err) {
-								log.w(`Failed to retreive ${modrequest.Modue}`);
+								log.w(`Failed to retreive ${folder}`);
 								log.e(err);
 								rej(err);
 								reject(err);
 							} else {
-								log.v(`Successfully retrieved ${mod.ModName}`);
+								log.v(`Successfully retrieved ${folder}`);
 								res(ModCache[folder] = mod);
 							}
-
 						});
 					}));
 				}
@@ -349,61 +385,60 @@
 				// Write cache to CacheDir
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					let mod = ModCache[folder];
 					let dir = CacheDir + '/' + folder;
 					try { fs.mkdirSync(dir); } catch (e) { }
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
-					let path = dir + '/Module.json';
-					fs.writeFileSync(path, JSON.stringify(mod, null, 2));
+					let path = dir + '/Module.zip';
+					fs.writeFileSync(path, ModCache[folder]);
+
+					const zipmod = new jszip();
 
 					//install npm dependencies
 					npmDependenciesArray.push(new Promise((resolve, reject) => {
-						let packagejson;
-						let mod = ModCache[folder];
-						if ('package.json' in mod) {
-							packagejson = JSON.parse(mod['package.json']);
-						} else {
-							resolve();
-							return;
-						}
+						zipmod.loadAsync(ModCache[folder]).then(function (zip) {
+							if ('package.json' in zip.files) {
+								zip.file('package.json').async('string').then(function (packageString) {
+									log.i(`${folder}: Installing dependencies`);
+									log.v(packageString);
 
-						log.i(`${folder}: Updating and installing dependencies`);
-						let packageString = JSON.stringify(packagejson, null, 2);
-						log.v(packageString);
-						//write the compiled package.json to disk
+									//write the compiled package.json to disk
+									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
 
-						fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
+									//call npm install on a childprocess of node
+									const proc = require('child_process');
 
-						//call npm install on a childprocess of node
-						const proc = require('child_process');
+									let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+									let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
 
-						let npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-						let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
+									ps.stdout.on('data', _ => {
+										process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+									});
+									ps.stderr.on('data', _ => {
+										process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+									});
 
-						ps.stdout.on('data', _ => {
-							process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-						});
-						ps.stderr.on('data', _ => {
-							process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-						});
+									ps.on('err', function (err) {
+										log.e('Failed to start child process.');
+										log.e('err:' + err);
+										reject(err);
+									});
 
-						ps.on('err', function (err) {
-							log.e('Failed to start child process.');
-							log.e('err:' + err);
-							reject(err);
-						});
-
-						ps.on('exit', function (code) {
-							process.stderr.write(`\r\n`);
-							if (code == 0)
-								log.i(`${folder}: dependencies installed correctly`);
-							else {
-								log.e(`${folder}: npm process exited with code: ${code}`);
-								process.exit(1);
-								reject();
+									ps.on('exit', function (code) {
+										process.stderr.write(`\r\n`);
+										if (code == 0)
+											log.i(`${folder}: dependencies installed correctly`);
+										else {
+											log.e(`${folder}: npm process exited with code: ${code}`);
+											process.exit(1);
+											reject();
+										}
+										fs.unlinkSync(Path.join(dir, 'package.json'));
+										resolve();
+									});
+								});
+							} else {
+								resolve();
 							}
-							fs.unlinkSync(Path.join(dir, 'package.json'));
-							resolve();
 						});
 					}));
 				}
@@ -423,7 +458,7 @@
 						continue;
 					Apex[instname] = genPid();
 				}
-				log.v('Apex', JSON.stringify(Apex, null, 2));
+				log.v('Apex List', JSON.stringify(Apex, null, 2));
 
 				// Now populate all of the modules from config.json
 				for (let instname in Config.Modules) {
@@ -470,14 +505,10 @@
 		 */
 		function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
-			let source = Config.Sources[modRequest.Source];
-			let mod = {};
-			let ModName = modnam.replace(/[\/\:]/g, '.');
-
+			let source = modRequest.Source;
 
 			//get the module from memory (ModCache) if it has already been retrieved
-			if (ModName in ModCache) { log.v(`${ModName} returned from ModCache`); return fun(null, ModCache[ModName]); }
-
+			if (modnam in ModCache) { log.v(`${modnam} returned from ModCache`); return fun(null, ModCache[modnam]); }
 
 			//get the module from the defined broker
 			if (typeof source == "object") return loadModuleFromBroker();
@@ -519,7 +550,8 @@
 				sock.on('connect', function () {
 					let cmd = {};
 					cmd.Cmd = "GetModule";
-					cmd.Module = modnam;
+					cmd.Name = modnam;
+
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
@@ -578,135 +610,78 @@
 							return;
 
 						let response = Fifo.shift();
-						if (typeof response.Module == 'object') {
-							mod = response.Module;
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-							}
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
-							return;
-						} else {
-							module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-							const jszip = require("jszip");
-							const zipmod = new jszip();
 
-							zipmod.loadAsync(response.Module, { base64: true }).then(function (zip) {
-								var dir = zipmod.file(/.*./);
-
-								zip.file('module.json').async('string').then(function (str) {
-									mod = JSON.parse(str);
-									if ('schema.json' in mod) {
-										var schema = JSON.parse(mod['schema.json']);
-										if ('Apex' in schema) {
-											var apx = schema.Apex;
-											if ('$Setup' in apx)
-												mod.Setup = apx['$Setup'];
-											if ('$Start' in apx)
-												mod.Start = apx['$Start'];
-											if ('$Save' in apx)
-												mod.Save = apx['$Save'];
-										}
-									}
-									ModCache[ModName] = mod;
-									fun(null, ModCache[ModName]);
-								});
-							});
-						}
+						fun(null, response.Module);
 					}
 				});
 			}
-
 
 			/**
 			 * load module from disk
 			 */
 			function loadModuleFromDisk() {
-				let ModPath = genPath(ModName);
-				//read the module from path in the local file system
-				//create the Module.json and add it to ModCache
+				(async () => {
+					modnam = modnam.replace(/\./g, Path.sep);
+					let ModPath = Path.join(source, modnam);
 
-				fs.readdir(ModPath, function (err, files) {
-					if (err) {
-						err += 'Module <' + ModPath + '? not available'
-						log.e(err);
-						fun(err);
-						return;
-					}
-					var nfile = files.length;
-					var ifile = -1;
-					scan();
+					//read the module from path in the local file system
+					//create the Module.json and add it to ModCache
+					let zipmod = new jszip();
 
-					function scan() {
-						ifile++;
-						if (ifile >= nfile) {
-							mod.ModName = ModName;
-							if ('schema.json' in mod) {
-								var schema = JSON.parse(mod['schema.json']);
-								if ('Apex' in schema) {
-									var apx = schema.Apex;
-									if ('$Setup' in apx)
-										mod.Setup = apx['$Setup'];
-									if ('$Start' in apx)
-										mod.Start = apx['$Start'];
-									if ('$Save' in apx)
-										mod.Save = apx['$Save'];
-								}
-							}
-							log.v(`${ModName} returned from local file system`);
-							ModCache[ModName] = mod;
-							fun(null, ModCache[ModName]);
+					//recursively zip the module
+					await zipDirChidren(zipmod, ModPath);
+
+					zipmod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
+						if (fail) {
+							log.w("Genesis failed to create zip.");
 							return;
 						}
-						var file = files[ifile];
-						var path = ModPath + '/' + file;
 
-						fs.lstat(path, function (err, stat) {
+						log.v(`${modnam} returned from local file system`);
+						fun(null, dat);
+					});
+
+					async function zipDirChidren(ziproot, contianingPath) {
+						let files;
+						try {
+							files = fs.readdirSync(contianingPath);
+						} catch (err) {
+							err += 'Module <' + contianingPath + '? not available'
+							log.e(err);
+							fun(err);
+							return;
+						}
+						if (!files) {
+							err += 'Module <' + contianingPath + '? not available'
+							log.e(err);
+							fun(err);
+							return;
+						}
+						for (let ifile = 0; ifile < files.length; ifile++) {
+							var file = files[ifile];
+							var path = contianingPath + '/' + file;
+							let stat = await new Promise(async (res, rej) => {
+								fs.lstat(path, (err, stat) => {
+									if (err) rej(err)
+									else res(stat);
+								})
+							});
+
 							if (stat) {
 								if (!stat.isDirectory()) {
-									fs.readFile(path, function (err, data) {
-										if (err) {
-											log.e(err);
-											fun(err);
-											return;
-										}
-										mod[file] = data.toString();
-										scan();
-									});
-								} else {
-									mod[file] = buildDir(path);
-									scan();
-
-									function buildDir(path) {
-										let dirObj = {};
-										if (fs.existsSync(path)) {
-											let files = fs.readdirSync(path);
-											files.forEach(function (file, index) {
-												var curPath = path + "/" + file;
-												if (fs.lstatSync(curPath).isDirectory()) {
-													// recurse
-													dirObj[file] = buildDir(curPath);
-												} else {
-													dirObj[file] = fs.readFileSync(curPath).toString();
-												}
-											});
-											return dirObj;
-										}
+									try {
+										var dat = fs.readFileSync(path);
+									} catch (err) {
+										log.e(`loadModuleFromDisk: error reading file ${path}: ${err}`);
 									}
+									ziproot.file(file, dat);
+								} else {
+									await zipDirChidren(ziproot.folder(file), path)
 								}
 							}
-						});
+						}
 					}
-				});
+				})();
 			}
 		}
 
@@ -730,16 +705,35 @@
 			var mod;
 			var ents = [];
 			var modnam = modnam.replace(/[\/\:]/g, '.');
+			var zipmod = new jszip();
 
 			if (modnam in ModCache) {
-				mod = ModCache[modnam];
+				mod = await new Promise(async (res, rej) => {
+					zipmod.loadAsync(ModCache[modnam]).then((zip) => {
+						res(zip);
+					});
+				});
 			} else {
 				log.e('Module <' + modnam + '> not in ModCache');
 				process.exit(1);
 				reject();
 				return;
 			}
-			var schema = JSON.parse(mod['schema.json']);
+
+			var schema = await new Promise(async (res, rej) => {
+				if ('schema.json' in mod.files) {
+					mod.file('schema.json').async('string').then(function (schemaString) {
+						res(JSON.parse(schemaString));
+					});
+				} else {
+					log.e('Module <' + modnam + '> schema not in ModCache');
+					process.exit(1);
+					rej();
+					reject();
+					return;
+				}
+			});
+
 			var entkeys = Object.keys(schema);
 
 			//set Pids for each entity in the schema
@@ -754,12 +748,15 @@
 			//unpack the par of each ent
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
+				//start with the pars from the schema
 				let ent = schema[entkey];
 				ent.Pid = Local[entkey];
 				ent.Module = modnam;
 				ent.Apex = pidapx;
 
-				//unpack the config pars to the par of the apex of the instance
+				//load the pars from the config
+				//these only apply to the Apex entity
+				//config takes precedence so we unpack it last
 				if (entkey == 'Apex' && 'Par' in inst) {
 					var pars = Object.keys(inst.Par);
 					for (var ipar = 0; ipar < pars.length; ipar++) {
@@ -768,7 +765,7 @@
 					}
 				}
 
-				//load pars from schema
+				//iterate over all the pars to pars out symbols
 				var pars = Object.keys(ent);
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
@@ -821,7 +818,7 @@
 								}
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
-								log.e("Error reading file ", path);
+								log.e("@file: (compileInstance) Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
 							}
 							break;
@@ -860,8 +857,8 @@
 							break;
 						}
 						case "@system": {
+							let path, config;
 							try {
-								let path, config;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
 
 								if (Path.isAbsolute(val))
@@ -875,7 +872,7 @@
 								return await GenTemplate(config);
 
 							} catch (err) {
-								log.e("Error reading file ", path);
+								log.e("@system: (compileInstance) Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
 							}
 							break;
@@ -899,7 +896,7 @@
 		 */
 		function refreshSystem() {
 			return new Promise((resolve, reject) => {
-				log.i(`--refreshSystems: Updating and installing dependencies${endOfLine}`);
+				log.i(`--refreshSystems: Installing xgraph dependencies${endOfLine}`);
 				var packagejson = {};
 
 				if (!packagejson.dependencies) packagejson.dependencies = {};
@@ -920,8 +917,7 @@
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
-				module.paths = [];
-				module.paths.push([Path.resolve(CacheDir)]);
+				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 
 				ps.stdout.on('data', _ => { process.stdout.write(_) });
 				ps.stderr.on('data', _ => process.stderr.write(_));
@@ -940,6 +936,7 @@
 						reject();
 					}
 					fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
+					jszip = require("jszip");
 					resolve();
 				});
 			});
@@ -998,55 +995,6 @@
 		}
 
 		/**
-		 * build a path from the file system using defined Macros and Params
-		 * @param {string} filein
-		 */
-		function genPath(filein) {
-			if (!filein) {
-				log.e('Invalid file name');
-				return '';
-			}
-
-			var cfg = Params;
-			var path;
-			var parts;
-			var file = filein.replace('.', ':').replace(/\./g, '/');;
-
-			if (Path.isAbsolute(file))
-				return file;
-
-			if (file.charAt(0) == '{') { // Macro
-				parts = file.split('}');
-				if (parts.length != 2) {
-					return;
-				}
-				var name = parts[0].substr(1).toLowerCase();
-				if (name in Params) {
-					path = Path.join(Params[name], parts[1]);
-					return path;
-				} else {
-					log.e('File <' + file + '> {' + name + '} not found');
-					return;
-				}
-			}
-			parts = file.split(':');
-			if (parts.length == 2) {
-				let key = parts[0].toLowerCase();
-				if (key in Params) {
-					path = Path.join(Params[key], parts[1]);
-				} else {
-					log.e('File <' + file + '> prefix not defined');
-					return;
-				}
-			} else {
-				path = file;
-			}
-			return path;
-		}
-
-
-
-		/**
 		 * Recursive directory deletion
 		 * Used for cache cleanup
 		 * @param {string} path the directory to be recursively removed
@@ -1080,7 +1028,7 @@
 
 				await generateModuleCatalog();
 
-				await recursiveBuild();
+				await retrieveModules();
 
 
 				/////////////////////////////////////////////////////////////////////////////////////////////
@@ -1095,16 +1043,25 @@
 				async function generateModuleCatalog() {
 					// Create new cache and install high level
 					// module subdirectories. Each of these also
-					// has a link to the source of that module (Module.json).
+					// has a link to the source of that module (Module.zip).
 					var keys = Object.keys(Config.Modules);
 					for (let i = 0; i < keys.length; i++) {
 						let key = keys[i];
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
-							for (let idx = 0; idx <arr.length; idx++){
-									await logModule(arr[idx]);
+							for (let idx = 0; idx < arr.length; idx++) {
+								if (typeof arr[idx] == 'string') {
+									log.w('Adding Module names directly to Deferred is deprecated');
+									log.w(`Deferring { Module: '${arr[idx]}' } instead`);
+									mod = { Module: arr[idx] };
+								}
+								await logModule(arr[idx]);
 							}
 						} else {
+							if (typeof Config.Modules[key].Module != 'string') {
+								log.e('Malformed Module Definition');
+								log.e(JSON.stringify(Config.Modules[key], null, 2));
+							}
 							await logModule(Config.Modules[key]);
 						}
 
@@ -1116,16 +1073,26 @@
 						 */
 						async function logModule(mod) {
 							let folder = mod.Module.replace(/[\/\:]/g, '.');
+
+							if (!("Source" in mod)) {
+								log.e(`No Source Declared in module: ${key}: ${mod.Module}`);
+								reject();
+								process.exit(2);
+								return;
+							}
+
 							let source = mod.Source;
+
 							if (!(folder in Modules)) {
 								Modules[folder] = source;
 							} else {
 								if (Modules[folder] != source) {
-									log.e("Broker Mismatch Exception");
+									log.e(`Broker Mismatch Exception: ${Modules[folder]} - ${source}`);
 									process.exit(2);
 									reject();
 								}
 							}
+
 							for (let key in mod.Par) {
 								mod.Par[key] = await symbol(mod.Par[key])
 							}
@@ -1170,7 +1137,7 @@
 										}
 										return fs.readFileSync(path).toString(encoding);
 									} catch (err) {
-										log.e("Error reading file ", path);
+										log.e("@file: (generateModuleCatalog) Error reading file ", path);
 										log.w(`Module ${modnam} may not operate as expected.`);
 									}
 									break;
@@ -1220,7 +1187,7 @@
 										config = fs.readFileSync(path).toString(encoding);
 										return await GenTemplate(config);
 									} catch (err) {
-										log.e("Error reading file ", path);
+										log.e("@system: (generateModuleCatalog) Error reading file ", path);
 										log.w(`Module ${modnam} may not operate as expected.`);
 									}
 									break;
@@ -1238,7 +1205,7 @@
 				 * get the modules from the prebuilt catalog
 				 * from the source defined in config
 				 */
-				async function recursiveBuild() {
+				async function retrieveModules() {
 					let modArray = [];
 					let moduleKeys = Object.keys(Modules);
 
@@ -1249,11 +1216,20 @@
 
 							let modrequest = {
 								"Module": folder,
-								"Source": Modules[folder]
+								"Source": Config.Sources[Modules[folder]]
 							};
+
+							log.v(`Requesting Module:${modrequest.Module} from Source:${modrequest.Source}`);
+
 							GetModule(modrequest, function (err, mod) {
-								if (err) { rej(err); reject(err); }
+								if (err) {
+									log.w(`Failed to retreive ${folder}`);
+									log.e(err);
+									rej(err);
+									reject(err);
+								}
 								else {
+									log.v(`Successfully retrieved ${folder}`);
 									res(ModCache[folder] = mod);
 								}
 							});
@@ -1267,19 +1243,15 @@
 					 * Write the modules.json to a zipped cache and set as Par.System
 					 */
 					function populate() {
-						const jszip = require("jszip");
 						var zip = new jszip();
 						var man = [];
-						zip.folder("cache");
 						for (let folder in ModCache) {
 							let mod = ModCache[folder];
-							if (typeof mod == "object")
-								mod = JSON.stringify(mod);
-							let dir = "cache/" + folder;
-							zip.folder(dir);
-							let path = dir + '/Module.json';
-							man.push(path);
-							zip.file(path, mod, {
+							// let dir = folder;
+							//zip.folder(folder);
+							// let path = dir;
+							man.push(folder);
+							zip.file(folder, mod, {
 								date: new Date("April 2, 2010 00:00:01")
 								//the date is required for zip consistency
 							});
@@ -1321,6 +1293,7 @@
 							Config[key] = val;
 						}
 					}
+					log.d(JSON.stringify(Config, null, 2));
 				}
 			});
 		}

@@ -201,7 +201,7 @@
 				// add a module 
 				obj = {
 					id: "module",
-					module: "xGraph.Scene.Modelx3D",
+					module: "Extensions.Modules.Modelx3D",
 					parentId: "plane",
 					position: {
 						x: 0,
@@ -256,15 +256,15 @@
 
 			log.v("Popup");
 			this.genModule({
-				"Module": "xGraph.Widgets.Popup",
+				"Module": "Core.Modules.Popup",
 				"Par": {
 					Left: com.mouse.x,
 					Top: com.mouse.y,
-					"View": this.Par.EvokeView || "xGraph.Widgets.3DView",
+					"View": this.Par.EvokeView || "Core.Modules.3DView",
 					"Width": 800,
 					"Height": 600
 				}
-			}, () => { })
+			}, () => {log.d(`returned from genMod of popup`)})
 			fun(null, com)
 		}
 
@@ -283,7 +283,7 @@
 			View.Camera.updateProjectionMatrix();
 
 			this.genModule({
-				"Module": 'xGraph.Widgets.Mouse',
+				"Module": 'Core.Modules.Mouse',
 				"Par": {
 					"Handler": this.Par.Pid
 				}
