@@ -177,7 +177,7 @@
 				sock.on('error', (err) => {
 					log.w('Proxy:genServer:' + err);
 					if ("Chan" in Par)
-						log.w('		Proxy:Chan' + Par.Chan);
+						log.w('		Proxy: Chan - ' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -280,7 +280,7 @@
 				sock.on('error', (err) => {
 					log.e('ERR:Proxy:genClient: ' + err);
 					if ("Chan" in Par)
-						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
 					if (Par.Poll) {
 						if (!("Timer" in Vlt) && "Timeout" in Par) {
 							Vlt.Timer = setTimeout(() => {

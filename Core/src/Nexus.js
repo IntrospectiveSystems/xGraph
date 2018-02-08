@@ -161,11 +161,11 @@
 			try {
 				let jarg = JSON.parse(arg);
 				for (let key in jarg) {
-					log.v(`${key}=${jarg[key]}`);
+					// log.v(`${key}=${jarg[key]}`);
 					Params[key] = jarg[key];
 				}
 			} catch (e) {
-				log.v(arg);
+				// log.v(arg);
 				parts = arg.split('=');
 				if (parts.length == 2) {
 					if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
@@ -969,9 +969,9 @@
 
 		await Promise.all(PromiseArray);
 
-		log.v('Modules', JSON.stringify(KeyPid, null, 2));
-		log.v('Setup', JSON.stringify(Setup, null, 2));
-		log.v('Start', JSON.stringify(Start, null, 2));
+		// log.v('Modules', JSON.stringify(KeyPid, null, 2));
+		// log.v('Setup', JSON.stringify(Setup, null, 2));
+		// log.v('Start', JSON.stringify(Start, null, 2));
 
 		await setup();
 
@@ -1034,7 +1034,7 @@
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot = false) {
-		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
+		// log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
 		var modnam = (typeof inst.Module == "object") ? inst.Module.Module : inst.Module;
 		var mod;
