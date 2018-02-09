@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.Core.Modules.xGraph.Validate",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.Extensions.Modules.MySQL",
+				"TestJson": "@file: ../../Extensions/Modules/MySQL/test.json"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Extensions.Modules.MySQL",
+				"Source": "xGraph"
+			}
+		]
+	}
+}
