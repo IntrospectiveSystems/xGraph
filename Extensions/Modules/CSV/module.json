@@ -1,8 +1,8 @@
 {
-	"name": "",
-	"version": "",
+	"name": "CSV",
+	"version": "1.0.0",
 	"info": {
-		"author": ""
+		"author": "Introspective Systems"
 	},
 	"doc": "README.md",
 	"input": {
@@ -15,8 +15,43 @@
 		],
 		"optional": [
 			{
-				"Cmd": "",
+				"Cmd": "ObjectToCSV",
+				"required": {
+					"RecordObjects": "array"
+				},
+				"optional": {}
+			},
+			{
+				"Cmd": "CSVToObjects",
+				"required": {
+					"Records": "array"
+				},
+				"optional": {}
+			},
+			{
+				"Cmd": "WriteFile",
+				"required": {
+					"RecordsObjects": "array"
+				},
+				"optional": {}
+			},
+			{
+				"Cmd": "ReadFile",
 				"required": {},
+				"optional": {}
+			},
+			{
+				"Cmd": "AppendRecords",
+				"required": {
+					"RecordObjects": "array"
+				},
+				"optional": {}
+			},
+			{
+				"Cmd": "DeleteRecord",
+				"required": {
+					"RecordObject": "object"
+				},
 				"optional": {}
 			}
 		]

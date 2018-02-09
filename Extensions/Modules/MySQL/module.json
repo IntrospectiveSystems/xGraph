@@ -1,8 +1,8 @@
 {
-	"name": "",
-	"version": "",
+	"name": "MySQL",
+	"version": "1.0.0",
 	"info": {
-		"author": ""
+		"author": "Introspective Systems"
 	},
 	"doc": "README.md",
 	"input": {
@@ -15,7 +15,14 @@
 		],
 		"optional": [
 			{
-				"Cmd": "",
+				"Cmd": "Query",
+				"required": {
+					"QueryObject": "object"
+				},
+				"optional": {}
+			},
+			{
+				"Cmd": "Disconnect",
 				"required": {},
 				"optional": {}
 			}

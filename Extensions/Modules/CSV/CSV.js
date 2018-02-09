@@ -1,7 +1,7 @@
 //# sourceURL=CSV.js
 (
     /**
-	 * The CSV Module saves data in object or array format to a CSV file. If the file does not exist, it will be created.
+	 * The CSV entity saves data in object or array format to a CSV file. If the file does not exist, it will be created.
      * If the file already exists, the file will be accessed. If CSV is given a header, the new header will be written
      * to a new file on creation or on a WriteFile command, and the first row of the file will be ignored on ReadRecords.
      * @param {string=} this.Par.File   The file (or file path) to be accessed. Defaults to "NewFile.csv".
@@ -19,10 +19,10 @@
          */
 		Setup(com, fun) {
 			log.i("--CSV/Setup");
-			let that = this;
-			let Par = this.Par;
-			let Vlt = this.Vlt;
-			let errors = null;
+            let that = this;
+            let Par = this.Par;
+            let Vlt = this.Vlt;
+            let errors = null;
 
             let fs = this.require('fs');
 
@@ -360,7 +360,7 @@
          * DeleteRecord takes a single record object and removes the first instance of that record from the file. If
          * the record cannot be found in the file, com.DeletedRecord will return as false.
          * @param {object} com 					The command object.
-         * @param {array} com.RecordObject	    A record as an object that will be deleted from the file.
+         * @param {object} com.RecordObject	    A record as an object that will be deleted from the file.
          * @return {bool} com.DeletedRecord     True if the record was sucessfully deleted, false if the record could
          *                                          not be found.
          * @callback fun

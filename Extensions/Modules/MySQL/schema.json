@@ -2,6 +2,6 @@
 	"Apex": {
 		"$Setup": "Setup",
 		"$Start": "Start",
-		"Entity": "TestCSV.js"
+		"Entity": "MySQL.js"
 	}
 }

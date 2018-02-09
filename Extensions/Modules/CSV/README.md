@@ -48,8 +48,8 @@ objects. The commands CSV can receive are:
 - CSVToObjects
 
 ##### Setup(com, fun)
-Setup is sent when the CSV module is first generated. Here, some general
-the connection to the FileSystem (fs) is established and set to `Vlt.Fs`.
+Setup is sent when the CSV module is first generated. Here, the connection
+to the FileSystem (fs) is established and saved to `Vlt.Fs`.
 
 ###### Parameters
 - **com** (*required*): The command object.
@@ -111,6 +111,7 @@ of that record from the file. If the record cannot be found in the file,
 
 ###### Parameters
 - **com** (*required*): The command object.
+- **com** (*required*): A record as an object that will be deleted from the file.
 - **fun** (*required*): The callback function.
 
 ###### Returns
