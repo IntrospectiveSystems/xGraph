@@ -360,14 +360,15 @@
 
 							// -------------------------- Pid interchange
 							if(com.PidInterchange) {
-								log.d(`read pid interchange for command`, com);
+								// log.d(`read pid interchange for command`, com);
 								com = await recurse(com);
 
 								async function recurse(obj) {
 									if('Format' in obj 
-									&& 'Value' in obj 
-									&& obj.Value.match(/^[A-Z0-9]{32}$/) != null
-									&& obj.Format == 'is.xgraph.pid') {
+										&& 'Value' in obj
+										&& typeof obj.Value == 'string'
+										&& obj.Value.match(/^[A-Z0-9]{32}$/) != null
+										&& obj.Format == 'is.xgraph.pid') {
 										let pid = obj.Value;
 										let Tag = await new Promise(resolve => {
 											that.send({
@@ -383,6 +384,7 @@
 										});
 										obj.Value = Tag;
 										obj.Format = 'is.xgraph.webproxytag';
+										log.i(`${pid} -> ${Tag}`);
 										return obj;
 									}
 									for(let key in obj) {
@@ -469,7 +471,7 @@
 		this.Par.ApexList[tag] = com.Pid;
 		com.Tag = tag;
 
-		fun(null, com);
+		this.save(_ => fun(null, com));
 	}
 	
 	//-------------------------------------------------------Publish

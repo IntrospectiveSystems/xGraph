@@ -75,6 +75,11 @@
 						'background-color': '#f8f8f8'
 					});
 					
+					superStyle('table.table > tbody > tr:hover ', {
+						'background-color': '#efefef',
+						'cursor': 'pointer'
+					});
+					
 					superStyle('span.notAvailable', {
 						'color': 'rgba(0,0,0,.5)'
 					});

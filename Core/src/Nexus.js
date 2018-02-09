@@ -411,6 +411,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * @callback fun 				the callback function to return to when finished
 	 */
 	function sendMessage(com, fun = _ => _) {
+		// log.d('NEXUS MESSAGE:', com)
 		if (!('Passport' in com)) {
 			log.w('Message has no Passport, ignored');
 			log.w('    ' + JSON.stringify(com));
@@ -448,18 +449,19 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 				fun(err, com);
 				return;
 			}
-
+			
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
 			} else {
 				let err = 'Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
-				log.w(err);
-				log.w(JSON.stringify(com, null, 2));
-				fun(err, com);
+					log.w(err);
+					log.w(JSON.stringify(com, null, 2));
+					fun(err, com);
 			}
 		}
 		function reply(err, q) {
+			// log.i('NEXUS MESSAGE:', com)
 			fun(err, q);
 		}
 	}
@@ -967,26 +969,31 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					
 					for (let key in inst.Par) {
 						let val = inst.Par[key];
+						log.d(val)
 						
-						if (val.startsWith('$')) {
-							let symbol = val.substr(1);
-							if (symbol in symbols) {
-								inst.Par[key] = symbols[symbol];
-							} else {
-								log.e(`${par.substr(1)} not in Module key list`);
-								log.v(`${Object.keys(symbols)}`)
+						if(typeof val == 'string') {
+							if (val.startsWith('$')) {
+								let symbol = val.substr(1);
+								if (symbol in symbols) {
+									inst.Par[key] = symbols[symbol];
+								} else {
+									log.e(`${symbol} not in Module key list`);
+									log.v(`${Object.keys(symbols)}`)
+								}
 							}
-						}
 
-						if (val.startsWith('\\')) {
-							let escaping = val.charAt(1)
-							if(escaping == '$' || escaping == '\\') {
-								//these are valid escape character
-								inst.Par[key] = val.substr(1);
-							}else {
-								//invalid
-								log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
+							if (val.startsWith('\\')) {
+								let escaping = val.charAt(1)
+								if (escaping == '$' || escaping == '\\') {
+									//these are valid escape character
+									inst.Par[key] = val.substr(1);
+								} else {
+									//invalid
+									log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
+								}
 							}
+						}else {
+							inst.Par[key] = val;
 						}
 					}
 

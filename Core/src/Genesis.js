@@ -65,8 +65,6 @@
 					xgraphlog(new Date().toString(), ...str);
 				},
 				parse: (str) => {
-					// process.stdout.write(`parse array ${str.length}`)
-
 					try {
 						let arr = [];
 						for (let obj of str) {
@@ -79,6 +77,8 @@
 										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
 									}
 								}
+							} else if (typeof obj == 'undefined') {
+								arr.push('undefined');
 							} else {
 								arr.push(obj.toString());
 							}
@@ -261,6 +261,7 @@
 		async function genesis() {
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
+
 
 			generateModuleCatalog();
 

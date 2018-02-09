@@ -40,11 +40,11 @@ __Nexus = (_ => {
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		window.log = {
-			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
-			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
-			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
-			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color:yellow;background-color:#242424;'),
-			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+			v: console.log.bind(window.console, `%c[VRBS] %s`, 'color: gray'),
+			d: console.log.bind(window.console, `%c[DBUG] %s`, 'color: magenta'),
+			i: console.log.bind(window.console, `%c[INFO] %s`, 'color: cyan'),
+			w: console.log.bind(window.console, `%c[WARN] %s`, 'color: color:yellow;background-color:#242424;'),
+			e: console.log.bind(window.console, `%c[ERRR] %s`, 'color: red')
 		};
 		window.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function() {return this.Value} } };
 	}
