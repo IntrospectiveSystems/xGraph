@@ -951,10 +951,10 @@
 		}
 
 		//compile each module
-		for (let key in mods) {
+		for (let moduleKey in moduleDefinitions) {
 			//do a GetModule and compile instance for each 
 			PromiseArray.push(new Promise((res, rej) => {
-				let inst = mods[key];
+				let inst = moduleDefinitions[moduleKey];
 				GetModule(inst.Module, async function (err, mod) {
 					if (err) {
 						log.e('GenModule err -', err);

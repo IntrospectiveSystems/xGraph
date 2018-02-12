@@ -293,7 +293,7 @@
 					}
 				});
 			}).listen(port);
-			log.i(`${Par.Chan || ""} Portal listening on port`, port);
+			log.i(`${Par.Chan || ""} Portal listening on port ${port}`);
 			fun();
 		}
 
