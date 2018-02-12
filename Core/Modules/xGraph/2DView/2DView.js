@@ -395,14 +395,12 @@
 				if (unit.responseHandler) {
 					obj.interactive = true;
 					let evoke = (e) => {
-						log.d(e.currentTarget);
 						this.send({
 							"Cmd": unit.responseHandler.Cmd, mouse: {
 								x: e.data.originalEvent.x,
 								y: e.data.originalEvent.y
 							}
 						}, unit.responseHandler.Handler, _ => {
-							log.d("example evoke callback");
 						});
 					}
 					obj.on('click', evoke);

@@ -410,6 +410,7 @@ function processSwitches() {
 
 	function applySwitch(str, i) {
 		let remainingArgs = args.length - i - 1;
+		// if the switch is a single flag, do something here
 		if (str == "debug") {
 			console.log("Doing the debug thing");
 			argLoop.delete(1);

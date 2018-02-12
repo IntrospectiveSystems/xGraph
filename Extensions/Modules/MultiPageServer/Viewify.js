@@ -1,4 +1,4 @@
-//# sourceURL=Viewify.js
+//# sourceURL=Viewify
 
 /// check if ?debug is in the URL. if so, turn on debug mode.
 /// this will enable more complex logging
@@ -344,7 +344,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Add com.View as a Child View this forces a render after the child gives us its div.
-		 * @param {any} com 
+		 * @param {any} com
+		 * @param {string} com.View view pid
 		 * @param {any} fun 
 		 * @memberof View
 		 */
@@ -356,6 +357,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
 				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
+				this.send({ Cmd: 'RegisterDestroyListener' }, com.View, _ => _);
 			});
 		}
 
@@ -769,7 +771,38 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.cdnImportCss = (url) => {
 				$(document.head).append($(`<link href="${url}" rel="stylesheet">`));
 			};
-			this.id = str => md5(this.Par.Pid + str);
+			this.id = str => `XGRAPH-${this.Vlt.type}-${md5(this.Par.Pid + str)}-${str}`;
+		}
+		if (version >= new SemVer('3.5')) {
+			this.authenticate = async (cmd) => {
+				return (await this.ascend('Authenticate', {Command: cmd}, window.CommandAuthenticator)).Command;
+			}
+
+			this.evoke = async (pid, options) => {
+				this.send(Object.assign({
+					Cmd: 'Evoke'
+				}, options), pid, async (err, cmd) => {
+					if (cmd.Type == 'View') {
+						let newPar = {
+							View: cmd.View,
+							Par: cmd.Par || {},
+							Width: 500
+						};
+						let popup = await this.genModuleAsync({
+							Module: cmd.Container || 'xGraph:Widgets/Popup',
+							Par: newPar
+						});
+						this.ascend('AddView', {View: popup}, this.Par.Pid);
+					}
+				});
+			};
+			//options no longer overrides Cmd param if it has a Cmd Key
+			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
+				this.send(Object.assign(opts, { Cmd: name }), pid, (err, cmd) => {
+					if (err) reject([err, cmd]);
+					else resolve(cmd);
+				});
+			});
 		}
 	}
 

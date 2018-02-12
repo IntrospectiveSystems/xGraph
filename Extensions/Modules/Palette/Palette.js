@@ -35,7 +35,6 @@
 		this.save();
 		var path = 'stash';
 		path = Path.resolve(path);
-		log.d("Path is ", path);
 		fs.readdir(path, function (err, files) {
 			if (err) {
 				console.log(' ** ERR:Project file err:' + err);

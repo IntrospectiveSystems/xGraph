@@ -56,7 +56,6 @@
 
 			//Example of using the internal API thorugh an xGraph Command
 			setTimeout(() => {
-				log.d(this.Par.Entity);
 				this.getFile(this.Par.Entity, (err, file) => {
 					if (err) { log.e(err); return; }
 					this.Vlt.file = file;

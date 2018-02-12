@@ -42,13 +42,13 @@
 	{
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
+			fs.appendFile(`${process.cwd()}/xgraph.log`, `${log.parse(str)}${endOfLine}`, (err) => {
 				if (err) {
 					console.error(err); process.exit(1); reject();
 				}
 			});
 		};
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
 		// v : verbose		Give too much information 
 		// d : debug		For debugging purposes not in production level releases
@@ -57,24 +57,50 @@
 		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
 			v: (...str) => {
-				process.stdout.write(`\u001b[90;7m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[90;7m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			d: (...str) => {
-				process.stdout.write(`\u001b[35;7m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[35;7m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			i: (...str) => {
-				process.stdout.write(`\u001b[36;7m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[36;7m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			w: (...str) => {
-				process.stdout.write(`\u001b[33;7m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[33;7m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			e: (...str) => {
-				process.stdout.write(`\u001b[31;7m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[31;7m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
+			},
+			parse: (str) => {
+				try {
+					let arr = [];
+					for (let obj of str) {
+						if (typeof obj == 'object') {
+							if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+							else {
+								try {
+									arr.push(JSON.stringify(obj, null, 2));
+								} catch (e) {
+									arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+								}
+							}
+						} else if(typeof obj == 'undefined') {
+							arr.push('undefined');
+						} else {
+							arr.push(obj.toString());
+						}
+					}
+					return arr.join(' ');
+				} catch (ex) {
+					process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+					process.stdout.write(ex.toString() + '\u001b[39m');
+				}
+
 			}
 		};
 		console.log = function (...str) {
@@ -902,23 +928,26 @@
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
-	 * @param {string} inst.Module 	The name of the module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
+	 * @param {string?} inst.Module 	The name of the module to spin up
+	 * @param {Object=} inst.Par	The par of the modle to be encorporated with the Module Apex Par	
 	 * @callback fun 				(err, pid of module apex)
 	 */
-	async function genModule(mods, fun = _ => _) {
-		if ("Module" in mods && (typeof mods.Module == "string")) {
-			mods = { "Top": mods };
+	async function genModule(moduleDefinition, fun = _ => _) {
+		moduleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
+		let moduleDefinitions = moduleDefinition;
+		if ("Module" in moduleDefinition && (typeof moduleDefinition.Module == "string")) {
+			moduleDefinitions = { "Top": moduleDefinition };
 		}
 
 		let Setup = {};
 		let Start = {};
-		let KeyPid = {};
 		let PromiseArray = [];
+		let symbols = {};
 
-		//loop over the keys to assign pids
-		for (let key in mods) {
-			KeyPid[key] = genPid();
+		// loop over the keys to assign pids to the local dictionary and the 
+		// module definitions (moduleDefinitions)
+		for (let key in moduleDefinitions) {
+			symbols[key] = genPid();
 		}
 
 		//compile each module
@@ -932,18 +961,40 @@
 						fun(err);
 						return;
 					}
-					let pidapx = KeyPid[key];
+					let pidapx = symbols[moduleKey];
 					ApexIndex[pidapx] = inst.Module;
-					for (par in inst.Par) {
-						if (inst.Par[par][0] == "$"){
-							if (inst.Par[par].substr(1) in KeyPid)
-								inst.Par[par] = KeyPid[inst.Par[par].substr(1)];
-							else
-								log.e(`${inst.Par[par].substr(1)} not in Module key list ${Object.keys(KeyPid)}`);
+
+					
+					for (let key in inst.Par) {
+						let val = inst.Par[key];
+						log.d(val)
+						
+						if(typeof val == 'string') {
+							if (val.startsWith('$')) {
+								let symbol = val.substr(1);
+								if (symbol in symbols) {
+									inst.Par[key] = symbols[symbol];
+								} else {
+									log.e(`${symbol} not in Module key list`);
+									log.v(`${Object.keys(symbols)}`)
+								}
+							}
+
+							if (val.startsWith('\\')) {
+								let escaping = val.charAt(1)
+								if (escaping == '$' || escaping == '\\') {
+									//these are valid escape character
+									inst.Par[key] = val.substr(1);
+								} else {
+									//invalid
+									log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
+								}
+							}
+						}else {
+							inst.Par[key] = val;
 						}
-						if ((inst.Par[par][[0] == "\\"]) && ((inst.Par[par][[1] == "$"]) || (inst.Par[par][[1] == "\\"])))
-							inst.Par[par] = inst.Par[par].substr(1);
 					}
+
 					await compileInstance(pidapx, inst);
 
 					var schema = await new Promise(async (res, rej) => {
@@ -977,7 +1028,7 @@
 
 		await start();
 
-		fun(null, ("Top" in KeyPid) ? KeyPid["Top"] : null, KeyPid);
+		fun(null, ("Top" in symbols) ? symbols["Top"] : null, symbols);
 
 
 		/**

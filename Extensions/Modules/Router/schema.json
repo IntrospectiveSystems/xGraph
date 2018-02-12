@@ -1,6 +1,6 @@
 {
 	"Apex": {
-		"$Start": "Start",
-		"Entity": "Router.js"
+		"Entity": "Router.js",
+		"$Setup": "Setup"
 	}
 }

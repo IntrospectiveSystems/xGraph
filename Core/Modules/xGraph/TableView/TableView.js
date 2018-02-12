@@ -75,6 +75,11 @@
 						'background-color': '#f8f8f8'
 					});
 					
+					superStyle('table.table > tbody > tr:hover ', {
+						'background-color': '#efefef',
+						'cursor': 'pointer'
+					});
+					
 					superStyle('span.notAvailable', {
 						'color': 'rgba(0,0,0,.5)'
 					});
@@ -82,16 +87,17 @@
 				}
 
 				if (fun)
-					fun(err, com);ZX
+					fun(err, com);
 			});
 
 		}
 
 		async DataUpdate(com, fun) {
-
-			await this.ascend("AddRows", {
-				Rows: com.Data,
-				Evoke: evoke
+			let data = await this.ascend("GetData", {}, this.Par.Source);
+			// add rows
+			this.ascend("SetRows", {
+				Rows: data.Data
+				// Evoke: evoke
 			});
 			fun(null, com);
 		}
@@ -121,7 +127,8 @@
 				});
 
 				// see: DataUpdate
-				await this.ascend('Subscribe', {}, this.Par.Source);
+				// debugger;
+				await this.ascend('Subscribe', {Pid: this.Par.Pid}, this.Par.Source);
 	
 				let data = await this.ascend("GetData", {}, this.Par.Source);
 				// add rows
@@ -209,8 +216,8 @@
 			for (let rowIdx = 0; rowIdx < com.Rows.length; rowIdx++) {
 
 				row = com.Rows[rowIdx];
-
-				str = `<tr>`;
+				// debugger;
+				str = `<tr pid="${row.Pid}" class=${this.id('EvokeButton')}>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
 					if(typeof row[key] == 'object' && 'Value' in row[key]) {
@@ -223,7 +230,7 @@
 				}
 				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
-					str += `<td><a href='#' class=${this.id('EvokeButton')} pid="${row.Pid}">${com.Evoke}</a></td>`;
+					str += `<td><a href='#' pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}
 
 				str += `</tr>`;
