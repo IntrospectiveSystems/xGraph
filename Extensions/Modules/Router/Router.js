@@ -27,8 +27,7 @@
 
 		this.Par.Table.push(com.Pid);
 
-		if (fun)
-			fun(null, com);
+		this.save(_ => fun(null, com));
 	}
 
 	async function Send(com, fun){

@@ -167,7 +167,7 @@
 			Vlt.Server = true;
 			Vlt.Socks = [];
 			net.createServer(function (sock) {
-				log.i('#### Portal connection from',
+				log.v('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
 				Vlt.Socks.push(sock);
 				sock._userData = {};
@@ -245,7 +245,7 @@
 								// -------------------------- Pid interchange
 								if (r.PidInterchange && 'Pool' in that.Par) {
 
-									log.d(`read pid interchange for command`, r);
+									// log.d(`read pid interchange for command`, r);
 									r = await recurse(r);
 
 									async function recurse(obj) {
