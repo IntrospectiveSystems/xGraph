@@ -14,6 +14,9 @@
 			
 			this.super(com, (err, cmd) => {
 
+
+				this.formatDate = (date) => `${('Sun Mon Tue Wed Thu Fri Sat'.split(' '))[date.getDay()]}, ${('Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' '))[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
 				this.Vlt.table = $(document.createElement('table'));
 				this.Vlt.table.addClass('sortable');
 				this.Vlt.table.addClass('table');
@@ -220,13 +223,25 @@
 				str = `<tr pid="${row.Pid}" class=${this.id('EvokeButton')}>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
+					let format = this.Vlt.headers[colIdx].Format || "";
 					if(typeof row[key] == 'object' && 'Value' in row[key]) {
 						row[key] = row[key].Value;
 					}
 					if (key == 'id')
 						str += `<th>${(row[key] || 'NA')}</th>`;
-					else
-						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
+					else {
+						switch(format) {
+							case "Date": {
+								str += `<td>${(this.formatDate(new Date(row[key])) || '<span class="notAvailable">NA</span>')}</td>`;
+								break;
+							}
+							default: {
+								str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
+								break;
+							}
+						}
+
+					}
 				}
 				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
