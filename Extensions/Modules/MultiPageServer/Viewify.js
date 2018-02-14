@@ -332,6 +332,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let views = this.Vlt.views.slice(0);
 
 			this.Vlt.viewDivs = [];
+			this.Vlt.views = [];
 			for (let pid of views)
 				await this.ascend('AddView', { View: pid }, this.Par.Pid);
 
@@ -353,6 +354,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let that = this;
 			let vlt = this.Vlt;
 			if (!('views' in vlt)) vlt.views = [];
+			if(this.Vlt.views.indexOf(com.View) > -1) return fun(null, com);
 			vlt.views.push(com.View);
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
