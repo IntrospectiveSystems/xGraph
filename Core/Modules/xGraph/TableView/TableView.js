@@ -49,7 +49,11 @@
 						'color': '#292b2c'
 					});
 
-					superStyle('table.table > thead', {
+					superStyle('table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after', {
+						"content": "\" \\25B4\\25BE\"" 
+					});
+
+					superStyle('table.table > thead, table.table > thead span', {
 						'background-color': ' #292b2c',
 						'color': 'white',
 						'height': '43px'
@@ -195,6 +199,8 @@
 			this.Vlt.rows = [];
 			this.Vlt.tablebody.children().remove();
 			await this.ascend('AddRows', com);
+
+
 			fun(null, com);
 
 		}
@@ -252,6 +258,9 @@
 
 				this.Vlt.tablebody.append($(str));
 			}
+
+			//do the sort thing
+			sorttable.makeSortable(this.Vlt.table[0]);
 			
 			let that = this;
 			$(`.${this.id('EvokeButton')}`).on('click', function() {
