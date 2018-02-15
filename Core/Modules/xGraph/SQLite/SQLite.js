@@ -2,7 +2,8 @@
 (/**
  *  The SQLite entity is an adapter that allows xGraph to communicate with SQLite databases.
  *  This entity wraps the npm module SQLite3.
- *  @param {String=} this.Par.Filename   The filename for the SQLite database being accessed.
+ *  @param {String=} this.Par.Filename   The filename for the SQLite database being accessed. If no filename is
+ *                                          provided, the database will be stored in memory.
  *  @param {String=} this.Par.Mode       The mode for opening the database.
  */
 function SQLite() {
@@ -83,7 +84,7 @@ function SQLite() {
          *              with a rendering of the statement text.
          *  - profile: provide a function callback. Invoked every time an SQL statement executes.
          *  - busyTimeout: provide an integer as a value. Sets the busy timeout.
-         * @param {object} com          The configuration object.
+         * @param {object} com          The command object.
          * @param {String} com.Option   trace | profile | busyTimeout
          * @param {*} com.Value             If Option is trace or profile, com.Value is a function. For busyTimeout,
          *                                  com.Value is an integer.
