@@ -82,7 +82,8 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					let arr = [];
 					for (let obj of str) {
 						if (typeof obj == 'object') {
-							if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+							if (obj == null) arr.push('NULL');
+							else if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
 							else {
 								try {
 									arr.push(JSON.stringify(obj, null, 2));
@@ -279,6 +280,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * Call setup on the required Module Apexes
 		 */
 		async function setup() {
+			log.i(`--Nexus/Setup`);
 			//build the setup promise array
 			let setupArray = [];
 
@@ -301,6 +303,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * Call Start on the required Module Apexes
 		 */
 		async function start() {
+			log.i(`--Nexus/Start`);
 			//build the setup promise array
 			let startArray = [];
 
@@ -815,7 +818,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 */
 	async function addModule(modName, modZip, fun){
 		//modZip is the uint8array that can be written directly to the cache directory
-		if (process.argv.indexOf('--allow-add-module')>-1){
+		if (process.argv.indexOf('--allow-add-module') > -1){
 			ModCache[modName] = await new Promise(async (res, rej) => {
 				let zip = new jszip();
 				zip.loadAsync(modZip).then((mod) => res(mod));

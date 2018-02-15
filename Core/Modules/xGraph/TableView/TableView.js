@@ -230,19 +230,25 @@
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
 					let format = this.Vlt.headers[colIdx].Format || "";
+					let lookup = this.Vlt.headers[colIdx].Enum;
+					let sortOverride = "";
 					if(typeof row[key] == 'object' && 'Value' in row[key]) {
 						row[key] = row[key].Value;
 					}
+					if (lookup) {
+						sortOverride = row[key];
+						row[key] = lookup[row[key]];
+					}
 					if (key == 'id')
-						str += `<th>${(row[key] || 'NA')}</th>`;
+						str += `<th ${lookup ? `sorttable_customkey="${sortOverride}"` : ''}>${(row[key] || 'NA')}</th>`;
 					else {
 						switch(format) {
 							case "Date": {
-								str += `<td>${(this.formatDate(new Date(row[key])) || '<span class="notAvailable">NA</span>')}</td>`;
+								str += `<td ${lookup ? `sorttable_customkey="${sortOverride}"` : ''}>${(this.formatDate(new Date(row[key])) || '<span class="notAvailable">NA</span>')}</td>`;
 								break;
 							}
 							default: {
-								str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
+								str += `<td ${lookup ? `sorttable_customkey="${sortOverride}"` : ''}>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
 								break;
 							}
 						}

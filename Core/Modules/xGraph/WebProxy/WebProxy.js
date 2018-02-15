@@ -33,7 +33,7 @@
 			if(com.PidInterchange) {
 				let table = [];
 				com = await recurse(com);
-				console.table(table);
+				// console.table(table);
 
 				async function recurse(obj) {
 					if('Format' in obj
