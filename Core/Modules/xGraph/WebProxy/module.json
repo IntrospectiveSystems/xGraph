@@ -1,10 +1,4 @@
 {
-  "name": "WebProxy",
-  "version": "1.0.0",
-  "doc": "README.md",
-  "info":{
-    "author":"Introspective Systems, LLC."
-  },
   "input": {
     "required":[],
     "optional":[]
@@ -17,6 +11,11 @@
     "required":{
       "Link": "string"
     },
-    "optional":{}
-  }
+    "optional":[]
+  },
+  "name": "WebProxy",
+  "icon": null,
+  "doc": null,
+  "info":{"author":"Introspective Systems, LLC."},
+  "src": "xGraph:Web/WebProxy"
 }

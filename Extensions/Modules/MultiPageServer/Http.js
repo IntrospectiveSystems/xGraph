@@ -255,7 +255,6 @@
 				var Sockets = Vlt.Sockets;
 	
 				listener.sockets.on('connection', function (socket) {
-					// log.d('socket!!!');
 					var pidsock = '';
 					for(var i=0; i<3; i++)
 						pidsock += that.genPid();
@@ -281,7 +280,6 @@
 					socket.on('message', async function (msg) {
 						// debugger;
 						let err, com = JSON.parse(msg);
-						// log.d('msg', err, com);
 						if(Array.isArray(com))
 							[err, com] = com; // deconstruct the array in com, if it is one.
 
@@ -297,6 +295,7 @@
 						}
 						if(com.Cmd == 'Subscribe') {
 							obj.User.Publish[com.Link] = com.Pid;
+							reply(null, com);
 							return;
 						}
 						if(com.Cmd == 'GetConfig') {
@@ -326,7 +325,6 @@
 						
 						
 						if('Authentication' in com.Passport) {
-							log.d(JSON.stringify(com.Passport.Authentication, null, 2))
 							//if there is an authentication passport
 							com.Passport.Authentication.Valid = false;
 							// actually do validation here
@@ -362,14 +360,15 @@
 
 							// -------------------------- Pid interchange
 							if(com.PidInterchange) {
-								// log.d('read pid interchange!');
+								// log.d(`read pid interchange for command`, com);
 								com = await recurse(com);
 
 								async function recurse(obj) {
 									if('Format' in obj 
-									&& 'Value' in obj 
-									&& obj.Value.match(/^[A-Z0-9]{32}$/) != null
-									&& obj.Format == 'is.xgraph.pid') {
+										&& 'Value' in obj
+										&& typeof obj.Value == 'string'
+										&& obj.Value.match(/^[A-Z0-9]{32}$/) != null
+										&& obj.Format == 'is.xgraph.pid') {
 										let pid = obj.Value;
 										let Tag = await new Promise(resolve => {
 											that.send({
@@ -385,6 +384,7 @@
 										});
 										obj.Value = Tag;
 										obj.Format = 'is.xgraph.webproxytag';
+										log.i(`${pid} -> ${Tag}`);
 										return obj;
 									}
 									for(let key in obj) {
@@ -421,11 +421,6 @@
 							else {
 								cfg.Error = 404;
 							}
-							// log.d('----------------- cfg');
-							// for(let k in cfg) {
-							// 	log.d(`[${k}]: ${cfg[k].toString().substr(0, 100)}`);
-							// }
-							// log.d('---------------------');
 
 							socket.send(JSON.stringify(cfg, null, 2));
 						}
@@ -476,7 +471,7 @@
 		this.Par.ApexList[tag] = com.Pid;
 		com.Tag = tag;
 
-		fun(null, com);
+		this.save(_ => fun(null, com));
 	}
 	
 	//-------------------------------------------------------Publish

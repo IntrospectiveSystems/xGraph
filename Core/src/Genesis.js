@@ -36,7 +36,7 @@
 					}
 				});
 			};
-			// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+			// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 			// Levels include:
 			// v : verbose		Give too much information
 			// d : debug		For debugging purposes not in production level releases
@@ -65,8 +65,6 @@
 					xgraphlog(new Date().toString(), ...str);
 				},
 				parse: (str) => {
-					// process.stdout.write(`parse array ${str.length}`)
-
 					try {
 						let arr = [];
 						for (let obj of str) {
@@ -79,6 +77,8 @@
 										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
 									}
 								}
+							} else if (typeof obj == 'undefined') {
+								arr.push('undefined');
 							} else {
 								arr.push(obj.toString());
 							}
@@ -261,6 +261,7 @@
 		async function genesis() {
 			log.i('=================================================');
 			log.i(`Genesis Compile Start:`);
+
 
 			generateModuleCatalog();
 
@@ -1293,7 +1294,6 @@
 							Config[key] = val;
 						}
 					}
-					log.d(JSON.stringify(Config, null, 2));
 				}
 			});
 		}

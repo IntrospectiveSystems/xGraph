@@ -22,10 +22,16 @@
 	function Publish(com, fun = _=>_) {
 		log.v(`Publishing from ${this.Par.Link} ServerProxy: ${com.Cmd}`);
 		
-		//set the destination on the browser side
-		com.Forward = this.Par.Link;
+		if ('Server' in this.Par) {
+			com.Forward = this.Par.Link;
+			this.send(com, this.Par.Server, fun);
+		} else {
+			log.w(`this.Par.Server not set in ServerProxy (${this.Par.Link || ""})`);
+			fun('No Server Reference', com);
+		}
 
-		this.send(com, this.Par.Server, fun);
+
+		//set the destination on the browser side
 	}
 
 

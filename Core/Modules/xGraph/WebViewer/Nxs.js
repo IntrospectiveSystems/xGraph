@@ -32,7 +32,7 @@ __Nexus = (_ => {
 	// Logging Functionality
 	//
 	{
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
 		// v : verbose		Give too much information 
 		// d : debug		For debugging purposes not in production level releases
