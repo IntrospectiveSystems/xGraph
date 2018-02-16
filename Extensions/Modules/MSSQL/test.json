@@ -27,7 +27,8 @@
         }
       },
       "Response": {
-        "Cmd": "Query"
+        "Cmd": "Query",
+        "Result": "*"
       }
     },
     {
@@ -38,7 +39,7 @@
           "Inputs": [
             {
               "name": "table",
-              "type": "VarChar(50)",
+              "type": "VarChar",
               "value": "TestSchema.Employees"
             }
           ],
@@ -49,17 +50,18 @@
             },
             {
               "name": "Name",
-              "type": "VarChar(50)"
+              "type": "VarChar"
             },
             {
               "name": "Location",
-              "type": "VarChar(50)"
+              "type": "VarChar"
             }
           ]
         }
       },
       "Response": {
-        "Cmd": "Query"
+        "Cmd": "Query",
+        "Result": "*"
       }
     },
     {

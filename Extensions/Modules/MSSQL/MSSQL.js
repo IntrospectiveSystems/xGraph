@@ -81,8 +81,7 @@
                     log.i(name);
                     log.i(type);
                     values[name] = inputs[i].value;
-                    log.i("here");
-                    statement.input(name, type);
+                    statement.input(name, mssql.VarChar);
                 }
             }
 
@@ -90,12 +89,10 @@
                 for (let i = 0; i < outputs.length; i++) {
                     let name = outputs[i].name;
                     let type = outputs[i].type;
-                    statement.output(name, type);
+                    statement.output(name, mssql.VarChar);
                 }
             }
 
-            if (fun)
-                fun(errors, com);
 
 
             statement.prepare(sql, callback);
@@ -104,22 +101,29 @@
                 if (err) {
                     log.e(err);
                     errors = err;
+                    backcall();
+                } else {
+
+                    statement.execute(values, backcall);
+
                 }
-
-                statement.execute(values, backcall);
-
                 function backcall(err, result) {
                     if (err) {
                         log.e(err);
                         errors = err;
                     }
 
-                    log.i(result);
+                    com.Result = result;
+
                     if (fun)
                         fun(errors, com);
                 }
             }
 
+
+            function GetDatatype(type){
+
+            }
 
 		}
 
