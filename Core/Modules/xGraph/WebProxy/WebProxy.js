@@ -71,7 +71,7 @@
 	}
 
 	async function Subscribe(com, fun) {
-		com.Link = this.Par.Link;
+		com.Link = com.Link || this.Par.Link;
 		com.Pid = com.Pid || com.Passport.From;
 		this.Par.sendSock(com, async _ => {
 			// debugger;
