@@ -14,6 +14,9 @@
 			
 			this.super(com, (err, cmd) => {
 
+
+				this.formatDate = (date) => `${('Sun Mon Tue Wed Thu Fri Sat'.split(' '))[date.getDay()]}, ${('Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' '))[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
 				this.Vlt.table = $(document.createElement('table'));
 				this.Vlt.table.addClass('sortable');
 				this.Vlt.table.addClass('table');
@@ -46,7 +49,11 @@
 						'color': '#292b2c'
 					});
 
-					superStyle('table.table > thead', {
+					superStyle('table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after', {
+						"content": "\" \\25B4\\25BE\"" 
+					});
+
+					superStyle('table.table > thead, table.table > thead span', {
 						'background-color': ' #292b2c',
 						'color': 'white',
 						'height': '43px'
@@ -192,6 +199,8 @@
 			this.Vlt.rows = [];
 			this.Vlt.tablebody.children().remove();
 			await this.ascend('AddRows', com);
+
+
 			fun(null, com);
 
 		}
@@ -220,13 +229,31 @@
 				str = `<tr pid="${row.Pid}" class=${this.id('EvokeButton')}>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
+					let format = this.Vlt.headers[colIdx].Format || "";
+					let lookup = this.Vlt.headers[colIdx].Enum;
+					let sortOverride = "";
 					if(typeof row[key] == 'object' && 'Value' in row[key]) {
 						row[key] = row[key].Value;
 					}
+					if (lookup) {
+						sortOverride = row[key];
+						row[key] = lookup[row[key]];
+					}
 					if (key == 'id')
-						str += `<th>${(row[key] || 'NA')}</th>`;
-					else
-						str += `<td>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
+						str += `<th ${lookup ? `sorttable_customkey="${sortOverride}"` : ''}>${(row[key] || 'NA')}</th>`;
+					else {
+						switch(format) {
+							case "Date": {
+								str += `<td ${lookup ? `sorttable_customkey="${sortOverride}"` : ''}>${(this.formatDate(new Date(row[key])) || '<span class="notAvailable">NA</span>')}</td>`;
+								break;
+							}
+							default: {
+								str += `<td ${lookup ? `sorttable_customkey="${sortOverride}"` : ''}>${(row[key] || '<span class="notAvailable">NA</span>')}</td>`;
+								break;
+							}
+						}
+
+					}
 				}
 				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
@@ -237,6 +264,9 @@
 
 				this.Vlt.tablebody.append($(str));
 			}
+
+			//do the sort thing
+			sorttable.makeSortable(this.Vlt.table[0]);
 			
 			let that = this;
 			$(`.${this.id('EvokeButton')}`).on('click', function() {

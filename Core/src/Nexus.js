@@ -57,23 +57,23 @@
 		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
 			v: (...str) => {
-				process.stdout.write(`\u001b[90;7m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			d: (...str) => {
-				process.stdout.write(`\u001b[35;7m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			i: (...str) => {
-				process.stdout.write(`\u001b[36;7m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			w: (...str) => {
-				process.stdout.write(`\u001b[33;7m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			e: (...str) => {
-				process.stdout.write(`\u001b[31;7m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			parse: (str) => {
@@ -81,7 +81,8 @@
 					let arr = [];
 					for (let obj of str) {
 						if (typeof obj == 'object') {
-							if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+							if (obj == null) arr.push('NULL');
+							else if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
 							else {
 								try {
 									arr.push(JSON.stringify(obj, null, 2));
@@ -278,6 +279,7 @@
 		 * Call setup on the required Module Apexes
 		 */
 		async function setup() {
+			log.i(`--Nexus/Setup`);
 			//build the setup promise array
 			let setupArray = [];
 
@@ -300,6 +302,7 @@
 		 * Call Start on the required Module Apexes
 		 */
 		async function start() {
+			log.i(`--Nexus/Start`);
 			//build the setup promise array
 			let startArray = [];
 
@@ -811,7 +814,7 @@
 	 */
 	async function addModule(modName, modZip, fun){
 		//modZip is the uint8array that can be written directly to the cache directory
-		if (process.argv.indexOf('--allow-add-module')>-1){
+		if (process.argv.indexOf('--allow-add-module') > -1){
 			ModCache[modName] = await new Promise(async (res, rej) => {
 				let zip = new jszip();
 				zip.loadAsync(modZip).then((mod) => res(mod));

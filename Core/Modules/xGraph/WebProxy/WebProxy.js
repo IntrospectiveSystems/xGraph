@@ -33,7 +33,7 @@
 			if(com.PidInterchange) {
 				let table = [];
 				com = await recurse(com);
-				console.table(table);
+				// console.table(table);
 
 				async function recurse(obj) {
 					if('Format' in obj
@@ -71,7 +71,7 @@
 	}
 
 	async function Subscribe(com, fun) {
-		com.Link = this.Par.Link;
+		com.Link = com.Link || this.Par.Link;
 		com.Pid = com.Pid || com.Passport.From;
 		this.Par.sendSock(com, async _ => {
 			// debugger;

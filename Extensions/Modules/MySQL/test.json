@@ -1,0 +1,55 @@
+{
+  "State": {
+    "ConnectionObject": {
+      "host": "localhost",
+      "user": "User1",
+      "password": "password",
+      "database": "world"
+    }
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd": "Setup"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Start"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Query",
+        "QueryObject": {
+          "sql": "SELECT * FROM city WHERE id < 3"
+        }
+      },
+      "Response": {
+        "Cmd": "Query",
+        "Results": [
+          {
+            "ID": 1,
+            "Name": "Kabul",
+            "CountryCode": "AFG",
+            "District": "Kabol",
+            "Population": 1780000
+          },
+          {
+            "ID": 2,
+            "Name": "Qandahar",
+            "CountryCode": "AFG",
+            "District": "Qandahar",
+            "Population": 237500
+          }
+        ],
+        "Fields": "*"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Disconnect"
+      }
+    }
+  ]
+}
