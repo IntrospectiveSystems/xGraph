@@ -1105,7 +1105,7 @@ __Nexus = (_ => {
 			let mod = ModCache[inst.Module];
 
 			let pidapx = genPid();
-			ApexIndex[pidapx] = mod.ModName;
+			ApexIndex[pidapx] = inst.Module;
 			Root.ApexList[pidapx] = pidapx;
 			await compileInstance(pidapx, inst, false);
 
@@ -1115,7 +1115,7 @@ __Nexus = (_ => {
 						res(JSON.parse(schemaString));
 					});
 				} else {
-					log.e('Module <' + modnam + '> schema not in ModCache');
+					log.e('Module <' + inst.Module + '> schema not in ModCache');
 					res()
 					return;
 				}
@@ -1140,7 +1140,7 @@ __Nexus = (_ => {
 			function start() {
 				if (!("$Start" in schema.Apex)) {
 					fun(null, pidapx);
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
+					log.v(`The genModule ${inst.Module} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
@@ -1149,7 +1149,7 @@ __Nexus = (_ => {
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
+					log.v(`The genModule ${inst.Module} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}
