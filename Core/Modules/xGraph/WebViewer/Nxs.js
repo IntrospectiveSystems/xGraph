@@ -40,11 +40,11 @@ __Nexus = (_ => {
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		window.log = {
-			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
-			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
-			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
-			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color:yellow;background-color:#242424;'),
-			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+			v: console.log.bind(window.console, `%c[VRBS] %s`, 'color: gray'),
+			d: console.log.bind(window.console, `%c[DBUG] %s`, 'color: magenta'),
+			i: console.log.bind(window.console, `%c[INFO] %s`, 'color: cyan; background-color:#242424;'),
+			w: console.log.bind(window.console, `%c[WARN] %s`, 'color: yellow; background-color:#242424;'),
+			e: console.log.bind(window.console, `%c[ERRR] %s`, 'color: red')
 		};
 	}
 
@@ -1088,7 +1088,7 @@ __Nexus = (_ => {
 			let mod = ModCache[inst.Module];
 
 			let pidapx = genPid();
-			ApexIndex[pidapx] = mod.ModName;
+			ApexIndex[pidapx] = inst.Module;
 			Root.ApexList[pidapx] = pidapx;
 			await compileInstance(pidapx, inst, false);
 
@@ -1098,7 +1098,7 @@ __Nexus = (_ => {
 						res(JSON.parse(schemaString));
 					});
 				} else {
-					log.e('Module <' + modnam + '> schema not in ModCache');
+					log.e('Module <' + inst.Module + '> schema not in ModCache');
 					res()
 					return;
 				}
@@ -1123,7 +1123,7 @@ __Nexus = (_ => {
 			function start() {
 				if (!("$Start" in schema.Apex)) {
 					fun(null, pidapx);
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
+					log.v(`The genModule ${inst.Module} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
@@ -1132,7 +1132,7 @@ __Nexus = (_ => {
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
+					log.v(`The genModule ${inst.Module} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}

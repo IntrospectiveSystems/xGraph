@@ -214,7 +214,7 @@
 				log.v("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
 				if (typeof document != "undefined") {
 
-					inst.Module = "xGraph.Widgets.RootView";
+					inst.Module = "xGraph.RootView";
 					inst.Par = {
 						Layout: instApex
 					};

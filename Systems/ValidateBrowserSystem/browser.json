@@ -4,20 +4,20 @@
 	},
 	"Modules": {
 		"ValidateModule": {
-			"Module": "xGraph.ValidateModule",
+			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Widgets.2DView",
-				"TestJson": "@file: ../../Widgets/2DView/test.json"
+				"TestModule": "xGraph.Menubar",
+				"TestJson": "@file: ../../Core/Modules/xGraph/Menubar/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Widgets.2DView",
+				"Module": "xGraph.RootView",
 				"Source": "xGraph"
 			},
 			{
-				"Module": "xGraph.Widgets.RootView",
+				"Module": "xGraph.Menubar",
 				"Source": "xGraph"
 			}
 		]

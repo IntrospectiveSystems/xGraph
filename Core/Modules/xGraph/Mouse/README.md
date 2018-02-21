@@ -27,7 +27,7 @@ One Par must be set in the module definition.
 An example of how this looks in the module definition of a config.json
 ``` json
 {
-	"Module": "xGraph.Widgets.Mouse",
+	"Module": "xGraph.Mouse",
 	"Par": {
 		"Handler": "xGraphPid"
 	}

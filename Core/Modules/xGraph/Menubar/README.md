@@ -21,7 +21,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.Menubar",
+    "Module": "xGraph.Menubar",
     "Par": {
         "Buttons": [
             {
@@ -50,7 +50,7 @@ For example, lets say we want a page with an Ace Text editor and a menu bar. To 
 ``` json
 {
     "RootView": {
-        "Module": "xGraph.Widgets.RootView",
+        "Module": "xGraph.RootView",
         "Par": {
             "Layout": {
                 "View": "$Menubar",
@@ -61,7 +61,7 @@ For example, lets say we want a page with an Ace Text editor and a menu bar. To 
         }
     },
     "Menubar": {
-        "Module": "xGraph.Widgets.Menubar",
+        "Module": "xGraph.Menubar",
         "Par": {
             "Buttons": [
                 {
@@ -80,7 +80,7 @@ For example, lets say we want a page with an Ace Text editor and a menu bar. To 
         }
     },
     "Editor": {
-        "Module": "xGraph.Widgets.AceEditorView",
+        "Module": "xGraph.AceEditorView",
         "Par": {}
     }
 }
@@ -103,7 +103,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.Menubar",
+    "Module": "xGraph.Menubar",
     "Par": {
         "Buttons": [
             {
