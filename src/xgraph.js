@@ -124,20 +124,19 @@ function help() {
 	console.log(`
 		xGraph ${version}
 		Introspective Systems LLC
-		
+
 		Compile and Run xGraph systems with a few simple commands.
-		
+
 		Unless otherwise specified, commands will look in the current working
 		directory for a config.json file or cache directory, depending on the
 		command.
-		
+
 		If the system includes local module sources, these must be listed after
 		the command and options, [--source directory ...].
-		
-		xGraph
-		
+
+
 		Usage: xgraph [command] [options] [--source directory ...]
-		
+
 		Command:
 		\x20\x20help         h                    : Displays this help screen.
     \x20\x20compile      c                    : Generates a cache from a system
@@ -159,16 +158,16 @@ function help() {
     \x20\x20                                    for the command.
 		\x20\x20--config                          : Specifies a system's structure file.
 		\x20\x20--cache                           : Specifies a system's cache directory.
-		\x20\x20--allow-add-module                : Enable a module to add new modules 
-		                                            to the in memory Module cache.
-		
+		\x20\x20--allow-add-module                : Enable a module to add new modules
+    \x20\x20                                    to the in memory Module cache.
+		\n
 		Examples:
 		\x20\x20Compile the system in the current directory.
 		\x20\x20\x20\x20\x20\x20xgraph compile
 		\n
 		\x20\x20Deploy a module from a system structure file.
 		\x20\x20\x20\x20\x20\x20xgraph deploy --config .\\ExampleSystems\\HelloWorld\\config.json
-		\n	
+		\n
 		\x20\x20Reset a system in a different working directory with an external source.
 		\x20\x20\x20\x20\x20\x20xgraph reset --cwd .\\Systems\\Plexus\\ ..\\..\\xGraphTemplates
 		\n
@@ -538,7 +537,7 @@ function initModule(names) {
 
 		\t\tStart(com, fun){
 		\t\t\t//this function is typically used to allow the entity/module to handle any external setup
-		\t\t\t//procedures 
+		\t\t\t//procedures
 
 		\t\t\tfun(null, com);
 		\t\t}
