@@ -15,7 +15,7 @@ Example
 ``` json
 {
     "RootView": {
-        "Module": "xGraph.Widgets.RootView",
+        "Module": "xGraph.RootView",
         "Par": {
             "Layout": {
                 "View": "$Panel",
@@ -27,15 +27,15 @@ Example
         }
     },
     "Menubar": {
-        "Module": "xGraph.Widgets.PanelView",
+        "Module": "xGraph.PanelView",
         "Par": {}
     },
     "EditorLeft": {
-        "Module": "xGraph.Widgets.AceEditorView",
+        "Module": "xGraph.AceEditorView",
         "Par": {}
     },
     "EditorRight": {
-        "Module": "xGraph.Widgets.AceEditorView",
+        "Module": "xGraph.AceEditorView",
         "Par": {}
     }
 }
@@ -51,7 +51,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.PanelView",
+    "Module": "xGraph.PanelView",
     "Par": {
       "Ratio": 0.33
     }
@@ -64,7 +64,7 @@ To change the flow from Left to Right to Top to Bottom, set `"Horizontal": true`
 
 ``` json
 {
-    "Module": "xGraph.Widgets.PanelView",
+    "Module": "xGraph.PanelView",
     "Par": {
       "Horintal": true
     }
