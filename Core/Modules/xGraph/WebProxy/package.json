@@ -1,6 +1,6 @@
 {
   "name": "webproxy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Proxies communications from the browser to the server",
   "main": "WebProxy.js",
   "scripts": {
