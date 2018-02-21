@@ -4,16 +4,16 @@
 	},
 	"Modules": {
 		"Server": {
-			"Module": "xGraph.ValidateModule",
+			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Perceptron",
-				"TestJson": "@file: ../../Perceptron/test.json"
+				"TestModule": "xGraph.NeDB",
+				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/NeDB/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Perceptron",
+				"Module": "xGraph.NeDB",
 				"Source": "xGraph"
 			}
 		]
