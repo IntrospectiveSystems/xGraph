@@ -642,25 +642,25 @@
 						fun(null, dat);
 					});
 
-					async function zipDirChidren(ziproot, contianingPath) {
+					async function zipDirChidren(ziproot, containingPath) {
 						let files;
 						try {
-							files = fs.readdirSync(contianingPath);
+							files = fs.readdirSync(containingPath);
 						} catch (err) {
-							err += 'Module <' + contianingPath + '? not available'
+							err += 'Module <' + containingPath + '? not available'
 							log.e(err);
 							fun(err);
 							return;
 						}
 						if (!files) {
-							err += 'Module <' + contianingPath + '? not available'
+							err += 'Module <' + containingPath + '? not available'
 							log.e(err);
 							fun(err);
 							return;
 						}
 						for (let ifile = 0; ifile < files.length; ifile++) {
 							var file = files[ifile];
-							var path = contianingPath + '/' + file;
+							var path = containingPath + '/' + file;
 							let stat = await new Promise(async (res, rej) => {
 								fs.lstat(path, (err, stat) => {
 									if (err) rej(err)
