@@ -81,3 +81,7 @@ Example
 }
 ```
 
+## DataUpdate
+
+When a DataUpdate Command is received, the Table will send a GetData to it's
+source, if it has one, and then sets the Tables Rows to the Data it received.

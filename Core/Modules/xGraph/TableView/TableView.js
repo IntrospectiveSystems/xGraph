@@ -99,6 +99,16 @@
 
 		}
 
+		/**
+		 * @description Signal to the table that there is new data
+		 * in `this.Par.Source`. This will trigger sending
+		 * a `GetData` to source and setting the table's rows
+		 * to the data received.
+		 * 
+		 * @param {object} com 
+		 * @param {function} fun
+		 * @memberof TableView
+		 */
 		async DataUpdate(com, fun) {
 			let data = await this.ascend("GetData", {}, this.Par.Source);
 			// add rows
@@ -194,6 +204,19 @@
 				fun(null, com);
 		}
 
+		/**
+		 * @description
+		 * Clears previous rows from the table, then
+		 * appendss `com.Rows`.
+		 * 
+		 * See: `AddRows`
+		 * 
+		 * Internal Use only
+		 * @param {object} com
+		 * @param {object[]} com.Rows
+		 * @param {function} fun
+		 * @memberof TableView
+		 */
 		async SetRows(com, fun) {
 
 			this.Vlt.rows = [];
@@ -206,8 +229,8 @@
 		}
 
 		/**
-		 * @description Create the tbody, trs, and tds and
-		 * append them to the table.
+		 * @description Creates required DOM to add
+		 * `com.Rows` to the table.
 		 * 
 		 * internal use only
 		 * @param {object} com 
