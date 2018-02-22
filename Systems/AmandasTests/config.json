@@ -7,13 +7,13 @@
 			"Module": "Core.Modules.xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "Extensions.Modules.CSV",
-				"TestJson": "@file: ../../Extensions/Modules/CSV/testWithHeader.json"
+				"TestModule": "Core.Modules.xGraph.WebViewer",
+				"TestJson": "@file: ../../Core/Modules/xGraph/WebViewer/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "Extensions.Modules.CSV",
+				"Module": "Core.Modules.xGraph.WebViewer",
 				"Source": "xGraph"
 			}
 		]
