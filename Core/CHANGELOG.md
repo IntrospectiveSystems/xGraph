@@ -17,7 +17,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Proxy changed (we are figuring out how)
 - Core modules moved from ./Modules/ to ./Modules/xGraph/
 - A system's cache now holds a .zip of each module.
-
-### Removed
-
-
