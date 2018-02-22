@@ -1,4 +1,4 @@
-# Perceptron 
+# Perceptron
 
 v1.0.0
 
@@ -10,21 +10,21 @@ Introspective Systems, LLC.
 
 The Perceptron entity is the Apex and only entity of the Perceptron Module. This entity requres its Setup function invoked during the Setup phase of Nexus startup.
 
-The main capability of this entity is to initialize and work with a neataptic.js perceptron network. 
+The main capability of this entity is to initialize and work with a neataptic.js perceptron network.
 
 ---
 
 ### Module Definition Parameters
 
-Parameters are defined in the module definition and stored in the Par attribute 
+Parameters are defined in the module definition and stored in the Par attribute
 of the Entities this attribute.
 Some are required, while some are optional. Below, the Parameters
 that Perceptron expects to be defined.
 
-Three Pars can be set in the module definition, but they are all optional. 
+Three Pars can be set in the module definition, but they are all optional.
 
 
-`{"InitializeOnSetup":"Boolean"}` - where the Boolean, if set to true calls the initialize command during the Setup Phase. 
+`{"InitializeOnSetup":"Boolean"}` - where the Boolean, if set to true calls the initialize command during the Setup Phase.
 
 `{"TrainingSetSize":"Integer"}` - where the Integer defines the number of I/O sets in the training set.
 
@@ -34,8 +34,7 @@ An example of how this looks in the module definition of a config.json
 ``` json
 {
   "Perceptron": {
-    "Module": "xGraph:Perceptron",
-    "Source": "xGraph",
+    "Module": "xGraph.Perceptron",
     "Par": {
       "NetworkDimensions": [2,3,4,4,2],
       "TrainingSetSize": 2000,
@@ -59,7 +58,7 @@ receive.
 
 Initialize the neural network.
 
-Example: 
+Example:
 
 ```json
 {
@@ -73,7 +72,7 @@ Example:
 
 ```json
 {
- "Cmd": "Train", 
+ "Cmd": "Train",
  "Input": [0,1],
  "Output": [1]
 }
