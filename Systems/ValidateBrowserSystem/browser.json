@@ -7,8 +7,8 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Menubar",
-				"TestJson": "@file: ../../Core/Modules/xGraph/Menubar/test.json"
+				"TestModule": "xGraph.TableView",
+				"TestJson": "@file: ../../Core/Modules/xGraph/TableView/test.json"
 			}
 		},
 		"Deferred": [
@@ -17,7 +17,7 @@
 				"Source": "xGraph"
 			},
 			{
-				"Module": "xGraph.Menubar",
+				"Module": "xGraph.TableView",
 				"Source": "xGraph"
 			}
 		]

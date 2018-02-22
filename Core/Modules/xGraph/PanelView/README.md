@@ -8,7 +8,7 @@ Introspective Systems, LLC.
 
 ## Getting Started
 
-The Most Basic Panel Require no Pars. by default it will fill the space proveided by its parent, split it in half veritcally (one panel on the left, one on the right), and place its first two children inside the panels.
+The Most Basic Panel Requires no Pars. By default it will fill the space proveided by its parent, split it in half veritcally (one panel on the left, one on the right), and place its first two children inside the panels.
 
 Example
 
@@ -26,7 +26,7 @@ Example
             }
         }
     },
-    "Menubar": {
+    "Panel": {
         "Module": "xGraph.PanelView",
         "Par": {}
     },
@@ -43,7 +43,7 @@ Example
 
 ## Panel Sizing
 
-To change the sizes of the panels There is a parameter called Ratio. It is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
+To change the sizes of the panels there is a parameter called Ratio. It is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
 
 For example, if you wanted the left panel to be a third of the overall space, you would set `"Ratio": 0.33`
 
