@@ -162,18 +162,20 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		Setup(com, fun) {
 			let vlt = this.Vlt;
-			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
-			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
 			vlt.viewDivs = [];
+
+			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
+			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
+			
 			vlt.root = DIV(vlt.rootID);
 			vlt.root.attr('viewPid', this.Par.Pid);
-			vlt.styletag = STYLE();
-
 			vlt.root.css('height', '100%');
 			vlt.root.css('display', 'block');
 			vlt.root.css('box-sizing', 'border-box');
 			vlt.root.css('overflow', 'hidden');
+
+			vlt.styletag = STYLE();
 
 			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}" 
 				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `XGRAPH-${this.Par.Pid}`)}"
@@ -189,7 +191,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root.append(vlt.styletag);
 			vlt.root.append(vlt.div);
 
-			console.time('View');
+			if(version >= new SemVer('4.0')) {
+				if('Root' in this.Par && this.Par.Root) {
+					document.body.append()
+				}
+			}
 
 			fun(null, com);
 		}
