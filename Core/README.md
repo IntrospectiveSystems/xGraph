@@ -1,6 +1,4 @@
-# xGraph  
-
-![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph") 
+# xgraph  
 
 v1.1.0
 
@@ -69,6 +67,8 @@ Options:
                                             for the command.
     --config                            : Specifies a system's structure file.
 	--cache                             : Specifies a system's cache directory.
+	--allow-add-module                  : Enable a module to add new modules
+    		                                in memory to the Module cache.
 
 Examples:
     Compile the system in the current directory.

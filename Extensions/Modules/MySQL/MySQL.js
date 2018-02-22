@@ -71,7 +71,6 @@ function MySQL() {
 
             function callback(error, results, fields){
                 if(error){
-                    // log.e(error);
                     errors = error;
                 }
 
