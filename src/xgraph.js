@@ -160,7 +160,7 @@ function help() {
 		\x20\x20--config                          : Specifies a system's structure file.
 		\x20\x20--cache                           : Specifies a system's cache directory.
 		\x20\x20--allow-add-module                : Enable a module to add new modules 
-		                                            to the in memory Module cache.
+		                                            in memory to the Module cache.
 		
 		Examples:
 		\x20\x20Compile the system in the current directory.
