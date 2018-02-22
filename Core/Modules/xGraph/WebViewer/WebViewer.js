@@ -2,11 +2,10 @@
 (
 	/**
 	 * The WebViewer entity is the Apex and only entity of the WebViewer Module.
-	 * This entity requires its Setup and Start functions to be invoked durring the same stage of Nexus startup.
-	 * The main functionality of this entity is to start up an http server and on connection a webserver for 
-	 * interfacing a browers based xGraph System to one that is server based. Communication between these two 
-	 * Systems is done by the ServerProxy Module on the server and the WebProxy on the browser. Both of these 
-	 * Modules interface with the WebViewer programatically.
+	 * This entity requires its Setup and Start functions to be invoked during the Nexus startup.
+	 * This entity starts up an http server and, on connection, a webserver for interfacing a browsers based xGraph
+	 * systems to one that is server based. Communication between these two systems is done by the ServerProxy module
+	 * on the server and the WebProxy on the browser. Both of these modules interface with the WebViewer programmatically.
 	 */
 	function WebViewer() {
 
@@ -237,9 +236,9 @@
 		 * Only one message is sent per socket (browser xGraph instance) per Broadcast.
 		 * @param {Object}		com
 		 * @param {String}		com.Forward		the string which identifies to which modules to broadcast to
-		 * 																	this is stored as the key of Vlt.Sockets[idx].User.Publish 
-		 * @param {Function}	fun						The callback to be stored until the message returns. Be careful using
-		 * 																	Multiple browsers as modules typically only expect a single callback.
+		 * 											this is stored as the key of Vlt.Sockets[idx].User.Publish
+		 * @param {Function}	fun				The callback to be stored until the message returns. Be careful using
+		 * 											Multiple browsers as modules typically only expect a single callback.
 		 */
 		function Broadcast(com, fun) {
 			var Vlt = this.Vlt;

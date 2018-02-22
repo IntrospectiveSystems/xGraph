@@ -16,10 +16,10 @@ The main capability of this entity is to add and render a Three.js scene on the 
 
 ### Module Definition Parameters
 
-Parameters are defined in the module definition and stored in the Par attribute
-of the Entities this attribute.
+Parameters are defined in the module definition and stored in the `Par` attribute
+of 3DView's `this` attribute, `this.Par`.
 
-Three Pars can be set in the module definition, but they are all optional.
+Three parameters can be set in the module definition, but they are all optional.
 - "Server" : "xGraphPid"  - where xGraphPid should be replaced by the pid of the Server Module.
 - "Controller": "xGraphPid"  - where xGraphPid should be replaced by the pid of the Module acting as this Modules controller.
 - "EvokeView": "xGraphModuleAddress"  - where xGraphModuleAddress should be replaced by the address of the view that should be popped up when evoked.
