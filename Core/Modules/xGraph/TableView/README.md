@@ -20,7 +20,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.TableView",
+    "Module": "xGraph.TableView",
     "Par": {
         "Source": "$Tickets",
         "Columns": [
@@ -55,7 +55,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.TableView",
+    "Module": "xGraph.TableView",
     "Par": {
         "Source": "$Tickets",
         "Evoke": "View",

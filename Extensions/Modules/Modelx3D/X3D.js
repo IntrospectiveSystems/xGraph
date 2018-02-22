@@ -32,7 +32,6 @@
 			async function textures() {
 				console.log('..textures');
 				var dir = Zip.file(/.*./);
-				log.d('dir is :', dir);
 
 				let promiseArray = [];
 				for (let idx = 0; idx < dir.length; idx++) {

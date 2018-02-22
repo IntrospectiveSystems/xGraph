@@ -72,7 +72,7 @@ this.send({
     ]
   }
 }, this.Par.Database, (err, cmd) => {
-  log.d('the document\'s new id is ' + cmd.Document._id);
+  log.i('the document\'s new id is ' + cmd.Document._id);
 });
 ```
 
@@ -115,7 +115,7 @@ this.send(cmd, this.Par.Database, callback);
 
 function callback(err, cmd){
   for(let doc of cmd.Documents) {
-    log.d(JSON.stringify(doc));
+    log.i(JSON.stringify(doc));
   }
 }
 ```
@@ -167,7 +167,7 @@ let cmd = {
 this.send(cmd, this.Par.Database, callback);
 
 function callback(err, cmd){
-  log.d(cmd.DeletedCount);
+  log.i(cmd.DeletedCount);
 }
 ```
 

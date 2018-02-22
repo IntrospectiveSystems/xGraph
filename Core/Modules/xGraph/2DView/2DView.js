@@ -234,11 +234,11 @@
 
 			log.v("Popup");
 			this.genModule({
-				"Module": "xGraph.Widgets.Popup",
+				"Module": "xGraph.Popup",
 				"Par": {
 					Left: com.mouse.x,
 					Top: com.mouse.y,
-					"View": this.Par.EvokeView || "xGraph.Widgets.3DView",
+					"View": this.Par.EvokeView || "xGraph.3DView",
 					"Width": 800,
 					"Height": 600
 				}
@@ -395,14 +395,12 @@
 				if (unit.responseHandler) {
 					obj.interactive = true;
 					let evoke = (e) => {
-						log.d(e.currentTarget);
 						this.send({
 							"Cmd": unit.responseHandler.Cmd, mouse: {
 								x: e.data.originalEvent.x,
 								y: e.data.originalEvent.y
 							}
 						}, unit.responseHandler.Handler, _ => {
-							log.d("example evoke callback");
 						});
 					}
 					obj.on('click', evoke);

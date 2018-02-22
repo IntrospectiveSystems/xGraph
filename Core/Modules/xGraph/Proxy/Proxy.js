@@ -72,10 +72,10 @@
 			}
 
 			var parts = plex.split(':');
-			var host = parts[0];
-			var port = 27000;
-			if (parts.length === 2)
-				port = parseInt(parts[1]);
+			var host = that.Par.Host || parts[0];
+			var port = that.Par.Port || parts[1] || 27000;
+			if (typeof port != "number")
+				port = parseInt(port);
 			if (!('Chan' in Par)) {
 				connect(host, port);
 				return;
@@ -167,7 +167,7 @@
 			Vlt.Server = true;
 			Vlt.Socks = [];
 			net.createServer(function (sock) {
-				log.i('#### Portal connection from',
+				log.v('#### Portal connection from',
 					sock.remoteAddress + ':' + sock.remotePort);
 				Vlt.Socks.push(sock);
 				sock._userData = {};
@@ -185,7 +185,7 @@
 				// may not be complete spanning multiple sends, or the
 				// data content may contain multiple messages
 				// TODO: Implement more flexible buffering policy
-				sock.on('data', function (data) {
+				sock.on('data', async function (data) {
 					var Buf = sock._userData.Buf;
 					var State = sock._userData.State;
 					var Fifo = [];
@@ -218,9 +218,9 @@
 						Buf += data.toString('utf8', i1, i2 + 1);
 					sock._userData.State = State;
 					sock._userData.Buf = Buf;
-					loop();
+					await loop();
 
-					function loop() {
+					async function loop() {
 						if (Fifo.length < 1)
 							return;
 						var q = Fifo.shift();
@@ -228,11 +228,63 @@
 							isQuery = true;
 						else
 							isQuery = false;
+
+
+
+
+
+
+
 						that.send(q, Par.Link, reply);
 
-						function reply(err, r) {
+						async function reply(err, r) {
 							if (isQuery) {
 								r.Passport.Reply = true;
+
+
+								// -------------------------- Pid interchange
+								if (r.PidInterchange && 'Pool' in that.Par) {
+
+									// log.d(`read pid interchange for command`, r);
+									r = await recurse(r);
+
+									async function recurse(obj) {
+										if ('Format' in obj
+											&& 'Value' in obj
+											&& typeof obj.Value == 'string'
+											&& obj.Value.match(/^[A-Z0-9]{32}$/) != null
+											&& obj.Format == 'is.xgraph.pid') {
+											let pid = obj.Value;
+											let { Host, Port } = await new Promise(resolve => {
+												that.send({
+													Cmd: 'GetHostAndPort',
+													Pid: pid
+												}, that.Par.Pool, (err, cmd) => {
+													if ('Host' in cmd && 'Port' in cmd) resolve({
+														Host: cmd.Host,
+														Port: cmd.Port
+													});
+													else {
+														log.w(err);
+														resolve('noooooooope');
+													}
+												});
+											});
+											obj.Value = { Host, Port };
+											obj.Format = 'is.xgraph.proxyconnection';
+											return obj;
+										}
+										for (let key in obj) {
+											if (typeof obj[key] == 'object')
+												obj[key] = await recurse(obj[key]);
+										}
+										return obj;
+									}
+								}
+
+
+
+								// parse it into a message
 								str = JSON.stringify(r);
 								let msg = Vlt.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
@@ -323,7 +375,7 @@
 				});
 
 
-				sock.on('data', function (data) {
+				sock.on('data', async function (data) {
 					var nd = data.length;
 					var i1 = 0;
 					var i2;
@@ -357,6 +409,52 @@
 							Vlt.Buf += data.toString('utf8', i1, i2);
 							Vlt.State = 0;
 							let com = JSON.parse(Vlt.Buf);
+							
+							
+							// -------------------------- Pid interchange
+							if (com.PidInterchange) {
+								// log.d('IM HERE!!!', com);
+
+								com = await recurse(com);
+
+								async function recurse(obj) {
+									if ('Format' in obj
+										&& 'Value' in obj
+										&& typeof obj.Value == 'object'
+										&& 'Host' in obj.Value
+										&& 'Port' in obj.Value
+										&& obj.Format == 'is.xgraph.proxyconnection') {
+										let {Host, Port} = obj.Value;
+										let pid = await new Promise(resolve => {
+											that.genModule({
+												Module: 'xGraph.Proxy',
+												Par: {
+													Role: 'Client',
+													Host,
+													Port
+												}
+											}, (err, apx) => {
+												log.d(`converted to ${apx}`);
+												resolve(apx);
+											});
+										});
+										log.i(`${Host}:${Port} -> ${pid}`);
+										obj.Value = pid;
+										obj.Format = 'is.xgraph.pid';
+										obj.toString = function () {
+											return this.Value;
+										}
+										return obj;
+									}
+									for (let key in obj) {
+										if (typeof obj[key] == 'object')
+											obj[key] = await recurse(obj[key]);
+									}
+									return obj;
+								}
+							}
+
+
 							if ('Reply' in com.Passport) {
 								if (Vlt.Fun[com.Passport.Pid])
 									Vlt.Fun[com.Passport.Pid](null, com);
@@ -368,6 +466,8 @@
 				});
 			}
 		}
+
+		this.save(_=>_);
 	}
 
 	//-----------------------------------------------------Proxy

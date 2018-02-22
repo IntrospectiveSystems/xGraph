@@ -9,7 +9,8 @@
 
 	//-----------------------------------------------------dispatch
 	var dispatch = {
-		"*": Publish
+		"*": Publish,
+		Subscribe
 	};
 
 	return { dispatch };
@@ -30,7 +31,9 @@
 		this.Par.sendSock(com, async (err, com) => {
 
 			if(com.PidInterchange) {
+				let table = [];
 				com = await recurse(com);
+				// console.table(table);
 
 				async function recurse(obj) {
 					if('Format' in obj
@@ -40,11 +43,12 @@
 						let tag = obj.Value;
 						obj.Value = await new Promise(resolve => {
 							that.genModule({
-								Module: 'xGraph.Web.WebProxy',
+								Module: that.Par.Module,
 								Par: {
 									Link: obj.Value
 								}
 							}, (err, apx) => {
+								table.push({Tag: tag, Apex: apx});
 								resolve(apx);
 							});
 						});
@@ -62,6 +66,15 @@
 				}
 			}
 
+			fun(null, com);
+		});
+	}
+
+	async function Subscribe(com, fun) {
+		com.Link = com.Link || this.Par.Link;
+		com.Pid = com.Pid || com.Passport.From;
+		this.Par.sendSock(com, async _ => {
+			// debugger;
 			fun(null, com);
 		});
 	}

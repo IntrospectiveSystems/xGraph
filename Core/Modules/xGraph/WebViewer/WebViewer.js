@@ -131,10 +131,16 @@
 						//are we subscribing to the server
 						if (com.Cmd == 'Subscribe') {
 							if (!("Link" in com)){
-								log.e(`A Browser module tried to subscribe, but a Link (com.Link) was not provided.`);
+								log.w(`A Browser module tried to subscribe, but a Link (com.Link) was not provided.`);
 								return;
 							}
+							if (!("Pid" in com)){
+								log.w(`A Browser module tried to subscribe, but a Pid (com.Pid) was not provided.`);
+								return;
+							}
+							log.v(`${com.Link} subscribed at ${com.Pid}`);
 							obj.User.Publish[com.Link] = com.Pid;
+							reply(null, com);
 							return;
 						}
 
@@ -247,8 +253,12 @@
 				let user = obj.User;
 
 				if ('Forward' in com) {
-					if (!(com.Forward in user.Publish))
+					if (!(com.Forward in user.Publish)){
+						err = `Browser destination ${com.Forward} is not defined in a socket`;
+						log.w(err);
+						fun(err, com);
 						continue;
+					}
 					com.Passport.To = user.Publish[com.Forward];
 					if (fun) {
 						com.Passport.Disp = 'Query';
@@ -260,7 +270,7 @@
 				} else {
 					let err = 'Forward not set -- be sure to use a ServerProxy module to' +
 						' communicate with browser side modules';
-					log.e(err);
+					log.w(err);
 					fun(err, com);
 				}
 			}

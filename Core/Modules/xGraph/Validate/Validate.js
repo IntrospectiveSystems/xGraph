@@ -125,8 +125,6 @@
 								parseObject(test.Response, returnedCommand);
 
 								function parseObject(ob, ret) {
-									// log.d(JSON.stringify(ob, null, 2));
-									// log.d(JSON.stringify(ret, null, 2));
 									keys = Object.keys(ob);
 									for (let i = 0; i < keys.length; i++) {
 										let key = keys[i];
@@ -144,7 +142,6 @@
 										///or the value is "*" and key is in the returned command 
 										if ((ob[key] !== ret[key])
 											&& !((ob[key] == "*") && (key in ret))) {
-											log.d(ob[key], ob[key] == "*", (key in ret));
 											bMatch = false;
 											return;
 										}
@@ -217,7 +214,7 @@
 				log.v("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
 				if (typeof document != "undefined") {
 
-					inst.Module = "xGraph.Widgets.RootView";
+					inst.Module = "xGraph.RootView";
 					inst.Par = {
 						Layout: instApex
 					};

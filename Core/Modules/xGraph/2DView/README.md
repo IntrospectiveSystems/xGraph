@@ -41,12 +41,11 @@ An example of how this looks in the module definition of a config.json
 ``` json
 {
   "2DView": {
-    "Module": "xGraph:Widgets/2DView",
-    "Source": "xGraph",
+    "Module": "xGraph.2DView",
     "Par": {
       "Controller": "$ControllerProxy",
       "Server": "$ServerProxy",
-      "EvokeView":"xGraph.Widget.3DView"
+      "EvokeView":"xGraph.3DView"
     }
   }
 }
@@ -93,7 +92,7 @@ The Input Commands are all the commands that 2DView can receive.
 ##### DrawObjects
 The DrawObjects command sets objects in the 2DView stage.
 
-Example: 
+Example:
 
 ```json
 {
