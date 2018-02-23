@@ -14,7 +14,6 @@
 			
 			this.super(com, (err, cmd) => {
 
-
 				this.formatDate = (date) => `${('Sun Mon Tue Wed Thu Fri Sat'.split(' '))[date.getDay()]}, ${('Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' '))[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 
 				this.Vlt.table = $(document.createElement('table'));
@@ -122,7 +121,6 @@
 		/**
 		 * @description 
 		 * 1) Set Headers to `Par.Columns`
-		 * 
 		 * 2) send `Source` GetData, and add its Rows.
 		 * @override
 		 * @param {any} com 
@@ -130,9 +128,7 @@
 		 * @memberof TableView
 		 */
 		async Start(com, fun) {
-
 			if('Source' in this.Par && 'Columns' in this.Par) {
-
 				// set this to undefined for the time being so we can implement
 				// row wide clicking and no extra row
 				let evoke = /*'Evoke' in this.Par ? this.Par.Evoke :*/ undefined;
@@ -143,8 +139,6 @@
 					Evoke: evoke
 				});
 
-				// see: DataUpdate
-				// debugger;
 				await this.ascend('Subscribe', {Pid: this.Par.Pid}, this.Par.Source);
 	
 				let data = await this.ascend("GetData", {}, this.Par.Source);
@@ -153,11 +147,7 @@
 					Rows: data.Data,
 					Evoke: evoke
 				});
-
 			}
-
-
-
 			if (fun)
 				fun(null, com);
 		}
@@ -223,7 +213,6 @@
 			this.Vlt.tablebody.children().remove();
 			await this.ascend('AddRows', com);
 
-
 			fun(null, com);
 
 		}
@@ -248,7 +237,6 @@
 			for (let rowIdx = 0; rowIdx < com.Rows.length; rowIdx++) {
 
 				row = com.Rows[rowIdx];
-				// debugger;
 				str = `<tr pid="${row.Pid}" class=${this.id('EvokeButton')}>`;
 				for (let colIdx = 0; colIdx < this.Vlt.headers.length; colIdx++) {
 					key = this.Vlt.headers[colIdx].Key;
@@ -278,7 +266,6 @@
 
 					}
 				}
-				// debugger;
 				if(typeof com.Evoke == 'string' && 'Pid' in row) {
 					str += `<td><a href='#' pid="${row.Pid}">${com.Evoke}</a></td>`;
 				}

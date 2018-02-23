@@ -4,6 +4,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
 		state = 'development';
 	}
+	module.paths.push(process.cwd() + '/cache/node_modules');
 
 	console.log(`\nInitializing the Run Engine`);
 
@@ -91,7 +92,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 									arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
 								}
 							}
-						} else if(typeof obj == 'undefined') {
+						} else if (typeof obj == 'undefined') {
 							arr.push('undefined');
 						} else {
 							arr.push(obj.toString());
@@ -554,7 +555,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @param {string} modZip 		the zip of the module
 		 * @callback fun 							the callback just returns the name of the module
 		 */
-		function addModule(modName, modZip, fun){
+		function addModule(modName, modZip, fun) {
 			nxs.addModule(modName, modZip, fun);
 		}
 
@@ -746,7 +747,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 									res(JSON.parse(schemaString));
 								});
 							} else {
-								log.e('Module <' + modnam + '> schema not in ModCache');
+								log.e('Module <' + ApexIndex[apx] + '> schema not in ModCache');
 								res();
 								return;
 							}
@@ -786,9 +787,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * @param {string} modZip 		the zip of the module
 	 * @callback fun 							the callback just returns the name of the module
 	 */
-	async function addModule(modName, modZip, fun){
+	async function addModule(modName, modZip, fun) {
 		//modZip is the uint8array that can be written directly to the cache directory
-		if (process.argv.indexOf('--allow-add-module') > -1){
+		if (process.argv.indexOf('--allow-add-module') > -1) {
 			ModCache[modName] = await new Promise(async (res, rej) => {
 				let zip = new jszip();
 				zip.loadAsync(modZip).then((mod) => res(mod));
@@ -796,7 +797,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			fun(null, modName)
 			return;
 		}
-		let err =`addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
+		let err = `addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
 		log.w(err);
 		fun(err);
 	}
@@ -942,9 +943,8 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 					for (let key in inst.Par) {
 						let val = inst.Par[key];
-						log.d(val)
 
-						if(typeof val == 'string') {
+						if (typeof val == 'string') {
 							if (val.startsWith('$')) {
 								let symbol = val.substr(1);
 								if (symbol in symbols) {
@@ -965,7 +965,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 									log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
 								}
 							}
-						}else {
+						} else {
 							inst.Par[key] = val;
 						}
 					}
@@ -978,7 +978,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 								res(JSON.parse(schemaString));
 							});
 						} else {
-							log.e('Module <' + modnam + '> schema not in ModCache');
+							log.e('Module <' + inst.Module + '> schema not in ModCache');
 							res()
 							return;
 						}
@@ -987,7 +987,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					if ("$Setup" in schema.Apex)
 						Setup[pidapx] = schema.Apex["$Setup"];
 					if ("$Start" in schema.Apex)
-						Setup[pidapx] = schema.Apex["$Start"];
+						Start[pidapx] = schema.Apex["$Start"];
 					res();
 				});
 			}));
