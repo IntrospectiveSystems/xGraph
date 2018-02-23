@@ -1,6 +1,0 @@
-{
-	"Apex": {
-		"Entity": "Ticket.js",
-		"$Setup": "Setup"
-	}
-}
