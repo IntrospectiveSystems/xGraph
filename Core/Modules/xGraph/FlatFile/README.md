@@ -4,17 +4,20 @@ _Introspective Systems, LLC_
 
 ---
 
-Creates a Flat File database using JSON format. By default data is saved in local working directory as Database.db.
-Records are simply overwritten on new Put commands.
+FlatFile creates a FlatFile database using JSON format. By default data
+is saved in local working directory as Database.db. Records are simply
+overwritten on new Put commands.
 
 
 ---
 
-### Parameters
+### Module Interface
+
+#### Module Definition Parameters
 
 **Database**: _String_ - Full filename and path to load and store data. Defaults to 'Database.db'.
 
-### Input Commands
+#### Input Commands
 
 **Get** -  Get a single record value by key, return in com.Info[key].
 ```json
@@ -48,6 +51,6 @@ Records are simply overwritten on new Put commands.
 
 
 
-### Output Commands
+#### Output Commands
 
 *None*
