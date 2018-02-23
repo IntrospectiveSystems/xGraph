@@ -26,6 +26,11 @@ Before using xTickets, you must register your app to get Google OAuth
 credentials. Everything you need to do this can be found in the
 [Before You Begin](https://developers.google.com/identity/sign-in/web/sign-in#before_you_begin)
 section of Google's "Integrating Google Sign-In into your web app" site.
+1. First, click on the "Configure A Project" button.
+2. Select or create a project.
+3. Next, it will ask you where you are calling from. Here, select `Web browser`.
+4. Finally, it will ask for the Authorized Javascript Origin. Here, you
+can enter `http://localhost:8080`.
 
 Once you have your credentials, you will have to add them to the Tickets'
 system structure file, `Tickets\config.json`. These are saved in the
@@ -39,7 +44,7 @@ xTickets is a system of systems, so you will have to run two systems to
 run xTickets. First, you will run Tickets. Then, when Tickets has
 launched, it will be listening for the Website system. Now you can run
 the Website system. Finally, you can access the Website GUI by visiting
-`localhost:8080/tickets`.
+`localhost:8080/login`.
 
 ##### localhost and Google Authentication
 Typically, xGraph systems can be accessed using an IP address instead of
