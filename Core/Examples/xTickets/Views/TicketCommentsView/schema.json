@@ -1,0 +1,6 @@
+{
+	"Apex": {
+		"Entity": "TicketCommentsView.js",
+		"$Setup": "Setup"
+	}
+}
