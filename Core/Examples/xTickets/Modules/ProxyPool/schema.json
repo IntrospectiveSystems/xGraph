@@ -1,9 +1,0 @@
-{
-	"Apex": {
-		"Entity": "ProxyPool.js",
-		"$Start": "Start",
-		"StartPort": 27000,
-		"LookupTable": {},
-		"Host": "127.0.0.1"
-	}
-}

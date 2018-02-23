@@ -4,12 +4,12 @@
     },
     "Modules": {
         "Plexus": {
-            "Module": "Modules.xGraph.Plexus",
+            "Module": "xGraph.Plexus",
             "Source": "xGraph",
             "Par": {}
         },
         "Proxy": {
-            "Module": "Modules.xGraph.Proxy",
+            "Module": "xGraph.Proxy",
             "Source": "xGraph",
             "Par": {
                 "Link": "$Plexus",
