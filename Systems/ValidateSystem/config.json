@@ -7,13 +7,13 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.AceEditorView",
-				"TestJson": "@file: ../../Core/Modules/xGraph/AceEditorView/test.json"
+				"TestModule": "xGraph.BankAccount",
+				"TestJson": "@file: ../../Core/Modules/xGraph/BankAccount/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.AceEditorView",
+				"Module": "xGraph.BankAccount",
 				"Source": "xGraph"
 			}
 		]
