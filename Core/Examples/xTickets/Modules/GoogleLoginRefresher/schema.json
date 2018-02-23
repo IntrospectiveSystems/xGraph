@@ -1,0 +1,6 @@
+{
+	"Apex": {
+		"Entity": "GoogleLoginRefresher.js",
+		"$Setup": "Setup"
+	}
+}
