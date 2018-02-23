@@ -7,13 +7,13 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Plexus",
-				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/Plexus/test.json"
+				"TestModule": "xGraph.SQLite",
+				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/SQLite/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Plexus",
+				"Module": "xGraph.SQLite",
 				"Source": "xGraph"
 			}
 		]
