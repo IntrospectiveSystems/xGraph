@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Viewify 3.5 is [here (see documentation)]()!
+- Viewify 3.5 is [here (see documentation)](https://github.com/IntrospectiveSystems/xGraph/wiki/2.4-View-Documentation)!
 - The command line interface xgraph now features the option
   --allow-add-module.
 
