@@ -904,7 +904,7 @@
 
 				//include Genesis/Nexus required npm modules
 				packagejson.dependencies["uuid"] = "3.1.0";
-				packagejson.dependencies["jszip"] = "~3.1.3";
+				packagejson.dependencies["jszip"] = "3.1.3";
 
 
 				var packageString = JSON.stringify(packagejson, null, 2);

@@ -7,8 +7,8 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.TableView",
-				"TestJson": "@file: ../../Core/Modules/xGraph/TableView/test.json"
+				"TestModule": "xGraph.AceEditorView",
+				"TestJson": "@file: ../../Core/Modules/xGraph/AceEditorView/test.json"
 			}
 		},
 		"Deferred": [
@@ -17,7 +17,7 @@
 				"Source": "xGraph"
 			},
 			{
-				"Module": "xGraph.TableView",
+				"Module": "xGraph.AceEditorView",
 				"Source": "xGraph"
 			}
 		]

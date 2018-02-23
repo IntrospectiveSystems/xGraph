@@ -7,13 +7,13 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.NeDB",
-				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/NeDB/test.json"
+				"TestModule": "xGraph.Plexus",
+				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/Plexus/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.NeDB",
+				"Module": "xGraph.Plexus",
 				"Source": "xGraph"
 			}
 		]

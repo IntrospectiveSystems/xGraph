@@ -231,13 +231,13 @@ function startNexusProcess() {
 	let cacheDir = pathOverrides["cache"];
 	console.log(`Starting from ${cacheDir}`);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
