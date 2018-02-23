@@ -830,41 +830,19 @@ __Nexus = (_ => {
 		let mod = ModCache[module];
 		if (filename in mod.files) {
 			mod.file(filename).async("string").then((dat) => {
-				fun(null, mod[filename])
+				fun(null, dat);
 				return;
 			});
+		} else if (`static/${filename}` in mod.files) {
+			mod.file(`static/${filename}`).async("string").then((dat) => {
+				fun(null, dat);
+				return;
+			});
+		} else {
+			let err = `File ${filename} does not exist in module ${module}`;
+			log.e(err);
+			fun(err);
 		}
-
-		if ('static' in mod) {
-			let filearr = filename.split('/');
-			let store = mod["static"];
-			let [err, file] = subSearch(filearr, store);
-			fun(err, file);
-			return;
-
-			// /**
-			//  * Recursive object search
-			//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
-			//  * @param {Object} st 		The directort we're searching in 
-			//  */
-			function subSearch(ar, st) {
-				if (ar[0] in st) {
-					if (ar.length == 1) {
-						return [null, st[ar[0]]];
-					}
-					else {
-						return subSearch(arr.slice(1), st[ar[0]]);
-					}
-				} else {
-					let err = `${url} does not exist in Par.Static`;
-					log.w(err);
-					return [err, null];
-				}
-			}
-		}
-		let err = `File ${filename} does not exist in module ${module}`;
-		log.e(err);
-		fun(err);
 	}
 
 
@@ -1103,7 +1081,7 @@ __Nexus = (_ => {
 					return;
 				}
 			});
-			
+
 			setup();
 
 			function setup() {

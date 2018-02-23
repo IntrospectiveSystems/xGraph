@@ -256,11 +256,11 @@
 
 			log.v("Popup");
 			this.genModule({
-				"Module": "Core.Modules.Popup",
+				"Module": "xGraph.Popup",
 				"Par": {
 					Left: com.mouse.x,
 					Top: com.mouse.y,
-					"View": this.Par.EvokeView || "Core.Modules.3DView",
+					"View": this.Par.EvokeView || "xGraph.3DView",
 					"Width": 800,
 					"Height": 600
 				}
@@ -283,7 +283,7 @@
 			View.Camera.updateProjectionMatrix();
 
 			this.genModule({
-				"Module": 'Core.Modules.Mouse',
+				"Module": 'xGraph.Mouse',
 				"Par": {
 					"Handler": this.Par.Pid
 				}
