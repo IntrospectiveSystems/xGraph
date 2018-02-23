@@ -268,11 +268,11 @@
 			fun(null, com)
 		}
 
-		// /**
-		//  * Propagate a DomLoaded Event to children views. We append the canvas to the div.
-		//  * @param {Object} com 
-		//  * @param {Function} fun 
-		//  */
+		/**
+		 * Propagate a DomLoaded Event to children views. We append the canvas to the div.
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 */
 		function DOMLoaded(com, fun) {
 			log.v("--3DView/DOMLoaded");
 			let div = this.Vlt.div;
@@ -310,22 +310,22 @@
 			fun(null, com);
 		}
 
-		// /**
-		//  * Cascade a render down the DOM tree of views
-		//  * @param {Object} com 
-		//  * @param {Function} fun 
-		//  */
+		/**
+		 * Cascade a render down the DOM tree of views
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 */
 		function Render(com, fun) {
 			log.v("--3DView/Render", this.Par.Pid.substr(30));
 			this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 			this.super(com, fun);
 		}
 
-		// /**
-		//  * Sent when a resize event occurs on the div. 
-		//  * @param {Object} com 
-		//  * @param {Function} fun 
-		//  */
+		/**
+		 * Sent when a resize event occurs on the div. 
+		 * @param {Object} com 
+		 * @param {Function} fun 
+		 */
 		function Resize(com, fun) {
 			this.super(com, (err, cmd) => {
 				let View = this.Vlt.View;
@@ -616,12 +616,12 @@
 		}
 
 
-		// /**
-		//  * Used by the mouse module to propagate interactions.
-		//  * @param {Object} com 
-		//  * @param {Object} com.info 	the interaction info
-		//  * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
-		//  */
+		/**
+		 * Used by the mouse module to propagate interactions.
+		 * @param {Object} com 
+		 * @param {Object} com.info 	the interaction info
+		 * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
+		 */
 		function DispatchEvent(com) {
 			let info = com.info;
 			let Vlt = this.Vlt;
@@ -674,14 +674,14 @@
 			}
 		}
 
-		// /**
-		//  * Perform a raycast to see if any of the objects in the scene graph were hit
-		//  * 
-		//  * @param {Object} info  the interaction info
-		//  * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		//  * @param {Object} Vlt 
-		//  * @param {Object} Vlt.View
-		//  */
+		/**
+		 * Perform a raycast to see if any of the objects in the scene graph were hit
+		 * 
+		 * @param {Object} info  the interaction info
+		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
+		 * @param {Object} Vlt 
+		 * @param {Object} Vlt.View
+		 */
 		function mouseRay(info, Vlt) {
 			let View = Vlt.View;
 			container = Vlt.div;
@@ -710,13 +710,13 @@
 		}
 
 
-		// /**
-		//  *  Move camera towards or away from Focus point
-		//  * @param {Object} info  the interaction info
-		//  * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		//  * @param {Object} Vlt 
-		//  * @param {Object} Vlt.View
-		//  */
+		/**
+		 *  Move camera towards or away from Focus point
+		 * @param {Object} info  the interaction info
+		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
+		 * @param {Object} Vlt 
+		 * @param {Object} Vlt.View
+		 */
 		function Zoom(info, Vlt) {
 			if (info.Action == 'Harvest') {
 				log.v('Harvest-Zoom');
@@ -744,13 +744,13 @@
 		}
 
 
-		// /**
-		//  * handle a keydown event
-		//  * @param {Object} info  the interaction info
-		//  * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		//  * @param {Object} Vlt 
-		//  * @param {Object} Vlt.View
-		//  */
+		/**
+		 * handle a keydown event
+		 * @param {Object} info  the interaction info
+		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
+		 * @param {Object} Vlt 
+		 * @param {Object} Vlt.View
+		 */
 		function Keyed(info, Vlt) {
 			if (info.Action == 'Harvest') {
 				log.v('Harvest-Keyed');
@@ -762,13 +762,13 @@
 
 
 
-		// /**
-		//  * Rotate View around the focus
-		//  * @param {Object} info  the interaction info
-		//  * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		//  * @param {Object} Vlt 
-		//  * @param {Object} Vlt.View
-		//  */
+		/**
+		 * Rotate View around the focus
+		 * @param {Object} info  the interaction info
+		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
+		 * @param {Object} Vlt 
+		 * @param {Object} Vlt.View
+		 */
 		function Rotate(info, Vlt) {
 
 			var dispatch = {
