@@ -36,10 +36,10 @@ here as a server.
     },
     "Modules": {
         "Bank": {
-            "Module": "xGraph:Modules/BankAccount"
+            "Module": "xGraph.BankAccount"
         },
         "BankServer": {
-            "Module": "xGraph:Modules/Proxy",
+            "Module": "xGraph.Proxy",
             "Par": {
                 "Port": 27002,
                 "Role": "Server",
@@ -59,13 +59,13 @@ here as a client.
     },
     "Modules": {
         "BankPatron": {
-			"Module": "xGraph:Modules/BankPatron",
+			"Module": "xGraph.BankPatron",
 			"Par":{
 				"BankAccount":"$BankServer"
 			}
         },
         "BankServer": {
-            "Module": "xGraph:Modules/Proxy",
+            "Module": "xGraph.Proxy",
             "Par": {
 				"Host": "127.0.0.1",
 				"Port": 27002,
