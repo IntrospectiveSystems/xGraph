@@ -764,7 +764,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							Width: 500
 						};
 						let popup = await this.genModuleAsync({
-							Module: cmd.Container || 'xGraph:Widgets/Popup',
+							Module: cmd.Container || 'xGraph.Popup',
 							Par: newPar
 						});
 					}
@@ -791,7 +791,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							Width: 500
 						};
 						let popup = await this.genModuleAsync({
-							Module: cmd.Container || 'xGraph:Widgets/Popup',
+							Module: cmd.Container || 'xGraph.Popup',
 							Par: newPar
 						});
 						this.ascend('AddView', {View: popup}, this.Par.Pid);
