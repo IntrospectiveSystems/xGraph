@@ -19,5 +19,5 @@
 		"authors": "Introspective Systems, LLC"
 	},
 	"doc": "README.md",
-  "src": "xGraph:Web/WebProxy"
+  "src": "xGraph.WebProxy"
 }

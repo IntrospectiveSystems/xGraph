@@ -7,13 +7,13 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.BankAccount",
-				"TestJson": "@file: ../../Core/Modules/xGraph/BankAccount/test.json"
+				"TestModule": "xGraph.Plexus",
+				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/Plexus/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.BankAccount",
+				"Module": "xGraph.Plexus",
 				"Source": "xGraph"
 			}
 		]
