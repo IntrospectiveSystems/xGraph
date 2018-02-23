@@ -7,13 +7,13 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.NeDB",
-				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/NeDB/test.json"
+				"TestModule": "xGraph.AceEditorView",
+				"TestJson": "@file: ../../Core/Modules/xGraph/AceEditorView/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.NeDB",
+				"Module": "xGraph.AceEditorView",
 				"Source": "xGraph"
 			}
 		]
