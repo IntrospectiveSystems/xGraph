@@ -4,7 +4,7 @@
 	},
 	"Modules": {
 		"HelloWorld":{
-			"Module": "xGraph:Modules.HelloWorld",
+			"Module": "xGraph.HelloWorld",
 			"Source": "xGraph",
 			"Par":{
 				"SomePar": "Hello Mars"

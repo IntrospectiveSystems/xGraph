@@ -1,20 +1,16 @@
+pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
 (async function () {
 	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
 		state = 'development';
 	}
-
-	process.on('unhandledRejection', event => {
-		log.e('------------------ [Stack] ------------------');
-		log.e(event);
-		log.e('------------------ [/Stack] -----------------');
-		process.exit(1);
-	});
+	module.paths.push(process.cwd() + '/cache/node_modules');
 
 	console.log(`\nInitializing the Run Engine`);
 
 	const fs = require('fs');
 	const Path = require('path');
+	const jszip = require("jszip");
 	const endOfLine = require('os').EOL;
 	var consoleNotification = false;
 	var Uuid;
@@ -27,11 +23,12 @@
 	var EntCache = {};					// {<Entity pid>:<Entity>
 	var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 	var packagejson = {};				// The compiled package.json, built from Modules
-	var args = process.argv;			// The input arguments --under consideration for deprication 
-	var Params = {};					// The set of Macros for defining paths 
+	var args = process.argv;			// The input arguments --under consideration for deprication
+	var Params = {};					// The set of Macros for defining paths
 	var Nxs = {
 		genPid,
 		genModule,
+		addModule,
 		genEntity,
 		deleteEntity,
 		saveEntity,
@@ -47,39 +44,66 @@
 	{
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
+			fs.appendFile(`${process.cwd()}/xgraph.log`, `${log.parse(str)}${endOfLine}`, (err) => {
 				if (err) {
 					console.error(err); process.exit(1); reject();
 				}
 			});
 		};
-		// The defined log levels for outputting to the std.out() (ex. log.v(), log.d() ...)
+		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
-		// v : verbose		Give too much information 
+		// v : verbose		Give too much information
 		// d : debug		For debugging purposes not in production level releases
-		// i : info			General info presented to the end user 
+		// i : info			General info presented to the end user
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
 			v: (...str) => {
-				process.stdout.write(`\u001b[90m[VRBS] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			d: (...str) => {
-				process.stdout.write(`\u001b[35m[DBUG] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			i: (...str) => {
-				process.stdout.write(`\u001b[36m[INFO] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			w: (...str) => {
-				process.stdout.write(`\u001b[33m[WARN] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
 			},
 			e: (...str) => {
-				process.stdout.write(`\u001b[31m[ERRR] ${str.join(' ')} \u001b[39m${endOfLine}`);
+				process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 				xgraphlog(new Date().toString(), ...str);
+			},
+			parse: (str) => {
+				try {
+					let arr = [];
+					for (let obj of str) {
+						if (typeof obj == 'object') {
+							if (obj == null) arr.push('NULL');
+							else if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+							else {
+								try {
+									arr.push(JSON.stringify(obj, null, 2));
+								} catch (e) {
+									arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+								}
+							}
+						} else if (typeof obj == 'undefined') {
+							arr.push('undefined');
+						} else {
+							arr.push(obj.toString());
+						}
+					}
+					return arr.join(' ');
+				} catch (ex) {
+					process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+					process.stdout.write(ex.toString() + '\u001b[39m');
+				}
+
 			}
 		};
 		console.log = function (...str) {
@@ -107,6 +131,14 @@
 			console.timers[_] = undefined;
 			log.i(`${_}: ${elapsed}ms`);
 		}
+		process.on('unhandledRejection', event => {
+			log.e('------------------ [Stack] ------------------');
+			log.e(`line ${event.lineNumber}, ${event}`);
+			log.e(event.stack);
+			log.e('------------------ [/Stack] -----------------');
+			process.exit(1);
+		});
+
 	}
 
 	log.i('=================================================');
@@ -114,7 +146,7 @@
 
 	defineMacros();
 
-	// if called from binary quit or if called from 
+	// if called from binary quit or if called from
 	// the command line and node build cache first
 	if (!fs.existsSync(CacheDir) || (state == "development")) {
 		// #ifndef BUILT
@@ -126,7 +158,8 @@
 			// #ifndef BUILT
 		}
 		log.i("Building the Cache");
-		let genesisString = fs.readFileSync(`${Params.xgraph}/src/Genesis.js`).toString();
+		log.i(process.argv[1]);
+		let genesisString = fs.readFileSync(`${process.argv[1].substr(0, process.argv[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
 		await eval(genesisString);
 		// #endif
 	}
@@ -142,9 +175,9 @@
 	//
 
 	/**
-	 * Populates Params {OBJECT} 
-	 * This is populated from both the process.argv array as well as those parsed in the 
-	 * binary file if it was used. 
+	 * Populates Params {OBJECT}
+	 * This is populated from both the process.argv array as well as those parsed in the
+	 * binary file if it was used.
 	 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
 	 */
 	function defineMacros() {
@@ -181,26 +214,25 @@
 	/**
 	 *  The main process of starting an xGraph System.
 	 */
-	function initiate() {
-		log.i(`${endOfLine}--Nexus/Initiate`);
+	async function initiate() {
+		log.i(`--Nexus/Initiate`);
 		ApexIndex = {};
 		Setup = {};
 		Start = {};
 
 		loadCache();
 
-		var ipid = -1;
-		var pids = Object.keys(Setup);
+		await setup();
 
-		setup(start);
+		await start();
 
+		run();
 
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
 		// Only Helper Functions Beyond This Point
 		//
 		//
-
 
 		/**
 		 * Load in the cache and poulate setup Setup, Start, and ApexIndex {Objects}
@@ -210,28 +242,31 @@
 
 			for (var ifold = 0; ifold < folders.length; ifold++) {
 				let folder = folders[ifold];
-				let dir = CacheDir + '/' + folder;
-				let path = dir + '/Module.json';
+				let path = `${CacheDir}/${folder}/Module.zip`;
 				if (!fs.existsSync(path))
 					continue;
-				let data = fs.readFileSync(path).toString();
-				let mod = JSON.parse(data);
-				parseMod(mod, dir, folder);
 
-				function parseMod(mod, dir, folder) {
-					//Modules[folder] = mod;
-					var files = fs.readdirSync(dir);
-					for (var ifile = 0; ifile < files.length; ifile++) {
-						var file = files[ifile];
+				parseMod(folder)
+
+				function parseMod(folder) {
+					let dir = CacheDir + '/' + folder;
+					var instancefiles = fs.readdirSync(dir);
+					for (var ifile = 0; ifile < instancefiles.length; ifile++) {
+						var file = instancefiles[ifile];
+
+						//check that it's an instance of the module
 						if (file.length !== 32)
 							continue;
+
 						var path = dir + '/' + file;
 						if (fs.lstatSync(path).isDirectory()) {
 							ApexIndex[file] = folder;
-							if ('Setup' in mod)
-								Setup[file] = mod.Setup;
-							if ('Start' in mod)
-								Start[file] = mod.Start;
+							let instJson = JSON.parse(fs.readFileSync(`${path}/${file}.json`));
+
+							if ('$Setup' in instJson)
+								Setup[file] = instJson.$Setup;
+							if ('$Start' in instJson)
+								Start[file] = instJson.$Start;
 						}
 					}
 				}
@@ -242,50 +277,57 @@
 			log.v('Start', JSON.stringify(Start, null, 2));
 		}
 
-
 		/**
 		 * Call setup on the required Module Apexes
 		 */
-		function setup() {
-			ipid++;
-			if (ipid >= pids.length) {
-				pids = Object.keys(Start);
-				ipid = -1;
-				start();
-				return;
+		async function setup() {
+			log.i(`--Nexus/Setup`);
+			//build the setup promise array
+			let setupArray = [];
+
+			for (let pid in Setup) {
+				setupArray.push(new Promise((resolve, reject) => {
+					var com = {};
+					com.Cmd = Setup[pid];
+					com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Pid = genPid();
+					sendMessage(com, resolve);
+				}));
 			}
-			var pid = pids[ipid];
-			var com = {};
-			com.Cmd = Setup[pid];
-			com.Passport = {};
-			com.Passport.To = pids[ipid];
-			com.Passport.Pid = genPid();
-			sendMessage(com, setup);
+
+			await Promise.all(setupArray);
+			log.v(`--Nexus: All Setups Complete`);
 		}
 
 		/**
 		 * Call Start on the required Module Apexes
 		 */
-		function start() {
-			ipid++;
-			if (ipid >= pids.length) {
-				run();
-				return;
+		async function start() {
+			log.i(`--Nexus/Start`);
+			//build the setup promise array
+			let startArray = [];
+
+			for (let pid in Start) {
+				startArray.push(new Promise((resolve, reject) => {
+					var com = {};
+					com.Cmd = Start[pid];
+					com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Pid = genPid();
+					sendMessage(com, resolve);
+				}));
 			}
-			var pid = pids[ipid];
-			var com = {};
-			com.Cmd = Start[pid];
-			com.Passport = {};
-			com.Passport.To = pids[ipid];
-			com.Passport.Pid = genPid();
-			sendMessage(com, start);
+
+			await Promise.all(startArray);
+			log.v(`--Nexus: All Starts Complete`);
 		}
 
 		/**
-		 * Send Finished command if the process was generated 
+		 * Send Finished command if the process was generated
 		 */
 		function run() {
-			log.i(`${endOfLine}--Nexus/Run`);
+			log.i(`--Nexus/Run`);
 			if ('send' in process) {
 				process.send('{"Cmd":"Finished"}');
 			}
@@ -364,7 +406,7 @@
 	/**
 	 * Send a message from an entity to an Apex entity.
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
+	 * @param {object} com 			the message object
 	 * @param {string} com.Cmd 		the command of the message
 	 * @param {object} com.Passport	the information about the message
 	 * @param {string} com.Passport.To the Pid of the recipient module
@@ -373,6 +415,7 @@
 	 * @callback fun 				the callback function to return to when finished
 	 */
 	function sendMessage(com, fun = _ => _) {
+		// log.d('NEXUS MESSAGE:', com)
 		if (!('Passport' in com)) {
 			log.w('Message has no Passport, ignored');
 			log.w('    ' + JSON.stringify(com));
@@ -395,6 +438,7 @@
 
 		let pid = com.Passport.To;
 		let apx = com.Passport.Apex || pid;
+
 		if (pid in EntCache) {
 			done(null, EntCache[pid]);
 			return;
@@ -415,12 +459,13 @@
 			} else {
 				let err = 'Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
-				log.w(err);
-				log.w(JSON.stringify(com, null, 2));
-				fun(err, com);
+					log.w(err);
+					log.w(JSON.stringify(com, null, 2));
+					fun(err, com);
 			}
 		}
 		function reply(err, q) {
+			// log.i('NEXUS MESSAGE:', com)
 			fun(err, q);
 		}
 	}
@@ -431,7 +476,7 @@
 	 * The base class for all xGraph Entities
 	 * @param {object} nxs 	the nxs context to give the entity acess too
 	 * @param {object} imp 	the evaled Entity functionality returned by the dispatch table
-	 * @param {object} par	the par of the entity 
+	 * @param {object} par	the par of the entity
 	 */
 	function Entity(nxs, imp, par) {
 		var Par = par;
@@ -443,6 +488,8 @@
 			Vlt,
 			dispatch,
 			genModule,
+			genModules,
+			addModule,
 			genEntity,
 			deleteEntity,
 			genPid,
@@ -472,9 +519,9 @@
 
 		/**
 		 * Route a message to this entity with its context
-		 * @param {object} com		The message to be dispatched in this entities context 
+		 * @param {object} com		The message to be dispatched in this entities context
 		 * @param {string} com.Cmd	The actual message we wish to send
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
 			var disp = Imp.dispatch;
@@ -495,7 +542,7 @@
 		 * @param {object} mod 	the description of the Module to generate
 		 * @param {string} mod.Module the module to generate
 		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genModule(mod, fun) {
 			//	log.v('--Entity/genModule');
@@ -503,8 +550,28 @@
 		}
 
 		/**
+		 * Add a module into the in memory Module Cache (ModCache)
+		 * @param {string} modName 		the name of the module
+		 * @param {string} modZip 		the zip of the module
+		 * @callback fun 							the callback just returns the name of the module
+		 */
+		function addModule(modName, modZip, fun) {
+			nxs.addModule(modName, modZip, fun);
+		}
+
+		/**
+		 * entity access to the genModule command
+		 * @param {object} modObj 	an object containing one or more module descriptions
+		 * @callback fun(err,pidofTop,objectOfAllModulesGenerated)
+		 */
+		function genModules(modObj, fun) {
+			//	log.v('--Entity/genModule');
+			nxs.genModule(mod, fun);
+		}
+
+		/**
 		 * deletes the current entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function deleteEntity(fun) {
 			log.v(`Deleting Entity ${Par.Pid}`);
@@ -516,7 +583,7 @@
 		 * @param {object} par the par of the entity to be generated
 		 * @param {string} par.Entity The entity type that will be generated
 		 * @param {string=} par.Pid	the pid to define as the pid of the entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genEntity(par, fun) {
 			nxs.genEntity(Par.Apex, par, fun);
@@ -538,6 +605,7 @@
 		 * @callback fun
 		 */
 		function send(com, pid, fun) {
+			// log.v(com, pid);
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -553,7 +621,7 @@
 		/**
 		 * save the current entity to cache if not an Apex send the save message to Apex
 		 * if it is an Apex we save it as well as all other relevant information
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function save(fun) {
 			nxs.saveEntity(Par.Apex, Par.Pid, fun);
@@ -569,7 +637,7 @@
 	 * @param {string=} par.Pid	the pid to define as the pid of the entity
 	 * @callback fun 			the callback to return the pid of the generated entity to
 	 */
-	function genEntity(apx, par, fun = _ => log.e(_)) {
+	async function genEntity(apx, par, fun = _ => log.e(_)) {
 		if (!("Entity" in par)) {
 			fun("No Entity defined in Par");
 			return;
@@ -578,31 +646,30 @@
 		var impkey = ApexIndex[apx] + '/' + par.Entity;
 		var mod = ModCache[ApexIndex[apx]];
 
-		if (!(par.Entity in mod)) {
+		if (!(par.Entity in mod.files)) {
 			log.e('<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
 			fun('Null entity');
 			return;
 		}
 
-		par.Pid = par.Pid || genPid();
-		par.Module = mod.ModName;
-		par.Apex = apx;
-
-		let imp;
-		if (impkey in ImpCache) {
-			imp = ImpCache[impkey];
-		} else {
-			imp = (1, eval)(mod[par.Entity]);
-			ImpCache[impkey] = imp;
+		if (!(impkey in ImpCache)) {
+			let entString = await new Promise(async (res, rej) => {
+				mod.file(par.Entity).async("string").then((string) => res(string))
+			});
+			ImpCache[impkey] = (1, eval)(entString);
 		}
 
-		EntCache[par.Pid] = new Entity(Nxs, imp, par);
+		par.Pid = par.Pid || genPid();
+		par.Module = ApexIndex[apx];
+		par.Apex = apx;
+
+		EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 		fun(null, par.Pid);
 	}
 
 	/**
 	 * Delete an entity file. If the entity is an Apex of a Module,
-	 * then delete all the entities found in that module as well. 
+	 * then delete all the entities found in that module as well.
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return the pid of the generated entity to
@@ -612,7 +679,7 @@
 
 		let rmList = [];
 		//we first check to see if it's an apex
-		//if so we will read the directory that is the instance of 
+		//if so we will read the directory that is the instance of
 		//the module and then delete all of the entity files found therein.
 		if (apx == pid) {
 			files = fs.readdirSync(apxpath);
@@ -632,7 +699,6 @@
 				delete EntCache[subpid];
 			}
 		}
-
 		fun(null, pid);
 	}
 
@@ -643,46 +709,30 @@
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return the pid of the generated entity to
 	 */
-	function saveEntity(apx, pid, fun = _ => _) {
+	function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
 		let modpath = `${CacheDir}/${ApexIndex[apx]}`;
 		let apxpath = `${modpath}/${apx}`;
 		let entpath = `${apxpath}/${pid}.json`;
 
-		//	this function checks to make sure the entities Module.json 
-		// 	file pre-exists or writes it if the entity is the module apex. 
+		//	this function checks to make sure the entities Module.zip
+		// 	file pre-exists or writes it if the entity is the module apex.
 		let checkModule = (() => {
 			fs.lstat(modpath, function (err, stat) {
 				if (stat) {
 					checkApex();
 				} else {
-					let mod = ModCache[ApexIndex[apx]];
-					if (pid == apx) {
-						fs.mkdirSync(modpath);
-						let path = modpath + '/Module.json';
-						log.v("Saved Module.json at " + path);
-						let str = JSON.stringify(mod, null, 2);
-						fs.writeFileSync(path, str);
-						checkApex();
-					} else {
-						if (!("Save" in mod)) {
-							fun("Save Not Implemented in Module's Apex", modpath);
-							return;
-						}
-						let com = {};
-						com.Cmd = mod["Save"];
-						com.Passport = {};
-						com.Passport.To = pidapx;
-						com.Passport.Pid = genPid();
-						sendMessage(com, checkApex);
-					}
+					//the following code is deprecated since including deferred modules all module zip files
+					//must exist in the cache prior to starting the system
+
+					fun(`No Directory for the requested module: ${ApexIndex[apx]}`);
 				}
 			})
 		});
 
 		//this function checks to make sure the entities Apex directory
-		//pre-exists or writes it if the entity is the module apex. 
+		//pre-exists or writes it if the entity is the module apex.
 		let checkApex = (() => {
-			fs.lstat(apxpath, function (err, stat) {
+			fs.lstat(apxpath, async function (err, stat) {
 				if (stat) {
 					checkEntity();
 				} else {
@@ -691,12 +741,24 @@
 						log.v("Made directory " + apxpath);
 						checkEntity();
 					} else {
-						if (!("Save" in mod)) {
+						var schema = await new Promise(async (res, rej) => {
+							if ('schema.json' in ModCache[ApexIndex[apx]]) {
+								ModCache[ApexIndex[apx]].file('schema.json').async('string').then(function (schemaString) {
+									res(JSON.parse(schemaString));
+								});
+							} else {
+								log.e('Module <' + ApexIndex[apx] + '> schema not in ModCache');
+								res();
+								return;
+							}
+						});
+
+						if (!("Save" in schema)) {
 							fun("Apex has not been saved", apx);
 							return;
 						}
 						let com = {};
-						com.Cmd = mod["Save"];
+						com.Cmd = schema["Save"];
 						com.Passport = {};
 						com.Passport.To = pidapx;
 						com.Passport.Pid = genPid();
@@ -719,6 +781,26 @@
 		checkModule();
 	}
 
+	/**
+	 * Add a module into the in memory Module Cache (ModCache)
+	 * @param {string} modName 		the name of the module
+	 * @param {string} modZip 		the zip of the module
+	 * @callback fun 							the callback just returns the name of the module
+	 */
+	async function addModule(modName, modZip, fun) {
+		//modZip is the uint8array that can be written directly to the cache directory
+		if (process.argv.indexOf('--allow-add-module') > -1) {
+			ModCache[modName] = await new Promise(async (res, rej) => {
+				let zip = new jszip();
+				zip.loadAsync(modZip).then((mod) => res(mod));
+			});
+			fun(null, modName)
+			return;
+		}
+		let err = `addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
+		log.w(err);
+		fun(err);
+	}
 
 	/**
 	 * Access a file that exists in the module.json
@@ -728,8 +810,10 @@
 	 */
 	function getFile(module, filename, fun = _ => _) {
 		let mod = ModCache[module];
-		if (filename in mod) {
-			fun(null, mod[filename])
+		if (filename in mod.files) {
+			mod.file(filename).async("string").then((dat) => {
+				fun(null, dat)
+			})
 			return;
 		}
 		let err = `Error: File ${filename} does not exist in module ${module}`;
@@ -750,14 +834,13 @@
 		} catch (e) { }
 
 		let folder = ApexIndex[apx];
-		let path = CacheDir + '/' + folder + '/node_modules/';
 
-		module.paths = [path];
+		module.paths = [CacheDir + '/' + folder + '/node_modules/'];
 		return require(str);
 	}
 
 	/**
-	 * Spin up an entity from cache into memory and retrievd its context 
+	 * Spin up an entity from cache into memory and retrievd its context
 	 * otherwise just return it's context from memory
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
@@ -786,29 +869,34 @@
 			let impkey = folder + '/' + par.Entity;
 			let imp;
 			if (impkey in ImpCache) {
-				imp = ImpCache[impkey];
 				BuildEnt();
 				return;
 			}
 
-			GetModule(folder, function (err, mod) {
+			GetModule(folder, async function (err, mod) {
 				if (err) {
 					log.e('Module <' + folder + '> not available');
 					fun('Module not available');
 					return;
 				}
-				if (!(par.Entity in mod)) {
+
+				if (!(par.Entity in mod.files)) {
 					log.e('<' + par.Entity + '> not in module <' + folder + '>');
 					fun('Null entity');
 					return;
 				}
-				imp = (1, eval)(mod[par.Entity]);
-				ImpCache[impkey] = imp;
+
+				let entString = await new Promise(async (res, rej) => {
+					mod.file(par.Entity).async("string").then((string) => res(string))
+				});
+
+				log.v(`Spinning up entity ${folder}-${par.Entity.split('.')[0]}`);
+				ImpCache[impkey] = (1, eval)(entString);
 				BuildEnt();
 			});
 
 			function BuildEnt() {
-				EntCache[pid] = new Entity(Nxs, imp, par);
+				EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
 				fun(null, EntCache[pid]);
 			}
 		});
@@ -817,60 +905,154 @@
 	/**
 	 * Starts an instance of a module that exists in the cache.
 	 * After generating, the instance Apex receives a setup and start command synchronously
-	 * @param {Object} inst 		Definition of the instance to be spun up
-	 * @param {string} inst.Module 	The name of the module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
+	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
+	 * @param {string?} inst.Module 	The name of the module to spin up
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par
 	 * @callback fun 				(err, pid of module apex)
 	 */
-	function genModule(inst, fun = _ => _) {
-		GetModule(inst.Module, async function (err, mod) {
-			if (err) {
-				log.e('GenModule err -', err);
-				fun(err);
-				return;
-			}
-			let pidapx = genPid();
-			ApexIndex[pidapx] = mod.ModName;
-			await compileInstance(pidapx, inst);
-			setup();
+	async function genModule(moduleDefinition, fun = _ => _) {
+		moduleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
+		let moduleDefinitions = moduleDefinition;
+		if ("Module" in moduleDefinition && (typeof moduleDefinition.Module == "string")) {
+			moduleDefinitions = { "Top": moduleDefinition };
+		}
 
-			function setup() {
-				if (!("Setup" in mod)) {
-					start();
-					return;
-				}
-				var com = {};
-				com.Cmd = mod["Setup"];
-				com.Passport = {};
-				com.Passport.To = pidapx;
-				com.Passport.Pid = genPid();
-				sendMessage(com, start);
-			}
+		let Setup = {};
+		let Start = {};
+		let symbols = {};
 
-			// Start
-			function start() {
-				if (!("Start" in mod)) {
-					fun(null, pidapx);
-					return;
-				}
-				var com = {};
-				com.Cmd = mod["Start"];
-				com.Passport = {};
-				com.Passport.To = pidapx;
-				com.Passport.Pid = genPid();
-				sendMessage(com, () => {
-					fun(null, pidapx);
+		// loop over the keys to assign pids to the local dictionary and the
+		// module definitions (moduleDefinitions)
+		for (let key in moduleDefinitions) {
+			symbols[key] = genPid();
+		}
+
+		//compile each module
+		for (let moduleKey in moduleDefinitions) {
+			let inst = moduleDefinitions[moduleKey];
+			await (new Promise((res, rej) => {
+				GetModule(inst.Module, async function (err, mod) {
+					if (err) {
+						log.e('GenModule err -', err);
+						fun(err);
+						return;
+					}
+					let pidapx = symbols[moduleKey];
+					ApexIndex[pidapx] = inst.Module;
+
+
+					for (let key in inst.Par) {
+						let val = inst.Par[key];
+
+						if (typeof val == 'string') {
+							if (val.startsWith('$')) {
+								let symbol = val.substr(1);
+								if (symbol in symbols) {
+									inst.Par[key] = symbols[symbol];
+								} else {
+									log.e(`${symbol} not in Module key list`);
+									log.v(`${Object.keys(symbols)}`)
+								}
+							}
+
+							if (val.startsWith('\\')) {
+								let escaping = val.charAt(1)
+								if (escaping == '$' || escaping == '\\') {
+									//these are valid escape character
+									inst.Par[key] = val.substr(1);
+								} else {
+									//invalid
+									log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
+								}
+							}
+						} else {
+							inst.Par[key] = val;
+						}
+					}
+
+					await compileInstance(pidapx, inst);
+
+					var schema = await new Promise(async (res, rej) => {
+						if ('schema.json' in mod.files) {
+							mod.file('schema.json').async('string').then(function (schemaString) {
+								res(JSON.parse(schemaString));
+							});
+						} else {
+							log.e('Module <' + inst.Module + '> schema not in ModCache');
+							res()
+							return;
+						}
+					});
+
+					if ("$Setup" in schema.Apex)
+						Setup[pidapx] = schema.Apex["$Setup"];
+					if ("$Start" in schema.Apex)
+						Start[pidapx] = schema.Apex["$Start"];
+					res();
 				});
+			}));
+		}
+
+		log.v('Modules', JSON.stringify(symbols, null, 2));
+		log.v('Setup', JSON.stringify(Setup, null, 2));
+		log.v('Start', JSON.stringify(Start, null, 2));
+
+		await setup();
+
+		await start();
+
+		fun(null, ("Top" in symbols) ? symbols["Top"] : null, symbols);
+
+
+		/**
+	 * Call setup on the required Module Apexes
+	 */
+		async function setup() {
+			//build the setup promise array
+			let setupArray = [];
+
+			for (let pid in Setup) {
+				setupArray.push(new Promise((resolve, reject) => {
+					var com = {};
+					com.Cmd = Setup[pid];
+					com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Pid = genPid();
+					sendMessage(com, resolve);
+				}));
 			}
-		});
+
+			await Promise.all(setupArray);
+		}
+
+		/**
+		 * Call Start on the required Module Apexes
+		 */
+		async function start() {
+			//build the setup promise array
+			let startArray = [];
+
+			for (let pid in Start) {
+				startArray.push(new Promise((resolve, reject) => {
+					var com = {};
+					com.Cmd = Start[pid];
+					com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Pid = genPid();
+					sendMessage(com, resolve);
+				}));
+			}
+
+			await Promise.all(startArray);
+		}
 	}
 
 	/**
 	 * Generate array of entities from module
-	 * Module must be in cache 
-	 * 
+	 * Module must be in cache
+	 *
 	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-	 * @param {object} inst 
+	 * @param {object} inst
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
@@ -878,10 +1060,10 @@
 	async function compileInstance(pidapx, inst, saveRoot = false) {
 		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
-		var modnam = inst.Module;
+		var modnam = (typeof inst.Module == "object") ? inst.Module.Module : inst.Module;
 		var mod;
 		var ents = [];
-		var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
+		var modnam = modnam.replace(/\:\//g, '.');
 
 		if (modnam in ModCache) {
 			mod = ModCache[modnam];
@@ -890,7 +1072,21 @@
 			process.exit(1);
 			return;
 		}
-		var schema = JSON.parse(mod['schema.json']);
+
+		var schema = await new Promise(async (res, rej) => {
+			if ('schema.json' in mod.files) {
+				mod.file('schema.json').async('string').then(function (schemaString) {
+					res(JSON.parse(schemaString));
+				});
+			} else {
+				log.e('Module <' + modnam + '> schema not in ModCache');
+				process.exit(1);
+				rej();
+				reject();
+				return;
+			}
+		});
+
 		var entkeys = Object.keys(schema);
 
 		//set Pids for each entity in the schema
@@ -906,6 +1102,7 @@
 		//unpack the par of each ent
 		for (j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
+			//start with the pars from the schema
 			let ent = schema[entkey];
 			ent.Pid = Local[entkey];
 			ent.Module = modnam;
@@ -920,7 +1117,7 @@
 				}
 			}
 
-			//load pars from schema
+			//pars all values for symbols
 			var pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
@@ -934,16 +1131,15 @@
 			ents.push(ent);
 		}
 
-		ents.forEach(function (par) {
+		ents.forEach(async function (par) {
 			let impkey = modnam + par.Entity;
-			let imp;
-			if (impkey in ImpCache) {
-				imp = ImpCache[impkey];
-			} else {
-				imp = (1, eval)(mod[par.Entity]);
-				ImpCache[impkey] = imp;
+			if (!(impkey in ImpCache)) {
+				let entString = await new Promise(async (res, rej) => {
+					mod.file(par.Entity).async("string").then((string) => res(string))
+				});
+				ImpCache[impkey] = (1, eval)(entString);
 			}
-			EntCache[par.Pid] = new Entity(Nxs, imp, par);;
+			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 		});
 
 		async function symbol(val) {
@@ -961,8 +1157,6 @@
 			if (typeof val !== 'string')
 				return val;
 			var sym = val.substr(1);
-			if (val.charAt(0) === '$' && sym in Apex)
-				return Apex[sym];
 			if (val.charAt(0) === '#' && sym in Local)
 				return Local[sym];
 			if (val.charAt(0) === '\\')
@@ -973,42 +1167,37 @@
 
 	/**
 	 * For retrieving modules
-	 * Modules come from memory, a defined broker, or disk depending on the module definition
-	 * @param {Object} modRequest 
+	 * Modules come from the cache directory on the harddrive or the ModCache if its already been read to RAM.
+	 * @param {Object} modRequest
 	 * @param {String} modRequest.Module
 	 * @param {String=} modRequest.Source
-	 * @param {Function} fun 
+	 * @param {Function} fun
 	 * @returns mod
 	 */
-	function GetModule(modRequest, fun = _ => _) {
-		let modnam = modRequest.Module;
-		if (typeof modRequest != "object") {
-			modnam = modRequest;
-		}
-		let source = modRequest.Source;
-		let mod = {};
-		let ModName = modnam.replace(/\:/, '.').replace(/\//g, '.');
-		let dir = ModName.replace('.', ':').replace(/\./g, '/');
+	function GetModule(ModName, fun = _ => _) {
+		ModName = ModName.replace(/\:\//g, '.');
 
 		//get the module from memory (ModCache) if it has already been retrieved
 		if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
 		//get the module from cache
-		var cachedMod = `${CacheDir}/${ModName}/Module.json`;
+		var cachedMod = `${CacheDir}/${ModName}/Module.zip`;
 		fs.lstat(cachedMod, function (err, stat) {
 			if (err) {
 				log.e(`Error retreiving ${cachedMod} from cache`);
 				fun(err);
-				return;
 			}
 			if (stat) {
 				if (!stat.isDirectory()) {
-					fs.readFile(cachedMod, function (err, data) {
+					fs.readFile(cachedMod, async function (err, data) {
 						if (err) {
 							fun(err);
 							return;
 						}
-						ModCache[ModName] = JSON.parse(data.toString());
+						ModCache[ModName] = await new Promise(async (res, rej) => {
+							let zip = new jszip();
+							zip.loadAsync(data).then((mod) => res(mod));
+						});
 						fun(null, ModCache[ModName]);
 						return;
 					});
