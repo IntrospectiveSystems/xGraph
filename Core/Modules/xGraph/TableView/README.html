@@ -195,12 +195,27 @@ input[type="search"]::-webkit-search-cancel-button {
 
 
                         <li class="method-link scope-public">
+                            <a href="#tableview.js-dataupdate" title="DataUpdate">DataUpdate</a>
+                        </li>
+
+
+                        <li class="method-link scope-public">
+                            <a href="#tableview.js-start" title="Start">Start</a>
+                        </li>
+
+
+                        <li class="method-link scope-public">
                             <a href="#tableview.js-setdataheaders" title="SetDataHeaders">SetDataHeaders</a>
                         </li>
 
 
                         <li class="method-link scope-public">
                             <a href="#tableview.js-setrows" title="SetRows">SetRows</a>
+                        </li>
+
+
+                        <li class="method-link scope-public">
+                            <a href="#tableview.js-addrows" title="AddRows">AddRows</a>
                         </li>
 
 
@@ -234,6 +249,161 @@ input[type="search"]::-webkit-search-cancel-button {
                         <div class="description lead">
 
                             <p>create the table in DOM and apply a number of styles</p>
+
+
+                        </div>
+
+
+                        <section class="parameters">
+
+                            <h3>Parameters</h3>
+
+                            <div class="table-responsive">
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr>
+                                        <td>com</td>
+                                        <td>
+                                            <code>any</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>fun</td>
+                                        <td>
+                                            <code>any</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </section>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="tableview.js-dataupdate">
+                            <a href="#tableview.js-dataupdate" class="permalink">#</a>
+                            <span class="method-name" title="DataUpdate(com, fun)">DataUpdate(com, fun)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <p>Signal to the table that there is new data in <code>this.Par.Source</code>. This will trigger sending
+a <code>GetData</code> to source and setting the table's rows
+to the data received.</p>
+
+
+                        </div>
+
+
+                        <section class="parameters">
+
+                            <h3>Parameters</h3>
+
+                            <div class="table-responsive">
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr>
+                                        <td>com</td>
+                                        <td>
+                                            <code>object</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>fun</td>
+                                        <td>
+                                            <code>function</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </section>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="tableview.js-start">
+                            <a href="#tableview.js-start" class="permalink">#</a>
+                            <span class="method-name" title="Start(com, fun)">Start(com, fun)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <ol>
+<li>
+<p>Set Headers to <code>Par.Columns</code></p>
+</li>
+<li>
+<p>send <code>Source</code> GetData, and add its Rows.</p>
+</li>
+</ol>
 
 
                         </div>
@@ -418,7 +588,92 @@ input[type="search"]::-webkit-search-cancel-button {
 
                         <div class="description lead">
 
-                            <p>Create the tbody, trs, and tds and append them to the table.</p>
+                            <p>Clears previous rows from the table, then
+appendss <code>com.Rows</code>.</p>
+<p>See: <code>AddRows</code></p>
+<p>Internal Use only</p>
+
+
+                        </div>
+
+
+                        <section class="parameters">
+
+                            <h3>Parameters</h3>
+
+                            <div class="table-responsive">
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr>
+                                        <td>com</td>
+                                        <td>
+                                            <code>object</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>com.Rows</td>
+                                        <td>
+                                            <code>Array.&lt;object&gt;</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>fun</td>
+                                        <td>
+                                            <code>function</code>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </section>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="tableview.js-addrows">
+                            <a href="#tableview.js-addrows" class="permalink">#</a>
+                            <span class="method-name" title="AddRows(com, fun)">AddRows(com, fun)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <p>Creates required DOM to add <code>com.Rows</code> to the table.</p>
 <p>internal use only</p>
 
 

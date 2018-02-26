@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.Core.Modules.xGraph.Validate",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.Extensions.Modules.MSSQL",
+				"TestJson": "@file: ../../Extensions/Modules/MSSQL/test.json"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Extensions.Modules.MSSQL",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

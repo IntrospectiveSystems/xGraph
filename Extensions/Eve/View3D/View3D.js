@@ -95,7 +95,7 @@
 		console.log("EVOKE EXAMPLE", com.id);
 		console.log("Popup");
 		this.genModule({
-			"Module": "xGraph:Widgets/Popup",
+			"Module": "xGraph.Popup",
 			"Par": {
 				Left: com.mouse.x,
 				Top: com.mouse.y,

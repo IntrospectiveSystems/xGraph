@@ -4,16 +4,16 @@
 	},
 	"Modules": {
 		"Server": {
-			"Module": "xGraph.Core.Modules.Validate",
+			"Module": "Core.Modules.xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Extensions.Modules.CSV",
+				"TestModule": "Extensions.Modules.CSV",
 				"TestJson": "@file: ../../Extensions/Modules/CSV/testWithHeader.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Extensions.Modules.CSV",
+				"Module": "Extensions.Modules.CSV",
 				"Source": "xGraph"
 			}
 		]

@@ -234,11 +234,11 @@
 
 			log.v("Popup");
 			this.genModule({
-				"Module": "xGraph.Widgets.Popup",
+				"Module": "xGraph.Popup",
 				"Par": {
 					Left: com.mouse.x,
 					Top: com.mouse.y,
-					"View": this.Par.EvokeView || "xGraph.Widgets.3DView",
+					"View": this.Par.EvokeView || "xGraph.3DView",
 					"Width": 800,
 					"Height": 600
 				}

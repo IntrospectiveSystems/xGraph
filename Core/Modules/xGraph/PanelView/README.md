@@ -8,14 +8,14 @@ Introspective Systems, LLC.
 
 ## Getting Started
 
-The Most Basic Panel Require no Pars. by default it will fill the space proveided by its parent, split it in half veritcally (one panel on the left, one on the right), and place its first two children inside the panels.
+The Most Basic Panel Requires no Pars. By default it will fill the space proveided by its parent, split it in half veritcally (one panel on the left, one on the right), and place its first two children inside the panels.
 
 Example
 
 ``` json
 {
     "RootView": {
-        "Module": "xGraph.Widgets.RootView",
+        "Module": "xGraph.RootView",
         "Par": {
             "Layout": {
                 "View": "$Panel",
@@ -26,16 +26,16 @@ Example
             }
         }
     },
-    "Menubar": {
-        "Module": "xGraph.Widgets.PanelView",
+    "Panel": {
+        "Module": "xGraph.PanelView",
         "Par": {}
     },
     "EditorLeft": {
-        "Module": "xGraph.Widgets.AceEditorView",
+        "Module": "xGraph.AceEditorView",
         "Par": {}
     },
     "EditorRight": {
-        "Module": "xGraph.Widgets.AceEditorView",
+        "Module": "xGraph.AceEditorView",
         "Par": {}
     }
 }
@@ -43,7 +43,7 @@ Example
 
 ## Panel Sizing
 
-To change the sizes of the panels There is a parameter called Ratio. It is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
+To change the sizes of the panels there is a parameter called Ratio. It is a Value from 0 to 1 and represents how much of the Width (Or Height depending on Flow Direction) the first panel takes up.
 
 For example, if you wanted the left panel to be a third of the overall space, you would set `"Ratio": 0.33`
 
@@ -51,7 +51,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.PanelView",
+    "Module": "xGraph.PanelView",
     "Par": {
       "Ratio": 0.33
     }
@@ -64,7 +64,7 @@ To change the flow from Left to Right to Top to Bottom, set `"Horizontal": true`
 
 ``` json
 {
-    "Module": "xGraph.Widgets.PanelView",
+    "Module": "xGraph.PanelView",
     "Par": {
       "Horintal": true
     }

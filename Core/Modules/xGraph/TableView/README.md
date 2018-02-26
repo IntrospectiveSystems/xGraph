@@ -20,7 +20,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.TableView",
+    "Module": "xGraph.TableView",
     "Par": {
         "Source": "$Tickets",
         "Columns": [
@@ -55,7 +55,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Widgets.TableView",
+    "Module": "xGraph.TableView",
     "Par": {
         "Source": "$Tickets",
         "Evoke": "View",
@@ -81,3 +81,7 @@ Example
 }
 ```
 
+## DataUpdate
+
+When a DataUpdate Command is received, the Table will send a GetData to it's
+source, if it has one, and then sets the Tables Rows to the Data it received.

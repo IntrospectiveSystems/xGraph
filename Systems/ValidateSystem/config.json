@@ -4,16 +4,16 @@
 	},
 	"Modules": {
 		"Server": {
-			"Module": "xGraph.ValidateModule",
+			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.Perceptron",
-				"TestJson": "@file: ../../Perceptron/test.json"
+				"TestModule": "xGraph.SQLite",
+				"TestJson": "@file: ../../Core/Modules/xGraph/SQLite/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "xGraph.Perceptron",
+				"Module": "xGraph.SQLite",
 				"Source": "xGraph"
 			}
 		]

@@ -160,7 +160,7 @@ function help() {
 		\x20\x20--config                          : Specifies a system's structure file.
 		\x20\x20--cache                           : Specifies a system's cache directory.
 		\x20\x20--allow-add-module                : Enable a module to add new modules 
-		                                            to the in memory Module cache.
+		                                            in memory to the Module cache.
 		
 		Examples:
 		\x20\x20Compile the system in the current directory.
@@ -204,7 +204,7 @@ async function execute() {
 		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
 			startNexusProcess();
 		} else {
-			state = 'development';
+			state = 'develop';
 			await genesis();
 			startNexusProcess();
 		}
@@ -231,13 +231,13 @@ function startNexusProcess() {
 	let cacheDir = pathOverrides["cache"];
 	console.log(`Starting from ${cacheDir}`);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: { NODE_PATH: path.join(path.dirname(cacheDir), "node_modules"), PATH: process.env.PATH } });
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
@@ -410,7 +410,6 @@ function processSwitches() {
 
 	function applySwitch(str, i) {
 		let remainingArgs = args.length - i - 1;
-		// if the switch is a single flag, do something here
 		if (str == "debug") {
 			console.log("Doing the debug thing");
 			argLoop.delete(1);

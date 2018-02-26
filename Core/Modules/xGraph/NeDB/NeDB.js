@@ -49,7 +49,7 @@
 		 * the database. If Filter object is present
 		 * it will only count records matching it.
 		 * @param {object} com 
-		 * @param {object} com.Filter
+		 * @param {object=} com.Filter
 		 * @param {number} com.Count
 		 * @param {any} fun
 		 * @memberof NeDB
