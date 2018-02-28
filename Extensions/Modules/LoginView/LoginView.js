@@ -44,6 +44,13 @@
 				if(this.Par.Logout) {
 					try {
 						gapi.auth2.getAuthInstance().signOut();
+						Cookies('xGraph-UserPassport', undefined);
+						Cookies('xGraph-Provider', undefined);
+						Cookies('xGraph-Email', undefined);
+						Cookies('xGraph-DisplayName', undefined);
+						Cookies('xGraph-Expires', undefined);
+						Cookies('xGraph-Authenticated', undefined);
+						Cookies('xGraph-UserPassport', undefined);
 					}catch(e) {
 						log.v('couldnt sign out google...')
 					}
