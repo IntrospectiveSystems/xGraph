@@ -1,5 +1,7 @@
 # xgraph  
 
+![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph") 
+
 v1.1.0
 
 Introspective Systems, LLC.
