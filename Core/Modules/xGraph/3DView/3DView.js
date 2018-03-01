@@ -61,7 +61,7 @@
 				View.Light = new THREE.DirectionalLight(0xFFFFFF);
 				View.Light.position.set(-40, 60, 100);
 				View.Scene.add(View.Light);
-				View.Ambient = new THREE.AmbientLight(0x808080);
+				View.Ambient = new THREE.AmbientLight(0x888);
 				View.Scene.add(View.Ambient);
 				if ("Axes" in this.Par) {
 					// log.w(`adding in the axes`)
@@ -71,7 +71,7 @@
 				}
 				View.Camera.position.x = 0;
 				View.Camera.position.y = -50;
-				View.Camera.position.z = 50;
+				View.Camera.position.z = 100;
 				View.Camera.up.set(0.0, 0.0, 1.0);
 				View.Camera.lookAt(View.Focus);
 				View.Camera.updateProjectionMatrix();
@@ -80,6 +80,7 @@
 
 					//For testing of updating elevations
 					if (this.Vlt.Update || live) {
+						log.d('image capture loop');
 						// this.Vlt.Update = false;
 						// let q = {}
 						// q.Cmd = "SetObjects";
@@ -91,12 +92,13 @@
 						// q.Objects.push(obj);
 
 						// this.send(q, this.Par.Pid, (err, com) => {
-						// 	setTimeout(this.dispatch({ Cmd: "ImageCapture" }, _ => _), 40);
+							setTimeout(this.dispatch({ Cmd: "ImageCapture" }, _ => _), 0);
 						// });
 					}
 					//end TEST
 
 					View.Renderer.render(View.Scene, View.Camera);
+					// log.d(`render`)
 				}, 20);  // updates roughly every 20 milliseconds
 
 				fun(null, com);
@@ -286,6 +288,17 @@
 			View.Camera.aspect = div.width() / div.height();
 			View.Camera.updateProjectionMatrix();
 
+			$(window.document.body).on('keydown', (evt)=>{
+				log.d(`key down ${JSON.stringify(evt, null, 2)}`);
+				if (this.Vlt.Update){
+					log.d(`stopping image capture`);
+					this.Vlt.Update = false; 
+				} else{
+					log.d(`Starting image capture`);
+					this.Vlt.Update = true;
+				}
+			});
+
 			this.genModule({
 				"Module": 'xGraph.Mouse',
 				"Par": {
@@ -399,7 +412,6 @@
 			}
 
 			for (let i = 0; i < com.Objects.length; i++) {
-
 				let unit = com.Objects[i];
 
 				if (typeof unit.id == "undefined") {
@@ -459,7 +471,12 @@
 
 						if ("modelId" in unit) {
 							if (unit.modelId in this.Vlt.View.Models) {
-								obj = this.Vlt.View.Models[unit.modelId].clone();
+								obj = new THREE.Object3D();
+								let obj1 = new THREE.Mesh(this.Vlt.View.Models[unit.modelId].children[0].children[0].geometry,this.Vlt.View.Models[unit.modelId].children[0].children[0].material) ;
+
+								let obj2 = new THREE.Mesh(this.Vlt.View.Models[unit.modelId].children[1].children[0].geometry,this.Vlt.View.Models[unit.modelId].children[1].children[0].material) ;
+								obj.add(obj1);
+								obj.add(obj2);
 							} else {
 								obj = await new Promise((res, rej) => {
 									this.genModule(mod, (err, pidApex) => {
@@ -486,8 +503,7 @@
 												func(err);
 												return;
 											}
-											var objinst = new THREE.Object3D();
-											objinst.add(x.Obj3D);
+											var objinst = x.Obj3D;
 											res(objinst);
 											log.v("Done Generating the Module/Model");
 										}
@@ -567,13 +583,11 @@
 				if (unit.responseHandler) {
 					this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
 				}
-
 				if (unit.new) {
 					if (unit.parentId) {
 						// log.d(`trying to get parent ${unit.parentId}`);
 						let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
 						if (parent) {
-							// log.d("got the parent")
 							if (unit.position == "random") {
 								let vertex = parent.geometry.vertices[Math.floor(Math.random() * parent.geometry.vertices.length)];
 								// log.d(`chosen vertex is ${vertex}`);
@@ -773,7 +787,14 @@
 				info.Keys.push('Idle.KeyDown.n');
 				return;
 			}
-			Vlt.Update = true;
+			log.d(`key down ${JSON.stringify(info, null, 2)}`);
+			if (Vlt.Update){
+				log.d(`stopping image capture`);
+				Vlt.Update = false; 
+			} else{
+				log.d(`Starting image capture`);
+				Vlt.Update = true;
+			}
 		}
 
 
