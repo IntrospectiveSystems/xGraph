@@ -46,6 +46,7 @@
 				View = this.Vlt.View;
 				View.Geometries = {};
 				View.Meshs = {};
+				View.Models = {};
 				View.ResponseHandlers = {};
 
 				View.Ray = new THREE.Raycaster();
@@ -443,6 +444,9 @@
 
 						obj = new THREE.Mesh(geom, mesh);
 					} else {
+						if (("Obj3D" in com) && (unit.Obj3D == "model")){
+							unit.Obj3D = com.Obj3D
+						}
 
 						//we're passed a module and need to generate it
 						let mod = {
@@ -453,49 +457,79 @@
 							}
 						};
 
-						// if (unit.position)
-						// 	mod.Par.Position = unit.position;
-						// if (unit.model)
-						// 	mod.Par.Model = unit.model;
-						// if (unit.axis)
-						// 	mod.Par.Axis = unit.axis;
-						// if (unit.angle)
-						// 	mod.Par.Angle = unit.angle;
+						if ("modelId" in unit) {
+							if (unit.modelId in this.Vlt.View.Models) {
+								obj = this.Vlt.View.Models[unit.modelId].clone();
+							} else {
+								obj = await new Promise((res, rej) => {
+									this.genModule(mod, (err, pidApex) => {
+										let that = this;
 
-						obj = await new Promise((res, rej) => {
-							this.genModule(mod, (err, pidApex) => {
-								let that = this;
+										//save the modules pid in unit.Pid
+										unit.Pid = pidApex;
 
-								//save the modules pid in unit.Pid
-								unit.Pid = pidApex;
+										unit.responseHandler = {
+											Cmd: "Evoke",
+											Handler: unit.Pid
+										};
+										var q = {};
+										q.Cmd = 'GenModel';
+										this.send(q, unit.Pid, rply);
+										function rply(err, x) {
+											if (err) {
+												func(err);
+												return;
+											}
+											if (!('Obj3D' in x)) {
+												var err = 'No model returned';
+												log.v(' ** ERR:' + err);
+												func(err);
+												return;
+											}
+											var objinst = new THREE.Object3D();
+											objinst.add(x.Obj3D);
+											res(objinst);
+											log.v("Done Generating the Module/Model");
+										}
+									});
+								});
+								this.Vlt.View.Models[unit.modelId] = obj;
+							}
+						} else {
+							obj = await new Promise((res, rej) => {
+								this.genModule(mod, (err, pidApex) => {
+									let that = this;
 
-								unit.responseHandler = {
-									Cmd: "Evoke",
-									Handler: unit.Pid
-								};
-								var q = {};
-								q.Cmd = 'GenModel';
-								this.send(q, unit.Pid, rply);
-								function rply(err, x) {
-									if (err) {
-										func(err);
-										return;
+									//save the modules pid in unit.Pid
+									unit.Pid = pidApex;
+
+									unit.responseHandler = {
+										Cmd: "Evoke",
+										Handler: unit.Pid
+									};
+									var q = {};
+									q.Cmd = 'GenModel';
+									this.send(q, unit.Pid, rply);
+									function rply(err, x) {
+										if (err) {
+											func(err);
+											return;
+										}
+										if (!('Obj3D' in x)) {
+											var err = 'No model returned';
+											log.v(' ** ERR:' + err);
+											func(err);
+											return;
+										}
+										var objinst = new THREE.Object3D();
+										objinst.add(x.Obj3D);
+										res(objinst);
+										log.v("Done Generating the Module/Model");
 									}
-									if (!('Obj3D' in x)) {
-										var err = 'No model returned';
-										log.v(' ** ERR:' + err);
-										func(err);
-										return;
-									}
-									var objinst = new THREE.Object3D();
-									objinst.add(x.Obj3D);
-									res(objinst);
-									log.v("Done Generating the Module/Model");
-								}
+								});
 							});
-						});
+						}
 					}
-
 				} else if (unit.removed) {
 					this.Vlt.View.Scene.remove(obj);
 					continue;
@@ -503,7 +537,7 @@
 
 				obj.name = unit.id;
 
-				if (typeof unit.position== "object") {
+				if (typeof unit.position == "object") {
 					if (unit.position.x || (unit.position.x == 0))
 						obj.position.x = Math.round(unit.position.x);
 					if (unit.position.y || (unit.position.y == 0))
@@ -540,15 +574,15 @@
 						let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
 						if (parent) {
 							// log.d("got the parent")
-							if (unit.position == "random"){
-								let vertex = parent.geometry.vertices[Math.floor(Math.random()*parent.geometry.vertices.length)];
+							if (unit.position == "random") {
+								let vertex = parent.geometry.vertices[Math.floor(Math.random() * parent.geometry.vertices.length)];
 								// log.d(`chosen vertex is ${vertex}`);
 
-								while (vertex.z <0) {
-									vertex = parent.geometry.vertices[Math.floor(Math.random()*parent.geometry.vertices.length)]
+								while (vertex.z < 0) {
+									vertex = parent.geometry.vertices[Math.floor(Math.random() * parent.geometry.vertices.length)]
 									// log.d(`new vertex is ${vertex}`);
 								}
-							obj.position.copy(vertex)
+								obj.position.copy(vertex)
 							}
 							parent.add(obj);
 							obj.matrixWorldNeedsUpdate = true;
