@@ -76,7 +76,16 @@
 					Cookies('xGraph-Authenticated', true); // only truly authenticated once
 					// we add ourselves to the database.
 				} catch(e) {
-					alert(`${e}\n-------------------\nPage should be refreshed.\nIf that doesnt solved the problem, contact support.`);
+					switch(e) {
+						case "DOMAIN_MISMATCH": {
+							alert("This email address is not allowed");
+							break;
+						}
+						default: {
+							alert(`${e}\n-------------------\nPage should be refreshed.\nIf that doesnt solved the problem, contact support.`);
+							break;
+						}
+					}
 				}
 
 

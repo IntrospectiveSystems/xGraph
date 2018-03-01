@@ -57,7 +57,7 @@
 			}
 	
 			AddUser(com, fun) {
-
+				
 				let createUser = (userid, email, name) => {
 					log.v("User does not exist yet...");
 					let Pids = {};
@@ -107,6 +107,12 @@
 
 				if ('Authentication' in com.Passport && com.Passport.Authentication.Valid) {
 					let email = com.Passport.Authentication.Email;
+					let domain = email.split('@');
+					domain = domain[domain.length-1];
+					if ('Domain' in this.Par && this.Par.Domain.toLowerCase() != domain.toLowerCase()) {
+						fun('DOMAIN_MISMATCH', com);
+						return;
+					}
 					let displayName = com.Passport.Authentication.DisplayName;
 					createUser(this.genPid(), email, displayName);
 				} else {
