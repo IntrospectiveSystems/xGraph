@@ -29,7 +29,7 @@
 		com.Passport.To = this.Par.Link;
 
 		this.Par.sendSock(com, async (err, com) => {
-
+			
 			if(com.PidInterchange) {
 				let table = [];
 				com = await recurse(com);
@@ -66,7 +66,7 @@
 				}
 			}
 
-			fun(null, com);
+			fun(err, com);
 		});
 	}
 /**

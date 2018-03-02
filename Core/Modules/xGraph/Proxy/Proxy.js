@@ -285,7 +285,7 @@
 
 
 								// parse it into a message
-								str = JSON.stringify(r);
+								str = JSON.stringify([err,r]);
 								let msg = Vlt.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
 							}
@@ -408,7 +408,8 @@
 						default:
 							Vlt.Buf += data.toString('utf8', i1, i2);
 							Vlt.State = 0;
-							let com = JSON.parse(Vlt.Buf);
+							let err, com = JSON.parse(Vlt.Buf);
+							if(Array.isArray(com)) [err, com] = com;
 							
 							
 							// -------------------------- Pid interchange
@@ -457,7 +458,7 @@
 
 							if ('Reply' in com.Passport) {
 								if (Vlt.Fun[com.Passport.Pid])
-									Vlt.Fun[com.Passport.Pid](null, com);
+									Vlt.Fun[com.Passport.Pid](err || null, com);
 							} else {
 								that.send(com, Par.Link);
 							}
