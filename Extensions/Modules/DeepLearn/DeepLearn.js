@@ -10,6 +10,7 @@
 					if (xhr.readyState == XMLHttpRequest.DONE) {
 						eval(xhr.responseText);
 						this.Vlt.dl = deeplearn;
+						log.v(`set deeplearn to this.Vlt.dl`);
 						fun(null, com);
 					}
 				}
@@ -18,6 +19,7 @@
 			} else {
 				this.Vlt.dl = this.require('deeplearn');
 				fun(null, com);
+				log.v(`set deeplearn to this.Vlt.dl`);
 			}
 		}
 
@@ -35,13 +37,13 @@
 	 */
 	DeepLearn.prototype['*'] = (com, fun = _ => _) => {
 		if (!("editor" in this.Vlt) || !(com.Cmd in this.Vlt.editor)) {
-			log.v(`${com.Cmd} not in Ace API`);
+			log.v(`${com.Cmd} not in DeepLearn API`);
 			fun(null, com);
 			return;
 		}
 		let err = "";
 		com.Arguments = com.Arguments || [];
-		log.v(`--Ace/APILookup: ${com.Cmd} Arguments: ${com.Arguments.map((v) => v.substr(0, Math.min(v.length, 100)))}`);
+		log.v(`--DeepLearn/APILookup: ${com.Cmd} Arguments: ${com.Arguments.map((v) => v.substr(0, Math.min(v.length, 60)))}`);
 		try {
 			com.Data = this.Vlt.editor[com.Cmd](...com.Arguments);
 		} catch (e) {
