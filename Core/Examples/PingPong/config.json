@@ -4,14 +4,14 @@
   },
   "Modules": {
     "Ping": {
-      "Module": "Modules.xGraph.Ping",
+      "Module": "xGraph.Ping",
       "Source": "xGraph",
       "Par": {
         "Pong": "$Pong"
       }
     },
     "Pong": {
-      "Module": "Modules.xGraph.Pong",
+      "Module": "xGraph.Pong",
       "Source": "xGraph",
       "Par": {
         "Ping": "$Ping"
