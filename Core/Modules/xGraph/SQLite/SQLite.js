@@ -257,48 +257,7 @@ function SQLite() {
                 fun(errors, com);
             }
         }
-
-        /**
-         * The Each command runs the SQL query with the specified parameters and calls the callback once for each result row.
-         * @param {object} com              The command object.
-         * @param {String} com.Sql          The SQL Query that will be run. If the query has placeholders the values must be provided in com.Param.
-         * @param {*=} com.Param            The parameters to replace the placeholders in the SQL Query.
-         * @param {function} com.Callback   The callback function that will be called once for each row returned.
-         * @callback fun
-         */
-        Each(com, fun){
-            log.i("--SQLite/Each");
-            let that = this;
-            let Par = this.Par;
-            let Vlt = this.Vlt;
-            let errors = null;
-
-            let sqlite3 = Vlt.Sqlite3;
-            let database = Vlt.Database;
-
-            let param = [];
-            let sql = com.Sql;
-            let callback = com.Callback;
-
-
-            if(com.Param){
-                param = com.Param;
-            }
-
-            database.each(sql, param, callback, complete);
-
-            function complete(err){
-                if(err){
-                    log.e("Unable to get SQL statement.");
-                    log.e("error: "+err);
-                    errors = err;
-                } else {
-                    log.i("Each: Statement ran successfully.");
-                }
-                fun(errors, com);
-            }
-        }
-
+        
         /**
          * The Exect command runs all SQL queries in the supplied string. No result rows are retrieved.
          * If a query fails, no subsequent statements will be executed.

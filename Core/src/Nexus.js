@@ -4,6 +4,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
 		state = 'development';
 	}
+	module.paths.push(process.cwd() + '/cache/node_modules');
 
 	console.log(`\nInitializing the Run Engine`);
 
@@ -22,8 +23,8 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	var EntCache = {};					// {<Entity pid>:<Entity>
 	var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 	var packagejson = {};				// The compiled package.json, built from Modules
-	var args = process.argv;			// The input arguments --under consideration for deprication 
-	var Params = {};					// The set of Macros for defining paths 
+	var args = process.argv;			// The input arguments --under consideration for deprication
+	var Params = {};					// The set of Macros for defining paths
 	var Nxs = {
 		genPid,
 		genModule,
@@ -41,19 +42,59 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	// Logging Functionality
 	//
 	{
+		global.Volatile = class Volatile {
+			constructor(obj) {
+				this.obj = obj;
+			}
+			lock(actionFunction) {
+				return new Promise(unlock => {
+					let inst = this;
+					if (this.queue instanceof Promise) {
+						this.queue = this.queue.then(async function () {
+							let ret = actionFunction(inst.obj);
+							if (ret instanceof Promise) ret = await ret;
+							inst.obj = ret;
+							unlock();
+						});
+					} else {
+						this.queue = new Promise(async (resolve) => {
+							let ret = actionFunction(this.obj);
+							if (ret instanceof Promise) ret = await ret;
+							this.obj = ret;
+							unlock();
+							resolve();
+						});
+					}
+				});
+			}
+			toString() {
+				return this.obj.toString() || "no toString defined";
+			}
+		}
+
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(`${process.cwd()}/xgraph.log`, `${log.parse(str)}${endOfLine}`, (err) => {
-				if (err) {
-					console.error(err); process.exit(1); reject();
-				}
-			});
+			xgraphlog.buffer.lock((val) => val + `${log.parse(str)}${endOfLine}`);
 		};
+		xgraphlog.buffer = new Volatile("");
+		xgraphlog.updateInterval = async () => {
+			let str;
+			await xgraphlog.buffer.lock(val => {
+				str = val;
+				return "";
+			});
+			fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
+				process.nextTick(xgraphlog.updateInterval);
+			});
+		}
+		xgraphlog.updateInterval();
+
+
 		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
-		// v : verbose		Give too much information 
+		// v : verbose		Give too much information
 		// d : debug		For debugging purposes not in production level releases
-		// i : info			General info presented to the end user 
+		// i : info			General info presented to the end user
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		const log = global.log = {
@@ -91,7 +132,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 									arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
 								}
 							}
-						} else if(typeof obj == 'undefined') {
+						} else if (typeof obj == 'undefined') {
 							arr.push('undefined');
 						} else {
 							arr.push(obj.toString());
@@ -145,7 +186,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 	defineMacros();
 
-	// if called from binary quit or if called from 
+	// if called from binary quit or if called from
 	// the command line and node build cache first
 	if (!fs.existsSync(CacheDir) || (state == "development")) {
 		// #ifndef BUILT
@@ -174,9 +215,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	//
 
 	/**
-	 * Populates Params {OBJECT} 
-	 * This is populated from both the process.argv array as well as those parsed in the 
-	 * binary file if it was used. 
+	 * Populates Params {OBJECT}
+	 * This is populated from both the process.argv array as well as those parsed in the
+	 * binary file if it was used.
 	 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
 	 */
 	function defineMacros() {
@@ -323,7 +364,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * Send Finished command if the process was generated 
+		 * Send Finished command if the process was generated
 		 */
 		function run() {
 			log.i(`--Nexus/Run`);
@@ -405,7 +446,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	/**
 	 * Send a message from an entity to an Apex entity.
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
+	 * @param {object} com 			the message object
 	 * @param {string} com.Cmd 		the command of the message
 	 * @param {object} com.Passport	the information about the message
 	 * @param {string} com.Passport.To the Pid of the recipient module
@@ -452,7 +493,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 				fun(err, com);
 				return;
 			}
-			
+
 			if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
 				entContext.dispatch(com, reply);
 			} else {
@@ -475,7 +516,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * The base class for all xGraph Entities
 	 * @param {object} nxs 	the nxs context to give the entity acess too
 	 * @param {object} imp 	the evaled Entity functionality returned by the dispatch table
-	 * @param {object} par	the par of the entity 
+	 * @param {object} par	the par of the entity
 	 */
 	function Entity(nxs, imp, par) {
 		var Par = par;
@@ -518,9 +559,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		/**
 		 * Route a message to this entity with its context
-		 * @param {object} com		The message to be dispatched in this entities context 
+		 * @param {object} com		The message to be dispatched in this entities context
 		 * @param {string} com.Cmd	The actual message we wish to send
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
 			var disp = Imp.dispatch;
@@ -541,22 +582,22 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @param {object} mod 	the description of the Module to generate
 		 * @param {string} mod.Module the module to generate
 		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genModule(mod, fun) {
 			//	log.v('--Entity/genModule');
 			nxs.genModule(mod, fun);
 		}
 
-	/**
-	 * Add a module into the in memory Module Cache (ModCache)
-	 * @param {string} modName 		the name of the module
-	 * @param {string} modZip 		the zip of the module
-	 * @callback fun 							the callback just returns the name of the module
-	 */
-	function addModule(modName, modZip, fun){
-		nxs.addModule(modName, modZip, fun);
-	}
+		/**
+		 * Add a module into the in memory Module Cache (ModCache)
+		 * @param {string} modName 		the name of the module
+		 * @param {string} modZip 		the zip of the module
+		 * @callback fun 							the callback just returns the name of the module
+		 */
+		function addModule(modName, modZip, fun) {
+			nxs.addModule(modName, modZip, fun);
+		}
 
 		/**
 		 * entity access to the genModule command
@@ -570,7 +611,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		/**
 		 * deletes the current entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function deleteEntity(fun) {
 			log.v(`Deleting Entity ${Par.Pid}`);
@@ -582,7 +623,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @param {object} par the par of the entity to be generated
 		 * @param {string} par.Entity The entity type that will be generated
 		 * @param {string=} par.Pid	the pid to define as the pid of the entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genEntity(par, fun) {
 			nxs.genEntity(Par.Apex, par, fun);
@@ -620,7 +661,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		/**
 		 * save the current entity to cache if not an Apex send the save message to Apex
 		 * if it is an Apex we save it as well as all other relevant information
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function save(fun) {
 			nxs.saveEntity(Par.Apex, Par.Pid, fun);
@@ -668,7 +709,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 	/**
 	 * Delete an entity file. If the entity is an Apex of a Module,
-	 * then delete all the entities found in that module as well. 
+	 * then delete all the entities found in that module as well.
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return the pid of the generated entity to
@@ -678,7 +719,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		let rmList = [];
 		//we first check to see if it's an apex
-		//if so we will read the directory that is the instance of 
+		//if so we will read the directory that is the instance of
 		//the module and then delete all of the entity files found therein.
 		if (apx == pid) {
 			files = fs.readdirSync(apxpath);
@@ -713,53 +754,23 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		let apxpath = `${modpath}/${apx}`;
 		let entpath = `${apxpath}/${pid}.json`;
 
-		//	this function checks to make sure the entities Module.zip 
-		// 	file pre-exists or writes it if the entity is the module apex. 
+		//	this function checks to make sure the entities Module.zip
+		// 	file pre-exists or writes it if the entity is the module apex.
 		let checkModule = (() => {
 			fs.lstat(modpath, function (err, stat) {
 				if (stat) {
 					checkApex();
 				} else {
-					//the following code is depricated since including deferred modules all module zip files 
+					//the following code is deprecated since including deferred modules all module zip files
 					//must exist in the cache prior to starting the system
 
-					fun(`No Directory for the requrested module: ${ApexIndex[apx]}`);
-					// let mod = ModCache[ApexIndex[apx]];
-					// if (pid == apx) {
-					// 	fs.mkdirSync(modpath);
-					// 	let path = modpath + '/Module.zip';
-					// 	let str = JSON.stringify(mod, null, 2);
-					// 	mod.generateAsync({ type: "uint8array" }).then((dat, fail) => {
-					// 		if (fail) {
-					// 			log.w("Genesis failed to create zip.");
-					// 			return;
-					// 		}
-
-					// 		fs.writeFileSync(path, str);
-					// 		log.v("Saved Module.zip at " + path);
-
-					// 		checkApex();
-					// 	});
-
-
-					// } else {
-					// 	if (!("Save" in mod)) {
-					// 		fun("Save Not Implemented in Module's Apex", modpath);
-					// 		return;
-					// 	}
-					// 	let com = {};
-					// 	com.Cmd = mod["Save"];
-					// 	com.Passport = {};
-					// 	com.Passport.To = pidapx;
-					// 	com.Passport.Pid = genPid();
-					// 	sendMessage(com, checkApex);
-					// }
+					fun(`No Directory for the requested module: ${ApexIndex[apx]}`);
 				}
 			})
 		});
 
 		//this function checks to make sure the entities Apex directory
-		//pre-exists or writes it if the entity is the module apex. 
+		//pre-exists or writes it if the entity is the module apex.
 		let checkApex = (() => {
 			fs.lstat(apxpath, async function (err, stat) {
 				if (stat) {
@@ -776,7 +787,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 									res(JSON.parse(schemaString));
 								});
 							} else {
-								log.e('Module <' + modnam + '> schema not in ModCache');
+								log.e('Module <' + ApexIndex[apx] + '> schema not in ModCache');
 								res();
 								return;
 							}
@@ -816,9 +827,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * @param {string} modZip 		the zip of the module
 	 * @callback fun 							the callback just returns the name of the module
 	 */
-	async function addModule(modName, modZip, fun){
+	async function addModule(modName, modZip, fun) {
 		//modZip is the uint8array that can be written directly to the cache directory
-		if (process.argv.indexOf('--allow-add-module') > -1){
+		if (process.argv.indexOf('--allow-add-module') > -1) {
 			ModCache[modName] = await new Promise(async (res, rej) => {
 				let zip = new jszip();
 				zip.loadAsync(modZip).then((mod) => res(mod));
@@ -826,7 +837,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			fun(null, modName)
 			return;
 		}
-		let err =`addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
+		let err = `addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
 		log.w(err);
 		fun(err);
 	}
@@ -869,7 +880,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	}
 
 	/**
-	 * Spin up an entity from cache into memory and retrievd its context 
+	 * Spin up an entity from cache into memory and retrievd its context
 	 * otherwise just return it's context from memory
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
@@ -936,7 +947,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
 	 * @param {string?} inst.Module 	The name of the module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par	
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	async function genModule(moduleDefinition, fun = _ => _) {
@@ -950,7 +961,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		let Start = {};
 		let symbols = {};
 
-		// loop over the keys to assign pids to the local dictionary and the 
+		// loop over the keys to assign pids to the local dictionary and the
 		// module definitions (moduleDefinitions)
 		for (let key in moduleDefinitions) {
 			symbols[key] = genPid();
@@ -969,12 +980,11 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					let pidapx = symbols[moduleKey];
 					ApexIndex[pidapx] = inst.Module;
 
-					
+
 					for (let key in inst.Par) {
 						let val = inst.Par[key];
-						log.d(val)
-						
-						if(typeof val == 'string') {
+
+						if (typeof val == 'string') {
 							if (val.startsWith('$')) {
 								let symbol = val.substr(1);
 								if (symbol in symbols) {
@@ -995,7 +1005,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 									log.w(`\\${escaping} is not a valid escape sequence, ignoring.`);
 								}
 							}
-						}else {
+						} else {
 							inst.Par[key] = val;
 						}
 					}
@@ -1008,7 +1018,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 								res(JSON.parse(schemaString));
 							});
 						} else {
-							log.e('Module <' + modnam + '> schema not in ModCache');
+							log.e('Module <' + inst.Module + '> schema not in ModCache');
 							res()
 							return;
 						}
@@ -1017,7 +1027,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					if ("$Setup" in schema.Apex)
 						Setup[pidapx] = schema.Apex["$Setup"];
 					if ("$Start" in schema.Apex)
-						Setup[pidapx] = schema.Apex["$Start"];
+						Start[pidapx] = schema.Apex["$Start"];
 					res();
 				});
 			}));
@@ -1079,10 +1089,10 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 	/**
 	 * Generate array of entities from module
-	 * Module must be in cache 
-	 * 
+	 * Module must be in cache
+	 *
 	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-	 * @param {object} inst 
+	 * @param {object} inst
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
@@ -1147,7 +1157,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 				}
 			}
 
-			//pars all values for symbols 
+			//pars all values for symbols
 			var pars = Object.keys(ent);
 			for (ipar = 0; ipar < pars.length; ipar++) {
 				var par = pars[ipar];
@@ -1198,10 +1208,10 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	/**
 	 * For retrieving modules
 	 * Modules come from the cache directory on the harddrive or the ModCache if its already been read to RAM.
-	 * @param {Object} modRequest 
+	 * @param {Object} modRequest
 	 * @param {String} modRequest.Module
 	 * @param {String=} modRequest.Source
-	 * @param {Function} fun 
+	 * @param {Function} fun
 	 * @returns mod
 	 */
 	function GetModule(ModName, fun = _ => _) {

@@ -8,20 +8,20 @@
 function BankPatron() {
 
 
-    var dispatch = {
+	var dispatch = {
 		Setup:Setup
-    };
+	};
 
 
-    /**
+	/**
 	 * When BankPatron is Setup, the command and user options are set up, and a stream to standard
 	 * in is set up. When the user selects an option, the command is sent to BankAccount. BankAccount
 	 * processes the command, and then returns a com.Message to BankPatron.
 	 *
-     * @param {object} com 	The command object.
-     * @callback fun
-     */
-    function Setup(com, fun){
+	 * @param {object} com 	The command object.
+	 * @callback fun
+	 */
+	function Setup(com, fun){
 		log.i("--BankClient/Setup");
 
 		//needed to keep the this context when in nested functions
@@ -44,8 +44,8 @@ function BankPatron() {
 		Vlt.stdin = process.openStdin();
 
 
-        log.i("\n\nStarting an action loop!\n");
-        setTimeout(promptUser,1000);
+		log.i("\n\nStarting an action loop!\n");
+		setTimeout(promptUser,1000);
 
 		if (fun)
 			fun(null,com);
@@ -55,7 +55,7 @@ function BankPatron() {
 		function promptUser(){
 
 
-            let userSelection = {};
+			let userSelection = {};
 
 			// clear the input stream and restart it
 			// Standard in listens for any "data", and calls selectAction when it recieves data.
@@ -74,7 +74,7 @@ function BankPatron() {
 				Vlt.selection = userInput.toString().trim();
 
 				// if the user input was not a valid selection, say so and prompt the user again.
-                // else repeat the users selection, build and the command.
+				// else repeat the users selection, build and the command.
 				if (!(Vlt.selection in Vlt.options)){
 
 					log.i(Vlt.selection, "Was not an option");
@@ -82,59 +82,59 @@ function BankPatron() {
 
 				} else {
 
-                    log.i("You chose to " + Vlt.options[Vlt.selection]);
+					log.i("You chose to " + Vlt.options[Vlt.selection]);
 
-                    if (Vlt.selection == 1) {
+					if (Vlt.selection == 1) {
 
-                        userSelection.Cmd = "CheckBalance";
-                        sendCommand();
+						userSelection.Cmd = "CheckBalance";
+						sendCommand();
 
-                    } else {
+					} else {
 
-                    	// change event function from selectAction to readAmount
+						// change event function from selectAction to readAmount
 						// Prompt the user to input an amount to be deposited/withdrawn
 						// then send the command.
-                        that.Vlt.stdin.removeListener("data", readAction);
-                        that.Vlt.stdin.addListener("data", readAmount);
+						that.Vlt.stdin.removeListener("data", readAction);
+						that.Vlt.stdin.addListener("data", readAmount);
 
-                        log.i("" + that.Vlt.options[that.Vlt.selection] + ": What amount?")
+						log.i("" + that.Vlt.options[that.Vlt.selection] + ": What amount?")
 
-                        function readAmount(userAmount){
-                            that.Vlt.amount = userAmount.toString().trim()
+						function readAmount(userAmount){
+							that.Vlt.amount = userAmount.toString().trim()
 
-                            log.i("The amount is ", that.Vlt.amount);
+							log.i("The amount is ", that.Vlt.amount);
 
-                            userSelection= {
-                            	Cmd: Vlt.commands[Vlt.selection],
-                                Amount: that.Vlt.amount
-                            };
+							userSelection= {
+								Cmd: Vlt.commands[Vlt.selection],
+								Amount: that.Vlt.amount
+							};
 
-                            sendCommand();
-                        }
-                    }
-                }
+							sendCommand();
+						}
+					}
+				}
 
 
-                // Send the command object userSelection. Print the messaged recieved in the callback, and
+				// Send the command object userSelection. Print the messaged recieved in the callback, and
 				// prompt the user to make another selection.
 				function sendCommand() {
-                    that.send(userSelection, Par.BankAccount, callback);
+					that.send(userSelection, Par.BankAccount, callback);
 
-                    function callback(err, com){
-                            if (err)
-                                log.e(err);
-                            if (com.Message)
-                                log.i("BankAccount Returned: ", com.Message);
-                            setTimeout(promptUser, 2000);
+					function callback(err, com){
+							if (err)
+								log.e(err);
+							if (com.Message)
+								log.i("BankAccount Returned: ", com.Message);
+							setTimeout(promptUser, 2000);
 					}
-                }
+				}
 
 			}
 		}
 	}
 
 
-    return {
-        dispatch: dispatch
-    };
+	return {
+		dispatch: dispatch
+	};
 })();

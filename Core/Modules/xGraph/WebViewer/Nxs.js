@@ -40,11 +40,11 @@ __Nexus = (_ => {
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		window.log = {
-			v: (...str) => console.log(`%c[VRBS] ${str.join(' ')}`, 'color: gray'),
-			d: (...str) => console.log(`%c[DBUG] ${str.join(' ')}`, 'color: magenta'),
-			i: (...str) => console.log(`%c[INFO] ${str.join(' ')}`, 'color: cyan'),
-			w: (...str) => console.log(`%c[WARN] ${str.join(' ')}`, 'color:yellow;background-color:#242424;'),
-			e: (...str) => console.log(`%c[ERRR] ${str.join(' ')}`, 'color: red'),
+			v: console.log.bind(window.console, `%c[VRBS] %s`, 'color: gray'),
+			d: console.log.bind(window.console, `%c[DBUG] %s`, 'color: magenta'),
+			i: console.log.bind(window.console, `%c[INFO] %s`, 'color: cyan; background-color:#242424;'),
+			w: console.log.bind(window.console, `%c[WARN] %s`, 'color: yellow; background-color:#242424;'),
+			e: console.log.bind(window.console, `%c[ERRR] %s`, 'color: red')
 		};
 	}
 
@@ -830,41 +830,19 @@ __Nexus = (_ => {
 		let mod = ModCache[module];
 		if (filename in mod.files) {
 			mod.file(filename).async("string").then((dat) => {
-				fun(null, mod[filename])
+				fun(null, dat);
 				return;
 			});
+		} else if (`static/${filename}` in mod.files) {
+			mod.file(`static/${filename}`).async("string").then((dat) => {
+				fun(null, dat);
+				return;
+			});
+		} else {
+			let err = `File ${filename} does not exist in module ${module}`;
+			log.e(err);
+			fun(err);
 		}
-
-		if ('static' in mod) {
-			let filearr = filename.split('/');
-			let store = mod["static"];
-			let [err, file] = subSearch(filearr, store);
-			fun(err, file);
-			return;
-
-			// /**
-			//  * Recursive object search
-			//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
-			//  * @param {Object} st 		The directort we're searching in 
-			//  */
-			function subSearch(ar, st) {
-				if (ar[0] in st) {
-					if (ar.length == 1) {
-						return [null, st[ar[0]]];
-					}
-					else {
-						return subSearch(arr.slice(1), st[ar[0]]);
-					}
-				} else {
-					let err = `${url} does not exist in Par.Static`;
-					log.w(err);
-					return [err, null];
-				}
-			}
-		}
-		let err = `File ${filename} does not exist in module ${module}`;
-		log.e(err);
-		fun(err);
 	}
 
 
@@ -1088,7 +1066,7 @@ __Nexus = (_ => {
 			let mod = ModCache[inst.Module];
 
 			let pidapx = genPid();
-			ApexIndex[pidapx] = mod.ModName;
+			ApexIndex[pidapx] = inst.Module;
 			Root.ApexList[pidapx] = pidapx;
 			await compileInstance(pidapx, inst, false);
 
@@ -1098,12 +1076,12 @@ __Nexus = (_ => {
 						res(JSON.parse(schemaString));
 					});
 				} else {
-					log.e('Module <' + modnam + '> schema not in ModCache');
+					log.e('Module <' + inst.Module + '> schema not in ModCache');
 					res()
 					return;
 				}
 			});
-			
+
 			setup();
 
 			function setup() {
@@ -1123,7 +1101,7 @@ __Nexus = (_ => {
 			function start() {
 				if (!("$Start" in schema.Apex)) {
 					fun(null, pidapx);
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
+					log.v(`The genModule ${inst.Module} pid apex is ${pidapx}`);
 					return;
 				}
 				var com = {};
@@ -1132,7 +1110,7 @@ __Nexus = (_ => {
 				com.Passport.To = pidapx;
 				com.Passport.Pid = genPid();
 				sendMessage(com, () => {
-					log.v(`The genModule ${mod.ModName} pid apex is ${pidapx}`);
+					log.v(`The genModule ${inst.Module} pid apex is ${pidapx}`);
 					fun(null, pidapx);
 				});
 			}

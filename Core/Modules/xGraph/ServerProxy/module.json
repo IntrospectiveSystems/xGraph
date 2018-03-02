@@ -17,5 +17,5 @@
   "icon": null,
   "doc": null,
   "info":{"author":"Introspective Systems, LLC."},
-  "src": "xGraph:Web/ServerProxy"
+  "src": "xGraph.ServerProxy"
 }

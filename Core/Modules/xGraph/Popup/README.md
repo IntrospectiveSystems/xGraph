@@ -14,7 +14,7 @@ Example
 
 ``` javascript
 this.genModule({
-    Module: 'xGraph.Widgets.Popup',
+    Module: 'xGraph.Popup',
     Par: {
         View: 'Project.Views.CustomView'
     }
@@ -27,7 +27,7 @@ The only other accepted Parameter is `Par`, which are the parameters passed to t
 
 ``` javascript
 this.genModule({
-    Module: 'xGraph.Widgets.Popup',
+    Module: 'xGraph.Popup',
     Par: {
         View: 'Project.Views.CustomView',
         Par: {

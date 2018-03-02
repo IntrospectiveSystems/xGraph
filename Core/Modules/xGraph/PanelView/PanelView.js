@@ -2,12 +2,6 @@
 //jshint esversion: 6
 (function Panel() {
 	class Panel {
-		setHover(elem, name) {
-			console.log('set hover on ' + name);
-			elem.on('mouseover', function () {
-				console.log('hovering is happening');
-			})
-		}
 
 		/**
 		 * @description Creates required DOM from the panels

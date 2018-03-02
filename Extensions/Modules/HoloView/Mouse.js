@@ -60,7 +60,7 @@
 					case 'F2':
 						console.log("Popup");
 						this.genMod({
-							"Module": "xGraph:Widgets/Popup",
+							"Module": "xGraph.Popup",
 							"Par": {
 								"Module": "xGraph:Widgets/HoloView",
 								"Par": {

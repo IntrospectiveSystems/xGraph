@@ -62,7 +62,7 @@
 				case 'F2':
 					console.log("Popup");
 					that.genModule({
-						"Module": "xGraph:Widgets/Popup",
+						"Module": "xGraph.Popup",
 						"Par": {
 							"View": "xGraph:Widgets/AceEditorView",
 							"Width": 400,

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # target the BUILD_DIR to output mac build folder
-# BASE_DIR is the target directory for this script, where files will be gathered and packaged to 
+# BASE_DIR is the target directory for this script, where files will be gathered and packaged to
 
 BUILD_DIR="bin/mac"
-BASE_DIR="bin" 
-VERSION="1.0"
+BASE_DIR="bin"
+VERSION="1.1"
 IDENTIFIER="com.introspectivesystems.xgraph"
 APPNAME="xGraph"
 BACKGROUND="installerbackground.png"
@@ -64,5 +64,5 @@ EOF
 PKG_LOCATION="${BASE_DIR}/${APPNAME}-${VERSION}.pkg"
 ( cd ${BASE_DIR}/../darwin/root && find . | cpio -o --format=odc | gzip -c ) > ${BASE_DIR}/../darwin/flat/base.pkg/Payload
 mkbom -u 0 -g 80 ${BASE_DIR}/../darwin/root ${BASE_DIR}/../darwin/flat/base.pkg/Bom
-( cd ${BASE_DIR}/../darwin/flat/ && xar --compression none -cf "../../${PKG_LOCATION}" * ) 
+( cd ${BASE_DIR}/../darwin/flat/ && xar --compression none -cf "../../${PKG_LOCATION}" * )
 echo "osx package has been built: ${PKG_LOCATION}"
