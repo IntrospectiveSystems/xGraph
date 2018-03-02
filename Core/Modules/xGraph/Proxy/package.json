@@ -1,0 +1,8 @@
+{
+	"name": "Proxy",
+	"author": "Introspective Systems, LLC",
+	"version": "1.1.0",
+ 	"dependencies": {
+		"ip": "^1.1.5"
+	}
+}

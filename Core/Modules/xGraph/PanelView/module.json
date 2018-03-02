@@ -1,0 +1,20 @@
+{
+	"name": "PanelView",
+	"version": "1.0.0",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": []
+	},
+	"output": {
+	},
+	"par": {
+		"required": [],
+		"optional": {
+			"Ratio": "number",
+			"Horizontal": "boolean"
+		}
+	}
+}

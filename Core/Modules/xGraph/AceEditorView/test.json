@@ -1,0 +1,23 @@
+{
+	"State": {
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			},
+			"Document": [
+				"xGraphSelfPid"
+			]
+		},
+		{
+			"Command":{
+				"Cmd":"getValue"
+			},
+			"Response":{
+				"Cmd":"getValue",
+				"Data":"*"
+			}
+		}
+	]
+}

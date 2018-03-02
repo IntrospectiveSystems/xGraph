@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "Core.Modules.xGraph.Validate",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "Extensions.Modules.CSV",
+				"TestJson": "@file: ../../Extensions/Modules/CSV/testWithHeader.json"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "Extensions.Modules.CSV",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

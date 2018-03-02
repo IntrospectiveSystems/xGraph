@@ -1,0 +1,54 @@
+{
+  "name": "Pong",
+  "version": "1.0.0",
+  "info": {
+    "author": "Introspective Systems, LLC."
+  },
+  "doc": "README.md",
+  "input": {
+    "required":[
+      {
+        "Cmd": "",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ],
+    "optional":[
+      {
+        "Cmd": "Ping",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ]
+  },
+  "output":{
+    "required":[
+      {
+        "par":"",
+        "Cmd": "",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ],
+    "optional":[
+      {
+        "par":"",
+        "Cmd": "Pong",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ]
+  },
+  "par": {
+    "required": {},
+    "optional": {}
+  }
+}

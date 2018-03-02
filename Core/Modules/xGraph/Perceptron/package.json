@@ -1,0 +1,24 @@
+{
+  "name": "perceptron",
+  "version": "1.0.0",
+  "description": "xGraph's Neataptic Perceptron Wrapper",
+  "main": "Perceptron.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Neural",
+    "Net",
+    "Neural",
+    "Network",
+    "Neural",
+    "Graph",
+    "Learning",
+    "AI"
+  ],
+  "author": "Introspective Systems, LLC.",
+  "license": "ISC",
+  "dependencies": {
+    "neataptic": "^1.4.7"
+  }
+}

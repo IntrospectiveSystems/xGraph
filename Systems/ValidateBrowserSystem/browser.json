@@ -1,0 +1,25 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"ValidateModule": {
+			"Module": "xGraph.Validate",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.AceEditorView",
+				"TestJson": "@file: ../../Core/Modules/xGraph/AceEditorView/test.json"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.RootView",
+				"Source": "xGraph"
+			},
+			{
+				"Module": "xGraph.AceEditorView",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

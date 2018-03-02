@@ -4,11 +4,16 @@ logs
 npm-debug.log*
 
 # xGraph
-[c]ache
+cache
+.vscode/
 .idea/
+EventLog.txt
 Work/*/package.json
 Systems/*/package.json
 Work/WobbleTest/Simulations/*
+-renders/
+-bin/**/*.*
+-src/gen/**/*.*
 
 # Runtime data
 pids
@@ -43,9 +48,50 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
+# Platform and IDE items
+.DS_Store
+.vscode
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+build/
+DerivedData/
+.apdisk
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
 
-**/cache/*.*
+
+# installer build items
+darwin/
+
+
+**/cache/**/*.*
 Work/*/css.json
 Work/*/package.json
 Work/*/scripts.json
 Work/*/*.js
+bin/**/*.*
+bin/**/*
+bin/*.*
+!bin/*.md
+src/gen/**/*.*

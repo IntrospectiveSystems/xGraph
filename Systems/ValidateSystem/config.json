@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraph.Validate",
+			"Source": "xGraph",
+			"Par": {
+				"TestModule": "xGraph.Plexus",
+				"TestJson": "@file: /home/tjgionet/xGraphDev/Core/Modules/xGraph/Plexus/test.json"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "xGraph.Plexus",
+				"Source": "xGraph"
+			}
+		]
+	}
+}

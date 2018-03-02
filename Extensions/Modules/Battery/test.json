@@ -1,0 +1,15 @@
+{
+  "State": {
+    "DepthOfCharge": "0",
+    "Capacity": "100",
+    "ChargeRate": "10"
+  },
+  "Cases": [
+    {
+      "Command": {
+      },
+      "Response": {
+      }
+    }
+  ]
+}

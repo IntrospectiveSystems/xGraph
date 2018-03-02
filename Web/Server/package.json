@@ -1,8 +1,0 @@
-{
-  "name" : "Web",
-  "version" : "0.0.3",
-  "dependencies" : {
-    "socket.io" : "*",
-    "jszip":"~3.1.3"
-  }
-}

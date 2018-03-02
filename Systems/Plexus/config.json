@@ -1,0 +1,23 @@
+{
+    "Sources": {
+        "local": "{local}"
+    },
+    "Modules": {
+        "Plexus": {
+            "Module": "Core.Modules.Plexus",
+            "Source": "local",
+            "Par": {}
+        },
+        "Proxy": {
+            "Module": "Core.Modules.Proxy",
+            "Source": "local",
+            "Par": {
+                "Plexus": "$Plexus",
+                "Name": "Plexus",
+                "Chan": "Plexus",
+                "Link": "$Plexus",
+                "Role": "Server"
+            }
+        }
+    }
+}
