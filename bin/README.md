@@ -2,7 +2,7 @@
 
 ![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph") 
 
-v1.1.0
+v1.1.1
 
 Introspective Systems, LLC.
 
@@ -88,12 +88,12 @@ Examples:
 ---
 ### Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of 
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of
 conduct, and the process for submitting pull requests to us.
 
 ### Versioning
 
-We use [SemVer](http://semver.org/) for versioning. 
+We use [SemVer](http://semver.org/) for versioning.
 
 
 ### License
