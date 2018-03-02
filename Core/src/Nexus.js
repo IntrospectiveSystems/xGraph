@@ -41,14 +41,54 @@
 	// Logging Functionality
 	//
 	{
+		global.Volatile = class Volatile {
+			constructor(obj) {
+				this.obj = obj;
+			}
+			lock(actionFunction) {
+				return new Promise(unlock => {
+					let inst = this;
+					if (this.queue instanceof Promise) {
+						this.queue = this.queue.then(async function () {
+							let ret = actionFunction(inst.obj);
+							if (ret instanceof Promise) ret = await ret;
+							inst.obj = ret;
+							unlock();
+						});
+					} else {
+						this.queue = new Promise(async (resolve) => {
+							let ret = actionFunction(this.obj);
+							if (ret instanceof Promise) ret = await ret;
+							this.obj = ret;
+							unlock();
+							resolve();
+						});
+					}
+				});
+			}
+			toString() {
+				return this.obj.toString() || "no toString defined";
+			}
+		}
+
 		// The logging function for writing to xgraph.log to the current working directory
 		const xgraphlog = (...str) => {
-			fs.appendFile(`${process.cwd()}/xgraph.log`, `${log.parse(str)}${endOfLine}`, (err) => {
-				if (err) {
-					console.error(err); process.exit(1); reject();
-				}
-			});
+			xgraphlog.buffer.lock((val) => val + `${log.parse(str)}${endOfLine}`);
 		};
+		xgraphlog.buffer = new Volatile("");
+		xgraphlog.updateInterval = async () => {
+			let str;
+			await xgraphlog.buffer.lock(val => {
+				str = val;
+				return "";
+			});
+			fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
+				process.nextTick(xgraphlog.updateInterval);
+			});
+		}
+		xgraphlog.updateInterval();
+
+
 		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
 		// v : verbose		Give too much information
