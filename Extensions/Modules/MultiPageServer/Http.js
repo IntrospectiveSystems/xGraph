@@ -377,7 +377,6 @@
 											}, that.Par.Pid, (err, cmd) => {
 												if('Tag' in cmd) resolve(cmd.Tag);
 												else {
-													log.w('Add Route has failed for pid interchange in Http');
 													log.w(err);
 													resolve('noooooooope');
 												}

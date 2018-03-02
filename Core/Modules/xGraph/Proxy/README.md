@@ -1,4 +1,4 @@
-### Proxy v1.1.1
+### Proxy v1.1.0
 
 _Introspective Systems, LLC_
 
@@ -8,11 +8,6 @@ modules in different systems. Proxy can operate as either a Server linked
 to a specific Module within the same system, or as a Client connected to
 another Proxy or other TCP connection. Then, modules can send commands
 to the Proxy as if it were the destination module.
-
-Proxy may also use the Plexus module to route message between modules instead 
-of directly linking to other Proxy modules. In this case set Par.Chan on Proxy 
-in a Proxy pair (Clients, Server). Proxy will need a local Plexus server running.
-See the Examples in Examples/MultipleSystemsWithPlexus
 
 ---
 
@@ -94,12 +89,6 @@ here as a client.
 **Link**: _String_ - Used when proxy is a Server. A reference to the
                         module that incoming commands received over the
                         TCP connection are routed to.
-                        
-**Poll**: _Boolean_ - Used to determine if Proxy should attempt to re-connect
-												after failed connection attemps.
-
-**Timeout** _Integer_ - The time in milliseconds to wait before poll attempts. 
-													Used only if Poll is set to TRUE. 
 
 #### Input Commands
 
