@@ -1,0 +1,6 @@
+{
+	"Apex": {
+		"Entity": "HTMLView.js",
+		"$Setup": "Setup"
+	}
+}

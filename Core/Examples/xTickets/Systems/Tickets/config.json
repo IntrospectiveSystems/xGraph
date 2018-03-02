@@ -5,7 +5,7 @@
 	},
 	"Modules": {
 		"Google": {
-			"Module": "Modules.Google",
+			"Module": "Google",
 			"Source": "local",
 			"Par": {
 				"ClientID": "",
@@ -13,24 +13,24 @@
 			}
 		},
 		"GoogleLoginProvider": {
-			"Module": "Modules.GoogleLoginProvider",
+			"Module": "GoogleLoginProvider",
 			"Source": "local",
 			"Par": {}
 		},
 		"TicketGenSurrogate": {
-			"Module": "Modules.GenModuleSurrogate",
+			"Module": "GenModuleSurrogate",
 			"Source": "local",
 			"Par": {
 				"ModuleDefinition": {
 					"Top": {
-						"Module": "Modules.Router",
+						"Module": "Router",
 						"Source": "local",
 						"Par": {
 							"Extends": "$Ticket"
 						}
 					},
 					"Ticket": {
-						"Module": "Modules.Ticket",
+						"Module": "Ticket",
 						"Par": {
 							"List": "$Tickets",
 							"AuthServer": "$AuthServer",
@@ -42,7 +42,7 @@
 			}
 		},
 		"AuthServer": {
-			"Module": "Modules.AuthenticationServer",
+			"Module": "AuthenticationServer",
 			"Source": "local",
 			"Par": {
 				"Google": "$Google",
@@ -50,7 +50,7 @@
 			}
 		},
 		"TicketsServerProxy": {
-			"Module": "Modules.xGraph.ServerProxy",
+			"Module": "xGraph.ServerProxy",
 			"Source": "Core",
 			"Par": {
 				"Link": "Tickets",
@@ -58,7 +58,7 @@
 			}
 		},
 		"Tickets": {
-			"Module": "Modules.Router",
+			"Module": "Router",
 			"Source": "local",
 			"Par": {
 				"Extends": "$TicketsSet",
@@ -68,7 +68,7 @@
 			}
 		},
 		"TicketsSet": {
-			"Module": "Modules.Set",
+			"Module": "Set",
 			"Source": "local",
 			"Par": {
 				"List": [],
@@ -76,7 +76,7 @@
 			}
 		},
 		"GoogleProxy": {
-			"Module": "Modules.xGraph.Proxy",
+			"Module": "xGraph.Proxy",
 			"Source": "Core",
 			"Par": {
 				"Role": "Server",
@@ -86,7 +86,7 @@
 			}
 		},
 		"TicketsProxy": {
-			"Module": "Modules.xGraph.Proxy",
+			"Module": "xGraph.Proxy",
 			"Source": "Core",
 			"Par": {
 				"Role": "Server",
@@ -96,7 +96,7 @@
 			}
 		},
 		"AuthServerProxy": {
-			"Module": "Modules.xGraph.Proxy",
+			"Module": "xGraph.Proxy",
 			"Source": "Core",
 			"Par": {
 				"Role": "Server",
@@ -106,7 +106,7 @@
 			}
 		},
 		"Server": {
-			"Module": "Modules.xGraph.Proxy",
+			"Module": "xGraph.Proxy",
 			"Source": "Core",
 			"Par": {
 				"Role": "Client",
@@ -116,7 +116,7 @@
 			}
 		},
 		"TicketGenSurrogateProxy": {
-			"Module": "Modules.xGraph.Proxy",
+			"Module": "xGraph.Proxy",
 			"Source": "Core",
 			"Par": {
 				"Role": "Server",
@@ -126,7 +126,7 @@
 			}
 		},
 		"GoogleLoginProviderProxy": {
-			"Module": "Modules.xGraph.Proxy",
+			"Module": "xGraph.Proxy",
 			"Source": "Core",
 			"Par": {
 				"Role": "Server",
@@ -135,7 +135,7 @@
 			}
 		},
 		"ProxyPool": {
-			"Module": "Modules.ProxyPool",
+			"Module": "ProxyPool",
 			"Source": "local",
 			"Par": {
 				"Port": 27000
@@ -143,7 +143,7 @@
 		},
 		"Deferred": [
 			{
-				"Module": "Modules.Ticket",
+				"Module": "Ticket",
 				"Source": "local"
 			}
 		]

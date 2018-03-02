@@ -111,7 +111,7 @@
 						connect(r.Host, r.Port);
 					}
 					else {
-						var err = 'Proxy - incorrect reply from Plexus';
+						var err = 'Proxy - incorret reply from Plexus';
 						log.w('Proxy - Plexus: ' + err);
 						if ("Chan" in Par)
 							log.w('  Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);

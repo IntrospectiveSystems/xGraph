@@ -23,12 +23,6 @@
     {
       "Command": {
         "Cmd": "Run",
-        "Sql": "CREATE TABLE cats(test INT)"
-      }
-    },
-    {
-      "Command": {
-        "Cmd": "Run",
         "Sql": "SELECT * FROM cats"
       }
     },
@@ -50,6 +44,13 @@
       "Response": {
         "Cmd": "All",
         "Rows": "*"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Each",
+        "Sql": "SELECT * FROM cats",
+        "Callback": "()=>{console.log('Each Row');}"
       }
     },
     {

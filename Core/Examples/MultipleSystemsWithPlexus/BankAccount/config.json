@@ -4,14 +4,14 @@
     },
     "Modules": {
         "Bank": {
-            "Module": "xGraph.BankAccount",
+            "Module": "Modules.xGraph.BankAccount",
             "Source": "xGraph",
             "Par": {
                 "Balance": "10"
             }
         }, 
         "BankServer": {
-            "Module": "xGraph.Proxy",
+            "Module": "Modules.xGraph.Proxy",
             "Source": "xGraph",
             "Par": {
                 "Chan": "Bank", 

@@ -969,7 +969,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					if ("$Setup" in schema.Apex)
 						Setup[pidapx] = schema.Apex["$Setup"];
 					if ("$Start" in schema.Apex)
-						Start[pidapx] = schema.Apex["$Start"];
+						Setup[pidapx] = schema.Apex["$Start"];
 					res();
 				});
 			}));

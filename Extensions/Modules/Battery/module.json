@@ -1,0 +1,46 @@
+{
+	"name": "Battery",
+	"version": "0.0.1",
+	"info": {
+		"author": ""
+	},
+	"doc": "README.md",
+	"input": {
+		"required": [
+			{
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		],
+		"optional": [
+			{
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		]
+	},
+	"output": {
+		"required": [
+			{
+				"par": "",
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		],
+		"optional": [
+			{
+				"par": "",
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		]
+	},
+	"par": {
+		"required": {},
+		"optional": {}
+	}
+}
