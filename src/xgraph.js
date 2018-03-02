@@ -201,13 +201,9 @@ async function deploy() {
 async function execute() {
 	try {
 		await ensureNode();
-		if (fs.existsSync(pathOverrides['Cache'] || 'cache')) {
-			startNexusProcess();
-		} else {
-			state = 'develop';
-			await genesis();
-			startNexusProcess();
-		}
+		state = 'development';
+		await genesis();
+		startNexusProcess();
 	} catch (e) {
 		console.error(e);
 	}
@@ -231,13 +227,13 @@ function startNexusProcess() {
 	let cacheDir = pathOverrides["cache"];
 	console.log(`Starting from ${cacheDir}`);
 	// #ifdef LINUX
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({ NODE_PATH: path.join(path.dirname(cacheDir), "node_modules") }, process.env) });
 	// #endif
 	// #ifdef MAC
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({ NODE_PATH: path.join(path.dirname(cacheDir), "node_modules") }, process.env) });
 	// #endif
 	// #ifdef WINDOWS
-	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({NODE_PATH: path.join(path.dirname(cacheDir), "node_modules")}, process.env)});
+	const ls = spawn("node", [`${bindir.substr(0, bindir.lastIndexOf(path.sep))}/bin/lib/Nexus/Nexus.js`, ...process.argv, JSON.stringify(pathOverrides)], { cwd: processPath, env: Object.assign({ NODE_PATH: path.join(path.dirname(cacheDir), "node_modules") }, process.env) });
 	// #endif
 
 	ls.stdout.on('data', _ => process.stdout.write(_));
@@ -555,7 +551,7 @@ function initModule(names) {
 			},
 			"doc": "README.md",
 			"input": {
-				"required":[
+				"required": [
 					{
 						"Cmd": "",
 						"required": {
@@ -564,7 +560,7 @@ function initModule(names) {
 						}
 					}
 				],
-				"optional":[
+				"optional": [
 					{
 						"Cmd": "",
 						"required": {
@@ -574,10 +570,10 @@ function initModule(names) {
 					}
 				]
 			},
-			"output":{
-				"required":[
+			"output": {
+				"required": [
 					{
-						"par":"",
+						"par": "",
 						"Cmd": "",
 						"required": {
 						},
@@ -585,9 +581,9 @@ function initModule(names) {
 						}
 					}
 				],
-				"optional":[
+				"optional": [
 					{
-						"par":"",
+						"par": "",
 						"Cmd": "",
 						"required": {
 						},
