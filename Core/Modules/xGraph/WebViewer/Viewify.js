@@ -192,8 +192,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root.append(vlt.div);
 
 			if(version >= new SemVer('4.0')) {
+				// log.d('this one here')
 				if('Root' in this.Par && this.Par.Root) {
-					document.body.append()
+					document.body.append(this.Vlt.root);
 				}
 			}
 
