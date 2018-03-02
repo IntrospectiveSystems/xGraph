@@ -6,12 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Viewify 3.5 is [here (see documentation)]()!
+- Viewify 3.5 is [here (see documentation)](https://github.com/IntrospectiveSystems/xGraph/wiki/2.4-View-Documentation)!
 - The command line interface xgraph now features the option
   --allow-add-module.
 
 
 ### Changed
+- Bug fix in SQLite - removed Each command as it doesn't work with our architecture.
 - Bug fixes and code cleanup in the Proxy module.
 - Core modules moved from ./Modules/ to ./Modules/xGraph/
 - A system's cache now holds a .zip of each module.
