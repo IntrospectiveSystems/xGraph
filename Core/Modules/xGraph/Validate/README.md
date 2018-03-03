@@ -8,19 +8,19 @@ Introspective Systems, LLC.
 ---
 #### Validate
 
-Validate is a module that tests other modules. The tests for a module
-are described in a test.json file, which should be included with each module.
-Validate generates the module being tested, and then perform
-the tests that are laid out it the test.json file.
+Validate is a module that runs tests other modules. The tests for a
+module are described in a test.json file, which should be included with
+each module. Validate generates the module being tested, and then
+perform the tests that are laid out it the test.json file.
 
 ---
 
 #### How To Use Validate
 
-To test a module using Validate, you need to supply Validate
-with a list of tests in the form of a JSON object. For existing modules,
-these tests should be included in the test.json file. Next we will look at
-how to build a test.json for a module.
+To test a module using Validate, you need to supply Validate with a list
+of tests in the form of a JSON object. These tests should be included in
+a test.json file in each module. Next we will look at how to build a
+test.json for a module.
 
 The JSON object of the test.json for any module has 2 main sections:
 `State` and `Cases`.

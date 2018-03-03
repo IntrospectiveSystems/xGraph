@@ -4,11 +4,11 @@
     },
     "Modules": {
         "Bank": {
-            "Module": "Modules.xGraph.BankAccount",
+            "Module": "xGraph.BankAccount",
             "Source": "xGraph"
         },
         "BankServer": {
-            "Module": "Modules.xGraph.Proxy",
+            "Module": "xGraph.Proxy",
             "Source": "xGraph",
             "Par": {
                 "Port": 27002,
