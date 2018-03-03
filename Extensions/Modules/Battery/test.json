@@ -1,14 +1,20 @@
 {
   "State": {
-    "DepthOfCharge": "0",
-    "Capacity": "100",
-    "ChargeRate": "10"
+    "InitialCharge": 50,
+    "Capacity": 100,
+    "ChargeRate": {
+      "Charge": 10,
+      "Milliseconds": 1000
+    },
+    "DischargeRate": {
+      "Charge": "5",
+      "Milliseconds": "1000"
+    }
   },
   "Cases": [
     {
       "Command": {
-      },
-      "Response": {
+        "Cmd": "Charge"
       }
     }
   ]

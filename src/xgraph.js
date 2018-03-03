@@ -140,19 +140,23 @@ function help() {
 		
 		Command:
 		\x20\x20help         h                    : Displays this help screen.
+		\n
     \x20\x20compile      c                    : Generates a cache from a system
     \x20\x20                                    structure file.
     \n
 		\x20\x20deploy       d                    : Run a system from the cache.
+		\n
     \x20\x20reset        r                    : Run a system from system structure
 		\x20\x20                                    file, resetting the system's cache.
+		\n
 		\x20\x20generate <module|system>  g <m|s> : Generate a new module or system
 		\x20\x20                                    from a template with the given
 		\x20\x20                                    name.
 		\n
 	  \x20\x20execute      x                    : Run a system from the cache, or
-    \x20\x20                                    the system structure file if
-    \x20\x20                                    the cache does not exist.
+    \x20\x20                                    the system's module references, or 
+    \x20\x20                                    compiling the system structure file 
+    \x20\x20                                    if the cache does not exist. 
 		\n
 		Options:
     \x20\x20--cwd                             : Sets the current working directory
@@ -170,7 +174,7 @@ function help() {
 		\x20\x20\x20\x20\x20\x20xgraph deploy --config .\\ExampleSystems\\HelloWorld\\config.json
 		\n	
 		\x20\x20Reset a system in a different working directory with an external source.
-		\x20\x20\x20\x20\x20\x20xgraph reset --cwd .\\Systems\\Plexus\\ ..\\..\\xGraphTemplates
+		\x20\x20\x20\x20\x20\x20xgraph reset --cwd .\\MultipleSystemsTemplate\\Systems\\Plexus\\ --xGraph ..\\xGraph
 		\n
 		\x20\x20Generate a new module called MyFirstModule.
 		\x20\x20\x20\x20\x20\x20xgraph generate module MyFirstModule
