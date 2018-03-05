@@ -25,15 +25,14 @@ Two Pars must be set in the module definition, and they are both required.
 - `{"Link" : "string"}`  - where string is to be replaced with the name of the module this ServerProxy is
 proxying. This string must match the subscription key that the browser module subscribed with.
 
-- `{"Server" : "xGraphModuleReference"}`  - where xGraphModuleReference is to be replaced with the $ reference
-of the Server module.
+- `{"Server" : "xGraphModuleReference"}`  - where xGraphModuleReference is to be replaced with the $ reference of the Relevant WebViewer module.
 
 An example of how this looks in the module definition of a config.json
 
 ``` json
 {
-  "Module":"xGraph.Web.ServerProxy",
-  "Source":"xGraph",
+  "Module":"xGraph.ServerProxy",
+  "Source":"local",
   "Par":{
     "Link": "3DView",
     "Server":"$Server"
