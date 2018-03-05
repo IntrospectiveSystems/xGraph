@@ -34,9 +34,9 @@ __Nexus = (_ => {
 	{
 		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
-		// v : verbose		Give too much information 
+		// v : verbose		Give too much information
 		// d : debug		For debugging purposes not in production level releases
-		// i : info			General info presented to the end user 
+		// i : info			General info presented to the end user
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		window.log = {
@@ -55,7 +55,7 @@ __Nexus = (_ => {
 
 	/**
 	 * The function that is called from the .html file that initializes the system
-	 * @param {string} sockio 	the sockio script  
+	 * @param {string} sockio 	the sockio script
 	 * @param {object} cfg 		the object containing all browser required variables
 	 */
 	async function boot(sockio, cfg) {
@@ -132,7 +132,7 @@ __Nexus = (_ => {
 	//
 
 	/**
-	 * 
+	 *
 	 * @param {object} cfg parameter containing all browser required files
 	 */
 	async function setup(cfg) {
@@ -322,7 +322,7 @@ __Nexus = (_ => {
 
 				/**
 				 * Add the module to the Modules object if unique
-				 * @param {object} mod 		The module object 
+				 * @param {object} mod 		The module object
 				 * @param {string} mod.Module	The name of the module
 				 * @param {object, string} mod.Source The Module broker or path reference
 				 */
@@ -590,10 +590,10 @@ __Nexus = (_ => {
 
 	/**
 	 * Generate array of entities from module
-	 * Module must be in cache 
-	 * 
+	 * Module must be in cache
+	 *
 	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-	 * @param {object} inst 
+	 * @param {object} inst
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
@@ -712,7 +712,7 @@ __Nexus = (_ => {
 	/**
 	 * Send a message from an entity to an Apex entity.
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
+	 * @param {object} com 			the message object
 	 * @param {string} com.Cmd 		the command of the message
 	 * @param {object} com.Passport	the information about the message
 	 * @param {string} com.Passport.To the Pid of the recipient module
@@ -773,7 +773,7 @@ __Nexus = (_ => {
 	/**
 	 * Send a message over the websocket
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
+	 * @param {object} com 			the message object
 	 * @param {string} com.Cmd 		the command of the message
 	 * @param {object} com.Passport	the information about the message
 	 * @param {string} com.Passport.To the Pid of the recipient module
@@ -845,7 +845,7 @@ __Nexus = (_ => {
 			// /**
 			//  * Recursive object search
 			//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
-			//  * @param {Object} st 		The directort we're searching in 
+			//  * @param {Object} st 		The directory we're searching in 
 			//  */
 			function subSearch(ar, st) {
 				if (ar[0] in st) {
@@ -881,7 +881,7 @@ __Nexus = (_ => {
 	 * The base class for all xGraph Entities
 	 * @param {object} nxs 	the nxs context to give the entity acess too
 	 * @param {object} imp 	the evaled Entity functionality returned by the dispatch table
-	 * @param {object} par	the par of the entity 
+	 * @param {object} par	the par of the entity
 	 */
 	function Entity(nxs, imp, par) {
 		var Par = par;
@@ -922,9 +922,9 @@ __Nexus = (_ => {
 
 		/**
 		 * Route a message to this entity with its context
-		 * @param {object} com		The message to be dispatched in this entities context 
+		 * @param {object} com		The message to be dispatched in this entities context
 		 * @param {string} com.Cmd	The actual message we wish to send
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
 			var disp = Imp.dispatch;
@@ -945,7 +945,7 @@ __Nexus = (_ => {
 		 * @param {object} mod 	the description of the Module to generate
 		 * @param {string} mod.Module the module to generate
 		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genModule(mod, fun) {
 			nxs.genModule(mod, fun);
@@ -953,7 +953,7 @@ __Nexus = (_ => {
 
 		/**
 		 * deletes the current entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function deleteEntity(fun) {
 			log.v(`Deleting Entity ${Par.Pid}`);
@@ -965,7 +965,7 @@ __Nexus = (_ => {
 		 * @param {object} par the par of the entity to be generated
 		 * @param {string} par.Entity The entity type that will be generated
 		 * @param {string=} par.Pid	the pid to define as the pid of the entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genEntity(par, fun) {
 			nxs.genEntity(Par.Apex, par, fun);
@@ -979,12 +979,12 @@ __Nexus = (_ => {
 		}
 
 		/**
-		 * Send a message to another entity, you can only send messages to Apexes of modules 
+		 * Send a message to another entity, you can only send messages to Apexes of modules
 		 * unless both sender and recipient are in the same module
-		 * @param {object} com  		the message object to send 
-		 * @param {string} com.Cmd		the function to send the message to in the destination entity 
+		 * @param {object} com  		the message object to send
+		 * @param {string} com.Cmd		the function to send the message to in the destination entity
 		 * @param {string} pid 			the pid of the recipient (destination) entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function send(com, pid, fun) {
 			if (!('Passport' in com))
@@ -1041,7 +1041,7 @@ __Nexus = (_ => {
 
 	/**
 	 * Delete an entity file. If the entity is an Apex of a Module,
-	 * then delete all the entities found in that module as well. 
+	 * then delete all the entities found in that module as well.
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return te pid of the generated entity to
@@ -1072,7 +1072,7 @@ __Nexus = (_ => {
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up
 	 * @param {string} inst.Module 	The name of te module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par	
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
@@ -1103,7 +1103,7 @@ __Nexus = (_ => {
 					return;
 				}
 			});
-			
+
 			setup();
 
 			function setup() {
