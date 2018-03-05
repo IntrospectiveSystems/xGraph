@@ -22,7 +22,7 @@ Example
 ```json
 {
   "NeDB": {
-    "Module": "xGraph.Database.NeDB",
+    "Module": "xGraph.NeDB",
     "Par": {
       "Filename": "./database.nedb"
     }
@@ -40,7 +40,7 @@ Example
 ```json
 {
   "NeDB": {
-    "Module": "xGraph.Database.NeDB",
+    "Module": "xGraph.NeDB",
     "Par": {
       "Filename": "./database.nedb",
       "Reset": true
