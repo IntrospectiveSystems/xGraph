@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ### Changed
-- Proxy changed (we are figuring out how)
+- Bug fix in SQLite - removed Each command as it doesn't work with our architecture.
+- Bug fixes and code cleanup in the Proxy module.
 - Core modules moved from ./Modules/ to ./Modules/xGraph/
 - A system's cache now holds a .zip of each module.

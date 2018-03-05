@@ -1,19 +1,6 @@
 {
 	"State": {
-		"Server": "xGraphTesterPid",
-		"Link": "TestLink"
+		"Server": "xGraphTesterPid"
 	},
-	"Cases": [
-		{
-			"Command": {
-				"Cmd": "AnyCommand"
-			},
-			"SentMessages": [
-				{
-					"Cmd": "AnyCommand",
-					"Forward": "TestLink"
-				}
-			]
-		}
-	]
+	"Cases": []
 }

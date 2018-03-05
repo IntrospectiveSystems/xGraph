@@ -830,9 +830,18 @@ __Nexus = (_ => {
 		let mod = ModCache[module];
 		if (filename in mod.files) {
 			mod.file(filename).async("string").then((dat) => {
-				fun(null, mod[filename])
+				fun(null, dat);
 				return;
 			});
+		} else if (`static/${filename}` in mod.files) {
+			mod.file(`static/${filename}`).async("string").then((dat) => {
+				fun(null, dat);
+				return;
+			});
+		} else {
+			let err = `File ${filename} does not exist in module ${module}`;
+			log.e(err);
+			fun(err);
 		}
 
 		if ('static' in mod) {
