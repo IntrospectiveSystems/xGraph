@@ -4,9 +4,9 @@
 	 * The 3DView entity is the Apex and only entity of the 3DView Module.
 	 * This entity requres the Setup function invoked during the Setup phase of Nexus startup. As well as its
 	 * Start function invoked during the Start phase of Nexus startup.
-	 * 
-	 * The main capability of this entity is to add and render a Three.js scene on the div provided by 
-	 * the Viewify class (which is stored in this.Vlt.div). Currently only Three.js primitives and generative 
+	 *
+	 * The main capability of this entity is to add and render a Three.js scene on the div provided by
+	 * the Viewify class (which is stored in this.Vlt.div). Currently only Three.js primitives and generative
 	 * object3D models can be added to the scene/rendered.
 	 */
 	function _3DView() {
@@ -31,8 +31,8 @@
 
 		/**
 		 * Create the Three.js WebGL renderer and Scene and append the rendered canvas to the div
-		 * @param {Object} com 
-		 * @param {Function} fun 
+		 * @param {Object} com
+		 * @param {Function} fun
 		 */
 		function Setup(com, fun) {
 			this.super(com, (err, cmd) => {
@@ -102,8 +102,8 @@
 		/**
 		 * Subscribes to the server to allow for server communications to reach this module.
 		 * If there was a controller defined we also register with that.
-		 * @param {Object} com 
-		 * @param {Function} fun 
+		 * @param {Object} com
+		 * @param {Function} fun
 		 */
 		function Start(com, fun) {
 			log.i('--3DView/Start');
@@ -199,20 +199,20 @@
 				};
 				q.Objects.push(obj);
 				// add a module 
-				obj = {
-					id: "module",
-					module: "Extensions.Modules.Modelx3D",
-					parentId: "plane",
-					position: {
-						x: 0,
-						y: 0,
-						z: 0
-					},
-					model: "Geo.101Plants.Cactus3",
-					axis: [0, 0, 1],
-					angle: 0
-				};
-				q.Objects.push(obj);
+				// obj = {
+				// 	id: "module",
+				// 	module: "Extensions.Modules.Modelx3D",
+				// 	parentId: "plane",
+				// 	position: {
+				// 		x: 0,
+				// 		y: 0,
+				// 		z: 0
+				// 	},
+				// 	model: "Geo.101Plants.Cactus3",
+				// 	axis: [0, 0, 1],
+				// 	angle: 0
+				// };
+				// q.Objects.push(obj);
 
 				this.send(q, this.Par.Pid, _ =>
 					//callback
@@ -221,35 +221,35 @@
 
 
 				/*
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 				END EXAMPLE CODE
-		
-		
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
+
+
 				*/
 			}
 		}
 
 
 		/**
-		 * This is an example of an Evoke handler. This particular example 
+		 * This is an example of an Evoke handler. This particular example
 		 * generates a popup module containing a 3DView module or the one set in
-		 * Par.EvokeView. In deployment this code can be removed and EvokeExample 
+		 * Par.EvokeView. In deployment this code can be removed and EvokeExample
 		 * removed from the dispatch table.
-		 * @param {Object} 		com 
+		 * @param {Object} 		com
 		 * @param {String}		com.id			the id of the object being evoked
 		 * @param {Object}		com.mouse 	 the coordinates of the mouse when evoked {x:_x,y:_y}
-		 * @param {Function=} 	fun 
+		 * @param {Function=} 	fun
 		 */
 		function EvokeExample(com, fun = _ => _) {
 			log.v("EVOKE EXAMPLE", com.id);
@@ -270,8 +270,8 @@
 
 		/**
 		 * Propagate a DomLoaded Event to children views. We append the canvas to the div.
-		 * @param {Object} com 
-		 * @param {Function} fun 
+		 * @param {Object} com
+		 * @param {Function} fun
 		 */
 		function DOMLoaded(com, fun) {
 			log.v("--3DView/DOMLoaded");
@@ -300,8 +300,8 @@
 
 		/**
 		 * Removes the render loop
-		 * @param {Object} com 
-		 * @param {Function=} fun 
+		 * @param {Object} com
+		 * @param {Function=} fun
 		 */
 		function Cleanup(com, fun = _ => _) {
 			log.v("--3DView/Cleanup", this.Par.Pid.substr(30));
@@ -312,8 +312,8 @@
 
 		/**
 		 * Cascade a render down the DOM tree of views
-		 * @param {Object} com 
-		 * @param {Function} fun 
+		 * @param {Object} com
+		 * @param {Function} fun
 		 */
 		function Render(com, fun) {
 			log.v("--3DView/Render", this.Par.Pid.substr(30));
@@ -322,9 +322,9 @@
 		}
 
 		/**
-		 * Sent when a resize event occurs on the div. 
-		 * @param {Object} com 
-		 * @param {Function} fun 
+		 * Sent when a resize event occurs on the div.
+		 * @param {Object} com
+		 * @param {Function} fun
 		 */
 		function Resize(com, fun) {
 			this.super(com, (err, cmd) => {
@@ -338,20 +338,20 @@
 
 		/**
 		 * The main Three.js functionality. Primatives as well as generative models can be added.
-		 * An array of objects is recieved and added to the scene before being 
-		 * rendered. 
-		 * @param {Object} com 
+		 * An array of objects is recieved and added to the scene before being
+		 * rendered.
+		 * @param {Object} com
 		 * @param {Object} com.Objects 	The array of pixi graphics objects to be displayed
-		 * @param {Function} fun 
+		 * @param {Function} fun
 		 */
 		async function SetObjects(com, fun = (err, com) => { if (err) log.e(err) }) {
 			/**
-			 * 
+			 *
 			 * the com will contain an Objects key that lists an array of objects
 			 * to be modified on the 3d view. All of the listed attributes need NOT
 			 * exist. Only a unit ID is required.
-			 * 
-			 * 
+			 *
+			 *
 			 * com.Objects = [
 			 * 		{
 			 * 			id  = "some Unique ID usually can be a Pid",
@@ -365,7 +365,7 @@
 			 * 				name: "MeshBasicMaterial",
 			 * 				arguments: {
 			 * 					color : 0x00ff00,
-			 * 					
+			 *
 			 * 				}
 			 * 			},
 			 * 			position: {
@@ -589,10 +589,10 @@
 		/**
 		 * Captures the canvas as a base64 image and sends it off the controller (on
 		 * the server), if implemented, to be saved.
-		 * @param {Object} com 
-		 * @param {Function} fun	the callback function	
+		 * @param {Object} com
+		 * @param {Function} fun	the callback function
 		 * @returns {com.Image} the base 64 of the image
-		 * @returns {com.Name}	the image count 
+		 * @returns {com.Name}	the image count
 		 */
 		function ImageCapture(com, fun) {
 			if (this.Vlt.Count)
@@ -618,7 +618,7 @@
 
 		/**
 		 * Used by the mouse module to propagate interactions.
-		 * @param {Object} com 
+		 * @param {Object} com
 		 * @param {Object} com.info 	the interaction info
 		 * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
 		 */
@@ -676,10 +676,10 @@
 
 		/**
 		 * Perform a raycast to see if any of the objects in the scene graph were hit
-		 * 
+		 *
 		 * @param {Object} info  the interaction info
 		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		 * @param {Object} Vlt 
+		 * @param {Object} Vlt
 		 * @param {Object} Vlt.View
 		 */
 		function mouseRay(info, Vlt) {
@@ -714,7 +714,7 @@
 		 *  Move camera towards or away from Focus point
 		 * @param {Object} info  the interaction info
 		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		 * @param {Object} Vlt 
+		 * @param {Object} Vlt
 		 * @param {Object} Vlt.View
 		 */
 		function Zoom(info, Vlt) {
@@ -748,7 +748,7 @@
 		 * handle a keydown event
 		 * @param {Object} info  the interaction info
 		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		 * @param {Object} Vlt 
+		 * @param {Object} Vlt
 		 * @param {Object} Vlt.View
 		 */
 		function Keyed(info, Vlt) {
@@ -766,7 +766,7 @@
 		 * Rotate View around the focus
 		 * @param {Object} info  the interaction info
 		 * @param {Object} info.Mouse The coordinates of the click {x:_x,y:_y}
-		 * @param {Object} Vlt 
+		 * @param {Object} Vlt
 		 * @param {Object} Vlt.View
 		 */
 		function Rotate(info, Vlt) {
@@ -828,4 +828,3 @@
 
 
 	})();
-

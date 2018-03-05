@@ -1,6 +1,6 @@
 (
 	/**
-	 * The Validate entity is the Apex and only entity of the Validate Module. This entity requres its Start function invoked during the Start phase of Nexus startup.
+	 * The Validate entity is the Apex and only entity of the Validate Module. This entity requires its Start function to be invoked during the Start phase of Nexus startup.
 	 * 
 	 * The main capability of this entity is to GenModule the module being tested and then perform the tests laid out it the test.json file. 
 	 */
