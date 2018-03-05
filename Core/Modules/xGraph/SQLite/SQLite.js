@@ -16,66 +16,66 @@ function SQLite() {
          * @callback fun
          */
 		Setup(com, fun) {
-            log.i("--SQLite/Setup");
+      log.i("--SQLite/Setup");
 			let that = this;
 			let Par = this.Par;
 			let Vlt = this.Vlt;
 			let errors = null;
 
-            let sqlite3 = this.require('sqlite3');
+      let sqlite3 = this.require('sqlite3');
 
-            if(sqlite3 == null || sqlite3 == undefined){
-            	errors = "Unable to load sqlite3.";
+      if (sqlite3 == null || sqlite3 == undefined) {
+      	errors = "Unable to load sqlite3.";
 			}
 
-            Vlt.Sqlite3 = sqlite3;
+      Vlt.Sqlite3 = sqlite3;
 
-            fun(errors, com);
+      fun(errors, com);
 
 		}
 
-        /**
-         * The Start command sets up the connection to the SQLite database named in Par.Filename.
-         * @param {object} com  The command object.
-         * @callback fun
-         */
+    /**
+    * The Start command sets up the connection to the SQLite database named in Par.Filename.
+    * @param {object} com  The command object.
+    * @callback fun
+    */
 		Start(com, fun){
-            log.i("--SQLite/Start");
-            let that = this;
-            let Par = this.Par;
-            let Vlt = this.Vlt;
-            let errors = null;
+      log.i("--SQLite/Start");
+      let that = this;
+      let Par = this.Par;
+      let Vlt = this.Vlt;
+      let errors = null;
 
-            let sqlite3 = Vlt.Sqlite3;
+      let sqlite3 = Vlt.Sqlite3;
 
-            let filename = ":memory:";
-            let mode = Par.Mode;
-            let database = null;
+      let filename = ":memory:";
+      let mode = Par.Mode;
+      let database = null;
 
-            if(Par.Filename){
+      if(Par.Filename){
 				filename = Par.Filename;
 			}
 
 			if(mode){
-                database = new sqlite3.Database(filename, mode, callback);
+        database = new sqlite3.Database(filename, mode, callback);
 			} else {
-                database = new sqlite3.Database(filename, callback);
+        database = new sqlite3.Database(filename, callback);
 			}
 
 
-            function callback(err){
-            	if(err){
-                    log.e("Unable to open database.");
-                    log.e("err: "+err);
-            		errors = err;
+      function callback(err){
+      	if(err){
+          log.e("Unable to open database.");
+          log.e("err: "+err);
+      		errors = err;
 				} else {
-            	    log.i("Database opened succesfully.");
-            	    Vlt.Database = database;
-                }
-
-                fun(errors, com);
-            }
+    	    log.i("Database opened succesfully.");
+    	    Vlt.Database = database;
         }
+
+        fun(errors, com);
+      }
+    }
 
         /**
          * Configure sets a configuration option for the database. A valid Option and Value must be provided.
