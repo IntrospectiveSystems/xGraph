@@ -8,19 +8,19 @@ Introspective Systems, LLC.
 ---
 #### Validate
 
-Validate is a module that tests other modules. The tests for a module
-are described in a test.json file, which should be included with each module.
-Validate generates the module being tested, and then perform
-the tests that are laid out it the test.json file.
+Validate is a module that runs tests on other modules. The tests for a
+module are described in a test.json file, which should be included with
+each module. Validate generates the module being tested, and then
+perform the tests that are laid out it the test.json file.
 
 ---
 
 #### How To Use Validate
 
-To test a module using Validate, you need to supply Validate
-with a list of tests in the form of a JSON object. For existing modules,
-these tests should be included in the test.json file. Next we will look at
-how to build a test.json for a module.
+To test a module using Validate, you need to supply Validate with a list
+of tests in the form of a JSON object. These tests should be included in
+a test.json file in each module. Next we will look at how to build a
+test.json for a module.
 
 The JSON object of the test.json for any module has 2 main sections:
 `State` and `Cases`.
@@ -131,8 +131,8 @@ Validate requires two parameters must be defined in the module definition.
 
 The following is an example of how this looks in the module definition.
 Note that the module being tested, defined by the xGraphModuleAddress,
-also needs to be in included in the array of deferred modules so that
-its code is compiled.
+also needs to be included in the array of deferred modules so that
+it's code is compiled.
 
 ``` json
 {
@@ -148,13 +148,13 @@ its code is compiled.
 ---
 
 ### Output Commands
-The Output Commands are all the command that Validate can send.
+The Output Commands are all of the commands that Validate can send.
 
 *(Validate does not send any commands.)*
 
 ---
 
 ### Input Commands
-The Input Commands are all the command that Plexus can receive.
+The Input Commands are all of the commands that Plexus can receive.
 
 *(Validate does not send any commands.)*

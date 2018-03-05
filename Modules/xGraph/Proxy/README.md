@@ -23,14 +23,16 @@ role is set in the `Role` parameter of it's module definition.
 Proxy requires different parameters depending on what role it has been
 assigned.
 
-Role | Required Parameters
---- | --- |
-Client | Role, Host, Port
-Server | Role, Link, Port
+Role | Required Parameters | Optional Parameters
+--- | --- | --- |
+Client | Role, Link, Host, Port | Chan
+Server | Role, Link, Port | Chan
 
 Here is an example of two systems using the Proxy. The first uses Proxy
 as a server module, setting the `Port` and the `Link` directly. The second
 uses Proxy as a client module, setting the Host and the Port directly.
+Set both Client and Server in the proxy pair to the same chan, and ensure they 
+connect to a running Proxy module (Working example located in Examples/MultipleSystemsWithPlexus).
 
 The `MultipleSystems\BankAccount` system structure object. Proxy is used
 here as a server.
@@ -97,6 +99,10 @@ here as a client.
                         
 **Poll**: _Boolean_ - Used to determine if Proxy should attempt to re-connect
 												after failed connection attemps.
+                        
+**Chan**: _String_ - Used when managing connections using the Plexus module.
+										 		Proxies with the same Chan (Channel) name will connect
+										 		automatically when connected to the same Plexus server.
 
 **Timeout** _Integer_ - The time in milliseconds to wait before poll attempts. 
 													Used only if Poll is set to TRUE. 
