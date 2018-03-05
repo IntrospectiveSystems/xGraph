@@ -306,7 +306,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Set the color of the View
 		 * 
-		 * @deprecated
+		 * @deprecated since Viewify 3.0
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof View
