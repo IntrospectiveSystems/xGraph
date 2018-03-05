@@ -18,14 +18,16 @@ role is set in the `Role` parameter of it's module definition.
 Proxy requires different parameters depending on what role it has been
 assigned.
 
-Role | Required Parameters
---- | --- |
-Client | Role, Host, Port
-Server | Role, Link, Port
+Role | Required Parameters | Optional Parameters
+--- | --- | --- |
+Client | Role, Link, Host, Port | Chan
+Server | Role, Link, Port | Chan
 
 Here is an example of two systems using the Proxy. The first uses Proxy
 as a server module, setting the `Port` and the `Link` directly. The second
 uses Proxy as a client module, setting the Host and the Port directly.
+Set both Client and Server in the proxy pair to the same chan, and ensure they 
+connect to a running Proxy module (Working example located in Examples/MultipleSystemsWithPlexus).
 
 The `MultipleSystems\BankAccount` system structure object. Proxy is used
 here as a server.
@@ -89,6 +91,10 @@ here as a client.
 **Link**: _String_ - Used when proxy is a Server. A reference to the
                         module that incoming commands received over the
                         TCP connection are routed to.
+                        
+**Chan**: _String_ - Used when managing connections using the Plexus module.
+										 		Proxies with the same Chan (Channel) name will connect
+										 		automatically when connected to the same Plexus server.
 
 #### Input Commands
 
