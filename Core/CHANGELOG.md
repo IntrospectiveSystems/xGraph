@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Changed
 - Fixed the xTickets example system by including all the modules.
-- Updated the xgraph command line interface documentation for clarity.
+- Updated the xgraph CLI documentation for clarity.
 
 ## [1.1.0]
 ### Added
