@@ -11,12 +11,12 @@
 		//-----------------------------------------------------Setup
 
 		/**
-		 * @description 
+		 * @description
 		 * Creates Module instance based on
 		 * this.Par.View and this.Par.Par.
-		 * 
+		 *
 		 * Adds generated View to Popup via AddView
-		 * 
+		 *
 		 * Then Propogates a Resize and DOMLoaded
 		 * @param {object} com
 		 * @param {any} fun
@@ -49,30 +49,30 @@
 				document.body.appendChild(this.Vlt.popup[0]);
 
 
-			
+
 				this.Vlt.topBarDiv = DIV();
 				this.Vlt.topBarDiv.css('height','20px');
 				this.Vlt.topBarDiv.css("border-bottom", "1px solid var(--view-border-color-light)");
 				this.Vlt.topBarDiv.css('background-color', 'var(--view-lighter)');
-				
+
 				this.Vlt.contentDiv = DIV();
 				this.Vlt.contentDiv.css('height','calc(100% - 21px)');
-				
+
 				this.Vlt.closeButton =  DIV();
 				this.Vlt.closeButton.html("🗙");
 				this.Vlt.closeButton.css("float", "right");
 				this.Vlt.closeButton.css("cursor", "pointer");
 				this.Vlt.closeButton.css("line-height", "14px");
-				this.Vlt.closeButton.css('height','16px');				
+				this.Vlt.closeButton.css('height','16px');
 				this.Vlt.closeButton.css("padding", "2px");
 				this.Vlt.closeButton.css('background-color', 'var(--accent-error)');
-				
+
 				this.Vlt.closeButton.on("click", () => {
 					this.send({Cmd:"Destroy"}, this.Par.Pid, (err, cmd)=>{});
 				});
 
 				this.Vlt.topBarDiv.append(this.Vlt.closeButton);
-				
+
 				this.Vlt.div.append(this.Vlt.topBarDiv);
 				this.Vlt.div.append(this.Vlt.contentDiv);
 
@@ -81,7 +81,7 @@
 				};
 				// this.par is the par that you genenerated
 				// this module with. this.Par.Par is the
-				// pars to pass to the module we're 
+				// pars to pass to the module we're
 				// generating.
 				if('Par' in this.Par) {
 					par.Par = {};
@@ -106,10 +106,10 @@
 
 		/**
 		 * @description create the DOM of the popup
-		 * and add its children. 
-		 * @param {any} com 
-		 * @param {any} fun 
-		 * @override 
+		 * and add its children.
+		 * @param {any} com
+		 * @param {any} fun
+		 * @override
 		 * @memberof Popup
 		 */
 		async Render(com,fun){
@@ -129,8 +129,8 @@
 		/**
 		 * @description Before Garbage collection,
 		 * remove our elements from the DOM.
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @override
 		 * @memberof Popup
 		 */
@@ -141,6 +141,6 @@
 		}
 	}
 
-	return Viewify(Popup, '3.3');
+	return Viewify(Popup, '3.5');
 
 })();
