@@ -1,21 +1,20 @@
 {
 	"Sources": {
-		"local": "{local}",
-		"extensions": "{extensions}"
+		"local": "{local}"
 	},
 	"Modules": {
 		"Server": {
 			"Module": "xGraph.Validate",
 			"Source": "local",
 			"Par": {
-				"TestModule": "Battery",
-				"TestJson": "@file: ../../Extensions/Modules/Battery/test.json"
+				"TestModule": "xGraph.SQLite",
+				"TestJson": "@file: ../../Core/Modules/xGraph/Plexus/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "Battery",
-				"Source": "extensions"
+				"Module": "xGraph.SQLite",
+				"Source": "local"
 			}
 		]
 	}

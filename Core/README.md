@@ -8,19 +8,23 @@ Introspective Systems, LLC.
 
 ---
 ### xGraph Executable
-The xGraph command line tool accelerates the building and running of xGraph
-Systems.
+The xGraph command line interface accelerates the building and running
+of xGraph Systems.
 
 ---
 #### Getting Started
-First, download the system dependent installer from the Introspective
-Systems website.
+You will find all the necessary installation files in the `.\bin\`
+directory. To install the xgraph CLI, follow the instructions for your
+operating system found below.
 
-##### On Windows:
-If you are running a Windows operating system, you will have to add the
-xgraph path variable to your systems environment variable. This can be
-done for a single session through the command line, or you can set the
-environment variable permanently through windows settings.
+##### For Windows:
+You can use the `xgraph.msi` file to install the xgraph CLI. Simply double
+click the file and the installer will run.
+
+Additionally, you will have to add the xgraph path variable to your
+systems environment variable. This can be done for a single session
+through the command line, or you can set the environment variable
+permanently through windows settings.
 
 The xgraph path variable is ``` {path to...}ProgramFiles/xGraph```.
 Append this to your your Environmental Path Variable ($PATH).
@@ -29,9 +33,19 @@ To add the xgraph path variable to your system environment variable, go
 to "My Computer" > "Properties" > "Advanced" > "Environment Variables" > "Path"
 and add it to the list.
 
-##### On Linux or Mac:
+##### For Mac:
+You can use the `xGraph.dmg` file to install the xgraph CLI. Simply double
+click the file and the installer will walk you through the installation
+process.
+
+Because the package is unsigned, you may have to allow the installation
+of unsigned packages in the security control panel.
+
+##### For Linux:
 Simply unpack the installation file (.tar or .gz) and restart your terminal
 session.
+
+
 
 ---
 ### API

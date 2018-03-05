@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - altered logging to queue entries to prevent locks when too many messages were
   sent at once
 
-
 ## [1.1.0]
 ### Added
 - Viewify 3.5 is [here (see documentation)](https://github.com/IntrospectiveSystems/xGraph/wiki/2.4-View-Documentation)!
