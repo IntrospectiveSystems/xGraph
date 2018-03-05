@@ -7,8 +7,8 @@
 			"Module": "xGraph.Validate",
 			"Source": "xGraph",
 			"Par": {
-				"TestModule": "xGraph.3DView",
-				"TestJson": "@file: ../../Core/Modules/xGraph/3DView/test.json"
+				"TestModule": "xGraph.2DView",
+				"TestJson": "@file: ../../Core/Modules/xGraph/2DView/test.json"
 			}
 		},
 		"Deferred": [
@@ -17,7 +17,7 @@
 				"Source": "xGraph"
 			},
 			{
-				"Module": "xGraph.3DView",
+				"Module": "xGraph.2DView",
 				"Source": "xGraph"
 			}
 		]
