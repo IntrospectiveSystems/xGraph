@@ -8,12 +8,10 @@
 			"Command": {
 				"Cmd": "AnyCommand"
 			},
-			"SentMessages": [
-				{
-					"Cmd": "AnyCommand",
-					"Forward": "TestLink"
-				}
-			]
+			"Response": {
+				"Cmd": "AnyCommand",
+				"Forward": "TestLink"
+			}
 		}
 	]
 }
