@@ -16,7 +16,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Views.RootView",
+    "Module": "xGraph.RootView",
     "Par": {
         "Layout": "$MyView"
     }
@@ -29,7 +29,7 @@ If you want more than one view on the screen at a time, then we need to use some
 
 ``` json
 {
-    "Module": "xGraph.Views.RootView",
+    "Module": "xGraph.RootView",
     "Par": {
         "Layout": {
             "View": "$Panel",
@@ -46,7 +46,7 @@ You can continue this recursive pattern to keep splitting up the available space
 
 ``` json
 {
-    "Module": "xGraph.Views.RootView",
+    "Module": "xGraph.RootView",
     "Par": {
         "Layout": {
             "View": "$Panel",
