@@ -154,9 +154,9 @@ function help() {
 		\x20\x20                                    name.
 		\n
 	  \x20\x20execute      x                    : Run a system from the cache, or
-    \x20\x20                                    the system's module references, or 
-    \x20\x20                                    compiling the system structure file 
-    \x20\x20                                    if the cache does not exist. 
+    \x20\x20                                    the system's module references, or
+    \x20\x20                                    compiling the system structure file
+    \x20\x20                                    if the cache does not exist.
 		\n
 		Options:
     \x20\x20--cwd                             : Sets the current working directory
@@ -174,7 +174,7 @@ function help() {
 		\x20\x20\x20\x20\x20\x20xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
 		\n
 		\x20\x20Reset a system in a different working directory with an external source.
-		\x20\x20\x20\x20\x20\x20xgraph reset --cwd .\\MultipleSystemsTemplate\\Systems\\Plexus\\ --xGraph ..\\xGraph
+		\x20\x20\x20\x20\x20\x20xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
 		\n
 		\x20\x20Generate a new module called MyFirstModule.
 		\x20\x20\x20\x20\x20\x20xgraph generate module MyFirstModule

@@ -1,6 +1,6 @@
 # xgraph  
 
-![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph") 
+![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph")
 
 v1.1.1
 
@@ -91,10 +91,10 @@ Examples:
         xgraph compile
 
     Deploy a module from a system structure file.
-        xgraph deploy --config .\ExampleSystems\HelloWorld\config.json
+        xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
 
     Reset a system in a different working directory with an external source.
-        xgraph reset --cwd .\MultipleSystemsTemplate\Systems\Plexus\ --xGraph ..\xGraph --xGraphTemplates ..\..\xGraphTemplates
+        xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph --xGraphTemplates ../../xGraphTemplates
 
     Generate a new module called MyFirstModule.
         xgraph generate module MyFirstModule

@@ -9,8 +9,6 @@ Introspective Systems, LLC
 SQLite is an adapter that allows xGraph to communicate with SQLite
 databases. SQLite wraps the Sqlite3 node.js module.
 
-[How-to's and examples]
-
 ### Module Interface
 
 #### Module Definition Parameters (`this.Par`)
@@ -141,7 +139,7 @@ calls the callback once for each result row.
 
 
 ##### Exec(com, fun)
-The Exect command runs all SQL queries in the supplied string. No result
+The Exec command runs all SQL queries in the supplied string. No result
 rows are retrieved. If a query fails, no subsequent statements will be
 executed. statements will be executed.
 
