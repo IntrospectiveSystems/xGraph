@@ -272,7 +272,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Used to be used to disable a title bar,  which no longer exists.
+		 * @description Used to be used to disable a title bar,  which no longer exists as of Viewify 3.0
 		 * 
 		 * @deprecated
 		 * @memberof View
