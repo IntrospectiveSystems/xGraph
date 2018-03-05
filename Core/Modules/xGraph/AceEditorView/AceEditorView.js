@@ -24,7 +24,7 @@
 	 */
 	function Setup(com, fun) {
 		log.v("-Ace/Setup");
-		//we hoist the setup command to View.js in the viewify script.
+		//we invoke the setup command in View in the viewify script.
 		this.super(com, (err, cmd) => {
 
 			this.Vlt.editor = ace.edit(this.Vlt.div[0]);
