@@ -29,8 +29,8 @@ An example of how this looks in the module definition of a config.json
 
 ``` json
 {
-  "Module": "xGraph.Web.WebProxy",
-  "Source": "xGraph",
+  "Module": "xGraph.WebProxy",
+  "Source": "local",
   "Par": {
     "Link": "Server"
   }

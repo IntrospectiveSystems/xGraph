@@ -1,4 +1,4 @@
-# Plexus 
+# Plexus
 
 v1.0.0
 
@@ -110,9 +110,4 @@ A Proxy (client) can request the data of a Proxy server
 
 
 - `com.Host`  The host for the client to connect on
-- `com.Port`  The port for the client to connet to
-
-
-
-
-*Documentation generated with [doxdox](https://github.com/neogeek/doxdox).*
+- `com.Port`  The port for the client to connect to

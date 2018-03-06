@@ -1,6 +1,6 @@
 # WebViewer 
 
-v1.0.0
+v1.1.0
 
 Introspective Systems, LLC.
 
@@ -23,7 +23,7 @@ The Module definition to use this module is:
 
 ``` json
 "Server": {
-	"Module": "{...pathToModule}.WebViewer",
+	"Module": "xGraph.WebViewer",
 	"Source": "{..sourceReference}",
 	"Par": {
 		"ApexList": {},

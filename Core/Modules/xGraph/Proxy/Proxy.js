@@ -107,7 +107,7 @@
 					if ('Host' in r && 'Port' in r) {
 						log.i(`Proxy - Plexus: Connection Complete`);
 						if (Vlt.Timer)
-							clearTimeout(Vlt.Timer)
+							clearTimeout(Vlt.Timer);
 						connect(r.Host, r.Port);
 					}
 					else {
@@ -230,22 +230,15 @@
 							isQuery = false;
 
 
-
-
-
-
-
 						that.send(q, Par.Link, reply);
 
 						async function reply(err, r) {
 							if (isQuery) {
 								r.Passport.Reply = true;
 
-
 								// -------------------------- Pid interchange
 								if (r.PidInterchange && 'Pool' in that.Par) {
 
-									// log.d(`read pid interchange for command`, r);
 									r = await recurse(r);
 
 									async function recurse(obj) {
@@ -266,7 +259,7 @@
 													});
 													else {
 														log.w(err);
-														resolve('noooooooope');
+														resolve('Connection refused');
 													}
 												});
 											});
@@ -352,7 +345,7 @@
 						//Return a hard fail. Should be only called once.
 						if (!("Replied" in Vlt) || Vlt.Replied == false) {
 							Vlt.Replied = true;
-							fun("Connection Declined");
+							fun("Connection Refused");
 						}
 					}
 				});

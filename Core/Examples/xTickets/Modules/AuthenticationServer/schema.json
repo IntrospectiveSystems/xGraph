@@ -1,0 +1,7 @@
+{
+	"Apex": {
+		"Entity": "Authentication.js",
+		"$Setup": "Setup",
+		"$Start": "Start"
+	}
+}

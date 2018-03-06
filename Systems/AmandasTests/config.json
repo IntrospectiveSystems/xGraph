@@ -1,20 +1,20 @@
 {
 	"Sources": {
-		"xGraph": "{xGraph}"
+		"local": "{local}"
 	},
 	"Modules": {
 		"Server": {
-			"Module": "Core.Modules.xGraph.Validate",
-			"Source": "xGraph",
+			"Module": "xGraph.Validate",
+			"Source": "local",
 			"Par": {
-				"TestModule": "Core.Modules.xGraph.WebViewer",
-				"TestJson": "@file: ../../Core/Modules/xGraph/WebViewer/test.json"
+				"TestModule": "xGraph.SQLite",
+				"TestJson": "@file: ../../Core/Modules/xGraph/Plexus/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "Core.Modules.xGraph.WebViewer",
-				"Source": "xGraph"
+				"Module": "xGraph.SQLite",
+				"Source": "local"
 			}
 		]
 	}
