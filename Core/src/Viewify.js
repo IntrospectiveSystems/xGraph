@@ -33,7 +33,7 @@ if (window.DIV == undefined)
 	 * div; in the format of a css selector. passing a string without . or # will
 	 * set the class attribute to the string, unprocessed. this behavior is deprecated
 	 * and will throw a warning
-	 * 
+	 *
 	 */
 	window.DIV = function DIV(selectorish) {
 		let elem = $(document.createElement('div'));
@@ -154,10 +154,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @description Creates the basic things
 		 * a view needs, like its div, internal
 		 * stylesheet and other elements.
-		 * 
+		 *
 		 * Overridable
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		Setup(com, fun) {
@@ -175,7 +175,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root.css('box-sizing', 'border-box');
 			vlt.root.css('overflow', 'hidden');
 
-			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}" 
+			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}"
 				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `XGRAPH-${this.Par.Pid}`)}"
 				style="
 				height: 100%;
@@ -197,15 +197,15 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Returns back (in com.Root) the root
 		 * of the view.
-		 * 
+		 *
 		 * Note: the root is different than this.Vlt.div.
-		 * com.Root is the highest node in your View's 
+		 * com.Root is the highest node in your View's
 		 * DOM hierarchy.
-		 * 
+		 *
 		 * Not part of the public API. this
 		 * command should stay internal
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		GetViewRoot(com, fun) {
@@ -218,11 +218,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Returns this.Vlt.div
-		 * 
+		 *
 		 * Not part of the public API. this
 		 * command should stay internal
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		GetViewDiv(com, fun) {
@@ -232,11 +232,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description used to add styles to this View
-		 * @param {object} com 
+		 * @param {object} com
 		 * @param {string} com.Selector The css selector to apply rules to
 		 * @param {Object=} com.Rules Associative array where keys are rules and values are css values
-		 * @param {any} fun 
-		 * @returns 
+		 * @param {any} fun
+		 * @returns
 		 * @memberof View
 		 */
 		Style(com, fun) {
@@ -272,7 +272,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Used to be used to disable a title bar,  which no longer exists.
+		 * @description Used to be used to disable a title bar,  which no longer exists as of Viewify 3.0
 		 * 
 		 * @deprecated
 		 * @memberof View
@@ -286,10 +286,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Reset the DOM hierarchy of your View
-		 * 
+		 *
 		 * @deprecated
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		Clear(com, fun) {
@@ -306,7 +306,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Set the color of the View
 		 * 
-		 * @deprecated
+		 * @deprecated since Viewify 3.0
 		 * @param {any} com 
 		 * @param {any} fun 
 		 * @memberof View
@@ -323,8 +323,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Called when a child of this View has been destroyed. Overriding this command is not supported.
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		async ChildDestroyed(com, fun) {
@@ -347,7 +347,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @description Add com.View as a Child View this forces a render after the child gives us its div.
 		 * @param {any} com
 		 * @param {string} com.View view pid
-		 * @param {any} fun 
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		AddView(com, fun) {
@@ -368,10 +368,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * when something about the view has changed.
 		 * typically, this means that your children
 		 * have changed.
-		 * 
+		 *
 		 * Overridable
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		async Render(com, fun) {
@@ -390,11 +390,11 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @description returns the Type of view this is.
 		 * View type is defined by the last token in the
 		 * dot separated array this.Par.Module
-		 * 
+		 *
 		 * @deprecated
 		 * @param {any} com
 		 * @param {string} com.Type return value
-		 * @param {any} fun 
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		GetType(com, fun) {
@@ -407,10 +407,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Event Command; fired when this view
 		 * received focus.
-		 * 
+		 *
 		 * @deprecated
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		Focus(com, fun) {
@@ -424,10 +424,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Event command; fired when
 		 * this viw lost focus
-		 * 
+		 *
 		 * @deprecated
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		Blur(com, fun) {
@@ -439,10 +439,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Event Command;  Fired after the
 		 * first Render cascade in a new View hierarchy
-		 * 
+		 *
 		 * Overridable
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		async DOMLoaded(com, fun) {
@@ -460,19 +460,19 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Event Commend; Called when your drawable area
+		 * @description Event Command; Called when your drawable area
 		 * has been changed.
-		 * 
+		 *
 		 * Note: This is dispatched by a root view, so if you are
 		 * creatin a root view, you need to manually start the
 		 * Resize cascaded.
-		 * 
+		 *
 		 * Overridable
 		 * @param {object} com
 		 * @param {number} com.width
 		 * @param {number} com.height
 		 * @param {number} com.aspect
-		 * @param {any} fun 
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		async Resize(com, fun) {
@@ -492,8 +492,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description ShowHierarchy creates a tree in the console
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		async ShowHierarchy(com, fun) {
@@ -514,9 +514,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		/**
 		 * @description Event Command; Fires when Something is
 		 * dropped in this View.
-		 * 
+		 *
 		 * See Also: [Drag and Drop API](https://github.com/IntrospectiveSystems/xGraph/wiki/Viewify-Docs---Version-Info#drag-and-drop)
-		 * @param {object} com 
+		 * @param {object} com
 		 * @param {any} com.Data
 		 * @param {string} com.Datatype
 		 * @param {HTMLElement} com.DropArea
@@ -524,7 +524,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @param {number} com.PageY
 		 * @param {number} com.DivX
 		 * @param {number} com.DivX
-		 * @param {any} fun 
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		Drop(com, fun) {
@@ -534,16 +534,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description make an element drag & droppable.
-		 * 
+		 *
 		 * com.Data and com.Datatype is the information
 		 * and type of information that is tied to the element.
 		 * i.e., if the element is dragged, when it is dropped,
 		 * that data will be passed to the drop event.
-		 * 
+		 *
 		 * com.To is the Native Element to attach the listener to.
-		 * 
+		 *
 		 * com.CreateDragDom is an optional function to create what
-		 * the drag handler will dragg around. for example, if you 
+		 * the drag handler will drag around. for example, if you 
 		 * had a custom image you would like to drag, you could return
 		 * and img element, with its src attribute set.
 		 * @param {object} com
@@ -552,7 +552,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @param {object} com.Data
 		 * @param {string} com.Datatype
 		 * @param {any} fun
-		 * @returns 
+		 * @returns
 		 * @memberof View
 		 */
 		AttachDragListener(com, fun) {
@@ -657,9 +657,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @description Destroy will force a View to gracefully
 		 * shut down. Sending itself a cleanup before garbage
 		 * collection, if anything needs to be done.
-		 * @param {any} com 
-		 * @param {any} fun 
-		 * @returns 
+		 * @param {any} com
+		 * @param {any} fun
+		 * @returns
 		 * @memberof View
 		 */
 		async Destroy(com, fun) {
@@ -674,10 +674,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Event Command; sent right before a View will be garbage collected.
-		 * 
+		 *
 		 * Overridable
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		Cleanup(com, fun) {
@@ -692,10 +692,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Internal Private Command
-		 * 
+		 *
 		 * Subscribe to the event for when this View is destroyed.
-		 * @param {any} com 
-		 * @param {any} fun 
+		 * @param {any} com
+		 * @param {any} fun
 		 * @memberof View
 		 */
 		RegisterDestroyListener(com, fun) {

@@ -1,0 +1,153 @@
+{
+	"Sources": {
+		"local": "{local}",
+		"Core": "{Core}"
+	},
+	"Modules": {
+		"Header": {
+			"Module": "Views.HTMLView",
+			"Source": "local",
+			"Par": {
+				"HTML": "@file: layout.html"
+			}
+		},
+		"Root": {
+			"Module": "xGraph.RootView",
+			"Source": "Core",
+			"Par": {
+				"Layout": {
+					"View": "$Header",
+					"Children": [
+						"$AuthView",
+						"$Button",
+						"$Table"
+					]
+				}
+			}
+		},
+		"Button": {
+			"Module": "Views.Paper.Button",
+			"Source": "local",
+			"Par": {
+				"GenModuleSurrogate": "$TicketGenSurrogate",
+				"Text": "Create Ticket"
+			}
+		},
+		"GoogleLoginRefresher": {
+			"Module": "GoogleLoginRefresher",
+			"Source": "local",
+			"Par": {
+				"Google": "$Google"
+			}
+		},
+		"Google": {
+			"Module": "xGraph.WebProxy",
+			"Source": "Core",
+			"Par": {
+				"Link": "Google"
+			}
+		},
+		"CommandAuthenticator": {
+			"Module": "CommandAuthenticator",
+			"Source": "local",
+			"Par": {}
+		},
+		"AuthView": {
+			"Module": "AuthenticationView",
+			"Source": "local",
+			"Par": {}
+		},
+		"Table": {
+			"Module": "xGraph.TableView",
+			"Source": "Core",
+			"Par": {
+				"Source": "$Tickets",
+				"Evoke": "View",
+				"Columns": [
+					{
+						"Name": "Summary",
+						"Key": "Summary"
+					},
+					{
+						"Name": "Responsibility",
+						"Key": "AssignedToDisplayName"
+					},
+					{
+						"Name": "Due Date",
+						"Format": "Date",
+						"Key": "DueBy"
+					},
+					{
+						"Name": "Priority",
+						"Key": "Priority",
+						"Enum": {
+							"1": "Lowest",
+							"2": "Low",
+							"3": "Normal",
+							"4": "High",
+							"5": "Highest"
+						}
+					},
+					{
+						"Name": "Severity",
+						"Key": "Severity",
+						"Enum": {
+							"1": "Feature Request",
+							"2": "Mild",
+							"3": "Moderate",
+							"4": "Severe",
+							"5": "Critical"
+						}
+					},
+					{
+						"Name": "Status",
+						"Key": "Status"
+					}
+				]
+			}
+		},
+		"Server": {
+			"Module": "xGraph.WebProxy",
+			"Source": "Core",
+			"Par": {
+				"Link": "Server"
+			}
+		},
+		"Tickets": {
+			"Module": "xGraph.WebProxy",
+			"Source": "Core",
+			"Par": {
+				"Link": "Tickets"
+			}
+		},
+		"TicketGenSurrogate": {
+			"Module": "xGraph.WebProxy",
+			"Source": "Core",
+			"Par": {
+				"Link": "TicketGenSurrogate"
+			}
+		},
+		"Deferred": [
+			{
+				"Module": "Views.Paper.BottomSheet",
+				"Source": "local"
+			},
+			{
+				"Module": "Views.TicketEditView",
+				"Source": "local"
+			},
+			{
+				"Module": "Views.TicketHistoryView",
+				"Source": "local"
+			},
+			{
+				"Module": "Views.TicketCommentsView",
+				"Source": "local"
+			},
+			{
+				"Module": "Views.TicketView",
+				"Source": "local"
+			}
+		]
+	}
+}

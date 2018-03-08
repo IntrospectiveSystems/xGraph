@@ -1,0 +1,102 @@
+{
+	"Sources": {
+		"local": "{local}",
+		"Core": "{Core}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "MultiPageServer",
+			"Source": "local",
+			"Par": {
+				"Config": "@system:browser.json",
+				"HTML": "@file:Index.html",
+				"Static": "@Directory:static",
+				"RoutingTable": {
+					"Tickets": "@system:Pages/Tickets.json",
+					"ToMe": "@system:Pages/ToMe.json",
+					"Me": "@system:Pages/Me.json",
+					"Closed": "@system:Pages/Closed.json",
+					"login": "@system:Pages/login.json",
+					"logout": "@system:Pages/logout.json"
+				},
+				"Providers": {
+					"google": "$GoogleLoginProvider"
+				},
+				"ApexList": {
+					"Server": "$Server",
+					"Google": "$Google",
+					"Tickets": "$Tickets",
+					"AuthServer": "$AuthServer",
+					"TicketGenSurrogate": "$TicketGenSurrogate"
+				},
+				"Manifest": {
+					"name": "xTickets",
+					"start_url": "/tickets",
+					"display": "standalone",
+					"background_color": "\\#263238",
+					"icons": [
+						{
+							"src": "https://placehold.it/256x256.png",
+							"size": "256x256",
+							"type": "image/png"
+						}
+					]
+				}
+			}
+		},
+		"ServerProxy": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Role": "Server",
+				"Link": "$Server",
+				"Port": 25005
+			}
+		},
+		"Google": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Role": "Client",
+				"Host": "127.0.0.1",
+				"Port": 25000
+			}
+		},
+		"Tickets": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Role": "Client",
+				"Host": "127.0.0.1",
+				"Port": 25001
+			}
+		},
+		"AuthServer": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Role": "Client",
+				"Host": "127.0.0.1",
+				"Port": 25002
+			}
+		},
+		"TicketGenSurrogate": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Role": "Client",
+				"Host": "127.0.0.1",
+				"Port": 25003
+			}
+		},
+		"GoogleLoginProvider": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Role": "Client",
+				"Host": "127.0.0.1",
+				"Port": 25004
+			}
+		}
+	}
+}

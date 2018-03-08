@@ -6,7 +6,7 @@ Introspective Systems LLC.
 
 ---
 
-A `RootView` is one of the basic building blocks for Views. It is the starting point for your layout. 
+A `RootView` is one of the basic building blocks for Views. It is the starting point for your layout.
 
 ## Basic Configuration
 
@@ -16,7 +16,7 @@ Example
 
 ``` json
 {
-    "Module": "xGraph.Views.RootView",
+    "Module": "xGraph.RootView",
     "Par": {
         "Layout": "$MyView"
     }
@@ -25,11 +25,11 @@ Example
 
 ## Advanced Configuration
 
-If you want more than one view on the screen at a time, then we need to use something like a [PanelView](#), to split up the available screen space.
+If you want more than one view on the screen at a time, then we need to use something like a [PanelView](./PanelView), to split up the available screen space.
 
 ``` json
 {
-    "Module": "xGraph.Views.RootView",
+    "Module": "xGraph.RootView",
     "Par": {
         "Layout": {
             "View": "$Panel",
@@ -46,7 +46,7 @@ You can continue this recursive pattern to keep splitting up the available space
 
 ``` json
 {
-    "Module": "xGraph.Views.RootView",
+    "Module": "xGraph.RootView",
     "Par": {
         "Layout": {
             "View": "$Panel",
