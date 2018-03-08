@@ -272,8 +272,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		/**
-		 * @description Used to be used to disable a title bar,  which no longer exists.
-		 *
+		 * @description Used to be used to disable a title bar,  which no longer exists as of Viewify 3.0
+		 * 
 		 * @deprecated
 		 * @memberof View
 		 */
@@ -305,10 +305,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		/**
 		 * @description Set the color of the View
-		 *
-		 * @deprecated
-		 * @param {any} com
-		 * @param {any} fun
+		 * 
+		 * @deprecated since Viewify 3.0
+		 * @param {any} com 
+		 * @param {any} fun 
 		 * @memberof View
 		 */
 		SetColor(com, fun) {

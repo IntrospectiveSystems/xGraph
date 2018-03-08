@@ -31,6 +31,7 @@
 					this.deleteEntity(this.Par.Pid)
 					return;
 				}
+				$(document.body).append(this.Vlt.root);
 
 				this.Vlt.popup = DIV();
 				let popup = this.Vlt.popup;
@@ -42,11 +43,11 @@
 				popup.css('position', 'fixed');
 				popup.css('border-radius', '3px');
 				popup.css('box-shadow', 'rgba(0, 0, 0, 0.698039) 0px 5px 17px');
-				popup.css('top', (this.Par.Top||(($(document.body).height() / 2) - 150)) + 'px');
-				popup.css('left', (this.Par.Left||(($(document.body).width() / 2) - 200)) + 'px');
+				popup.css('top', (this.Par.Top||(($(document.body).height() / 2) - 400)) + 'px');
+				popup.css('left', (this.Par.Left||(($(document.body).width() / 2) - 300)) + 'px');
 
-				this.Vlt.popup.append(this.Vlt.root);
-				document.body.appendChild(this.Vlt.popup[0]);
+				this.Vlt.div.append(this.Vlt.popup);
+				$(document.body).append(this.Vlt.root);
 
 
 
@@ -72,9 +73,9 @@
 				});
 
 				this.Vlt.topBarDiv.append(this.Vlt.closeButton);
-
-				this.Vlt.div.append(this.Vlt.topBarDiv);
-				this.Vlt.div.append(this.Vlt.contentDiv);
+				
+				this.Vlt.popup.append(this.Vlt.topBarDiv);
+				this.Vlt.popup.append(this.Vlt.contentDiv);
 
 				let par = {
 					Module: this.Par.View
