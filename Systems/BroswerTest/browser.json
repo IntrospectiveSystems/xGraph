@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"RootView":{
+			"Module": "xGraphDev.Extensions.Modules.RootViewTestDynicSchema",
+			"Source": "local",
+			"Par": { 
+				"Layout": "$3DView"
+			}
+		},
+		"3DView":{
+			"Module": "xGraphDev.Core.Modules.xGraph.3DView",
+			"Source": "local",
+			"Par": { 
+			}
+		},
+		"Deferred": []
+	}
+}
