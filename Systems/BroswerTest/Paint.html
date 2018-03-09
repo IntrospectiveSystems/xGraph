@@ -7,14 +7,15 @@
 
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
-		SockIO = io();
-		SockIO.on('connect', () => { SockIO.emit('message', JSON.stringify({ Cmd: 'GetConfig', Path: location.pathname.substr(1).toLowerCase() })); });
-		SockIO.on('message', function (data) {
-			var com = JSON.parse(data);
-			eval(com.Nxs);
-			__Nexus.boot(SockIO, com);
-		});
-
+		(function () {
+			let SockIO = io();
+			SockIO.on('connect', () => { SockIO.emit('message', JSON.stringify({ Cmd: 'GetConfig', Path: location.pathname.substr(1).toLowerCase() })); });
+			SockIO.on('message', function (data) {
+				var com = JSON.parse(data);
+				(1, eval)(com.Nxs);
+				__Nexus.boot(SockIO, com);
+			});
+		})();
 	</script>
 </head>
 

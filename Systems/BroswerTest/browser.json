@@ -4,7 +4,7 @@
 	},
 	"Modules": {
 		"RootView":{
-			"Module": "xGraphDev.Extensions.Modules.RootViewTestDynicSchema",
+			"Module": "xGraphDev.Extensions.Modules.RootViewTestDynamicSchema",
 			"Source": "local",
 			"Par": { 
 				"Layout": "$3DView"

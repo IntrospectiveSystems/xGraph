@@ -10,26 +10,11 @@
 				"ApexList": {
 				},
 				"Port": 8080,
-				"HTML": "@file: Paint.html",
 				"Url": "Test",
 				"Test": "@system: browser.json"
 			}
 		},
-		"3DView":{
-			"Module": "xGraphDev.Core.Modules.xGraph.3DView",
-			"Source": "local",
-			"Par": { 
-			}
-		},
 		"Deferred": [
-			{
-				"Module": "xGraphDev.Core.Modules.xGraph.3DView",
-				"Source": "local"
-			},
-			{
-				"Module": "xGraphDev.Extensions.Modules.RootViewTestDynicSchema",
-				"Source": "local"
-			}
 		]
 	}
 }
