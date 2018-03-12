@@ -838,13 +838,7 @@ __Nexus = (_ => {
 				fun(null, dat);
 				return;
 			});
-		} else {
-			let err = `File ${filename} does not exist in module ${module}`;
-			log.e(err);
-			fun(err);
-		}
-
-		if ('static' in mod) {
+		} else if ('static' in mod) {
 			let filearr = filename.split('/');
 			let store = mod["static"];
 			let [err, file] = subSearch(filearr, store);
@@ -870,10 +864,16 @@ __Nexus = (_ => {
 					return [err, null];
 				}
 			}
+		} else {
+			let err = `File ${filename} does not exist in module ${module}`;
+			log.e(err);
+			fun(err);
 		}
-		let err = `File ${filename} does not exist in module ${module}`;
-		log.e(err);
-		fun(err);
+
+		
+		// let err = `File ${filename} does not exist in module ${module}`;
+		// log.e(err);
+		// fun(err);
 	}
 
 
