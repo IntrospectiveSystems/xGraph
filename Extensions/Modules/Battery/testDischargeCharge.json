@@ -21,27 +21,6 @@
       "Command": {
         "Cmd": "Discharge"
       }
-    },
-    {
-      "Command": {
-        "Cmd": "Stop"
-      }
-    },
-    {
-      "Command": {
-        "Cmd": "GetDepthOfCharge"
-      },
-      "Response": {
-        "DepthOfCharge": "*"
-      }
-    },
-    {
-      "Command": {
-        "Cmd": "GetState"
-      },
-      "Response": {
-        "State": "*"
-      }
     }
   ]
 }

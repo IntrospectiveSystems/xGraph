@@ -1,5 +1,15 @@
 //# sourceURL=Battery.js
-(function Battery() {
+(
+    /**
+     * An idealized battery. The battery entity is able to charge, discharge, and stop the battery.
+     * @param {number} this.Par.InitialCharge   The amount of charge the battery has on instatiation.
+     * @param {number} this.Par.Capacity        The total capacity of charge that the battery can hold.
+     * @param {object} this.Par.ChargeRate      An object holding the rate (charge/milliseconds) that the battery
+     *                                              charges at.
+     * @param {object} this.Par.DischargeRate   An object holding the rate (charge/milliseconds) that the battery
+     *                                              discharges at.
+     */
+    function Battery() {
 	class Battery {
 		Setup(com, fun) {
             log.i("--Battery/Setup");
@@ -8,21 +18,26 @@
             let Vlt = this.Vlt;
             let errors = null;
 
+            //setup class with initial parameters
             Vlt.DepthOfCharge = Par.InitialCharge;
-            Vlt.State = "Stopped";
+            Vlt.Capacity = Par.Capacity;
+            Vlt.ChargeRate = Par.ChargeRate;
+            Vlt.DischargeRate = Par.DischargeRate;
 
+            //additional attributes and holders
+            Vlt.State = "Stopped";
 			Vlt.ChargeTimeout = null;
 			Vlt.DischargeTimeout = null;
 
 			fun(null, com);
 		}
 
-		Start(com, fun){
 
-
-			fun(null, com);
-		}
-
+		/**
+         * The Charge command sets the battery to charge at the given charge rate (charge/milliseconds).
+         * @param {object} com  The command object.
+         * @callback fun
+         */
 		Charge(com, fun){
             log.i("--Battery/Charge");
             let that = this;
@@ -54,10 +69,14 @@
 					}
 				}
 			}
-
-
 		}
 
+
+		/**
+         * The Discharge command sets the battery to discharge at the given rate (charge/milliseconds).
+         * @param {object} com   The command object.
+         * @callback fun
+         */
 		Discharge(com, fun){
             log.i("--Battery/Discharge");
             let that = this;
@@ -90,6 +109,12 @@
             }
 		}
 
+
+		/**
+         * The Stop command stops the battery from charging or discharging.
+         * @param {object} com  The command object.
+         * @callback fun
+         */
 		Stop(com, fun){
             log.i("--Battery/Stop");
             let that = this;
@@ -107,6 +132,45 @@
 
             fun(null, com);
         }
+
+
+        /**
+         * The GetDepthOfCharge command returns the batteries current DetphOfCharge.
+         * @param {object} com                  The command object.
+         * @return {number} com.DepthOfCharge   The current depth of charge of the battery.
+         * @callback fun
+         */
+        GetDepthOfCharge(com, fun){
+            log.i("--Battery/GetDepthOfCharge");
+            let that = this;
+            let Par = this.Par;
+            let Vlt = this.Vlt;
+            let errors = null;
+
+            com.DepthOfCharge = Vlt.DepthOfCharge
+
+            fun(null, com);
+        }
+
+
+        /**
+         * The GetState command returns the batteries current State.
+         * @param {object} com          The command object.
+         * @return {string} com.State   The current state of the battery.
+         * @callback fun
+         */
+        GetState(com, fun){
+            log.i("--Battery/GetState");
+            let that = this;
+            let Par = this.Par;
+            let Vlt = this.Vlt;
+            let errors = null;
+
+		    com.State = Vlt.State;
+
+		    fun(null, com);
+        }
+
 	}
 	return {dispatch:Battery.prototype};
 })();
