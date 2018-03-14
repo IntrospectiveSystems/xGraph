@@ -4,14 +4,14 @@
 	},
 	"Modules": {
 		"RootView":{
-			"Module": "xGraphDev.Extensions.Modules.RootViewTestDynamicSchema",
+			"Module": "xGraphDev.Core.Modules.xGraph.RootView",
 			"Source": "local",
 			"Par": { 
-				"Layout": "$3DView"
+				"Layout": "$DL"
 			}
 		},
-		"3DView":{
-			"Module": "xGraphDev.Core.Modules.xGraph.3DView",
+		"DL":{
+			"Module": "xGraphDev.Extensions.Modules.Deeplearn",
 			"Source": "local",
 			"Par": { 
 			}
