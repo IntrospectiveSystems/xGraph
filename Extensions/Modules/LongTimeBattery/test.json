@@ -1,0 +1,48 @@
+{
+  "State": {
+    "InitialCharge": 50,
+    "Capacity": 10000,
+    "ChargeRate": {
+      "Charge": 10,
+      "Seconds": 1
+    },
+    "DischargeRate": {
+      "Charge": 5,
+      "Seconds": 1
+    }
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd": "Charge",
+        "ForPeriod": {
+          "Length": 3,
+          "Unit": "minutes"
+        }
+      },
+      "Response": {
+        "DepthOfCharge": 230
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Discharge",
+        "ForPeriod": {
+          "Length": 3,
+          "Unit": "minutes"
+        }
+      },
+      "Response": {
+        "DepthOfCharge": 50
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "GetDepthOfCharge"
+      },
+      "Response": {
+        "DepthOfCharge": "*"
+      }
+    }
+  ]
+}

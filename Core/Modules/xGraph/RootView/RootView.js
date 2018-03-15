@@ -1,4 +1,12 @@
-(function RootView() {
+(
+    /**
+	 * @param {string=} this.Par.Layout 			The view that will be built and rendered by RootView.
+	 * @param {string=} this.Par.Layout.View 		The view module that will be RootView's direct child.
+	 * @param {array=} this.Par.Layout.Children 	If the view module specified in the "View" parameter can load
+	 * 													child views, list he child views here.
+     * @constructor
+     */
+	function RootView() {
 
 	class RootView {
 
@@ -13,14 +21,17 @@
 		 * 3) Appends itself to the DOM
 		 * 
 		 * 4) Propagates a Render, Resize, DOMLoaded, Resize, in that order.
-		 * @param {any} com
-		 * @param {any} fun
+		 * @param {object} com
+		 * @callback fun
 		 * @memberof RootView
 		 */
 		async Start(com, fun) {
 			log.v(`--RootView::Start`);
-
 			let that = this;
+
+
+            let apexPid = await parseView(this.Par.Layout);
+
 			async function parseView(view) {
 				if (typeof view == 'string') {
 					return view;
@@ -36,29 +47,31 @@
 				}
 			}
 
-			let apexPid = await parseView(this.Par.Layout);
-			this.send({ Cmd: "GetViewRoot" }, apexPid, (err, com) => {
 
-				let apexDiv = com.Div;
-				$(document.body).append(apexDiv);
+			this.send({ Cmd: "GetViewRoot" }, apexPid, callback);
 
-				this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
+            function callback(err, com){
 
-				this.send({ Cmd: "Render" }, apexPid, () => { });
+                let apexDiv = com.Div;
+                $(document.body).append(apexDiv);
 
-				$(window).resize(() => {
-					this.send({ Cmd: "Resize" }, apexPid, () => { });
-				});
+                this.send({ Cmd: "ShowHierarchy" }, apexPid, () => { });
 
-				$(document.body).find('.removeOnLoad').remove();
+                this.send({ Cmd: "Render" }, apexPid, () => { });
 
-				this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
-					$(window).resize(() => {
-						this.send({ Cmd: "Resize" }, apexPid, () => { });
-					});
-					fun(null, com);
-				});
-			});
+                $(window).resize(() => {
+                    this.send({ Cmd: "Resize" }, apexPid, () => { });
+                });
+
+                $(document.body).find('.removeOnLoad').remove();
+
+                this.send({ Cmd: "DOMLoaded" }, apexPid, (err, com) => {
+                    $(window).resize(() => {
+                        this.send({ Cmd: "Resize" }, apexPid, () => { });
+                    });
+                    fun(null, com);
+                });
+            }
 
 
 		}
