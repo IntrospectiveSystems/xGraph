@@ -110,9 +110,56 @@ $.fn.extend({
 	}
 });
 
-class ViewNotInitializedError extends Error {
+if(window.Preprocessor == undefined) {
+	window.Preprocessor = class Preprocessor {
+		constructor(entity) {
+			this.view = entity;
+			this.template = '';
+			this._later = [];
+		}
+		async finish() {
+			this._div = $(this.template);
+			for (let fun of this._later) {
+				let ret = fun(); // because compatibility \/
+				if (ret instanceof Promise) await ret;
+			}
+			return this._div;
+		}
+		later(fun) {
+			this._later.push(fun);
+		}
 
+		button(name, command) {
+			let id;
+			if (typeof name == 'object') {
+				let options = name;
+				for (let key in options) {
+					switch (key) {
+						case "id": id = name[key]; break;
+						case "name": name = options[key]; break;
+						case "command": command = options[key]; break;
+					}
+				}
+			}
+			id = id || name.replace(/\s/g, '-')
+			this.append(`<button id="${id}">${name}</button>`);
+			this.later(_ => {
+				let button = this._div.find(`#${id}`);
+				// button.attr('ParHidden', 'true');
+				button.on('click', _ => {
+					this.view.dispatch({ Cmd: command, Name: name, Id: id })
+				});
+			});
+		}
+
+		append(text) {
+			this.template += `${text}\r\n`;
+		}
+	}
 }
+
+// ----------------------- Custom Errors
+class ViewNotInitializedError extends Error {}
 
 //Viewify
 if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
@@ -145,6 +192,14 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 	}
 
+	const ver30 = new SemVer('3.0');
+	const ver31 = new SemVer('3.1');
+	const ver32 = new SemVer('3.2');
+	const ver33 = new SemVer('3.3');
+	const ver34 = new SemVer('3.4');
+	const ver35 = new SemVer('3.5');
+	const ver40 = new SemVer('4.0');
+
 	const version = new SemVer(versionString);
 	// will scan either a prototype of dispatch table
 	let child = typeof _class == 'function' ? _class.prototype : _class;
@@ -160,38 +215,111 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @param {any} fun 
 		 * @memberof View
 		 */
-		Setup(com, fun) {
+		async Setup(com, fun) {
+			this.Par.$ = {};
 			let vlt = this.Vlt;
-			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
-			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
 			vlt.views = [];
 			vlt.viewDivs = [];
-			vlt.root = DIV(vlt.rootID);
-			vlt.root.attr('viewPid', this.Par.Pid);
+
+			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
+			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
+			
+			vlt._root = DIV(vlt.rootID);
+			vlt._root.attr('viewPid', this.Par.Pid);
+			vlt._root.css('height', '100%');
+			vlt._root.css('display', 'block');
+			vlt._root.css('box-sizing', 'border-box');
+			vlt._root.css('overflow', 'hidden');
+
+			// create compat vlt.root, will be removed in 4.0 check
+			vlt.root = vlt._root;
+
 			vlt.styletag = STYLE();
 
-			vlt.root.css('height', '100%');
-			vlt.root.css('display', 'block');
-			vlt.root.css('box-sizing', 'border-box');
-			vlt.root.css('overflow', 'hidden');
+			vlt.div = $(`<div></div>`);
+			if (version >= ver31) vlt.div.addClass(vlt.type);
+			if (version >= ver31 && 'ID' in this.Par) vlt.div.id(this.Par.ID);
+			else vlt.div.attr('id', `XGRAPH-${this.Par.Pid}`);
 
-			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}" 
-				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `XGRAPH-${this.Par.Pid}`)}"
-				style="
-				height: 100%;
-				display: block;
-				position: relative;
-				box-sizing: border-box;
-				overflow: hidden;
-			"></div>`);
+			vlt.div.css('height', '100%');
+			vlt.div.css('display', 'block');
+			vlt.div.css('position', 'relative');
+			vlt.div.css('box-sizing', 'border-box');
+			vlt.div.css('overflow', 'hidden');
 
 			vlt.name = com.Name || this.Par.Name || "Untitled View";
-			vlt.root.append(vlt.styletag);
-			vlt.root.append(vlt.div);
+			vlt._root.append(vlt.styletag);
+			vlt._root.append(vlt.div);
 
-			console.time('View');
+			if(version >= ver40) {
+				//remove support for this.Vlt.root
+				this.Vlt.root = undefined;
+
+				//4.0 uses shadow dom
+				if (document.head.attachShadow) {
+					// if we have shadow dom, otherwise,
+					// idk, use shadyDOM or something
+					// TODO figure that out
+					this.Vlt._shadow = $(this.Vlt._root[0].attachShadow({mode: "closed"}));
+					this.Vlt.div.detach();
+					this.Vlt.styletag.detach();
+					this.Vlt.styletag.data('shadow', true);
+					this.Vlt._shadowStyle = STYLE();
+					this.Vlt._shadow.append(this.Vlt.div);
+					this.Vlt._shadow.append(this.Vlt.styletag);
+					this.Vlt._shadow.append(this.Vlt._shadowStyle);
+					await new Promise(resolve => {
+						this.getFile("styles.x.css", (err, dat) => {
+							if (err) return fun(null, com);
+							this.Vlt._shadowStyle.html(dat);
+							resolve();
+						});
+					});
+					
+				}
+			}
 
 			fun(null, com);
+		}
+
+		async Start(com, fun) {
+			
+			let that = this;
+			async function parseView(children = [], basePid = that.Par.Pid) {
+				if(typeof children == 'string') {
+					that.ascend('AddView', {View: children});
+				} else if(Array.isArray(children)) {
+					// array might be strings might be objects, might be both.
+					if (Object.keys(children).length == 0) {
+						that.ascend('Render', basePid);
+					} else for(let view of children) {
+						that.ascend('AddView', { View: view.View });
+					}
+				} else if (typeof children == 'object') {
+					that.ascend('AddView', { View: children.View });
+					parseView(view.Children, view.View);
+				}
+			}
+
+			if (version >= ver40) {
+
+				await parseView(this.Par.Children);
+
+				if ('Root' in this.Par && this.Par.Root) {
+					$(document.body).append(this.Vlt._root);
+					await new Promise(resolve => {
+						this.send({ Cmd: "GetViewRoot" }, this.Par.Pid, (err, com) => {});
+						this.send({ Cmd: "ShowHierarchy" }, this.Par.Pid, (err, com) => {});
+						$('.removeOnLoad').remove();
+						this.send({ Cmd: "DOMLoaded" }, this.Par.Pid, (err, com) => {
+							$(window).resize(() => {
+								this.send({ Cmd: "Resize" }, this.Par.Pid, (err, com) => {});
+							});
+							resolve();
+						});
+					});
+				}
+			}
 		}
 
 		/**
@@ -210,8 +338,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		GetViewRoot(com, fun) {
 			// debugger;
-			if (!this.Vlt.root) console.error(`ERR: trying to access root of ${this.Par.Module} before it is setup!`);
-			com.Div = this.Vlt.root;
+			if (!this.Vlt._root) console.error(`ERR: trying to access root of ${this.Par.Module} before it is setup!`);
+			com.Div = this.Vlt._root;
 			// debugger;
 			fun(new ViewNotInitializedError(), com);
 		}
@@ -238,8 +366,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @param {any} fun 
 		 * @returns 
 		 * @memberof View
+		 * @deprecated as of 4.0
 		 */
 		Style(com, fun) {
+			if(version >= ver40) {
+				log.w(`[${this.Vlt.type}]: Style is deprecated in Viewify 4.0.\nUse version 3.5 or upgrade to styles.x.css (Documentation Link)`);
+			}
+
 			let that = this;
 			let vlt = this.Vlt
 			let selector = com.Selector;
@@ -296,10 +429,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			log.w('deprecated clear call');
 			log.w(new Error().stack);
 			this.Vlt.div.children().detach();
-			this.Vlt.root.children().detach();
-			this.Vlt.root.append(this.Vlt.styletag);
-			if (!this.Vlt.disableTitleBar) this.Vlt.root.append(this.titleBar);
-			this.Vlt.root.append(this.Vlt.div);
+			this.Vlt._root.children().detach();
+			this.Vlt._root.append(this.Vlt.styletag);
+			if (!this.Vlt.disableTitleBar) this.Vlt._root.append(this.titleBar);
+			this.Vlt._root.append(this.Vlt.div);
 			fun(null, com);
 		}
 
@@ -317,7 +450,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let value = com.Value || com.Color;
 			let border = com.Border || value;
 			this.Vlt._color = value;
-			this.Vlt.root.css('background-color', value);
+			this.Vlt._root.css('background-color', value);
 			fun(null, com);
 		}
 
@@ -363,6 +496,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 		}
 
+
 		/**
 		 * @description Render the View. This is only called
 		 * when something about the view has changed.
@@ -376,14 +510,61 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		async Render(com, fun) {
 			let that = this;
-			for (let pid of this.Vlt.views) {
-				await new Promise((resolve, reject) => {
-					that.send({ Cmd: 'Render' }, pid, () => {
-						resolve();
+
+			if(version < ver40) {
+				for (let pid of this.Vlt.views) {
+					await new Promise((resolve, reject) => {
+						that.send({ Cmd: 'Render' }, pid, () => {
+							resolve();
+						});
 					});
+				}
+				fun(null, com);
+			}else if (version >= ver40) {
+				this.getFile("view.x.html", async (err, html) => {
+					if(err) return fun(null, com);
+
+					let parts = html.split(/<~x|~>/g);
+					let evalme = `//# sourceURL=${this.Vlt.type}\r\n(function() {
+						\r\n\treturn async function(render) {\r\n`;
+
+					for (let ipart = 0, state = 'HTML';
+						ipart < parts.length; ipart ++,
+						state = (state == 'HTML' ? 'JS' : 'HTML')) {
+						let str = parts[ipart];
+						switch(state) {
+							case 'HTML': {
+								evalme += `render.append("${str
+									.replace(/\"/g, "\\\"")
+									.replace(/\n/g, "\\n")
+									.replace(/\t/g, "\\t")
+									.replace(/\r/g, "\\r")
+									}");\r\n`;
+								break;
+							}
+							case 'JS': {
+								evalme += str + "\r\n";
+								break;
+							}
+						}
+					}
+					evalme += `return await render.finish();\r\n}})();`;
+					log.d(evalme);
+
+					let render = new Preprocessor(this);
+					let generator = eval(evalme);
+					let elem = await generator.call(this, render);
+
+					//elements with and ID and not ParHidden attribute, will be saved to Par.$
+					let parElements = elem.find('[id]:not([ParHidden])');
+					for (let element of parElements) {
+						this.Par.$[$(element).attr('id')] = $(element);
+					}
+
+					this.Vlt.div.append(elem);
 				});
 			}
-			fun(null, com);
+
 		}
 
 		/**
@@ -416,7 +597,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		Focus(com, fun) {
 			log.w('deprecated Focus call');
 			log.w(new Error().stack);
-			this.Vlt.root.addClass('Focus');
+			this.Vlt._root.addClass('Focus');
 			if (!this.Vlt.disableTitleBar) this.Vlt.titleBar.css('border-bottom', '1px solid var(--accent-color)');
 			fun(null, com);
 		}
@@ -431,7 +612,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		Blur(com, fun) {
-			this.Vlt.root.removeClass('Focus');
+			this.Vlt._root.removeClass('Focus');
 			if (!this.Vlt.disableTitleBar) this.Vlt.titleBar.css('border-bottom', '1px solid var(--view-border-color)');
 			fun(null, com);
 		}
@@ -446,9 +627,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		async DOMLoaded(com, fun) {
-			//console.log('DOMLoaded - ' + this.Vlt.type);
-
 			let that = this;
+
 			for (let pid of this.Vlt.views) {
 				await new Promise((resolve, reject) => {
 					that.send({ Cmd: 'DOMLoaded' }, pid, () => {
@@ -564,7 +744,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			// debugger;
 			$(root).attr('draggable', 'true');
 			let createDragDom;
-			if (version > new SemVer('3.1')) createDragDom = com.CreateDragDom || null;
+			if (version > ver31) createDragDom = com.CreateDragDom || null;
 			else createDragDom = com.CreateDragDom || function () {
 				div = $(document.createElement('div'));
 				div.css('width', '200px');
@@ -605,7 +785,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					div.remove();
 				}
 				let elem = $(document.elementFromPoint(evt.pageX, evt.pageY));
-				if (version >= new SemVer('3.2')) {
+				if (version >= ver32) {
 					while (elem.hasClass('dropArea') == null) {
 						elem = elem.parent();
 					}
@@ -683,10 +863,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		Cleanup(com, fun) {
 			// debugger;
 			console.log("SUPER CLEANUP");
-			if ('DestroyListeners' in this.Par && version >= new SemVer('3.3'))
+			if ('DestroyListeners' in this.Par && version >= ver33)
 				for (let pid of this.Par.DestroyListeners)
 					this.send({ Cmd: 'ChildDestroyed', Pid: this.Par.Pid }, pid, _ => _);
-			this.Vlt.root.remove();
+			this.Vlt._root.remove();
 			fun(null, com);
 		}
 
@@ -712,7 +892,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
 
-		if (version >= new SemVer('3.0')) {
+		if (version >= ver30) {
 			this.super = function (com, fun) {
 				if (com.Cmd in View.prototype) {
 					View.prototype[com.Cmd].call(this, com, fun);
@@ -729,7 +909,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 		} else return;
 
-		if (version >= new SemVer('3.3')) {
+		if (version >= ver33) {
 			this.ascend = (name, opts = {}, pid = this.Par.Pid) => new Promise((resolve, reject) => {
 				this.send(Object.assign({ Cmd: name }, opts), pid, (err, cmd) => {
 					if (err) reject([err, cmd]);
@@ -738,7 +918,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 		} else return;
 
-		if (version >= new SemVer('3.4')) {
+		if (version >= ver34) {
 			this.asuper = function (com) {
 				return new Promise((resolve, reject) => {
 					this.super(com, (err, cmd) => {
@@ -775,7 +955,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			};
 			this.id = str => `XGRAPH-${this.Vlt.type}-${md5(this.Par.Pid + str)}-${str}`;
 		}
-		if (version >= new SemVer('3.5')) {
+		if (version >= ver35) {
 			this.authenticate = async (cmd) => {
 				return (await this.ascend('Authenticate', { Command: cmd }, window.CommandAuthenticator)).Command;
 			}

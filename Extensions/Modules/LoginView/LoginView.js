@@ -44,6 +44,13 @@
 				if(this.Par.Logout) {
 					try {
 						gapi.auth2.getAuthInstance().signOut();
+						Cookies('xGraph-UserPassport', undefined);
+						Cookies('xGraph-Provider', undefined);
+						Cookies('xGraph-Email', undefined);
+						Cookies('xGraph-DisplayName', undefined);
+						Cookies('xGraph-Expires', undefined);
+						Cookies('xGraph-Authenticated', undefined);
+						Cookies('xGraph-UserPassport', undefined);
 					}catch(e) {
 						log.v('couldnt sign out google...')
 					}
@@ -69,7 +76,16 @@
 					Cookies('xGraph-Authenticated', true); // only truly authenticated once
 					// we add ourselves to the database.
 				} catch(e) {
-					alert(`${e}\n-------------------\nPage should be refreshed.\nIf that doesnt solved the problem, contact support.`);
+					switch(e) {
+						case "DOMAIN_MISMATCH": {
+							alert("This email address is not allowed");
+							break;
+						}
+						default: {
+							alert(`${e}\n-------------------\nPage should be refreshed.\nIf that doesnt solved the problem, contact support.`);
+							break;
+						}
+					}
 				}
 
 

@@ -808,12 +808,42 @@ __Nexus = (_ => {
 				fun(null, dat);
 				return;
 			});
+		} else if ('static' in mod) {
+		// 	let filearr = filename.split('/');
+		// 	let store = mod["static"];
+		// 	let [err, file] = subSearch(filearr, store);
+		// 	fun(err, file);
+		// 	return;
+
+		// 	// /**
+		// 	//  * Recursive object search
+		// 	//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
+		// 	//  * @param {Object} st 		The directory we're searching in 
+		// 	//  */
+		// 	function subSearch(ar, st) {
+		// 		if (ar[0] in st) {
+		// 			if (ar.length == 1) {
+		// 				return [null, st[ar[0]]];
+		// 			}
+		// 			else {
+		// 				return subSearch(arr.slice(1), st[ar[0]]);
+		// 			}
+		// 		} else {
+		// 			let err = `${url} does not exist in Par.Static`;
+		// 			log.w(err);
+		// 			return [err, null];
+		// 		}
+		// 	}
 		} else {
 			let err = `File ${filename} does not exist in module ${module}`;
 			log.e(err);
 			fun(err);
-			return
 		}
+
+		
+		// let err = `File ${filename} does not exist in module ${module}`;
+		// log.e(err);
+		// fun(err);
 	}
 
 
