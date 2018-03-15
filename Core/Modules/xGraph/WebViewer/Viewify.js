@@ -96,7 +96,7 @@ $.fn.extend({
 
 		let color = com.Vlt.div.css('--text').trim().replace('#', '');
 		// color = 'C0FFEE';
-		if (color.length == 3) colochildrenr = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
+		if (color.length == 3) color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
 		color = color.split("").reverse().join("");
 		let valueTable = "0123456789ABCDEF"
 		let result = 0;
@@ -109,6 +109,54 @@ $.fn.extend({
 		return result;
 	}
 });
+
+if(window.Preprocessor == undefined) {
+	window.Preprocessor = class Preprocessor {
+		constructor(entity) {
+			this.view = entity;
+			this.template = '';
+			this._later = [];
+		}
+		async finish() {
+			this._div = $(this.template);
+			for (let fun of this._later) {
+				let ret = fun(); // because compatibility \/
+				if (ret instanceof Promise) await ret;
+			}
+			return this._div;
+		}
+		later(fun) {
+			this._later.push(fun);
+		}
+
+		button(name, command) {
+			let id;
+			if (typeof name == 'object') {
+				let options = name;
+				for (let key in options) {
+					switch (key) {
+						case "id": id = name[key]; break;
+						case "name": name = options[key]; break;
+						case "command": command = options[key]; break;
+					}
+				}
+			}
+			id = id || name.replace(/\s/g, '-')
+			this.append(`<button id="${id}">${name}</button>`);
+			this.later(_ => {
+				let button = this._div.find(`#${id}`);
+				// button.attr('ParHidden', 'true');
+				button.on('click', _ => {
+					this.view.dispatch({ Cmd: command, Name: name, Id: id })
+				});
+			});
+		}
+
+		append(text) {
+			this.template += `${text}\r\n`;
+		}
+	}
+}
 
 // ----------------------- Custom Errors
 class ViewNotInitializedError extends Error {}
@@ -168,6 +216,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		async Setup(com, fun) {
+			this.Par.$ = {};
 			let vlt = this.Vlt;
 			vlt.views = [];
 			vlt.viewDivs = [];
@@ -447,6 +496,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			});
 		}
 
+
 		/**
 		 * @description Render the View. This is only called
 		 * when something about the view has changed.
@@ -471,11 +521,12 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 				fun(null, com);
 			}else if (version >= ver40) {
-				this.getFile("view.x.html", (err, html) => {
+				this.getFile("view.x.html", async (err, html) => {
 					if(err) return fun(null, com);
 
 					let parts = html.split(/<~x|~>/g);
-					let evalme = `//# sourceURL=${this.Vlt.type}\r\n(function() {return function(view) {\r\n`;
+					let evalme = `//# sourceURL=${this.Vlt.type}\r\n(function() {
+						\r\n\treturn async function(render) {\r\n`;
 
 					for (let ipart = 0, state = 'HTML';
 						ipart < parts.length; ipart ++,
@@ -483,19 +534,32 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 						let str = parts[ipart];
 						switch(state) {
 							case 'HTML': {
-								
+								evalme += `render.append("${str
+									.replace(/\"/g, "\\\"")
+									.replace(/\n/g, "\\n")
+									.replace(/\t/g, "\\t")
+									.replace(/\r/g, "\\r")
+									}");\r\n`;
 								break;
 							}
 							case 'JS': {
-
+								evalme += str + "\r\n";
 								break;
 							}
 						}
 					}
-					evalme += `}})();`;
+					evalme += `return await render.finish();\r\n}})();`;
+					log.d(evalme);
 
+					let render = new Preprocessor(this);
 					let generator = eval(evalme);
-					let elem = $(generator.call(this));
+					let elem = await generator.call(this, render);
+
+					//elements with and ID and not ParHidden attribute, will be saved to Par.$
+					let parElements = elem.find('[id]:not([ParHidden])');
+					for (let element of parElements) {
+						this.Par.$[$(element).attr('id')] = $(element);
+					}
 
 					this.Vlt.div.append(elem);
 				});
