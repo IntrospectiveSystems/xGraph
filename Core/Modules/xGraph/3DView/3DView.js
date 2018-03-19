@@ -46,28 +46,32 @@
 				View = this.Vlt.View;
 				View.Geometries = {};
 				View.Meshs = {};
+				View.Models = {};
 				View.ResponseHandlers = {};
 
 				View.Ray = new THREE.Raycaster();
 				View.Renderer = new THREE.WebGLRenderer({ antialias: true });
-				View.Renderer.setClearColor(0xBEDCF7, 1);
+				View.Renderer.setClearColor(0x000, 1);
 				View.Renderer.setSize(div.width(), div.height());
 				View.Scene = new THREE.Scene();
-				View.Focus = new THREE.Vector3(50.0, 50.0, 0.0);
+				View.Focus = new THREE.Vector3(0.0, 0.0, 0.0);
 				View.Camera = new THREE.PerspectiveCamera(45,
 					div.width / div.height, 0.1, 40000);
 				div.append(View.Renderer.domElement);
 				View.Light = new THREE.DirectionalLight(0xFFFFFF);
 				View.Light.position.set(-40, 60, 100);
 				View.Scene.add(View.Light);
-				View.Ambient = new THREE.AmbientLight(0x808080);
+				View.Ambient = new THREE.AmbientLight(0x888);
 				View.Scene.add(View.Ambient);
-				var axes = new THREE.AxisHelper(100);
-				axes.position.z = 0.01;
-				View.Scene.add(axes);
+				if ("Axes" in this.Par) {
+					// log.w(`adding in the axes`)
+					var axes = new THREE.AxisHelper(this.Par.Axes);
+					axes.position.z = 0.01;
+					View.Scene.add(axes);
+				}
 				View.Camera.position.x = 0;
-				View.Camera.position.y = 0;
-				View.Camera.position.z = 50;
+				View.Camera.position.y = -50;
+				View.Camera.position.z = 100;
 				View.Camera.up.set(0.0, 0.0, 1.0);
 				View.Camera.lookAt(View.Focus);
 				View.Camera.updateProjectionMatrix();
@@ -76,23 +80,25 @@
 
 					//For testing of updating elevations
 					if (this.Vlt.Update || live) {
-						this.Vlt.Update = false;
-						let q = {}
-						q.Cmd = "SetObjects";
-						q.Objects = [];
-						let obj = {
-							id: "plane",
-							elevations: []
-						};
-						q.Objects.push(obj);
+						log.d('image capture loop');
+						// this.Vlt.Update = false;
+						// let q = {}
+						// q.Cmd = "SetObjects";
+						// q.Objects = [];
+						// let obj = {
+						// 	id: "plane",
+						// 	elevations: []
+						// };
+						// q.Objects.push(obj);
 
-						this.send(q, this.Par.Pid, (err, com) => {
-							setTimeout(this.dispatch({ Cmd: "ImageCapture" }, _ => _), 40);
-						});
+						// this.send(q, this.Par.Pid, (err, com) => {
+							setTimeout(this.dispatch({ Cmd: "ImageCapture" }, _ => _), 0);
+						// });
 					}
 					//end TEST
 
 					View.Renderer.render(View.Scene, View.Camera);
+					// log.d(`render`)
 				}, 20);  // updates roughly every 20 milliseconds
 
 				fun(null, com);
@@ -264,7 +270,7 @@
 					"Width": 800,
 					"Height": 600
 				}
-			}, () => {})
+			}, () => { })
 			fun(null, com)
 		}
 
@@ -281,6 +287,17 @@
 			View.Renderer.setSize(div.width(), div.height());
 			View.Camera.aspect = div.width() / div.height();
 			View.Camera.updateProjectionMatrix();
+
+			$(window.document.body).on('keydown', (evt)=>{
+				log.d(`key down ${JSON.stringify(evt, null, 2)}`);
+				if (this.Vlt.Update){
+					log.d(`stopping image capture`);
+					this.Vlt.Update = false; 
+				} else{
+					log.d(`Starting image capture`);
+					this.Vlt.Update = true;
+				}
+			});
 
 			this.genModule({
 				"Module": 'xGraph.Mouse',
@@ -345,6 +362,7 @@
 		 * @param {Function} fun
 		 */
 		async function SetObjects(com, fun = (err, com) => { if (err) log.e(err) }) {
+			log.v(`3DView/SetObjects`);
 			/**
 			 *
 			 * the com will contain an Objects key that lists an array of objects
@@ -388,13 +406,12 @@
 			 */
 
 			//return if com.Objects is not an array
-			if ((!com.Objects)||(!Array.isArray(com.Objects))) {
+			if ((!com.Objects) || (!Array.isArray(com.Objects))) {
 				fun("com.Objects must be an array (Array.isArray(com.Objects) == true)", com);
 				return;
 			}
 
 			for (let i = 0; i < com.Objects.length; i++) {
-
 				let unit = com.Objects[i];
 
 				if (typeof unit.id == "undefined") {
@@ -425,6 +442,7 @@
 							geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
 						}
 
+						unit.mesh.arguments["side"] = THREE.DoubleSide;
 						if ("id" in unit.mesh) {
 							if (unit.mesh.id in this.Vlt.View.Meshs) {
 								mesh = this.Vlt.View.Meshs[unit.mesh.id];
@@ -433,62 +451,81 @@
 								this.Vlt.View.Meshs[unit.mesh.id] = mesh;
 							}
 						} else {
-							mesh = new THREE[unit.mesh.name](...unit.mesh.arguments);
+							mesh = new THREE[unit.mesh.name](unit.mesh.arguments);
 						}
 
 						obj = new THREE.Mesh(geom, mesh);
-						obj.name = unit.id;
 					} else {
+						if (("Obj3D" in com) && (unit.Obj3D == "model")){
+							unit.Obj3D = com.Obj3D
+						}
 
 						//we're passed a module and need to generate it
 						let mod = {
 							"Module": unit.module,
 							"Par": {
-								"Name": unit.id
+								"Name": unit.id,
+								"X3D": unit.Obj3D
 							}
 						};
 
-						if (unit.position)
-							mod.Par.Position = unit.position;
-						if (unit.model)
-							mod.Par.Model = unit.model;
-						if (unit.axis)
-							mod.Par.Axis = unit.axis;
-						if (unit.angle)
-							mod.Par.Angle = unit.angle;
+						if ("modelId" in unit) {
+							if (unit.modelId in this.Vlt.View.Models) {
+								obj = new THREE.Object3D();
+								let obj1 = new THREE.Mesh(this.Vlt.View.Models[unit.modelId].children[0].children[0].geometry,this.Vlt.View.Models[unit.modelId].children[0].children[0].material) ;
 
-						obj = await new Promise((res, rej) => {
-							this.genModule(mod, (err, pidApex) => {
-								let that = this;
+								let obj2 = new THREE.Mesh(this.Vlt.View.Models[unit.modelId].children[1].children[0].geometry,this.Vlt.View.Models[unit.modelId].children[1].children[0].material) ;
+								obj.add(obj1);
+								obj.add(obj2);
+							} else {
+								obj = await new Promise((res, rej) => {
+									this.genModule(mod, (err, pidApex) => {
+										let that = this;
 
-								//save the modules pid in unit.Pid
-								unit.Pid = pidApex;
+										//save the modules pid in unit.Pid
+										unit.Pid = pidApex;
 
-								unit.responseHandler = {
-									Cmd: "Evoke",
-									Handler: unit.Pid
-								};
+										unit.responseHandler = {
+											Cmd: "Evoke",
+											Handler: unit.Pid
+										};
+										var q = {};
+										q.Cmd = 'GenModel';
+										this.send(q, unit.Pid, rply);
+										function rply(err, x) {
+											if (err) {
+												func(err);
+												return;
+											}
+											if (!('Obj3D' in x)) {
+												var err = 'No model returned';
+												log.v(' ** ERR:' + err);
+												func(err);
+												return;
+											}
+											var objinst = x.Obj3D;
+											res(objinst);
+											log.v("Done Generating the Module/Model");
+										}
+									});
+								});
+								this.Vlt.View.Models[unit.modelId] = obj;
+							}
+						} else {
+							obj = await new Promise((res, rej) => {
+								this.genModule(mod, (err, pidApex) => {
+									let that = this;
 
-								var q = {};
-								q.Cmd = 'GetGraph';
-								this.send(q, unit.Pid, scene);
+									//save the modules pid in unit.Pid
+									unit.Pid = pidApex;
 
-								function scene(err, r) {
-									log.v('..View3D/scene');
-									Inst = r.Inst;
-									if (err) {
-										log.v(' ** ERR:' + err);
-										if (fun)
-											fun(err);
-										return;
-									}
-
-									let inst = Inst[0];
+									unit.responseHandler = {
+										Cmd: "Evoke",
+										Handler: unit.Pid
+									};
 									var q = {};
-									q.Cmd = 'GetModel';
-									q.Instance = inst.Instance;
-									that.send(q, unit.Pid, rply);
-
+									q.Cmd = 'GenModel';
+									this.send(q, unit.Pid, rply);
 									function rply(err, x) {
 										if (err) {
 											func(err);
@@ -501,39 +538,22 @@
 											return;
 										}
 										var objinst = new THREE.Object3D();
-										if ('Position' in inst) {
-											var pos = inst.Position;
-											objinst.position.x = pos[0];
-											objinst.position.y = pos[1];
-											objinst.position.z = pos[2];
-										}
-										if ('Axis' in inst && 'Angle' in inst) {
-											var axis = inst.Axis;
-											var ang = inst.Angle * Math.PI / 180.0;
-											var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
-											objinst.setRotationFromAxisAngle(vec, ang);
-										}
-										var data = {};
-										if ('Role' in inst)
-											data.Role = inst.Role;
-										else
-											data.Role = 'Fixed';
-										data.Pid = inst.Instance;
-										objinst.userData = data;
 										objinst.add(x.Obj3D);
 										res(objinst);
 										log.v("Done Generating the Module/Model");
 									}
-								}
+								});
 							});
-						});
+						}
 					}
 				} else if (unit.removed) {
 					this.Vlt.View.Scene.remove(obj);
 					continue;
 				}
 
-				if (unit.position) {
+				obj.name = unit.id;
+
+				if (typeof unit.position == "object") {
 					if (unit.position.x || (unit.position.x == 0))
 						obj.position.x = Math.round(unit.position.x);
 					if (unit.position.y || (unit.position.y == 0))
@@ -563,11 +583,21 @@
 				if (unit.responseHandler) {
 					this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
 				}
-
 				if (unit.new) {
 					if (unit.parentId) {
+						// log.d(`trying to get parent ${unit.parentId}`);
 						let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
 						if (parent) {
+							if (unit.position == "random") {
+								let vertex = parent.geometry.vertices[Math.floor(Math.random() * parent.geometry.vertices.length)];
+								// log.d(`chosen vertex is ${vertex}`);
+
+								while (vertex.z < 0) {
+									vertex = parent.geometry.vertices[Math.floor(Math.random() * parent.geometry.vertices.length)]
+									// log.d(`new vertex is ${vertex}`);
+								}
+								obj.position.copy(vertex)
+							}
 							parent.add(obj);
 							obj.matrixWorldNeedsUpdate = true;
 							obj.updateMatrixWorld();
@@ -757,7 +787,14 @@
 				info.Keys.push('Idle.KeyDown.n');
 				return;
 			}
-			Vlt.Update = true;
+			log.d(`key down ${JSON.stringify(info, null, 2)}`);
+			if (Vlt.Update){
+				log.d(`stopping image capture`);
+				Vlt.Update = false; 
+			} else{
+				log.d(`Starting image capture`);
+				Vlt.Update = true;
+			}
 		}
 
 

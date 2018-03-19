@@ -111,10 +111,10 @@
 						connect(r.Host, r.Port);
 					}
 					else {
-						var err = 'Proxy - incorrect reply from Plexus';
-						log.w('Proxy - Plexus: ' + err);
-						if ("Chan" in Par)
-							log.w('  Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
+						var err = `Proxy - the requested channel ${Par.Chan || ""} is not yet available in Plexus`;
+						log.i('Proxy - Plexus: ' + err);
+						// if ("Chan" in Par)
+						// 	log.w('  Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
 						if (!("Timer" in Vlt)) {
 							Vlt.Timer = setTimeout(() => {
 								log.e("Error: Proxy " + Par.Pid + " connection timeout. Last Attempt.");
@@ -177,7 +177,7 @@
 				sock.on('error', (err) => {
 					log.w('Proxy:genServer:' + err);
 					if ("Chan" in Par)
-						log.w('		Proxy:Chan' + Par.Chan);
+						log.w('		Proxy: Chan - ' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -286,7 +286,7 @@
 					}
 				});
 			}).listen(port);
-			log.i(`${Par.Chan || ""} Portal listening on port`, port);
+			log.i(`${Par.Chan || ""} Portal listening on port ${port}`);
 			fun();
 		}
 
@@ -325,7 +325,7 @@
 				sock.on('error', (err) => {
 					log.e('ERR:Proxy:genClient: ' + err);
 					if ("Chan" in Par)
-						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
 					if (Par.Poll) {
 						if (!("Timer" in Vlt) && "Timeout" in Par) {
 							Vlt.Timer = setTimeout(() => {
@@ -487,7 +487,7 @@
 				default:
 					log.i('Par', JSON.stringify(Par, null, 2));
 					var err = 'Proxy role is unknown';
-					log.w('ERR:Proxy:Proxy: ' + err);
+					log.w('ERR:Proxy/Proxy: ' + err);
 					if ("Chan" in Par)
 						log.w('    Proxy:' + Par.Chan);
 					if (fun)

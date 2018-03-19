@@ -129,20 +129,47 @@ if(window.Preprocessor == undefined) {
 			this._later.push(fun);
 		}
 
+		/**
+		 * @description create a button using an 
+		 * @param {any} name 
+		 * @param {any} command 
+		 */
 		button(name, command) {
-			let id;
+			let id, type = "button";
 			if (typeof name == 'object') {
-				let options = name;
+				parseOptions(name);
+			} else if (typeof command == 'object') {
+				parseOptions(command);
+			}
+			function parseOptions(options) {
 				for (let key in options) {
 					switch (key) {
 						case "id": id = name[key]; break;
 						case "name": name = options[key]; break;
 						case "command": command = options[key]; break;
+						case "type": type = options[key]; break;
 					}
 				}
 			}
 			id = id || name.replace(/\s/g, '-')
-			this.append(`<button id="${id}">${name}</button>`);
+			// debugger;
+			//append the button with the right type
+			switch (type) {
+				case "button": {
+					this.append(`<button id="${id}" button>${name}</button>`);
+					break;
+				}
+				case "input": {
+					this.append(`<button id="${id}" button>${name}</button>`);
+					break;
+				}
+				case "anchor":
+				default: {
+					this.append(`<a href="#" id="${id}" button>${name}</a>`);
+					break;
+				}
+			}
+			
 			this.later(_ => {
 				let button = this._div.find(`#${id}`);
 				// button.attr('ParHidden', 'true');
@@ -549,7 +576,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 						}
 					}
 					evalme += `return await render.finish();\r\n}})();`;
-					log.d(evalme);
+					// log.d(evalme);
 
 					let render = new Preprocessor(this);
 					let generator = eval(evalme);

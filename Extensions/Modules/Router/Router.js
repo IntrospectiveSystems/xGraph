@@ -21,7 +21,6 @@
 	}
 
 	function Subscribe(com, fun){
-		log.d('scrub scribble');
 		if (!this.Par.Table)
 			this.Par.Table = []
 
@@ -36,10 +35,10 @@
 
 
 		//console.log("Router/Send - ", com.Cmd);
-		log.v(`Broadcast ${com.Command.Cmd}`);
-		log.v(`${this.Par.Table}`);
+		// log.v(`Broadcast ${com.Command.Cmd}`);
+		// log.v(`${this.Par.Table}`);
 		for(let pid of this.Par.Table) {
-			log.v(` |> ${pid}`);
+			// log.v(` |> ${pid}`);
 			await new Promise((resolve) => {
 				this.send(com.Command, pid, _ => {
 					resolve();

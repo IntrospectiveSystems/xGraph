@@ -1,0 +1,21 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"RootView":{
+			"Module": "xGraphDev.Core.Modules.xGraph.RootView",
+			"Source": "local",
+			"Par": { 
+				"Layout": "$DL"
+			}
+		},
+		"DL":{
+			"Module": "xGraphDev.Extensions.Modules.Deeplearn",
+			"Source": "local",
+			"Par": { 
+			}
+		},
+		"Deferred": []
+	}
+}

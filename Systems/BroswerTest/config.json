@@ -1,0 +1,20 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"Server": {
+			"Module": "xGraphDev.Core.Modules.xGraph.WebViewer",
+			"Source": "local",
+			"Par": {
+				"ApexList": {
+				},
+				"Port": 8080,
+				"Url": "Test",
+				"Test": "@system: browser.json"
+			}
+		},
+		"Deferred": [
+		]
+	}
+}

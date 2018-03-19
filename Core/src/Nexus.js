@@ -1,4 +1,3 @@
-pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
 (async function () {
 	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
@@ -230,11 +229,11 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			try {
 				let jarg = JSON.parse(arg);
 				for (let key in jarg) {
-					log.v(`${key}=${jarg[key]}`);
+					// log.v(`${key}=${jarg[key]}`);
 					Params[key] = jarg[key];
 				}
 			} catch (e) {
-				log.v(arg);
+				// log.v(arg);
 				parts = arg.split('=');
 				if (parts.length == 2) {
 					if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
@@ -455,7 +454,6 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * @callback fun 				the callback function to return to when finished
 	 */
 	function sendMessage(com, fun = _ => _) {
-		// log.d('NEXUS MESSAGE:', com)
 		if (!('Passport' in com)) {
 			log.w('Message has no Passport, ignored');
 			log.w('    ' + JSON.stringify(com));
@@ -499,13 +497,12 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			} else {
 				let err = 'Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
-					log.w(err);
-					log.w(JSON.stringify(com, null, 2));
-					fun(err, com);
+				log.w(err);
+				log.w(JSON.stringify(com, null, 2));
+				fun(err, com);
 			}
 		}
 		function reply(err, q) {
-			// log.i('NEXUS MESSAGE:', com)
 			fun(err, q);
 		}
 	}
@@ -645,7 +642,6 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @callback fun
 		 */
 		function send(com, pid, fun) {
-			// log.v(com, pid);
 			if (!('Passport' in com))
 				com.Passport = {};
 			com.Passport.To = pid;
@@ -947,7 +943,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
 	 * @param {string?} inst.Module 	The name of the module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par
+	 * @param {Object=} inst.Par	The par of the module to be encorporated with the Module Apex Par
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	async function genModule(moduleDefinition, fun = _ => _) {
@@ -959,6 +955,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		let Setup = {};
 		let Start = {};
+		let PromiseArray = [];
 		let symbols = {};
 
 		// loop over the keys to assign pids to the local dictionary and the
@@ -969,8 +966,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		//compile each module
 		for (let moduleKey in moduleDefinitions) {
-			let inst = moduleDefinitions[moduleKey];
-			await (new Promise((res, rej) => {
+			//do a GetModule and compile instance for each 
+			PromiseArray.push(new Promise((res, rej) => {
+				let inst = moduleDefinitions[moduleKey];
 				GetModule(inst.Module, async function (err, mod) {
 					if (err) {
 						log.e('GenModule err -', err);
@@ -1033,9 +1031,11 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			}));
 		}
 
-		log.v('Modules', JSON.stringify(symbols, null, 2));
-		log.v('Setup', JSON.stringify(Setup, null, 2));
-		log.v('Start', JSON.stringify(Start, null, 2));
+		await Promise.all(PromiseArray);
+
+		// log.v('Modules', JSON.stringify(KeyPid, null, 2));
+		// log.v('Setup', JSON.stringify(Setup, null, 2));
+		// log.v('Start', JSON.stringify(Start, null, 2));
 
 		await setup();
 
@@ -1098,7 +1098,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot = false) {
-		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
+		// log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
 		var modnam = (typeof inst.Module == "object") ? inst.Module.Module : inst.Module;
 		var mod;
