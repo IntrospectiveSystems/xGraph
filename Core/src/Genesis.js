@@ -647,13 +647,13 @@
 						try {
 							files = fs.readdirSync(containingPath);
 						} catch (err) {
-							err += ' Module <' + containingPath + '? not available'
+							err += ' \nModule \"' + containingPath + '\" not available'
 							log.e(err);
 							fun(err);
 							return;
 						}
 						if (!files) {
-							err += ' Module <' + containingPath + '? not available'
+							err += ' \nModule \"' + containingPath + '\" not available'
 							log.e(err);
 							fun(err);
 							return;
