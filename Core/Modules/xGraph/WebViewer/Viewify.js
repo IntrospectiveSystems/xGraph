@@ -128,11 +128,18 @@ if(window.Preprocessor == undefined) {
 
 			for(let elem of hooks) {
 				for (let attr of elem.attributes) {
+					let val = attr.nodeValue;
 					switch(attr.name) {
 						case 'xgraph-event-click': {
 							$(elem).on('click', _ => {
-								this.view.dispatch({Cmd: attr.nodeValue});
+								this.view.dispatch({Cmd: val});
 							});
+							break;
+						}
+						case 'xgraph-child-index': {
+							if(val in this.view.Vlt.viewDivs) {
+								$(elem).append(this.view.Vlt.viewDivs[val]);
+							}
 							break;
 						}
 					}
@@ -259,6 +266,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		async Setup(com, fun) {
+			// debugger;
 			this.Par.$ = {};
 			let vlt = this.Vlt;
 			vlt.views = [];
@@ -274,7 +282,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt._root.css('box-sizing', 'border-box');
 			vlt._root.css('overflow', 'hidden');
 
-			// create compat vlt.root, will be removed in 4.0 check
+			// create compat vlt.root, will be removed if ver >= 4.0
 			vlt.root = vlt._root;
 
 			vlt.styletag = STYLE();
@@ -326,11 +334,12 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		}
 
 		async Start(com, fun) {
-			
+			// debugger;
 			let that = this;
 			async function parseView(children = [], basePid = that.Par.Pid) {
 				if(typeof children == 'string') {
 					that.ascend('AddView', {View: children});
+					that.ascend('Render', {}, children);
 				} else if(Array.isArray(children)) {
 					// array might be strings might be objects, might be both.
 					if (Object.keys(children).length == 0) {
@@ -343,7 +352,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					parseView(view.Children, view.View);
 				}
 			}
-
+			// debugger;
 			if (version >= ver40) {
 
 				await parseView(this.Par.Children);
@@ -552,6 +561,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 * @memberof View
 		 */
 		async Render(com, fun) {
+			// debugger;
 			let that = this;
 
 			if(version < ver40) {
