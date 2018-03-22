@@ -1,0 +1,15 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"Bandit":{
+			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+			"Source": "local",
+			"Par": {
+
+			}
+		},
+		"Deferred": []
+	}
+}
