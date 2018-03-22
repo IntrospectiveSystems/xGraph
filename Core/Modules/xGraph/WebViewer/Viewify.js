@@ -123,8 +123,24 @@ if(window.Preprocessor == undefined) {
 				let ret = fun(); // because compatibility \/
 				if (ret instanceof Promise) await ret;
 			}
+
+			let hooks = this._div.find('[xgraph-hook]');
+
+			for(let elem of hooks) {
+				for (let attr of elem.attributes) {
+					switch(attr.name) {
+						case 'xgraph-event-click': {
+							$(elem).on('click', _ => {
+								this.view.dispatch({Cmd: attr.nodeValue});
+							});
+							break;
+						}
+					}
+				}
+			}
 			return this._div;
 		}
+
 		later(fun) {
 			this._later.push(fun);
 		}
@@ -583,12 +599,17 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					let elem = await generator.call(this, render);
 
 					//elements with and ID and not ParHidden attribute, will be saved to Par.$
-					let parElements = elem.find('[id]:not([ParHidden])');
+					let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
 					for (let element of parElements) {
 						this.Par.$[$(element).attr('id')] = $(element);
 					}
 
 					this.Vlt.div.append(elem);
+				});
+				
+				this.getFile("global.html", async (err, html) => {
+					if(err) return fun(null, com);
+					$(document.head).append($(html));
 				});
 			}
 
