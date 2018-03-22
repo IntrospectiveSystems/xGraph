@@ -45,7 +45,7 @@
          * @param {number} com.ForPeriod.Time   The length of time passed.
          * @param {string} com.ForPeriod.Unit   The unit for the time passing. One of: seconds, minutes, hours,
          *                                          days, years
-         * @return {number} com.DetphOfCharge   The batteries depth of charge after the period of time has passed.
+         * @return {number} com.DepthOfCharge   The batteries depth of charge after the period of time has passed.
          * @callback fun
          */
 		Charge(com, fun){
