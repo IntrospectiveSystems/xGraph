@@ -836,7 +836,7 @@ __Nexus = (_ => {
 		// 	}
 		} else {
 			let err = `File ${filename} does not exist in module ${module}`;
-			log.e(err);
+			log.w(err);
 			fun(err);
 		}
 
