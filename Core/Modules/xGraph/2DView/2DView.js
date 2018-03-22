@@ -395,13 +395,17 @@
 				if (unit.responseHandler) {
 					obj.interactive = true;
 					let evoke = (e) => {
-						this.send({
-							"Cmd": unit.responseHandler.Cmd, mouse: {
-								x: e.data.originalEvent.x,
-								y: e.data.originalEvent.y
-							}
-						}, unit.responseHandler.Handler, _ => {
-						});
+						this.send(
+							{
+								"Cmd": unit.responseHandler.Cmd,
+								mouse: {
+									x: e.data.originalEvent.x,
+									y: e.data.originalEvent.y
+								}
+							},
+							unit.responseHandler.Handler,
+							_ => {}
+						);
 					}
 					obj.on('click', evoke);
 				}

@@ -1,0 +1,22 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"NewModule": {
+			"Module": "NewModule",
+			"Source": "local",
+			"Par": {
+				"Plant:": "Tomato",
+				"PaperClip": "$PaperClip"
+			}
+		},
+		"PaperClip": {
+			"Module": "PaperClip",
+			"Source": "local"
+		},
+		"Deferred": [
+
+		]
+	}
+}
