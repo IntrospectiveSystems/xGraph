@@ -246,7 +246,13 @@ function startNexusProcess() {
 
 	ls.on('close', (code) => {
 		console.log(`xGraph exiting with code ${code}`);
-		process.exit(code);
+		console.log(args);
+		if (process.argv.indexOf("--reboot")>-1 && (code == 72)){
+			console.log(`Initializing reboot`);
+			reset();
+		}
+		else
+			process.exit(code);
 	});
 }
 
@@ -400,10 +406,6 @@ function processSwitches() {
 	pathOverrides["cache"] = pathOverrides["cache"] || "./cache";
 
 	// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-
-	if (!('cache' in pathOverrides))
-		pathOverrides.cache = 'cache';
-
 	if (!path.isAbsolute(pathOverrides.cache)) {
 		pathOverrides.cache = path.resolve(path.resolve(pathOverrides.cwd || process.cwd()), pathOverrides.cache);
 	}
@@ -412,6 +414,11 @@ function processSwitches() {
 		let remainingArgs = args.length - i - 1;
 		if (str == "debug") {
 			console.log("Doing the debug thing");
+			argLoop.delete(1);
+			return;
+		}
+		if (str == "reboot") {
+			console.log("Going to Reboot on exit code 72");
 			argLoop.delete(1);
 			return;
 		}
