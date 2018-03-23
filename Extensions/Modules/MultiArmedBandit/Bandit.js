@@ -17,12 +17,25 @@
 
 	//-----------------------------------------------------dispatch
 	let dispatch = {
-		Start: Start
+		Start: Start,
+		Setup
 	};
 
 	return {
 		dispatch: dispatch
 	};
+
+	function Setup(com, fun){
+		this.Vlt.Bandits = [];
+		if ("Means")
+
+		for (let banditIndex = 0; banditIndex<this.Par.BanditCount; banditIndex++){
+			this.Vlt.Bandits
+		} 
+
+		fun(null, com);
+	}
+
 
 	function Start(com, fun){
 		console.log("--Bandit/Start");
@@ -30,7 +43,7 @@
 			log.d(`Terminating the current process with exit code 72`)
 			process.exit(72);
 		}, 4000);
-		fun(com);
+		fun(null, com);
 	}
 
 })();

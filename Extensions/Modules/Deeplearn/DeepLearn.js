@@ -174,7 +174,7 @@
 		com.Arguments = com.Arguments || [];
 		log.v(`--DeepLearn/APILookup: ${com.Cmd} Arguments: ${com.Arguments.map((v) => v.substr(0, Math.min(v.length, 60)))}`);
 		try {
-			com.Data = this.Vlt.editor[com.Cmd](...com.Arguments);
+			// com.Data = this.Vlt.editor[com.Cmd](...com.Arguments);
 		} catch (e) {
 			if (e) {
 				err = e;
