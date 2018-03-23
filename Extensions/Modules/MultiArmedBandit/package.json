@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "probability-distribuitons": "0.9.1"
+    "probability-distributions": "^0.9.1"
   }
 }

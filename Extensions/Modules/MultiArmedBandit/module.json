@@ -12,9 +12,9 @@
     "required": [],
     "opts":[]
   },
-  "name": "Hedgehog",
+  "name": "Bandit",
   "icon": null,
   "doc": null,
-  "info":{"author":"TrevrGionet"},
-  "src": "xGrid:Modules/Hedgehog"
+  "info":{"author":"TrevorGionet"},
+  "src": "xGrid:Modules/MultiArmedBandit"
 }

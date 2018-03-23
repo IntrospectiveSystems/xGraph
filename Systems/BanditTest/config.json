@@ -7,8 +7,9 @@
 			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
 			"Source": "local",
 			"Par": {
-				"BanditCount": 50,
-				
+				"BanditCount": 10,
+				"PlayCount": 100,
+				"Means":[0,1,2]
 			}
 		},
 		"Deferred": []
