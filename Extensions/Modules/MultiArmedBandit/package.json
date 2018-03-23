@@ -1,0 +1,14 @@
+{
+  "name": "multiarmedbandit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Bandit.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "probability-distribuitons": "0.9.1"
+  }
+}
