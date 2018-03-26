@@ -513,9 +513,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 
 	/**
-	 * The base class for all xGraph Entities
-	 * @param {object} nxs 	the nxs context to give the entity acess too
-	 * @param {object} imp 	the evaled Entity functionality returned by the dispatch table
+	 * Entity is the base class for all xGraph entities.
+	 * @param {object} nxs 	the nxs context to give the entity access too
+	 * @param {object} imp 	the evaluated Entity functionality returned by the dispatch table
 	 * @param {object} par	the par of the entity
 	 */
 	function Entity(nxs, imp, par) {
@@ -540,7 +540,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		};
 
 		/**
-		 * Given a module name, `require` loads the given module, returning the module object.
+		 * Given a module name, `require` loads the module, returning the module object.
 		 * @param {string} string 	the string of the module to require/load
 		 */
 		function require(string) {
@@ -564,13 +564,13 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
-			var disp = Imp.dispatch;
-			if (com.Cmd in disp) {
-				disp[com.Cmd].call(this, com, fun);
+			var dispatch = Imp.dispatch;
+			if (com.Cmd in dispatch) {
+				dispatch[com.Cmd].call(this, com, fun);
 				return;
 			}
-			if ('*' in disp) {
-				disp['*'].call(this, com, fun);
+			if ('*' in dispatch) {
+				dispatch['*'].call(this, com, fun);
 				return;
 			}
 			log.e('Nada Cmd:' + com.Cmd);
@@ -578,17 +578,44 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * Entity access to the genModule command. When this.genModule is called from an entity,
-		 * the mod and fun parameters are passed along to nxs.genModule.
-		 * @param {object} mod 			The module definition object.
-		 * @param {string} mod.Module 	The namespace of the module that will be generated.
-		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
+		 * Entity access to the genModule command.
+		 * genModule expects two parameters: moduleObject and fun.
+		 *
+		 * The moduleObject parameter is an object that contains data for each module that will be
+		 * generated. If only one module needs to be generated, then moduleObject can be a simple
+		 * module definition. If more then one module needs to be generated, moduleObject has a
+		 * key for each module definition, such as in a system structure object.
+		 *
+		 * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+		 * along to nxs.genModule, which starts the module and adds it to the system.
+		 * @param {object} moduleObject		Either a single module definition, or an object containing
+		 * 										multiple module definitions.
 		 * @callback fun
 		 */
-		function genModule(mod, fun) {
+		function genModule(moduleObject, fun) {
 			//	log.v('--Entity/genModule');
-			nxs.genModule(mod, fun);
+			nxs.genModule(moduleObject, fun);
 		}
+
+        /**
+         * Entity access to the genModule command.
+         * genModule expects two parameters: moduleObject and fun.
+         *
+         * The moduleObject parameter is an object that contains data for each module that will be
+         * generated. If only one module needs to be generated, then moduleObject can be a simple
+         * module definition. If more then one module needs to be generated, moduleObject has a
+         * key for each module definition, such as in a system structure object.
+         *
+         * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+         * along to the Nexus genModule, which starts the module and adds it to the system.
+         * @param {object} moduleObject		Either a single module definition, or an object containing
+         * 										multiple module definitions.
+         * @callback fun
+         */
+        function genModules(moduleObject, fun) {
+            //	log.v('--Entity/genModule');
+            nxs.genModule(moduleObject, fun);
+        }
 
 		/**
 		 * Add a module into the in memory Module Cache (ModCache)
@@ -598,16 +625,6 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 */
 		function addModule(modName, modZip, fun) {
 			nxs.addModule(modName, modZip, fun);
-		}
-
-		/**
-		 * entity access to the genModule command
-		 * @param {object} modObj 	an object containing one or more module descriptions
-		 * @callback fun()
-		 */
-		function genModules(modObj, fun) {
-			//	log.v('--Entity/genModule');
-			nxs.genModule(mod, fun);
 		}
 
 		/**
@@ -649,13 +666,18 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			// log.v(com, pid);
 			if (!('Passport' in com))
 				com.Passport = {};
+
 			com.Passport.To = pid;
+
 			if ('Apex' in Par)
 				com.Passport.Apex = Par.Apex;
+
 			if (fun)
 				com.Passport.From = Par.Pid;
+
 			if (!("Pid" in com.Passport))
 				com.Passport.Pid = genPid();
+
 			nxs.sendMessage(com, fun);
 		}
 
@@ -854,7 +876,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		if (filename in mod.files) {
 			mod.file(filename).async("string").then((dat) => {
 				fun(null, dat)
-			})
+			});
 			return;
 		}
 		let err = `Error: File ${filename} does not exist in module ${module}`;
@@ -943,14 +965,20 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		});
 	}
 
-	/**
-	 * Starts an instance of a the given module.
-	 * After generating, the instance Apex receives a setup and start command synchronously
-	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
-	 * @param {string?} inst.Module 	The name of the module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par
-	 * @callback fun 				(err, pid of module apex)
-	 */
+    /**
+     * genModule expects two parameters: moduleObject and fun.
+     *
+     * The moduleObject parameter is an object that contains data for each module that will be
+     * generated. If only one module needs to be generated, then moduleObject can be a simple
+     * module definition. If more then one module needs to be generated, moduleObject has a
+     * key for each module definition, such as in a system structure object.
+     *
+     * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+     * along to the Nexus genModule, which starts the module and adds it to the system.
+     * @param {object} moduleObject		Either a single module definition, or an object containing
+     * 										multiple module definitions.
+     * @callback fun
+     */
 	async function genModule(moduleDefinition, fun = _ => _) {
 		moduleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
 		let moduleDefinitions = moduleDefinition;

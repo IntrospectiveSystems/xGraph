@@ -8,8 +8,8 @@
 			"Module": "Google",
 			"Source": "local",
 			"Par": {
-				"ClientID": "470057257657-akjgupsb61ss8su3qecs1347ha0l9ga3.apps.googleusercontent.com",
-				"ClientSecret": "pAimltyP9RTLbLpxkoxhH0Wk"
+				"ClientID": "",
+				"ClientSecret": ""
 			}
 		},
 		"GoogleLoginProvider": {

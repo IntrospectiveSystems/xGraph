@@ -201,30 +201,34 @@
 			//load the test.json file
 			that.Vlt.Test = setPid(JSON.parse(that.Par.TestJson));
 
-			//build the module inst from test.json required state
-			let inst = {};
-			inst.Module = that.Par.TestModule;
-			inst.Par = that.Vlt.Test.State;
-			log.v("Callig genMod on ", JSON.stringify(inst, null, 2));
-			//instantiate the module
-			//this calls setup and start in the instance
-			that.genModule(inst, (err, instApex) => {
-				that.Vlt.InstModule = instApex;
-				that.Vlt.Test = setPid(that.Vlt.Test);
-				log.v("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
-				if (typeof document != "undefined") {
+			//build the module instance from test.json required state
+			let instance = {};
+			instance.Module = that.Par.TestModule;
+			instance.Par = that.Vlt.Test.State;
 
-					inst.Module = "xGraph.RootView";
-					inst.Par = {
-						Layout: instApex
-					};
-					that.genModule(inst, (err, instApex) => {
-						RunTests();
-					});
-				} else {
-					RunTests();
-				}
-			});
+            //instantiate the module
+            //this calls setup and start in the instance if necissary
+			log.v("Calling genMod on ", JSON.stringify(inst, null, 2));
+			that.genModule(instance, callback);
+
+            function callback(err, instApex) {
+                that.Vlt.InstModule = instApex;
+                that.Vlt.Test = setPid(that.Vlt.Test);
+                log.v("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
+                if (typeof document != "undefined") {
+
+                    instance.Module = "xGraph.RootView";
+                    instance.Par = {
+                        Layout: instApex
+                    };
+                    that.genModule(inst, (err, instApex) => {
+                        RunTests();
+                    });
+                } else {
+                    RunTests();
+                }
+            }
+
 			//finish start:May happen before the test commences 
 			fun(null, com);
 		}
