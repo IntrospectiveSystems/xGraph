@@ -326,8 +326,27 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							resolve();
 						});
 					});
+					await new Promise(resolveFile => {
+						this.getFile("global.html", async (err, html) => {
+							if(err) return resolveFile();
+							let elements = $(html);
+							let scripts = elements.find('script').addBack('script');
+							let scriptLoadPromises = [];
+							for(let script of scripts) {
+								scriptLoadPromises.push(new Promise(scriptLoadedResolve => {
+									script.onload = function() {
+										scriptLoadedResolve();
+									};
+								}));
+							}
+							$(document.head).append(elements);
+							await Promise.all(scriptLoadPromises);
+							resolveFile();
+						});
+					});
 					
 				}
+
 			}
 
 			fun(null, com);
@@ -338,17 +357,17 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let that = this;
 			async function parseView(children = [], basePid = that.Par.Pid) {
 				if(typeof children == 'string') {
-					that.ascend('AddView', {View: children});
-					that.ascend('Render', {}, children);
+					await that.ascend('AddView', {View: children});
+					await that.ascend('Render', {}, children);
 				} else if(Array.isArray(children)) {
 					// array might be strings might be objects, might be both.
 					if (Object.keys(children).length == 0) {
-						that.ascend('Render', basePid);
+						await that.ascend('Render', basePid);
 					} else for(let view of children) {
-						that.ascend('AddView', { View: view.View });
+						await that.ascend('AddView', { View: view.View });
 					}
 				} else if (typeof children == 'object') {
-					that.ascend('AddView', { View: children.View });
+					await that.ascend('AddView', { View: children.View });
 					parseView(view.Children, view.View);
 				}
 			}
@@ -574,53 +593,58 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				}
 				fun(null, com);
 			}else if (version >= ver40) {
-				this.getFile("view.x.html", async (err, html) => {
-					if(err) return fun(null, com);
 
-					let parts = html.split(/<~x|~>/g);
-					let evalme = `//# sourceURL=${this.Vlt.type}\r\n(function() {
-						\r\n\treturn async function(render) {\r\n`;
+				let tasks = [
+					new Promise(resolveFile => {
+						this.getFile("view.x.html", async (err, html) => {
+							if(err) return resolveFile();
 
-					for (let ipart = 0, state = 'HTML';
-						ipart < parts.length; ipart ++,
-						state = (state == 'HTML' ? 'JS' : 'HTML')) {
-						let str = parts[ipart];
-						switch(state) {
-							case 'HTML': {
-								evalme += `render.append("${str
-									.replace(/\"/g, "\\\"")
-									.replace(/\n/g, "\\n")
-									.replace(/\t/g, "\\t")
-									.replace(/\r/g, "\\r")
-									}");\r\n`;
-								break;
+							let parts = html.split(/<~x|~>/g);
+							let evalme = `//# sourceURL=${this.Vlt.type}\r\n(function() {
+								\r\n\treturn async function(render) {\r\n`;
+
+							for (let ipart = 0, state = 'HTML';
+								ipart < parts.length; ipart ++,
+								state = (state == 'HTML' ? 'JS' : 'HTML')) {
+								let str = parts[ipart];
+								switch(state) {
+									case 'HTML': {
+										evalme += `render.append("${str
+											.replace(/\"/g, "\\\"")
+											.replace(/\n/g, "\\n")
+											.replace(/\t/g, "\\t")
+											.replace(/\r/g, "\\r")
+											}");\r\n`;
+										break;
+									}
+									case 'JS': {
+										evalme += str + "\r\n";
+										break;
+									}
+								}
 							}
-							case 'JS': {
-								evalme += str + "\r\n";
-								break;
+							evalme += `return await render.finish();\r\n}})();`;
+							// log.d(evalme);
+
+							let render = new Preprocessor(this);
+							let generator = eval(evalme);
+							let elem = await generator.call(this, render);
+
+							//elements with and ID and not ParHidden attribute, will be saved to Par.$
+							let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
+							for (let element of parElements) {
+								this.Par.$[$(element).attr('id')] = $(element);
 							}
-						}
-					}
-					evalme += `return await render.finish();\r\n}})();`;
-					// log.d(evalme);
 
-					let render = new Preprocessor(this);
-					let generator = eval(evalme);
-					let elem = await generator.call(this, render);
+							this.Vlt.div.append(elem);
+							resolveFile();
+						});
+					})
+				];
 
-					//elements with and ID and not ParHidden attribute, will be saved to Par.$
-					let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
-					for (let element of parElements) {
-						this.Par.$[$(element).attr('id')] = $(element);
-					}
+				await Promise.all(tasks);
 
-					this.Vlt.div.append(elem);
-				});
-				
-				this.getFile("global.html", async (err, html) => {
-					if(err) return fun(null, com);
-					$(document.head).append($(html));
-				});
+				fun(null, com);
 			}
 
 		}
