@@ -3,13 +3,11 @@
 		"local": "{local}"
 	},
 	"Modules": {
-		"Bandit":{
-			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+		"Bandit": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
-				"BanditCount": 10,
-				"PreallocationCount": 100,
-				"Means":1
+				"Role": "Client"
 			}
 		},
 			"Environment": {

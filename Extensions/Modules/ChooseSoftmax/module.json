@@ -1,0 +1,20 @@
+{
+  "input": {
+    "required":[],
+    "opts":[
+      ]
+  },
+  "output":{
+    "required":[],
+    "opts":[]
+  },
+  "par":{
+    "required": [],
+    "opts":[]
+  },
+  "name": "Bandit",
+  "icon": null,
+  "doc": null,
+  "info":{"author":"TrevorGionet"},
+  "src": "xGrid:Modules/MultiArmedBandit"
+}

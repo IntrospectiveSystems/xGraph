@@ -1,5 +1,5 @@
-//# sourceURL=ChooseEpsilonGreedy.js
-(function ChooseEpsilonGreedy() {
+//# sourceURL=ChooseSoftmax.js
+(function ChooseSoftmax() {
 
 	//-----------------------------------------------------dispatch
 	let dispatch = {
@@ -12,14 +12,11 @@
 	};
 
 	function Setup(com, fun) {
-		log.i(`--ChooseEpsilonGreedy/Setup`);
+		log.i(`--ChooseSoftmax/Setup`);
 
 		//load in npm module "probability-distributions" to 
 		this.Vlt.ProbabilityDistributions = this.require("probability-distributions");
 
-		log.d(typeof this.Par.Epsilon);
-		if (!("Epsilon" in this.Par) || !(typeof this.Par.Epsilon == "number"))
-			this.Par.Epsilon = 0.01;
 
 		if (!("Stepms" in this.Par) || !(typeof this.Par.Stepms == "number"))
 			this.Par.Stepms = 0;
@@ -34,7 +31,7 @@
 
 
 	async function Start(com, fun) {
-		log.i("--ChooseEpsilonGreedy/Start");
+		log.i("--ChooseSoftmax/Start");
 
 		await new Promise((resolve, reject) => {
 			let initialCommand = {
@@ -64,20 +61,12 @@
 				let maxIndex = this.Vlt.AverageReturn.indexOf(Math.max(...this.Vlt.AverageReturn));
 				// log.d(`max is ${maxIndex}`);
 
-				// // implement an epsilon greedy choosing algorithm
-				let playIndex = null;
-				if (Math.random() < this.Par.Epsilon) {
-					let sampleArray = [];
-					for (let index = 0; index < this.Vlt.PlayOptions.length; index++) {
-						if (index == maxIndex) continue;
-						sampleArray.push(index);
-					}
-					// log.d(`exploring from ${sampleArray}`);
-					playIndex = this.Vlt.ProbabilityDistributions.sample(sampleArray, 1, false)[0];
-					// log.d(`play ${playIndex}`);
-				} else {
-					playIndex = maxIndex;
+				// play by weighted sample from average returns (softmax selection)
+				let sampleArray = [];
+				for (let index = 0; index < this.Vlt.AverageReturn.length; index++) {
+					sampleArray.push((this.Vlt.AverageReturn[index]<0)?0.1:this.Vlt.AverageReturn[index]);
 				}
+				let playIndex = this.Vlt.ProbabilityDistributions.sample(this.Vlt.PlayOptions, 1, false, sampleArray)[0];
 
 				let playCommand = {
 					Cmd: "Play",

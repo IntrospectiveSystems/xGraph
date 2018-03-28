@@ -22,6 +22,7 @@
 		var Vlt = this.Vlt;
 		var that = this;
 		var net = this.require('net');
+		var NodeRSA = this.require('node-rsa');
 		var plx;
 		var tmp = new Buffer(2);
 		tmp[0] = 2;
