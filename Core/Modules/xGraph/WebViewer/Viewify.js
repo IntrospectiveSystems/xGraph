@@ -127,12 +127,22 @@ if(window.Preprocessor == undefined) {
 			let hooks = this._div.find('[xgraph-hook]');
 
 			for(let elem of hooks) {
+				let data = {};
+				if(elem.attributes.getNamedItem('xgraph-data') !== null) {
+					data = JSON.parse(elem.attributes['xgraph-data'].nodeValue);
+				}
 				for (let attr of elem.attributes) {
 					let val = attr.nodeValue;
 					switch(attr.name) {
 						case 'xgraph-event-click': {
 							$(elem).on('click', _ => {
-								this.view.dispatch({Cmd: val});
+								this.view.dispatch({Cmd: val, Data: data});
+							});
+							break;
+						}
+						case 'xgraph-event-change': {
+							$(elem).on('change', _ => {
+								this.view.dispatch({Cmd: val, Checked: elem.checked, Data: data});
 							});
 							break;
 						}
@@ -307,11 +317,12 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				this.Vlt.root = undefined;
 
 				//4.0 uses shadow dom
+				// debugger;
 				if (document.head.attachShadow) {
 					// if we have shadow dom, otherwise,
 					// idk, use shadyDOM or something
 					// TODO figure that out
-					this.Vlt._shadow = $(this.Vlt._root[0].attachShadow({mode: "closed"}));
+					this.Vlt._shadow = $(this.Vlt._root[0].attachShadow({mode: "open"}));
 					this.Vlt.div.detach();
 					this.Vlt.styletag.detach();
 					this.Vlt.styletag.data('shadow', true);
@@ -330,18 +341,18 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 						this.getFile("global.html", async (err, html) => {
 							if(err) return resolveFile();
 							let elements = $(html);
-							let scripts = elements.find('script').addBack('script');
-							let scriptLoadPromises = [];
-							for(let script of scripts) {
-								scriptLoadPromises.push(new Promise(scriptLoadedResolve => {
-									script.onload = function() {
-										scriptLoadedResolve();
-									};
-								}));
-							}
+							// let scripts = elements.find('script').addBack('script');
+							// let scriptLoadPromises = [];
+							// for(let script of scripts) {
+							// 	scriptLoadPromises.push(new Promise(scriptLoadedResolve => {
+							// 		script.onload = function() {
+							// 			scriptLoadedResolve();
+							// 		};
+							// 	}));
+							// }
 							$(document.head).append(elements);
-							await Promise.all(scriptLoadPromises);
 							resolveFile();
+							// Promise.all(scriptLoadPromises);
 						});
 					});
 					
@@ -595,50 +606,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			}else if (version >= ver40) {
 
 				let tasks = [
-					new Promise(resolveFile => {
-						this.getFile("view.x.html", async (err, html) => {
-							if(err) return resolveFile();
-
-							let parts = html.split(/<~x|~>/g);
-							let evalme = `//# sourceURL=${this.Vlt.type}\r\n(function() {
-								\r\n\treturn async function(render) {\r\n`;
-
-							for (let ipart = 0, state = 'HTML';
-								ipart < parts.length; ipart ++,
-								state = (state == 'HTML' ? 'JS' : 'HTML')) {
-								let str = parts[ipart];
-								switch(state) {
-									case 'HTML': {
-										evalme += `render.append("${str
-											.replace(/\"/g, "\\\"")
-											.replace(/\n/g, "\\n")
-											.replace(/\t/g, "\\t")
-											.replace(/\r/g, "\\r")
-											}");\r\n`;
-										break;
-									}
-									case 'JS': {
-										evalme += str + "\r\n";
-										break;
-									}
-								}
-							}
-							evalme += `return await render.finish();\r\n}})();`;
-							// log.d(evalme);
-
-							let render = new Preprocessor(this);
-							let generator = eval(evalme);
-							let elem = await generator.call(this, render);
-
-							//elements with and ID and not ParHidden attribute, will be saved to Par.$
-							let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
-							for (let element of parElements) {
-								this.Par.$[$(element).attr('id')] = $(element);
-							}
-
-							this.Vlt.div.append(elem);
-							resolveFile();
-						});
+					new Promise(async (resolveFile) => {
+						let elements = await this.partial('view.x.html');
+						this.Vlt.div.append(elements);
+						resolveFile();
 					})
 				];
 
@@ -972,7 +943,9 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	function injections() {
 		let that = this;
 
-		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
+		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 
+				>>> 10)).toString(16) + '\\u' + (0b1101110000000000 +
+				(char & 0b1111111111)).toString(16) + "\"");
 
 		if (version >= ver30) {
 			this.super = function (com, fun) {
@@ -1067,6 +1040,89 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					else resolve(cmd);
 				});
 			});
+		}
+		if (version >= ver40) {
+			this.cdnImportJs = (url) => {
+				return new Promise(resolve => {
+					let script = $('<script></script>');
+					$(document.head).append(script);
+					script[0].onload = resolve;
+					script[0].src = url;
+				});
+			};
+			this.partial = (filepath, parameters = {}) => {
+				// if its just the name of the file, sans extension, add that.
+				if(!filepath.endsWith('.x.html')) filepath += '.x.html';
+
+				// next, lets obtain that file
+				return new Promise(resolveFile => {
+					this.getFile(filepath, async (err, html) => {
+						if(err) return resolveFile();
+
+						// and split it up by either <~x or ~>, resulting in an array of alternating
+						// strings of html, javascript, html, ...etc
+						let parts = html.split(/<~x|~>/g);
+
+						// the generatorGenerator is the string of an IIFE that will return
+						// the generator of the HTML.
+						// everything from here is constructing this str to be eval'ed
+						let generatorGenrator = `//# sourceURL=${this.Vlt.type}\r\n(function() {`
+						
+						// walk through the provided parameters, and add them
+						// to the IIFE scope
+						for(let key of Object.keys(parameters)) {
+							let val = parameters[key];
+							if(typeof val == 'string') val = `"${val}"`;
+							generatorGenrator += `let ${key} = ${val};\r\n`;
+						}
+						
+						//enter the generator function that will be returned on eval
+						generatorGenrator += `\r\n\treturn async function(render) {\r\n`;
+
+						// loop over the alteranating html/js parts
+						for (let ipart = 0, state = 'HTML';
+							ipart < parts.length; ipart ++,
+							state = (state == 'HTML' ? 'JS' : 'HTML')) {
+							let str = parts[ipart];
+							switch(state) {
+								case 'HTML': { // if its plain html, escape it properly, 
+									// then simply append it.
+									generatorGenrator += `render.append("${str
+										.replace(/\"/g, "\\\"")
+										.replace(/\n/g, "\\n")
+										.replace(/\t/g, "\\t")
+										.replace(/\r/g, "\\r")
+										}");\r\n`;
+									break;
+								}
+								case 'JS': {
+									// if the line is javascript, we can just insert it
+									generatorGenrator += str + "\r\n";
+									break;
+								}
+							}
+						}
+
+						//wrap up the generator generator, ,prepare for eval
+						generatorGenrator += `return await render.finish();\r\n}})();`;
+
+						// create a renderer, for dealing with xgraph-hooks, and other
+						// functions, such as render.button
+						let render = new Preprocessor(this);
+						let generator = eval(generatorGenrator);
+						let elem = await generator.call(this, render);
+
+						//elements with and ID and not ParHidden attribute, will be saved to Par.$
+						let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
+						for (let element of parElements) {
+							this.Par.$[$(element).attr('id')] = $(element);
+						}
+
+						// this.Vlt.div.append(elem);
+						resolveFile(elem);
+					});
+				});
+			};
 		}
 	}
 
