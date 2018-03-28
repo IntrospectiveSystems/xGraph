@@ -140,10 +140,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					}
 					return arr.join(' ');
 				} catch (ex) {
-					process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
-					process.stdout.write(ex.toString() + '\u001b[39m');
-				}
-
+                    process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+                    process.stdout.write(ex.toString() + '\u001b[39m');
+                }
 			}
 		};
 		console.log = function (...str) {
@@ -446,13 +445,13 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	/**
 	 * Send a message from an entity to an Apex entity.
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object
-	 * @param {string} com.Cmd 		the command of the message
-	 * @param {object} com.Passport	the information about the message
-	 * @param {string} com.Passport.To the Pid of the recipient module
-	 * @param {string} com.Passport.Pid the ID of the message
-	 * @param {string=} com.Passport.From the Pid of the sending module
-	 * @callback fun 				the callback function to return to when finished
+	 * @param {object} com 					the message object
+	 * @param {string} com.Cmd 				the command of the message
+	 * @param {object} com.Passport			the information about the message
+	 * @param {string} com.Passport.To 		the Pid of the recipient module
+	 * @param {string} com.Passport.Pid 	the ID of the message
+	 * @param {string=} com.Passport.From 	the Pid of the sending module
+	 * @callback fun 						the callback function to return to when finished
 	 */
 	function sendMessage(com, fun = _ => _) {
 		// log.d('NEXUS MESSAGE:', com)
@@ -515,7 +514,8 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	/**
 	 * Entity is the base class for all xGraph entities.
 	 * @param {object} nxs 	the nxs context to give the entity access too
-	 * @param {object} imp 	the evaluated Entity functionality returned by the dispatch table
+	 * @param {object} imp 	The evaluated Entity functionality returned by the dispatch table.
+	 * 						All the commands that the entity can receive.
 	 * @param {object} par	the par of the entity
 	 */
 	function Entity(nxs, imp, par) {
@@ -579,6 +579,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		/**
 		 * Entity access to the genModule command.
+		 * genModule is the same as genModules.
 		 * genModule expects two parameters: moduleObject and fun.
 		 *
 		 * The moduleObject parameter is an object that contains data for each module that will be
@@ -599,14 +600,14 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
         /**
          * Entity access to the genModule command.
-         * genModule expects two parameters: moduleObject and fun.
+         * genModules expects two parameters: moduleObject and fun.
          *
          * The moduleObject parameter is an object that contains data for each module that will be
          * generated. If only one module needs to be generated, then moduleObject can be a simple
          * module definition. If more then one module needs to be generated, moduleObject has a
          * key for each module definition, such as in a system structure object.
          *
-         * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+         * When this.genModules is called from an entity, the moduleObject and fun parameters are passed
          * along to the Nexus genModule, which starts the module and adds it to the system.
          * @param {object} moduleObject		Either a single module definition, or an object containing
          * 										multiple module definitions.
@@ -617,18 +618,18 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
             nxs.genModule(moduleObject, fun);
         }
 
-		/**
-		 * Add a module into the in memory Module Cache (ModCache)
-		 * @param {string} modName 		the name of the module
-		 * @param {string} modZip 		the zip of the module
-		 * @callback fun 							the callback just returns the name of the module
+        /**
+		 * Add a module into the system in memory by adding it to the Module Cache (ModCache).
+		 * @param {string} moduleName 	the name of the module
+		 * @param {string} moduleZip 	the zip of the module
+		 * @callback fun 				returns the name of the module
 		 */
-		function addModule(modName, modZip, fun) {
-			nxs.addModule(modName, modZip, fun);
+		function addModule(moduleName, moduleZip, fun) {
+			nxs.addModule(moduleName, moduleZip, fun);
 		}
 
 		/**
-		 * deletes the current entity
+		 * Deletes the current entity, "this" entity.
 		 * @callback fun
 		 */
 		function deleteEntity(fun) {
@@ -637,10 +638,10 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * create an entity in the same module
-		 * @param {object} par the par of the entity to be generated
-		 * @param {string} par.Entity The entity type that will be generated
-		 * @param {string=} par.Pid	the pid to define as the pid of the entity
+		 * Create an entity in the same module. Entities can only communicate within a module.
+		 * @param {object} par 			The parameter object of the entity to be generated.
+		 * @param {string} par.Entity 	The entity type that will be generated.
+		 * @param {string=} par.Pid		The pid to set as the pid of the entity.
 		 * @callback fun
 		 */
 		function genEntity(par, fun) {
@@ -648,18 +649,18 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * create a 32 character hexidecimal pid
+		 * Create and return a 32 character hexadecimal pid.
 		 */
 		function genPid() {
 			return nxs.genPid();
 		}
 
 		/**
-		 * sends the command object and the callback function to the xGraph part (entity or module, depending on the
+		 * Sends the command object and the callback function to the xGraph part (entity or module, depending on the
 		 * fractal layer) specified in the Pid.
-         * @param {object} com  		the message object to send
-		 * @param {string} com.Cmd		the function to send the message to in the destination entity
-		 * @param {string} pid 			the pid of the recipient (destination) entity
+         * @param {object} com  	The message object to send.
+		 * @param {string} com.Cmd	The function to send the message to in the destination entity.
+		 * @param {string} pid 		The pid of the recipient (destination) entity.
 		 * @callback fun
 		 */
 		function send(com, pid, fun) {
@@ -682,8 +683,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * save the current entity to cache if not an Apex send the save message to Apex
-		 * if it is an Apex we save it as well as all other relevant information
+		 * Save this entity, including it's current Par and Vlt, to the cache.
+		 * If this entity is not an Apex, send the save message to Apex of this entity's module.
+		 * If it is an Apex we save the entity's information, as well as all other relevant information
 		 * @callback fun
 		 */
 		function save(fun) {
@@ -731,11 +733,12 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	}
 
 	/**
-	 * Delete an entity file. If the entity is an Apex of a Module,
-	 * then delete all the entities found in that module as well.
-	 * @param {string} apx 		the pid of the entities apex
-	 * @param {string} pid 		the pid of the entity
-	 * @callback fun  			the callback to return the pid of the generated entity to
+	 * Delete an instance of an entity by removing it from the entity cache.
+	 * If the entity is an Apex of a Module, then delete all the entities
+	 * found in that module as well.
+	 * @param {string} apx 		The pid of the entities apex.
+	 * @param {string} pid 		The pid of the entity.
+	 * @callback fun  			Return the pid of the deleted entity.
 	 */
 	function deleteEntity(apx, pid, fun = _ => _) {
 		let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;

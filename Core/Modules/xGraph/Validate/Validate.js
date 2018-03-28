@@ -208,7 +208,7 @@
 
             //instantiate the module
             //this calls setup and start in the instance if necissary
-			log.v("Calling genMod on ", JSON.stringify(inst, null, 2));
+			log.v("Calling genMod on ", JSON.stringify(instance, null, 2));
 			that.genModule(instance, callback);
 
             function callback(err, instApex) {
@@ -221,7 +221,7 @@
                     instance.Par = {
                         Layout: instApex
                     };
-                    that.genModule(inst, (err, instApex) => {
+                    that.genModule(instance, (err, instApex) => {
                         RunTests();
                     });
                 } else {
