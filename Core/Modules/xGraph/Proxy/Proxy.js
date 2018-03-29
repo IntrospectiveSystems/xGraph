@@ -57,6 +57,11 @@
 		}
 
 		function plexus(connect) {
+			if (!('Chan' in Par)) {
+				connect(Par.Host || '127.0.0.1', parseInt(Par.Port || 27000));
+				return;
+			}
+
 			var plex = Par.Plexus || '127.0.0.1:27000';
 
 			//pull the plexus host and port form the process args
@@ -77,10 +82,6 @@
 			var port = that.Par.Port || parts[1] || 27000;
 			if (typeof port != "number")
 				port = parseInt(port);
-			if (!('Chan' in Par)) {
-				connect(host, port);
-				return;
-			}
 			var sock = new net.Socket();
 
 			connectLoop();
@@ -148,6 +149,7 @@
 		}
 
 		function server(host, port) {
+			let publicKey = null;
 			if (!port) {
 				var err = 'Proxy - server requires port assignment';
 				log.e(err);
@@ -158,9 +160,20 @@
 				var err = 'Proxy servers require a Link parameter';
 				log.e(err);
 				log.e(JSON.stringify(Par, null, 2));
-				if (fun)
-					fun(err);
+				fun(err);
 				return;
+			}
+			if ("Encrypt" in Par && (!Par.Encrypt)) {
+				keyPair = null;
+			}
+			else {
+				if ("PublicKey" in Par && ("PrivateKey" in Par) && (typeof Par.PublicKey == "string")
+					&& (Par.PrivateKey == "string")) {
+					Vlt.RSAKey = new NodeRSA(Par.PrivateKey, Par.KeyFormat || null);
+					publicKey = Vlt.RSAKey.exportKey("public");
+				}
+				Vlt.RSAKey = new NodeRSA({ b: 512 });
+				publicKey = Vlt.RSAKey.exportKey("public");
 			}
 			Vlt.Buf = '';
 			Vlt.State = 0;
@@ -169,11 +182,16 @@
 			Vlt.Socks = [];
 			net.createServer(function (sock) {
 				log.v('#### Portal connection from',
-					sock.remoteAddress + ':' + sock.remotePort);
+					sock.remoteAddress + ' :: ' + sock.remotePort);
 				Vlt.Socks.push(sock);
 				sock._userData = {};
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
+
+				sock.write(Vlt.STX + JSON.stringify({ 
+					Cmd: "SetPublicKey",
+					Key: publicKey
+				}) + Vlt.ETX);
 
 				sock.on('error', (err) => {
 					log.w('Proxy:genServer:' + err);
@@ -275,11 +293,8 @@
 										return obj;
 									}
 								}
-
-
-
 								// parse it into a message
-								str = JSON.stringify([err,r]);
+								str = JSON.stringify([err, r]);
 								let msg = Vlt.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
 							}
@@ -403,9 +418,9 @@
 							Vlt.Buf += data.toString('utf8', i1, i2);
 							Vlt.State = 0;
 							let err, com = JSON.parse(Vlt.Buf);
-							if(Array.isArray(com)) [err, com] = com;
-							
-							
+							if (Array.isArray(com))[err, com] = com;
+
+
 							// -------------------------- Pid interchange
 							if (com.PidInterchange) {
 								// log.d('IM HERE!!!', com);
@@ -419,7 +434,7 @@
 										&& 'Host' in obj.Value
 										&& 'Port' in obj.Value
 										&& obj.Format == 'is.xgraph.proxyconnection') {
-										let {Host, Port} = obj.Value;
+										let { Host, Port } = obj.Value;
 										let pid = await new Promise(resolve => {
 											that.genModule({
 												Module: 'xGraph.Proxy',
@@ -462,7 +477,7 @@
 			}
 		}
 
-		this.save(_=>_);
+		this.save(_ => _);
 	}
 
 	//-----------------------------------------------------Proxy
