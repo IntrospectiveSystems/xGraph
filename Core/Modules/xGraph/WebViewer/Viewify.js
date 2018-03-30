@@ -1066,7 +1066,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 						// the generatorGenerator is the string of an IIFE that will return
 						// the generator of the HTML.
 						// everything from here is constructing this str to be eval'ed
-						let generatorGenrator = `//# sourceURL=${this.Vlt.type}\r\n(function() {`
+						let generatorGenrator = `//# sourceURL=${this.Vlt.type}-Generator\r\n(function() {`
 						
 						// walk through the provided parameters, and add them
 						// to the IIFE scope
