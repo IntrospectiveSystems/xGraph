@@ -1,0 +1,14 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"Chart": {
+			"Module": "xGraphDev.Extensions.Modules.Chart",
+			"Source": "local",
+			"Par": {
+				"Root": true
+			}
+		}
+	}
+}

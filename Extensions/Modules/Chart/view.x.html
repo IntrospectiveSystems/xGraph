@@ -1,0 +1,42 @@
+<div dark loading id="root">
+	<!-- set up the material-icons class. the @font-face will fail (Shadow DOM bug/feature), but its been copied into global -->
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+
+
+	<div id="top" class="z-depth-1">
+		<div class="progress">
+			<div class="indeterminate"></div>
+		</div>
+		<h1>Chart</h1>
+	</div>
+	<canvas id="myChart" width="400" height="400"></canvas>
+
+	<div id="bottom">
+		<i class="material-icons">undo</i>
+		<i class="material-icons">redo</i>
+		<span></span>
+
+		<div class="switch">
+			<label>
+				Edit System
+				<input type="checkbox">
+				<span class="lever"></span>
+			</label>
+		</div>
+
+		<i class="material-icons green-text" id="playButton" xgraph-hook xgraph-event-click="RunSystem">play_arrow</i>
+		<i class="material-icons red-text" id="stopButton" xgraph-hook xgraph-event-click="StopSystem">stop</i>
+
+		<div style="float: right">
+			<div class="switch" style="padding: 7px;">
+				<label>
+					Dark Mode
+					<input type="checkbox" checked="true" xgraph-hook xgraph-event-change="DarkMode">
+					<span class="lever"></span>
+				</label>
+			</div>
+		</div>
+	</div>
+</div>
