@@ -36,6 +36,12 @@
 	async function Start(com, fun) {
 		log.i("--ChooseEpsilonGreedy/Start");
 
+		await new Promise((res,rej)=>{
+			setTimeout(()=>{
+				res();
+			}, 1000);
+		});
+		
 		await new Promise((resolve, reject) => {
 			let initialCommand = {
 				Cmd: "Initialize",
