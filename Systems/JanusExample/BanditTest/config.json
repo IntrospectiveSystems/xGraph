@@ -1,0 +1,53 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"Bandit": {
+			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+			"Source": "local",
+			"Par": {
+				"BanditCount": 10,
+				"PreallocationCount": 100,
+				"BackendServer": "$Backend"
+			}
+		},
+		"Environment": {
+			"Module": "xGraphDev.Extensions.Modules.ChooseEpsilonGreedy",
+			"Source": "local",
+			"Par": {
+				"InitialEstimates": 5,
+				"Environment": "$Bandit",
+				"Chart": "$Chart",
+				"BackendServer": "$Backend"
+			}
+		},
+		"Backend": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "client"
+			}
+		},
+		"Chart": {
+			"Module": "xGraphDev.Core.Modules.xGraph.ServerProxy",
+			"Source": "local",
+			"Par": {
+				"Link": "Chart",
+				"Server": "$Server"
+			}
+		},
+		"Server": {
+			"Module": "xGraphDev.Core.Modules.xGraph.WebViewer",
+			"Source": "local",
+			"Par": {
+				"ApexList": {
+					"Server": "$Server"
+				},
+				"Port": 8080,
+				"Url": "",
+				"": "@system: browser.json"
+			}
+		}
+	}
+}

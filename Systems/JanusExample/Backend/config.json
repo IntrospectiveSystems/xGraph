@@ -3,13 +3,10 @@
 		"local": "{local}"
 	},
 	"Modules": {
-		"Bandit": {
-			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+		"DataStore": {
+			"Module": "xGraphDev.Extensions.Modules.SimpleDataStore",
 			"Source": "local",
 			"Par": {
-				"BanditCount": 10,
-				"PreallocationCount": 100,
-				"Means": 1
 			}
 		},
 		"Server": {
@@ -17,9 +14,8 @@
 			"Source": "local",
 			"Par": {
 				"Role": "Server",
-				"Link": "$Bandit"
+				"Link": "$DataStore"
 			}
-		},
-		"Deferred": []
+		}
 	}
 }

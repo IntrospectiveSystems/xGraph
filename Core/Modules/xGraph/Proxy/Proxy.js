@@ -38,14 +38,14 @@
 			cmd.Chan = Par.Chan;
 		cmd.Passport = {};
 		cmd.Passport.Disp = 'Query';
-		switch (Par.Role) {
-			case 'Server':
+		switch (Par.Role.toLowerCase()) {
+			case 'server':
 				cmd.Cmd = 'Publish';
 				var ip = this.require('ip');
 				cmd.Host = ip.address();
 				plexus(server);
 				break;
-			case 'Client':
+			case 'client':
 				cmd.Cmd = 'Subscribe';
 				plexus(client);
 				break;
@@ -501,7 +501,7 @@
 		log.i("Proxy/SetPublicKey");
 		let NodeRSA = this.require('node-rsa');
 		this.Vlt.PublicKey = com.Key;
-		log.v(`Socket Encrypted with public key is \n${this.Vlt.PublicKey}`);
+		log.v(`Socket Encrypted with public key: \n${this.Vlt.PublicKey}`);
 		this.Vlt.RSAKey = new NodeRSA();
 		this.Vlt.RSAKey.importKey(this.Vlt.PublicKey, 'public');
 		if (fun) fun(null, com);
@@ -520,11 +520,11 @@
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		if ('Role' in Par) {
-			switch (Par.Role) {
-				case 'Client':
+			switch (Par.Role.toLowerCase()) {
+				case 'client':
 					client();
 					break;
-				case 'Server':
+				case 'server':
 					server();
 					break;
 				default:

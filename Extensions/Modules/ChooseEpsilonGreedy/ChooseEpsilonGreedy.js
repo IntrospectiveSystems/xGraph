@@ -35,12 +35,23 @@
 	async function Start(com, fun) {
 		log.i("--ChooseEpsilonGreedy/Start");
 
-		await new Promise((res,rej)=>{
-			setTimeout(()=>{
-				res();
-			}, 1000);
+		await new Promise((res, rej) => {
+			//retrieve the learned data
+			let cmd = {};
+			cmd.Cmd = "GetData";
+			cmd.Key = "AverageReturnEstimates";
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				if (com.Data) {
+					this.Vlt.AverageReturn = com.Data;
+					log.i(`Client has been updated with Learned Average Returns`);
+				}
+				setTimeout(()=>{
+					res();
+				}, 5000);
+			});
 		});
-		
+
 		await new Promise((resolve, reject) => {
 			let initialCommand = {
 				Cmd: "Initialize",
@@ -56,7 +67,10 @@
 				this.Vlt.PlayOptions = [];
 				for (let index = 0; index < com.InputDimensions[0]; index++)
 					this.Vlt.PlayOptions.push(index);
-				this.Vlt.AverageReturn = this.Vlt.ProbabilityDistributions.sample([this.Par.InitialEstimates], this.Vlt.InputDimensions[0], true);
+				if (!this.Vlt.AverageReturn)
+					this.Vlt.AverageReturn = this.Vlt.ProbabilityDistributions.sample([this.Par.InitialEstimates], this.Vlt.InputDimensions[0], true);
+				else
+					log.v(`ChooseEpsilonGreedy - Starting with preLearned`, this.Vlt.AverageReturn);
 				this.Vlt.PlayCountByInput = this.Vlt.ProbabilityDistributions.sample([0], this.Vlt.InputDimensions[0], true);
 				resolve();
 			});
@@ -120,8 +134,19 @@
 
 						this.send(finalizeCommand, this.Par.Environment, (err, com) => {
 							log.i(`True state max ${com.TrueState.indexOf(Math.max(...com.TrueState))}\n`, com.TrueState);
-							log.i(`Total return ${this.Vlt.PlayCountByInput.reduce((sum, current, index) => { return sum += current*this.Vlt.AverageReturn[index]; })}`);
-							process.exit(1);
+							log.i(`Total return ${this.Vlt.PlayCountByInput.reduce((sum, current, index) => { return sum += current * this.Vlt.AverageReturn[index]; })}`);
+							// process.exit(1);
+							clearInterval(this.Vlt.ActionLoop);
+
+							//save the learned data
+							let cmd = {};
+							cmd.Cmd = "SetData";
+							cmd.Key = "AverageReturnEstimates";
+							cmd.Data = this.Vlt.AverageReturn;
+							this.send(cmd, this.Par.BackendServer, (err, com) => {
+								if (err) log.w(err);
+								log.v(`ChooseEpsilonGreedy -Server has been updated with Learned Average Returns`);
+							});
 						});
 					}
 				});

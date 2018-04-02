@@ -14,7 +14,7 @@
 		dispatch: dispatch
 	};
 
-	function Setup(com, fun) {
+	async function Setup(com, fun) {
 		log.i(`--Bandit/Setup`);
 
 		//if BanditCount is not set in the config.json we default to 10 as in Sutton 
@@ -24,48 +24,139 @@
 		//load in npm module "probability-distributions" to 
 		this.Vlt.ProbabilityDistributions = this.require("probability-distributions");
 
-		//store the prealloted distributions
-		this.Vlt.Bandits = [];
 		//store the actions by PlayerID
 		this.Vlt.PlayerHistory = {};
 
 		//the number of plays to preallocate
 		if (!("PreallocationCount" in this.Par) || !(typeof this.Par.PreallocationCount == "number")) this.Par.PreallocationCount = 1000;
 
-		//build an array of means
-		if (("Means" in this.Par) && (this.Par.Means instanceof Array)) {
-			if (this.Par.Means.length != this.Par.BanditCount)
-				this.Par.Means = this.Vlt.ProbabilityDistributions.sample(this.Par.Means, this.Par.BanditCount, (this.Par.Means.length < this.Par.BanditCount) ? true : false);
-		} else {
-			this.Par.Means = this.Vlt.ProbabilityDistributions.rnorm(this.Par.BanditCount, this.Par.Means || 0, (typeof this.Par.StandardDeviations == 'number') ? this.Par.StandardDeviations : 1);
-		}
-
-
-		//build an array of standard deviations
-		if (("StandardDeviations" in this.Par) && (this.Par.StandardDeviations instanceof Array)) {
-			if (this.Par.StandardDeviations.length != this.Par.BanditCount)
-				this.Par.StandardDeviations = this.Vlt.ProbabilityDistributions.sample(this.Par.StandardDeviations, this.Par.BanditCount, (this.Par.StandardDeviations.length < this.Par.BanditCount) ? true : false);
-		} else {
-			this.Par.StandardDeviations = [1];
-			this.Par.StandardDeviations = this.Vlt.ProbabilityDistributions.sample(this.Par.StandardDeviations, this.Par.BanditCount, (this.Par.StandardDeviations.length < this.Par.BanditCount) ? true : false);
-		}
-
-		for (let banditIndex = 0; banditIndex < this.Par.BanditCount; banditIndex++) {
-			this.Vlt.Bandits[banditIndex] = this.Vlt.ProbabilityDistributions.rnorm(this.Par.PreallocationCount, this.Par.Means[banditIndex], this.Par.StandardDeviations[banditIndex]);
-		}
-
 		fun(null, com);
 	}
 
 
-	function Start(com, fun) {
+	async function Start(com, fun) {
 		log.i("--Bandit/Start");
+
+
+
+		await new Promise((res, rej) => {
+			//retrieve the learned data
+			let cmd = {};
+			cmd.Cmd = "GetData";
+			cmd.Key = "Means";
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				if (com.Data) {
+					this.Par.Means = com.Data;
+					log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
+				}
+				res();
+			});
+		});
+
+
+		if (!this.Par.Means) {
+			log.v("Bandit - Building new Means");
+			//build an array of means
+			if (("Means" in this.Par) && (this.Par.Means instanceof Array)) {
+				if (this.Par.Means.length != this.Par.BanditCount)
+					this.Par.Means = this.Vlt.ProbabilityDistributions.sample(this.Par.Means, this.Par.BanditCount, (this.Par.Means.length < this.Par.BanditCount) ? true : false);
+			} else {
+				this.Par.Means = this.Vlt.ProbabilityDistributions.rnorm(this.Par.BanditCount, this.Par.Means || 0, (typeof this.Par.StandardDeviations == 'number') ? this.Par.StandardDeviations : 1);
+			}
+
+			let cmd = {};
+			cmd.Cmd = "SetData";
+			cmd.Key = "Means";
+			cmd.Data = this.Vlt.Means;
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				log.v(`Bandit Server has been updated with Means`);
+			});
+		}
+
+
+
+
+
+		await new Promise((res, rej) => {
+			//retrieve the learned data
+			let cmd = {};
+			cmd.Cmd = "GetData";
+			cmd.Key = "StandardDeviaitons";
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				if (com.Data) {
+					this.Par.StandardDeviations = com.Data;
+					log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
+				}
+				res();
+			});
+		});
+
+		if (!this.Par.StandardDeviations) {
+			log.v("Bandit - Building new Standard Deviations");
+			//build an array of standard deviations
+			if (("StandardDeviations" in this.Par) && (this.Par.StandardDeviations instanceof Array)) {
+				if (this.Par.StandardDeviations.length != this.Par.BanditCount)
+					this.Par.StandardDeviations = this.Vlt.ProbabilityDistributions.sample(this.Par.StandardDeviations, this.Par.BanditCount, (this.Par.StandardDeviations.length < this.Par.BanditCount) ? true : false);
+			} else {
+				this.Par.StandardDeviations = [1];
+				this.Par.StandardDeviations = this.Vlt.ProbabilityDistributions.sample(this.Par.StandardDeviations, this.Par.BanditCount, (this.Par.StandardDeviations.length < this.Par.BanditCount) ? true : false);
+			}
+
+			let cmd = {};
+			cmd.Cmd = "SetData";
+			cmd.Key = "StandardDeviaitons";
+			cmd.Data = this.Vlt.StandardDeviations;
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				log.v(`Bandit Server has been updated with Standard Deviations`);
+			});
+		}
+
+
+		await new Promise((res, rej) => {
+			//retrieve the learned data
+			let cmd = {};
+			cmd.Cmd = "GetData";
+			cmd.Key = "BanditDistibutions";
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				if (com.Data) {
+					this.Vlt.Bandits = com.Data;
+					log.i(`Bandit Client has been updated with Bandit Distributions`);
+				}
+				res();
+			});
+		});
+
+		if (!this.Vlt.Bandits) {
+			log.v("Bandit - Building new Bandits");
+
+			//store the prealloted distributions
+			this.Vlt.Bandits = [];
+			for (let banditIndex = 0; banditIndex < this.Par.BanditCount; banditIndex++) {
+				this.Vlt.Bandits[banditIndex] = this.Vlt.ProbabilityDistributions.rnorm(this.Par.PreallocationCount, this.Par.Means[banditIndex], this.Par.StandardDeviations[banditIndex]);
+			}
+			let cmd = {};
+			cmd.Cmd = "SetData";
+			cmd.Key = "BanditDistibutions";
+			cmd.Data = this.Vlt.Bandits;
+			this.send(cmd, this.Par.BackendServer, (err, com) => {
+				if (err) log.w(err);
+				log.v(`Bandit Server has been updated with Learned Average Returns`);
+			});
+		}
+
+
+
 
 		log.v(`There are ${this.Par.BanditCount} one-armed bandits`);
 		log.v(`Preallocating for ${this.Par.PreallocationCount} plays`);
 		log.v(`Means by index are ${this.Par.Means}`);
 		log.v(`Standard Deviations by index are ${this.Par.StandardDeviations}`);
-		// log.v(this.Vlt.Bandits);
+
 
 		fun(null, com);
 	}
@@ -104,7 +195,7 @@
 			return;
 		}
 
-		// log.i(`-Bandit/Play: Bandit ${com.Index}`);
+		// log.d(JSON.stringify(com, null, 2));
 
 		let playIndex = this.Vlt.PlayerHistory[com.ID][com.Index]++;
 		if (playIndex % this.Par.PreallocationCount == 0)
