@@ -173,10 +173,8 @@
 					Vlt.RSAKey = new NodeRSA(Par.PrivateKey, Par.KeyFormat || null);
 					Vlt.PublicKey = Vlt.RSAKey.exportKey("public");
 				} else {
-					log.d("creating a new RSA key pair");
 					Vlt.RSAKey = new NodeRSA({ b: 512 });
 					Vlt.PublicKey = Vlt.RSAKey.exportKey("public");
-					log.d(`Public? ${Vlt.RSAKey.isPublic(Vlt.PublicKey)}`);
 				}
 			}
 			Vlt.Buf = '';
@@ -209,10 +207,6 @@
 				// data content may contain multiple messages
 				// TODO: Implement more flexible buffering policy
 				sock.on('data', async function (data) {
-					if (Vlt.PublicKey) {
-						log.d(`already have the key`);
-						data = Vlt.RSAKey.decrypt(data, 'utf8');
-					}
 					var Buf = sock._userData.Buf;
 					var State = sock._userData.State;
 					var Fifo = [];
@@ -220,7 +214,7 @@
 					var nd = data.length;
 					var i1 = 0;
 					var i2 = nd - 1;
-					//	console.log(State, i1, i2, Buf.length, data.length, 'data <' + data + '>');
+					// log.d(State, i1, i2, Buf.length, data.length, 'data <' + data + '>');
 					for (let i = 0; i < nd; i++) {
 						switch (State) {
 							case 0:
@@ -234,6 +228,10 @@
 								i2 = i;
 								if (data[i] === ETX) {
 									Buf += data.toString('utf8', i1, i2);
+									if (Vlt.PublicKey) {
+
+										Buf = Vlt.RSAKey.decrypt(Buf, 'utf8');
+									} 
 									var obj = JSON.parse(Buf);
 									Fifo.push(obj);
 									State = 0;
@@ -302,6 +300,9 @@
 								}
 								// parse it into a message
 								str = JSON.stringify([err, r]);
+								if (Vlt.RSAKey) {
+									str = Vlt.RSAKey.encryptPrivate(str, 'base64');
+								}
 								let msg = Vlt.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
 							}
@@ -392,10 +393,6 @@
 
 
 				sock.on('data', async function (data) {
-					if (Vlt.PublicKey) {
-						log.d(`already have the key`);
-						data = Vlt.RSAKey.decryptPublic(data, 'utf8');
-					}
 					var nd = data.length;
 					var i1 = 0;
 					var i2;
@@ -428,7 +425,9 @@
 						default:
 							Vlt.Buf += data.toString('utf8', i1, i2);
 							Vlt.State = 0;
-
+							if (Vlt.PublicKey) {
+								Vlt.Buf = Vlt.RSAKey.decryptPublic(Vlt.Buf, 'utf8');
+							}
 							let err, com = JSON.parse(Vlt.Buf);
 							if (Array.isArray(com))[err, com] = com;
 
@@ -456,7 +455,7 @@
 													Port
 												}
 											}, (err, apx) => {
-												log.d(`converted to ${apx}`);
+												// log.d(`converted to ${apx}`);
 												resolve(apx);
 											});
 										});
@@ -477,7 +476,7 @@
 							}
 
 							if (!com.Passport) {
-								log.d(`dispatching ${JSON.stringify(com, null, 2)}`);
+								// log.d(`dispatching ${JSON.stringify(com, null, 2)}`);
 								that.dispatch(com);
 							} else if ('Reply' in com.Passport) {
 								if (Vlt.Fun[com.Passport.Pid])
@@ -499,9 +498,8 @@
 		log.i("Proxy/SetPublicKey");
 		let NodeRSA = this.require('node-rsa');
 		this.Vlt.PublicKey = com.Key;
-		log.d(`public key is ${this.Vlt.PublicKey}`);
+		log.v(`Socket Encrypted with public key is \n${this.Vlt.PublicKey}`);
 		this.Vlt.RSAKey = new NodeRSA();
-		log.d(this.Vlt.RSAKey.isPublic(this.Vlt.PublicKey));
 		this.Vlt.RSAKey.importKey(this.Vlt.PublicKey, 'public');
 		if (fun) fun(null, com);
 	}
@@ -548,12 +546,11 @@
 
 
 		function server() {
-			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
 			//encrypt as base64 
 			if (Vlt.RSAKey) {
-				msg = Vlt.RSAKey.encryptPrivate(msg, 'base64');
-				log.d(`encrypting`);
+				com = Vlt.RSAKey.encryptPrivate(com, 'base64');
 			}
+			var msg = Vlt.STX + com + Vlt.ETX;
 			for (var i = 0; i < Vlt.Socks.length; i++) {
 				var sock = Vlt.Socks[i];
 				sock.write(msg);
@@ -588,12 +585,10 @@
 			else {
 				Vlt.Fun[com.Passport.Pid] = null;
 			}
-			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
-			if (Vlt.RSAKey){
-				msg = Vlt.RSAKey.encrypt(msg, 'base64');
-			}else{
-				log.d("public key not set"); 
-			}
+			if (Vlt.RSAKey) {
+				com = Vlt.RSAKey.encrypt(com, 'base64');
+			} 
+			var msg = Vlt.STX + com + Vlt.ETX;
 			sock.write(msg);
 		}
 	}
