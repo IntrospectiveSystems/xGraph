@@ -375,7 +375,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					if (Object.keys(children).length == 0) {
 						await that.ascend('Render', basePid);
 					} else for(let view of children) {
-						await that.ascend('AddView', { View: view.View });
+						await that.ascend('AddView', { View:  typeof view == 'string' ? view : view.View });
 					}
 				} else if (typeof children == 'object') {
 					await that.ascend('AddView', { View: children.View });
@@ -609,6 +609,14 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					new Promise(async (resolveFile) => {
 						let elements = await this.partial('view.x.html');
 						this.Vlt.div.append(elements);
+
+						
+						// elements with and ID and not ParHidden attribute, will be saved to Par.$
+						let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
+						for (let element of parElements) {
+							this.Par.$[$(element).attr('id')] = $(element);
+						}
+
 						resolveFile();
 					})
 				];
@@ -1112,11 +1120,6 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 						let generator = eval(generatorGenrator);
 						let elem = await generator.call(this, render);
 
-						//elements with and ID and not ParHidden attribute, will be saved to Par.$
-						let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
-						for (let element of parElements) {
-							this.Par.$[$(element).attr('id')] = $(element);
-						}
 
 						// this.Vlt.div.append(elem);
 						resolveFile(elem);
