@@ -196,7 +196,10 @@
 				}) + Vlt.ETX);
 
 				sock.on('error', (err) => {
-					log.w('Proxy:genServer:' + err);
+					if (err.code == "ECONNRESET")
+						log.v("Proxy: socket closed by other party");
+					else
+						log.w("Proxy ", err);
 					if ("Chan" in Par)
 						log.w('		Proxy: Chan - ' + Par.Chan);
 				});
@@ -231,7 +234,7 @@
 									if (Vlt.PublicKey) {
 
 										Buf = Vlt.RSAKey.decrypt(Buf, 'utf8');
-									} 
+									}
 									var obj = JSON.parse(Buf);
 									Fifo.push(obj);
 									State = 0;
@@ -587,7 +590,7 @@
 			}
 			if (Vlt.RSAKey) {
 				com = Vlt.RSAKey.encrypt(com, 'base64');
-			} 
+			}
 			var msg = Vlt.STX + com + Vlt.ETX;
 			sock.write(msg);
 		}

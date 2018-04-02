@@ -17,7 +17,6 @@
 		//load in npm module "probability-distributions" to 
 		this.Vlt.ProbabilityDistributions = this.require("probability-distributions");
 
-		log.d(typeof this.Par.Epsilon);
 		if (!("Epsilon" in this.Par) || !(typeof this.Par.Epsilon == "number"))
 			this.Par.Epsilon = 0.01;
 
