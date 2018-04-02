@@ -2,6 +2,6 @@
 	"Apex": {
 		"$Setup":"Setup",
 		"$Start": "Start",
-		"Entity": "Bandit.js"
+		"Entity": "ChooseSoftmax.js"
 	}
 }

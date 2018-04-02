@@ -1,4 +1,4 @@
-//# sourceURL=Hedgehog.js
+//# sourceURL=Graph.js
 (function Graph() {
 	//a general purpose multi-dimensional searching algorithm that interrogates
 	//the dispatching function
@@ -57,7 +57,7 @@
 			console.log("The found optimal state is ", cm.State);
 		}
 
-		fun(com);
+		fun(null, com);
 	}
 
 	function Evaluate(com, fun){

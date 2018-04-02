@@ -1,0 +1,197 @@
+#root {
+	font-family: sans-serif;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	user-select: none;
+	min-width:540px;
+
+	--evo-blue: #3F6CD3;
+	--introspective-green: #67BA46;
+	--accent: var(--introspective-green);
+	
+	--text: black;
+	--subtext: rgba(0, 0, 0, 0.7);
+	--view-color: white;
+	--navbar-color: #DBDBDB;
+}
+
+#root[dark] {
+	--text: #D5D5D5;
+	--subtext: #919191;
+	--view-color: #242424;
+	--navbar-color: #2A2A2A;
+	
+}
+
+#top > .progress {
+	position: absolute;
+	margin:0px;
+	height: 6px;
+	top: 0px;
+}
+
+#root:not([loading]) #top > .progress {
+	display: none;
+	height:0px;
+	transition: height 300ms;
+}
+
+#root[dark] > #bottom {
+	border-top: 1px solid #5C5C5C;
+}
+
+#top {
+	height: 46px;
+	box-sizing: unset;
+	border-top: 6px solid var(--accent);
+	background-color: var(--navbar-color);
+	color: var(--text);
+	z-index: 1;
+}
+
+#root[running] #top{
+	border-top-color: var(--evo-blue);
+}
+
+#top h1 {
+	height: 46px;
+	font-size: 24px;
+	margin: 0px;
+	padding-left: 16px;
+	font-weight: 100;
+	display: inline;
+	position: relative;
+	top: 2px;
+	padding-right: 16px;
+}
+
+#viewport {
+	background: var(--view-color);
+}
+
+#top .menubarButton {
+	height: 46px;
+	display: inline;
+	background-color: inherit;
+	border: none;
+	outline: none;
+	min-width: 64px;
+	padding-top: 4px;
+	box-sizing: border-box;
+	font-size: 13px;
+}
+
+#top button:hover, #top button.selected {
+	background-color: var(--accent);
+	cursor: pointer;
+}
+
+#viewport {
+	flex-grow: 1;
+	height:100%;
+}
+
+#bottom {
+	height: 48px;
+	background-color: var(--navbar-color);
+	padding: 8px;
+	box-sizing: border-box;
+}
+
+.card {
+	background-color: var(--view-color);
+	border-radius: 3px;
+	width: 200px;
+	padding: 16px;
+	margin: 16px;
+}
+
+.menubarItemContainer {
+	position: relative;
+	display: inline-block;
+}
+
+.menubarItemContainer:hover > .menubarDropdown {
+	display: inline;
+}
+
+.menubarDropdown {
+	display: none;
+	padding: 16px 0px;
+	width: 250px;
+	position: absolute;
+	border-radius: 5px;
+	background-color: var(--navbar-color);
+	z-index: 1;
+}
+
+.menubarDropdown > [button] {
+	color: black;
+	text-decoration: none;
+	display: block;
+	line-height: 32px;
+	padding: 0px 24px;
+	font-size: 13px;
+	color: var(--subtext);
+}
+
+.menubarDropdown > [button]:hover {
+	background-color: var(--navbar-color);
+}
+
+#bottom {
+	color: var(--subtext);
+}
+
+#bottom > i.material-icons {
+	padding: 4px;
+	cursor: pointer;
+}
+
+#bottom > span {
+	vertical-align: top;
+	display: inline-block;
+	height: 24px;
+	line-height: 24px;
+	padding: 4px;
+	padding-top: 6px;
+}
+
+#bottom > div.switch {
+	vertical-align: top;
+	display: inline-block;
+	height: 24px;
+	line-height: 24px;
+	padding: 4px;
+}
+
+div.switch label {
+	color: var(--subtext);
+}
+
+#root[running] #playButton {
+	display: none;
+}
+#root[running] #stopButton {
+	display: initial;
+}
+#stopButton {
+	display: none;
+}
+
+.lever {
+	top: -2px;
+}
+
+
+/* change the colors on the switch */
+.switch label input[type=checkbox]:checked+.lever {
+	background-color: var(--accent);
+}
+
+
+/* change the colors on the switch */
+.switch label input[type=checkbox]:checked+.lever:after {
+	background-color: white;
+}

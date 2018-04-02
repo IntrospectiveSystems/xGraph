@@ -3,19 +3,18 @@
 		"local": "{local}"
 	},
 	"Modules": {
-		"Bandit":{
-			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+		"Bandit": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
-				"BanditCount": 10,
-				"PreallocationCount": 100,
-				"Means":1
+				"Role": "Client"
 			}
 		},
 			"Environment": {
 			"Module": "xGraphDev.Extensions.Modules.ChooseEpsilonGreedy",
 			"Source": "local",
 			"Par":{
+				"Epsilon": 0.05,
 				"InitialEstimates": 5, 
 				"Environment": "$Bandit"
 			}
