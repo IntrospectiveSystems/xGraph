@@ -1,18 +1,20 @@
 //# sourceURL=Chart
-(function Chart() {
-	class Test {
+(function ChartView() {
+	class ChartView {
 
 		async Setup(com, fun){
 			com = await this.asuper(com);
 			fun(null, com);
 		}
+
 		async Start(com, fun) {
-			log.d(`Start>??1`)
+			log.d(`Chart/Start`)
 
 			com = await this.asuper(com);
-			log.d(`Start>??2`)
 
-			var ctx = document.getElementById("myChart");
+			await this.cdnImportJs("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js");
+
+			var ctx = this.Par.$.myChart;
 			var myChart = new Chart(ctx, {
 				type: 'bar',
 				data: {
@@ -50,18 +52,16 @@
 				}
 			});
 
-		}
-
-		async RunSystem(com, fun) {
-			this.Par.$.root.attr('running', '');
 			fun(null, com);
-		}
 
-		async StopSystem(com, fun) {
-			this.Par.$.root.attr('running', null)
-			fun(null, com);
+			setInterval(()=>{
+				myChart.data.datasets.forEach((dataset) => {
+					dataset.data=[Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random())] ;
+				});
+				myChart.update();
+			}, 1000);
 		}
 	}
 
-	return Viewify(Test, "4.0");
+	return Viewify(ChartView, "4.0");
 })();

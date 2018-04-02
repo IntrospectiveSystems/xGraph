@@ -3,6 +3,7 @@
 
 	var dispatch = {
 		Setup: Setup,
+		SetPublicKey,
 		"*": Proxy
 	};
 
@@ -188,7 +189,7 @@
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
 
-				sock.write(Vlt.STX + JSON.stringify({ 
+				sock.write(Vlt.STX + JSON.stringify({
 					Cmd: "SetPublicKey",
 					Key: publicKey
 				}) + Vlt.ETX);
@@ -477,8 +478,10 @@
 			}
 		}
 
-		this.save(_ => _);
+		if (this.Par.AutoSave)
+			this.save(_ => _);
 	}
+
 
 	//-----------------------------------------------------Proxy
 	/**

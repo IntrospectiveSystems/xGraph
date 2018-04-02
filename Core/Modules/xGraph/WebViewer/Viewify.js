@@ -400,6 +400,10 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 							resolve();
 						});
 					});
+					fun(null, com);
+				}
+				else{
+					fun(null,com);
 				}
 			}
 		}
