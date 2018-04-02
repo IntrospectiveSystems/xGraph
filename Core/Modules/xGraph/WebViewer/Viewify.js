@@ -124,7 +124,7 @@ if(window.Preprocessor == undefined) {
 				if (ret instanceof Promise) await ret;
 			}
 
-			let hooks = this._div.find('[xgraph-hook]');
+			let hooks = this._div.find('[xgraph-hook]').addBack('[xgraph-hook]');
 
 			for(let elem of hooks) {
 				let data = {};
@@ -368,14 +368,16 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let that = this;
 			async function parseView(children = [], basePid = that.Par.Pid) {
 				if(typeof children == 'string') {
-					await that.ascend('AddView', {View: children});
 					await that.ascend('Render', {}, children);
+					await that.ascend('AddView', {View: children});
 				} else if(Array.isArray(children)) {
 					// array might be strings might be objects, might be both.
 					if (Object.keys(children).length == 0) {
 						await that.ascend('Render', basePid);
 					} else for(let view of children) {
-						await that.ascend('AddView', { View:  typeof view == 'string' ? view : view.View });
+						let pid = typeof view == 'string' ? view : view.View;
+						await that.ascend('Render', {}, pid);
+						await that.ascend('AddView', { View: pid });
 					}
 				} else if (typeof children == 'object') {
 					await that.ascend('AddView', { View: children.View });
@@ -609,6 +611,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				fun(null, com);
 			}else if (version >= ver40) {
 
+				this.Vlt.div.children().remove();
+
 				let tasks = [
 					new Promise(async (resolveFile) => {
 						let elements = await this.partial('view.x.html');
@@ -616,7 +620,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 						
 						// elements with and ID and not ParHidden attribute, will be saved to Par.$
-						let parElements = elem.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
+						let parElements = elements.find('[id]:not([ParHidden])').addBack('[id]:not([ParHidden])');
 						for (let element of parElements) {
 							this.Par.$[$(element).attr('id')] = $(element);
 						}
@@ -1063,6 +1067,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				});
 			};
 			this.partial = (filepath, parameters = {}) => {
+				log.i(`${this.Par.Module}: partial call for ${filepath}`);
+
 				// if its just the name of the file, sans extension, add that.
 				if(!filepath.endsWith('.x.html')) filepath += '.x.html';
 
@@ -1143,7 +1149,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		if (debug) {
 			timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
 			color = md5(timeTag).substr(0, 6);
-			id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
+			id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd + ' [' + this.Par.Pid.substr(0, 8) + ']';
 		}
 
 
