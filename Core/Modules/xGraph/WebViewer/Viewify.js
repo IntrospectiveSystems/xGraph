@@ -136,13 +136,13 @@ if(window.Preprocessor == undefined) {
 					switch(attr.name) {
 						case 'xgraph-event-click': {
 							$(elem).on('click', _ => {
-								this.view.dispatch({Cmd: val, Data: data});
+								this.view.dispatch({Cmd: val, Data: data, Element: elem});
 							});
 							break;
 						}
 						case 'xgraph-event-change': {
 							$(elem).on('change', _ => {
-								this.view.dispatch({Cmd: val, Checked: elem.checked, Data: data});
+								this.view.dispatch({Cmd: val, Checked: elem.checked, Data: data, Element: elem});
 							});
 							break;
 						}
