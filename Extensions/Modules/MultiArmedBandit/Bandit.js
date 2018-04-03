@@ -37,25 +37,25 @@
 	async function Start(com, fun) {
 		log.i("--Bandit/Start");
 
-
-
-		await new Promise((res, rej) => {
-			//retrieve the learned data
-			let cmd = {};
-			cmd.Cmd = "GetData";
-			cmd.Key = "Means";
-			this.send(cmd, this.Par.BackendServer, (err, com) => {
-				if (err) log.w(err);
-				if (com.Data) {
-					this.Par.Means = com.Data;
-					log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
-				}
-				res();
+		if ("BackendServer" in this.Par)
+			//trying to retrieve the means list
+			await new Promise((res, rej) => {
+				//retrieve the learned data
+				let cmd = {};
+				cmd.Cmd = "GetData";
+				cmd.Key = "Means";
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					if (err) log.w(err);
+					if (com.Data) {
+						this.Par.Means = com.Data;
+						log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
+					}
+					res();
+				});
 			});
-		});
 
-
-		if (!this.Par.Means) {
+		// log.d(`Means ${this.Par.Means}`);
+		if (!this.Par.Means || !(this.Par.Means instanceof Array)) {
 			log.v("Bandit - Building new Means");
 			//build an array of means
 			if (("Means" in this.Par) && (this.Par.Means instanceof Array)) {
@@ -68,31 +68,32 @@
 			let cmd = {};
 			cmd.Cmd = "SetData";
 			cmd.Key = "Means";
-			cmd.Data = this.Vlt.Means;
+			cmd.Data = this.Par.Means;
+			if ("BackendServer" in this.Par)
 			this.send(cmd, this.Par.BackendServer, (err, com) => {
 				if (err) log.w(err);
 				log.v(`Bandit Server has been updated with Means`);
 			});
 		}
 
-
-
-
-
-		await new Promise((res, rej) => {
-			//retrieve the learned data
-			let cmd = {};
-			cmd.Cmd = "GetData";
-			cmd.Key = "StandardDeviaitons";
-			this.send(cmd, this.Par.BackendServer, (err, com) => {
-				if (err) log.w(err);
-				if (com.Data) {
-					this.Par.StandardDeviations = com.Data;
-					log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
-				}
-				res();
+		if ("BackendServer" in this.Par)
+			//trying to retrieve the Standard deviations list
+			await new Promise((res, rej) => {
+				//retrieve the learned data
+				let cmd = {};
+				cmd.Cmd = "GetData";
+				cmd.Key = "StandardDeviaitons";
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					if (err) log.w(err);
+					if (com.Data) {
+						this.Par.StandardDeviations = com.Data;
+						log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
+					}
+					res();
+				});
 			});
-		});
+
+		// log.d(`SD ${this.Par.StandardDeviations}`);
 
 		if (!this.Par.StandardDeviations) {
 			log.v("Bandit - Building new Standard Deviations");
@@ -108,28 +109,34 @@
 			let cmd = {};
 			cmd.Cmd = "SetData";
 			cmd.Key = "StandardDeviaitons";
-			cmd.Data = this.Vlt.StandardDeviations;
-			this.send(cmd, this.Par.BackendServer, (err, com) => {
-				if (err) log.w(err);
-				log.v(`Bandit Server has been updated with Standard Deviations`);
-			});
+			cmd.Data = this.Par.StandardDeviations;
+			if ("BackendServer" in this.Par)
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					// log.w("SD Data", com.Data);
+					if (err) log.w(err);
+					log.v(`Bandit Server has been updated with Standard Deviations`);
+				});
 		}
 
+		if ("BackendServer" in this.Par)
 
-		await new Promise((res, rej) => {
-			//retrieve the learned data
-			let cmd = {};
-			cmd.Cmd = "GetData";
-			cmd.Key = "BanditDistibutions";
-			this.send(cmd, this.Par.BackendServer, (err, com) => {
-				if (err) log.w(err);
-				if (com.Data) {
-					this.Vlt.Bandits = com.Data;
-					log.i(`Bandit Client has been updated with Bandit Distributions`);
-				}
-				res();
+			//trying to retuieve the Bandits array
+			await new Promise((res, rej) => {
+				//retrieve the learned data
+				let cmd = {};
+				cmd.Cmd = "GetData";
+				cmd.Key = "BanditDistibutions";
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					if (err) log.w(err);
+					if (com.Data) {
+						this.Vlt.Bandits = com.Data;
+						log.i(`Bandit Client has been updated with Bandit Distributions`);
+					}
+					res();
+				});
 			});
-		});
+
+		// log.d(`Bandits \n${this.Vlt.Bandits}`);
 
 		if (!this.Vlt.Bandits) {
 			log.v("Bandit - Building new Bandits");
@@ -143,10 +150,11 @@
 			cmd.Cmd = "SetData";
 			cmd.Key = "BanditDistibutions";
 			cmd.Data = this.Vlt.Bandits;
-			this.send(cmd, this.Par.BackendServer, (err, com) => {
-				if (err) log.w(err);
-				log.v(`Bandit Server has been updated with Learned Average Returns`);
-			});
+			if ("BackendServer" in this.Par)
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					if (err) log.w(err);
+					log.v(`Bandit Server has been updated with Learned Average Returns`);
+				});
 		}
 
 
@@ -198,8 +206,21 @@
 		// log.d(JSON.stringify(com, null, 2));
 
 		let playIndex = this.Vlt.PlayerHistory[com.ID][com.Index]++;
-		if (playIndex % this.Par.PreallocationCount == 0)
+		if (playIndex % this.Par.PreallocationCount == 0 && (playIndex != 0)) {
+			log.d(`Play index is ${playIndex}`);
 			this.Vlt.Bandits[com.Index] = this.Vlt.Bandits[com.Index].concat(this.Vlt.ProbabilityDistributions.rnorm(this.Par.PreallocationCount, this.Par.Means[com.Index], this.Par.StandardDeviations[com.Index]));
+
+
+			let cmd = {};
+			cmd.Cmd = "SetData";
+			cmd.Key = "BanditDistibutions";
+			cmd.Data = this.Vlt.Bandits;
+			if ("BackendServer" in this.Par)
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					if (err) log.w(err);
+					log.v(`Bandit Server has been updated with Learned Average Returns`);
+				});
+		}
 		com.Value = this.Vlt.Bandits[com.Index][playIndex];
 
 		// log.d(`Accessing Play ${playIndex} from BanditIdx ${com.Index} for player ${com.ID} and got value ${com.Value}`);

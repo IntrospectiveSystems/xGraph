@@ -553,6 +553,7 @@
 			if (Vlt.RSAKey) {
 				com = Vlt.RSAKey.encryptPrivate(com, 'base64');
 			}
+			else com = JSON.stringify(com);
 			var msg = Vlt.STX + com + Vlt.ETX;
 			for (var i = 0; i < Vlt.Socks.length; i++) {
 				var sock = Vlt.Socks[i];
@@ -571,7 +572,7 @@
 			}
 		}
 
-		function client() {
+		async function client() {
 			var sock = Vlt.Sock;
 			if (!sock) {
 				log.v('No Socket');
@@ -588,9 +589,22 @@
 			else {
 				Vlt.Fun[com.Passport.Pid] = null;
 			}
-			if (Vlt.RSAKey) {
-				com = Vlt.RSAKey.encrypt(com, 'base64');
-			}
+			if (!("Encrypt" in Par) || Par.Encrypt) {
+				if (Vlt.RSAKey) {
+					com = Vlt.RSAKey.encrypt(com, 'base64');
+				} else {
+					//we must wait until RSAKey exists
+					com = await new Promise((res, rej) => {
+						Vlt.RaceLoop = setInterval(() => {
+							// log.d(`Race Loop`);
+							if (Vlt.RSAKey) {
+								res(Vlt.RSAKey.encrypt(com, 'base64'));
+								clearInterval(Vlt.RaceLoop);
+							}
+						}, 500);
+					});
+				}
+			} else com = JSON.stringify(com);
 			var msg = Vlt.STX + com + Vlt.ETX;
 			sock.write(msg);
 		}

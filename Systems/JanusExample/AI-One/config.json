@@ -1,0 +1,42 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"AI": {
+			"Module": "xGraphDev.Extensions.Modules.ChooseEpsilonGreedy",
+			"Source": "local",
+			"Par": {
+				"InitialEstimates": 5,
+				"Environment": "$Environment",
+				"Chart": "$Chart",
+				"BackendServer": "$Backend",
+				"Epsilon": 0.05,
+				"Stepms": 20
+			}
+		},
+		"Backend": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "client"
+			}
+		},
+		"Chart": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "client",
+				"Port": 27002
+			}
+		},
+		"Environment": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "client",
+				"Port": 27001
+			}
+		}
+	}
+}

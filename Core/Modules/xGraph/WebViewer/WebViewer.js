@@ -34,10 +34,10 @@
 			var http = this.require('http');
 			var sockio = this.require('socket.io');
 
-			
+
 			//Port is set in the Par or defaults to 8080; 
 			var port = this.Par.Port || 8080;
-			if (!this.Par.ApexList) this.Par.ApexList={};
+			if (!this.Par.ApexList) this.Par.ApexList = {};
 			var Par = this.Par;
 			var Vlt = this.Vlt;
 
@@ -129,11 +129,11 @@
 
 						//are we subscribing to the server
 						if (com.Cmd == 'Subscribe') {
-							if (!("Link" in com)){
+							if (!("Link" in com)) {
 								log.w(`A Browser module tried to subscribe, but a Link (com.Link) was not provided.`);
 								return;
 							}
-							if (!("Pid" in com)){
+							if (!("Pid" in com)) {
 								log.w(`A Browser module tried to subscribe, but a Pid (com.Pid) was not provided.`);
 								return;
 							}
@@ -244,16 +244,18 @@
 			var Vlt = this.Vlt;
 			var socks = Vlt.Sockets;
 			var keys = Object.keys(socks);
+			log.d(`there are ${keys.length} open sockets`);
 
 			//iterate over all sockets 
 			for (var i = 0; i < keys.length; i++) {
 				let obj = socks[keys[i]];
 				let sock = obj.Socket;
 				let user = obj.User;
+				log.d("Subscribed users are", user.Publish);
 
 				if ('Forward' in com) {
-					if (!(com.Forward in user.Publish)){
-						err = `Browser destination ${com.Forward} is not defined in a socket`;
+					if (!(com.Forward in user.Publish)) {
+						err = `Browser destination ${com.Forward} is not defined in a socket ${i}`;
 						log.w(err);
 						fun(err, com);
 						continue;

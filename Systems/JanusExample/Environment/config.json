@@ -3,23 +3,22 @@
 		"local": "{local}"
 	},
 	"Modules": {
-		"Bandit": {
+		"Environment": {
 			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
 			"Source": "local",
 			"Par": {
 				"BanditCount": 10,
-				"PreallocationCount": 100,
+				"Means": 1,
 				"BackendServer": "$Backend"
 			}
 		},
-		"Environment": {
-			"Module": "xGraphDev.Extensions.Modules.ChooseEpsilonGreedy",
+		"EnvironmentServer": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
-				"InitialEstimates": 5,
-				"Environment": "$Bandit",
-				"Chart": "$Chart",
-				"BackendServer": "$Backend"
+				"Role": "server",
+				"Link": "$Environment",
+				"Port": 27001
 			}
 		},
 		"Backend": {
@@ -34,10 +33,19 @@
 			"Source": "local",
 			"Par": {
 				"Link": "Chart",
-				"Server": "$Server"
+				"Server": "$WebViewer"
 			}
 		},
-		"Server": {
+		"ChartServer": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "server",
+				"Link": "$Chart",
+				"Port": 27002
+			}
+		},
+		"WebViewer": {
 			"Module": "xGraphDev.Core.Modules.xGraph.WebViewer",
 			"Source": "local",
 			"Par": {

@@ -25,9 +25,12 @@
 		let err = null;
 		if (com.Key in this.Vlt.data)
 			com.Data = this.Vlt.data[com.Key];
-		else
-			err = "Key not in this.Vlt.data";
+		else {
+			err = `Key ${com.Key} not in this.Vlt.data`;
 			com.Data = null;
+		}
+
+		// log.d(`returning data ${com.Data}`);
 		fun(err, com);
 	}
 
@@ -41,6 +44,7 @@
 		}
 
 		this.Vlt.data[com.Key] = com.Data;
+		// log.d(`setting data ${com.Data}`);
 		fun(null, com);
 	}
 

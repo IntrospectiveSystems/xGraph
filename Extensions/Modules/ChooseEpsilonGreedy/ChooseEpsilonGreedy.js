@@ -121,6 +121,14 @@
 					this.Vlt.TotalRuns = this.Vlt.PlayCountByInput.reduce((sum, current) => { return sum += current; });
 					// log.i(this.Vlt.PlayCountByInput.reduce((sum, current) => { return sum += current; }));
 
+					log.i(`Total Average return ${this.Vlt.PlayCountByInput.reduce((sum, current, index) => { return sum += current * this.Vlt.AverageReturn[index]; })/this.Vlt.TotalRuns}`);
+
+					let cmd = {};
+					cmd.Cmd = "AddData";
+					cmd.Channel = "GreedyAverage";
+					cmd.Data = this.Vlt.AverageReturn;
+					this.send(cmd, this.Par.Chart);
+
 					if ((this.Vlt.TotalRuns >= 1000)) { //|| (Math.max(...this.Vlt.PlayCountByInput) >= 500)) {
 						log.i("Finished \n", this.Vlt.TotalRuns);
 						log.i(this.Vlt.PlayCountByInput);
