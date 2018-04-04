@@ -48,7 +48,7 @@
 					if (err) log.w(err);
 					if (com.Data) {
 						this.Par.Means = com.Data;
-						log.i(`Bandit Client has been updated with Bandit Standard Deviations`);
+						log.i(`Bandit Client has been updated with Bandit Means`);
 					}
 					res();
 				});
@@ -153,7 +153,7 @@
 			if ("BackendServer" in this.Par)
 				this.send(cmd, this.Par.BackendServer, (err, com) => {
 					if (err) log.w(err);
-					log.v(`Bandit Server has been updated with Learned Average Returns`);
+					log.v(`Bandit Server has been updated with Bandit Distributions`);
 				});
 		}
 

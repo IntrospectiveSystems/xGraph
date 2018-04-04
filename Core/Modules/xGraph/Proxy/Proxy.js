@@ -18,7 +18,7 @@
 	 * @param {function} fun Must be returned
 	 */
 	function Setup(com, fun) {
-		log.i('--Proxy/' + com.Cmd + ': ' + (this.Par.Chan || ("No Channel - linked to: " + this.Par.Link || null)) + " " + this.Par.Pid);
+		log.i('--Proxy/Setup: \n', JSON.stringify(this.Par, null, 2));
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		var that = this;

@@ -1,6 +1,6 @@
 {
 	"Apex": {
-		"$Setup":"Setup",
+		"$Setup": "Setup",
 		"$Start": "Start",
 		"Entity": "ChooseSoftmax.js"
 	}

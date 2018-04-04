@@ -4,11 +4,12 @@
 
 		async Setup(com, fun) {
 			com = await this.asuper(com);
+			this.Vlt.Colors = ['rgba(255, 0,0, 0.8)', 'rgba(0, 0,255, 0.8)', 'rgba(0, 255, 9, 0.8'];
 			fun(null, com);
 		}
 
 		async Start(com, fun) {
-			log.d(`Chart/Start`);
+			log.i(`Chart/Start`);
 
 			//subscribe to the server via the webproxy
 			this.send({ Cmd: "Subscribe", Link: "Chart", Pid: this.Par.Pid }, this.Par.Server);
@@ -17,80 +18,32 @@
 
 			await this.cdnImportJs("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js");
 
-			var ctx = this.Par.$.myChart;
-			this.Vlt.Chart = new Chart(ctx, {
-				type: 'bar',
-				data: {
-					labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange", "Red", "Blue", "Yellow", "Green"],
-					datasets: [{
-						label: '# of Votes',
-						data: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-						backgroundColor: [
-							'rgba(255, 99, 132, 0.2)',
-							'rgba(54, 162, 235, 0.2)',
-							'rgba(255, 206, 86, 0.2)',
-							'rgba(75, 192, 192, 0.2)',
-							'rgba(153, 102, 255, 0.2)',
-							'rgba(255, 159, 64, 0.2)',
-							'rgba(255, 99, 132, 0.2)',
-							'rgba(54, 162, 235, 0.2)',
-							'rgba(255, 206, 86, 0.2)',
-							'rgba(75, 192, 192, 0.2)'
-						],
-						borderColor: [
-							'rgba(255,99,132,1)',
-							'rgba(54, 162, 235, 1)',
-							'rgba(255, 206, 86, 1)',
-							'rgba(75, 192, 192, 1)',
-							'rgba(153, 102, 255, 1)',
-							'rgba(255, 159, 64, 1)',
-							'rgba(255,99,132,1)',
-							'rgba(54, 162, 235, 1)',
-							'rgba(255, 206, 86, 1)',
-							'rgba(75, 192, 192, 1)'
-						],
-						borderWidth: 1
-					}, 
-					{
-						label: 'Probability estimates',
-						data: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-						backgroundColor: [
-							'rgba(255, 99, 132, 0.2)',
-							'rgba(54, 162, 235, 0.2)',
-							'rgba(255, 206, 86, 0.2)',
-							'rgba(75, 192, 192, 0.2)',
-							'rgba(153, 102, 255, 0.2)',
-							'rgba(255, 159, 64, 0.2)',
-							'rgba(255, 99, 132, 0.2)',
-							'rgba(54, 162, 235, 0.2)',
-							'rgba(255, 206, 86, 0.2)',
-							'rgba(75, 192, 192, 0.2)'
-						],
-						borderColor: [
-							'rgba(255,99,132,1)',
-							'rgba(54, 162, 235, 1)',
-							'rgba(255, 206, 86, 1)',
-							'rgba(75, 192, 192, 1)',
-							'rgba(153, 102, 255, 1)',
-							'rgba(255, 159, 64, 1)',
-							'rgba(255,99,132,1)',
-							'rgba(54, 162, 235, 1)',
-							'rgba(255, 206, 86, 1)',
-							'rgba(75, 192, 192, 1)'
-						],
-						borderWidth: 1
-					}]
-				},
-				options: {
-					scales: {
-						yAxes: [{
-							ticks: {
-								beginAtZero: true
-							}
-						}]
-					}
-				}
-			});
+
+			// var ctx = this.Par.$.myChart;
+			// let exampleData = [1, 2, 3];
+			// let indexArray = [];
+			// exampleData.map((v, i, a) => { indexArray[i] = i; });
+
+			// this.Vlt.Chart = new Chart(ctx, {
+			// 	type: 'bar',
+			// 	data: {
+			// 		labels: indexArray,
+			// 		datasets: [{
+			// 			data: exampleData,
+			// 			label: "example",
+			// 			backgroundColor: 'rgba(255, 0,0, 0.2)'
+			// 		}]
+			// 	},
+			// 	options: {
+			// 		scales: {
+			// 			yAxes: [{
+			// 				ticks: {
+			// 					beginAtZero: true
+			// 				}
+			// 			}]
+			// 		}
+			// 	}
+			// });
 
 			fun(null, com);
 
@@ -103,11 +56,50 @@
 		}
 
 		AddData(com, fun) {
-			log.d(`ChartView/AddData ${JSON.stringify(com, null, 2)}`);
-			this.Vlt.Chart.data.datasets.forEach((dataset) => {
-				dataset.data = com.Data;
-			});
+			// log.d(`ChartView/AddData ${JSON.stringify(com, null, 2)}`);
+
+			if (!("Directory" in this.Vlt)) {
+				this.Vlt.Directory = [];
+
+				var indexArray = [];
+				com.Data.map((v, i, a) => { indexArray[i] = i; });
+
+				var ctx = this.Par.$.myChart;
+				this.Vlt.Chart = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: indexArray,
+						datasets: []
+					},
+					options: {
+						scales: {
+							yAxes: [{
+								ticks: {
+									beginAtZero: true
+								}
+							}]
+						}
+					}
+				});
+			}
+
+			if (this.Vlt.Directory.indexOf(com.Channel) == -1) {
+				this.Vlt.Directory.push(com.Channel);
+			}
+			let dataSetIndex = this.Vlt.Directory.indexOf(com.Channel);
+			this.Vlt.Chart.labels = indexArray;
+			if (this.Vlt.Chart.data.datasets.length == dataSetIndex)
+				this.Vlt.Chart.data.datasets[dataSetIndex] = {};
+			this.Vlt.Chart.data.datasets[dataSetIndex].data = com.Data;
+			this.Vlt.Chart.data.datasets[dataSetIndex].label = com.Channel;
+			this.Vlt.Chart.data.datasets[dataSetIndex].backgroundColor = this.Vlt.Colors[dataSetIndex];
+
 			this.Vlt.Chart.update();
+			fun(null, com);
+		}
+
+		Resize(com, fun) {
+			this.Vlt.Chart.resize();
 			fun(null, com);
 		}
 	}

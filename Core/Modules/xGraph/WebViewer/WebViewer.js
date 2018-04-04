@@ -244,22 +244,23 @@
 			var Vlt = this.Vlt;
 			var socks = Vlt.Sockets;
 			var keys = Object.keys(socks);
-			log.d(`there are ${keys.length} open sockets`);
-
+			// log.d(`there are ${keys.length} open sockets`);
+			let destination = false;
 			//iterate over all sockets 
 			for (var i = 0; i < keys.length; i++) {
 				let obj = socks[keys[i]];
 				let sock = obj.Socket;
 				let user = obj.User;
-				log.d("Subscribed users are", user.Publish);
+				// log.d(`Socket ${i}: Subscribed users are\n`, user.Publish);
 
 				if ('Forward' in com) {
 					if (!(com.Forward in user.Publish)) {
-						err = `Browser destination ${com.Forward} is not defined in a socket ${i}`;
-						log.w(err);
-						fun(err, com);
+						// err = `Browser destination ${com.Forward} is not defined in socket ${i}`;
+						// log.w(err);
+						// fun(err, com);
 						continue;
 					}
+					destination = true;
 					com.Passport.To = user.Publish[com.Forward];
 					if (fun) {
 						com.Passport.Disp = 'Query';
@@ -273,7 +274,13 @@
 						' communicate with browser side modules';
 					log.w(err);
 					fun(err, com);
+					return;
 				}
+			}
+			if (!destination){
+				let err = `Browser destination ${com.Forward||""}- not defined in any socket`;
+				log.w(err);
+				fun(err, com);
 			}
 		}
 

@@ -26,7 +26,7 @@
 		if (com.Key in this.Vlt.data)
 			com.Data = this.Vlt.data[com.Key];
 		else {
-			err = `Key ${com.Key} not in this.Vlt.data`;
+			err = `Key ${com.Key} not in */SimpleDataStore this.Vlt.data`;
 			com.Data = null;
 		}
 
@@ -40,7 +40,7 @@
 		if (com.Key in this.Vlt.data) {
 			log.v("over writing data in ", com.Key)
 		} else {
-			log.v("set data at key ", com.Key);
+			// log.v("set data at key ", com.Key);
 		}
 
 		this.Vlt.data[com.Key] = com.Data;
