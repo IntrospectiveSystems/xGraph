@@ -2,12 +2,26 @@
 (function ChartView() {
 	class ChartView {
 
+		/**
+		 * Access the div of the view and other provisional setup.
+		 * Also setup an array of colors to use for each of the sets. 
+		 * @param {Object} com 
+		 * @callback fun 
+		 */
 		async Setup(com, fun) {
 			com = await this.asuper(com);
-			this.Vlt.Colors = ['rgba(255, 0,0, 0.8)', 'rgba(0, 0,255, 0.8)', 'rgba(0, 255, 9, 0.8'];
+			this.Vlt.Colors = ['rgba(255, 0,0, 0.8)', 'rgba(0, 255, 0 , 0.8)', 'rgba(0, 0, 255, 0.8'];
 			fun(null, com);
 		}
 
+
+		/**
+		 * Subscribe to the server so that this module is available from the serverside.
+		 * Load in the view canvas in Viewify (super)
+		 * load in the cdn for chart.js
+		 * @param {Object} com 
+		 * @callback fun 
+		 */
 		async Start(com, fun) {
 			log.i(`Chart/Start`);
 
@@ -18,47 +32,22 @@
 
 			await this.cdnImportJs("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js");
 
-
-			// var ctx = this.Par.$.myChart;
-			// let exampleData = [1, 2, 3];
-			// let indexArray = [];
-			// exampleData.map((v, i, a) => { indexArray[i] = i; });
-
-			// this.Vlt.Chart = new Chart(ctx, {
-			// 	type: 'bar',
-			// 	data: {
-			// 		labels: indexArray,
-			// 		datasets: [{
-			// 			data: exampleData,
-			// 			label: "example",
-			// 			backgroundColor: 'rgba(255, 0,0, 0.2)'
-			// 		}]
-			// 	},
-			// 	options: {
-			// 		scales: {
-			// 			yAxes: [{
-			// 				ticks: {
-			// 					beginAtZero: true
-			// 				}
-			// 			}]
-			// 		}
-			// 	}
-			// });
-
 			fun(null, com);
-
-			// setInterval(()=>{
-			// 	myChart.data.datasets.forEach((dataset) => {
-			// 		dataset.data=[Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random())] ;
-			// 	});
-			// 	myChart.update();
-			// }, 1000);
 		}
 
+
+		/**
+		 * Adds new data to a chart or updates existing data
+		 * @param {Object} com 
+		 * @param {Array} com.Data 			the full array of data for the given channel
+		 * @param {String} com.Channel	the name of the dataset to be displayed or updated
+		 * @callback fun 
+		 */
 		AddData(com, fun) {
 			// log.d(`ChartView/AddData ${JSON.stringify(com, null, 2)}`);
 
 			if (!("Directory" in this.Vlt)) {
+				this.Par.$.loader.css("display", "none");
 				this.Vlt.Directory = [];
 
 				var indexArray = [];
@@ -99,7 +88,8 @@
 		}
 
 		Resize(com, fun) {
-			this.Vlt.Chart.resize();
+			if ("Chart" in this.Vlt)
+				this.Vlt.Chart.resize();
 			fun(null, com);
 		}
 	}

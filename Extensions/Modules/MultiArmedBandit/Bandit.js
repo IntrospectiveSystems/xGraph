@@ -14,6 +14,11 @@
 		dispatch: dispatch
 	};
 
+	/**
+	 * Preload the required js scripts from npm and allocate spaces for following used variables
+	 * @param {Object} com 
+	 * @callback fun 
+	 */
 	async function Setup(com, fun) {
 		log.i(`--Bandit/Setup`);
 
@@ -33,7 +38,12 @@
 		fun(null, com);
 	}
 
-
+	/**
+	 * Try to load data from the backend server if available otherwise 
+	 * generate it and send it off to the backend server if available
+	 * @param {Object} com 
+	 * @callback fun 
+	 */
 	async function Start(com, fun) {
 		log.i("--Bandit/Start");
 
@@ -54,7 +64,7 @@
 				});
 			});
 
-		// log.d(`Means ${this.Par.Means}`);
+		//load in the means
 		if (!this.Par.Means || !(this.Par.Means instanceof Array)) {
 			log.v("Bandit - Building new Means");
 			//build an array of means
@@ -70,12 +80,13 @@
 			cmd.Key = "Means";
 			cmd.Data = this.Par.Means;
 			if ("BackendServer" in this.Par)
-			this.send(cmd, this.Par.BackendServer, (err, com) => {
-				if (err) log.w(err);
-				log.v(`Bandit Server has been updated with Means`);
-			});
+				this.send(cmd, this.Par.BackendServer, (err, com) => {
+					if (err) log.w(err);
+					log.v(`Bandit Server has been updated with Means`);
+				});
 		}
 
+		//load in the standard deviations
 		if ("BackendServer" in this.Par)
 			//trying to retrieve the Standard deviations list
 			await new Promise((res, rej) => {
@@ -93,7 +104,6 @@
 				});
 			});
 
-		// log.d(`SD ${this.Par.StandardDeviations}`);
 
 		if (!this.Par.StandardDeviations) {
 			log.v("Bandit - Building new Standard Deviations");
@@ -118,8 +128,9 @@
 				});
 		}
 
-		if ("BackendServer" in this.Par)
 
+		//load in the previous distributions
+		if ("BackendServer" in this.Par)
 			//trying to retuieve the Bandits array
 			await new Promise((res, rej) => {
 				//retrieve the learned data
@@ -136,11 +147,9 @@
 				});
 			});
 
-		// log.d(`Bandits \n${this.Vlt.Bandits}`);
 
 		if (!this.Vlt.Bandits) {
 			log.v("Bandit - Building new Bandits");
-
 			//store the prealloted distributions
 			this.Vlt.Bandits = [];
 			for (let banditIndex = 0; banditIndex < this.Par.BanditCount; banditIndex++) {
@@ -157,18 +166,20 @@
 				});
 		}
 
-
-
-
 		log.v(`There are ${this.Par.BanditCount} one-armed bandits`);
 		log.v(`Preallocating for ${this.Par.PreallocationCount} plays`);
 		log.v(`Means by index are ${this.Par.Means}`);
 		log.v(`Standard Deviations by index are ${this.Par.StandardDeviations}`);
 
-
 		fun(null, com);
 	}
 
+	/**
+	 * Initialize the ML tools with the appropriate size input dimensions
+	 * @param {Object} com 
+	 * @param {String} com.ID		the ID of the module being initialized
+	 * @callback fun 
+	 */
 	function Initialize(com, fun) {
 		let err = null;
 		if (!("ID" in com) || !(typeof com.ID == "string")) {
@@ -188,7 +199,14 @@
 		fun(err, com);
 	}
 
-
+	/**
+	 * The main interaction with the environment. 
+	 * This Function call imitates a "pull of the bandit's arm"
+	 * @param {Object} com 
+	 * @param {Number} com.Index 		The index of the play chosen
+	 * @param {String} com.ID 			The id of the module making the choice
+	 * @callback fun 
+	 */
 	function Play(com, fun) {
 		let err = null;
 		// log.d(typeof com.Index, com.Index);
@@ -203,13 +221,10 @@
 			return;
 		}
 
-		// log.d(JSON.stringify(com, null, 2));
-
 		let playIndex = this.Vlt.PlayerHistory[com.ID][com.Index]++;
 		if (playIndex % this.Par.PreallocationCount == 0 && (playIndex != 0)) {
 			log.d(`Play index is ${playIndex}`);
 			this.Vlt.Bandits[com.Index] = this.Vlt.Bandits[com.Index].concat(this.Vlt.ProbabilityDistributions.rnorm(this.Par.PreallocationCount, this.Par.Means[com.Index], this.Par.StandardDeviations[com.Index]));
-
 
 			let cmd = {};
 			cmd.Cmd = "SetData";
@@ -223,12 +238,14 @@
 		}
 		com.Value = this.Vlt.Bandits[com.Index][playIndex];
 
-		// log.d(`Accessing Play ${playIndex} from BanditIdx ${com.Index} for player ${com.ID} and got value ${com.Value}`);
-
 		fun(null, com);
 	}
 
-
+	/**
+	 * A way for the ML module to access the true state of the environment. 
+	 * @param {Object} com 
+	 * @callback fun 
+	 */
 	function GetTrueState(com, fun) {
 		com.TrueState = this.Par.Means;
 

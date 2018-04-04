@@ -12,6 +12,11 @@
 		dispatch: dispatch
 	};
 
+	/**
+	 * Set a location to store the required data/variables
+	 * @param {Object} com 
+	 * @callback fun 
+	 */
 	function Setup(com, fun) {
 		log.i(`--SimpleDataStore/Setup`);
 
@@ -20,6 +25,13 @@
 		fun(null, com);
 	}
 
+
+	/**
+	 * One of the primary functions of the module. This is used for retrieving stored data. 
+	 * @param {Object} com 
+	 * @param {String} com.Key 		The key of the stored data. Data returned from this.Vlt.data[com.Key].
+	 * @callback fun 
+	 */
 	function GetData(com, fun) {
 		log.v("SimpleDataStore/GetData ", com.Key);
 		let err = null;
@@ -34,6 +46,14 @@
 		fun(err, com);
 	}
 
+
+	/**
+	 * One of the primary functions of the module. This is used for setting stored data. 
+	 * @param {Object} com 
+	 * @param {String} com.Key 		The key of the stored data. Data set to this.Vlt.data[com.Key].
+	 * @param {Object} com.Data		The data to be stored.
+	 * @callback fun 
+	 */
 	function SetData(com, fun) {
 		log.v("SimpleDataStore/SetData ", com.Key);
 
@@ -44,7 +64,6 @@
 		}
 
 		this.Vlt.data[com.Key] = com.Data;
-		// log.d(`setting data ${com.Data}`);
 		fun(null, com);
 	}
 

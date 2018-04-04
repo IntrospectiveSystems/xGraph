@@ -11,6 +11,13 @@
 		dispatch: dispatch
 	};
 
+
+	/**
+	 * Load in the required npm library. 
+	 * Initialize pars that weren't set in the config.json
+	 * @param {Object} com 
+	 * @callback fun 
+	 */
 	function Setup(com, fun) {
 		log.i(`--ChooseEpsilonGreedy/Setup`);
 
@@ -32,16 +39,23 @@
 	}
 
 
+	/**
+	 * Try loading in the pre-trained data from the BackendServer if it exists.
+	 * Access the size of the input required for the Environment. 
+	 * Initialize the Action Loop that chooses the plays from the environment.
+	 * @param {Object} com 
+	 * @callback fun 
+	 */
 	async function Start(com, fun) {
 		log.i("--ChooseEpsilonGreedy/Start");
 
+		//get pretrained data from the backend server
 		await new Promise((res, rej) => {
 			//retrieve the learned data
 			let cmd = {};
 			cmd.Cmd = "GetData";
 			cmd.Key = `${this.Par.Entity}-AverageReturnEstimates`;
 			this.send(cmd, this.Par.BackendServer, async (err, com) => {
-				// log.d(JSON.stringify(com, null, 2));
 				if (err) log.w(err);
 				if (com.Data) {
 					this.Vlt.AverageReturn = com.Data.Returns;
@@ -59,6 +73,7 @@
 			});
 		});
 
+		// get the environment state dimensions 
 		await new Promise((resolve, reject) => {
 			let initialCommand = {
 				Cmd: "Initialize",
@@ -83,14 +98,16 @@
 			});
 		});
 
+		// Define the action loop that performs all the selections. 
+		// This loop is canceled after 1000 plays have been performed. 
+		// Once restarted it will continue based on the previously learned information
 		this.Vlt.ActionLoop = setInterval(() => {
 			if (!this.Vlt.Waiting) {
 				this.Vlt.Waiting = true;
 
 				let maxIndex = this.Vlt.AverageReturn.indexOf(Math.max(...this.Vlt.AverageReturn));
-				// log.d(`max is ${maxIndex}`);
 
-				// // implement an epsilon greedy choosing algorithm
+				// implement an epsilon greedy choosing algorithm
 				let playIndex = null;
 				if (Math.random() < this.Par.Epsilon) {
 					let sampleArray = [];
@@ -98,19 +115,17 @@
 						if (index == maxIndex) continue;
 						sampleArray.push(index);
 					}
-					// log.d(`exploring from ${sampleArray}`);
 					playIndex = this.Vlt.ProbabilityDistributions.sample(sampleArray, 1, false)[0];
-					// log.d(`play ${playIndex}`);
 				} else {
 					playIndex = maxIndex;
 				}
 
+				//build the play (action) command that will be sent to the environment
 				let playCommand = {
 					Cmd: "Play",
 					ID: this.Par.Pid,
 					Index: playIndex
 				};
-
 				this.send(playCommand, this.Par.Environment, (err, com) => {
 					if (err) {
 						log.e(err);
@@ -118,42 +133,38 @@
 						return;
 					}
 
-					// log.d(`Value: ${com.Value}`);
-					// log.d(this.Vlt.AverageReturn);
-					// log.d(this.Vlt.PlayCountByInput);
 					//update the known average returns
 					this.Vlt.PlayCountByInput[com.Index]++;
 					this.Vlt.AverageReturn[com.Index] += ((com.Value - this.Vlt.AverageReturn[com.Index]) / this.Vlt.PlayCountByInput[com.Index]);
+
 					this.Vlt.Waiting = false;
-
-					// log.i(this.Vlt.PlayCountByInput);
 					this.Vlt.TotalRuns = this.Vlt.PlayCountByInput.reduce((sum, current) => { return sum += current; });
-					// log.i(this.Vlt.PlayCountByInput.reduce((sum, current) => { return sum += current; }));
 
-
+					//update the Chart module in the Environment system
 					let cmd = {};
 					cmd.Cmd = "AddData";
 					cmd.Channel = this.Par.Entity;
 					cmd.Data = this.Vlt.AverageReturn;
 					this.send(cmd, this.Par.Chart);
 
-					if (((this.Vlt.TotalRuns - 1) % 1000 == 0) && (this.Vlt.TotalRuns != 1)) { //|| (Math.max(...this.Vlt.PlayCountByInput) >= 500)) {
+					if (((this.Vlt.TotalRuns - 1) % 1000 == 0) && (this.Vlt.TotalRuns != 1)) {
 						log.i("Finished \n", this.Vlt.TotalRuns);
 						log.i(this.Vlt.PlayCountByInput);
 						log.i(`Estimate state max ${this.Vlt.AverageReturn.indexOf(Math.max(...this.Vlt.AverageReturn))}\n`, this.Vlt.AverageReturn);
 
+
+						//get the true state from the environment for comparison.
 						let finalizeCommand = {
 							Cmd: "GetTrueState",
 							ID: this.Par.Pid,
 							Index: playIndex
 						};
-
 						this.send(finalizeCommand, this.Par.Environment, (err, com) => {
 							log.i(`True state max ${com.TrueState.indexOf(Math.max(...com.TrueState))}\n`, com.TrueState);
 							log.i(`Total return ${this.Vlt.PlayCountByInput.reduce((sum, current, index) => { return sum += current * this.Vlt.AverageReturn[index]; })}`);
 							log.i(`Total Average return ${this.Vlt.PlayCountByInput.reduce((sum, current, index) => { return sum += current * this.Vlt.AverageReturn[index]; }) / this.Vlt.TotalRuns}`);
 
-							// process.exit(1);
+							//stop the action loop
 							clearInterval(this.Vlt.ActionLoop);
 
 							//save the learned data
@@ -169,6 +180,7 @@
 								log.v(`ChooseEpsilonGreedy -Server has been updated with Learned Average Returns`);
 							});
 
+							//send the true state to the chart module
 							cmd = {};
 							cmd.Cmd = "AddData";
 							cmd.Channel = "TrueState";
