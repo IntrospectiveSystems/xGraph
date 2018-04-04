@@ -105,7 +105,9 @@
 					var n = data.length;
 					var str = data.toString('utf8', 1, n - 1);
 					log.v('Proxy - Plexus: Data <' + str + '>');
-					var r = JSON.parse(str);
+					str = JSON.parse(str);
+					if (Array.isArray(str))[err, str] = str;
+					var r = str;
 					sock.destroy();
 					if ('Host' in r && 'Port' in r) {
 						log.i(`Proxy - Plexus: Connection Complete`);
@@ -190,10 +192,12 @@
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
 
-				sock.write(Vlt.STX + JSON.stringify({
-					Cmd: "SetPublicKey",
-					Key: Vlt.PublicKey
-				}) + Vlt.ETX);
+				if (!("Encrypt" in Par) || Par.Encrypt) {
+					sock.write(Vlt.STX + JSON.stringify({
+						Cmd: "SetPublicKey",
+						Key: Vlt.PublicKey
+					}) + Vlt.ETX);
+				}
 
 				sock.on('error', (err) => {
 					if (err.code == "ECONNRESET")

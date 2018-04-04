@@ -18,14 +18,17 @@
 			"Par": {
 				"Role": "server",
 				"Link": "$Environment",
-				"Port": 27001
+				"Port": 27001,
+				"AutoSave": false
 			}
 		},
 		"Backend": {
 			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
-				"Role": "client"
+				"Role": "client",
+				"Encrypt":false,
+				"AutoSave": false
 			}
 		},
 		"Chart": {
@@ -42,7 +45,8 @@
 			"Par": {
 				"Role": "server",
 				"Link": "$Chart",
-				"Port": 27002
+				"Port": 27002,
+				"AutoSave": false
 			}
 		},
 		"WebViewer": {

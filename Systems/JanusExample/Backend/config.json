@@ -6,15 +6,16 @@
 		"DataStore": {
 			"Module": "xGraphDev.Extensions.Modules.SimpleDataStore",
 			"Source": "local",
-			"Par": {
-			}
+			"Par": {}
 		},
 		"Server": {
 			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
 				"Role": "Server",
-				"Link": "$DataStore"
+				"Link": "$DataStore",
+				"Encrypt": false,
+				"AutoSave": false
 			}
 		}
 	}

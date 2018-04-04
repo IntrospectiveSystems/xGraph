@@ -19,7 +19,9 @@
 			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
-				"Role": "client"
+				"Role": "client",
+				"Encrypt": false,
+				"AutoSave": false
 			}
 		},
 		"Chart": {
@@ -27,7 +29,8 @@
 			"Source": "local",
 			"Par": {
 				"Role": "client",
-				"Port": 27002
+				"Port": 27002,
+				"AutoSave": false
 			}
 		},
 		"Environment": {
@@ -35,7 +38,8 @@
 			"Source": "local",
 			"Par": {
 				"Role": "client",
-				"Port": 27001
+				"Port": 27001,
+				"AutoSave": false
 			}
 		}
 	}

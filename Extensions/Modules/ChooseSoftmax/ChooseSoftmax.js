@@ -145,9 +145,7 @@
 
 						//get the true state from the environment for comparison.
 						let finalizeCommand = {
-							Cmd: "GetTrueState",
-							ID: this.Par.Pid,
-							Index: playIndex
+							Cmd: "GetTrueState"
 						};
 						this.send(finalizeCommand, this.Par.Environment, (err, com) => {
 							log.i(`True state max ${com.TrueState.indexOf(Math.max(...com.TrueState))}\n`, com.TrueState);

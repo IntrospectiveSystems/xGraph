@@ -1,0 +1,29 @@
+{
+  "input": {
+    "required": [
+      {
+        "Cmd": "AddData",
+        "required": {
+          "Channel": "string",
+          "Data": "object"
+        }
+      }
+    ],
+    "opts": []
+  },
+  "output": {
+    "required": [],
+    "opts": []
+  },
+  "par": {
+    "required": {},
+    "opts": {}
+  },
+  "name": "Chart",
+  "icon": null,
+  "doc": null,
+  "info": {
+    "author": "TrevorGionet"
+  },
+  "src": "xGraphDev/Modules/Chart"
+}
