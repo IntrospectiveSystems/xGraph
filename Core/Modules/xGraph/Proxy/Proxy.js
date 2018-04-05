@@ -97,14 +97,14 @@
 				sock.on('connect', function () {
 					log.i('Proxy - Plexus: Connection Succeeded');
 					var msg = Vlt.STX + JSON.stringify(cmd) + Vlt.ETX;
-					log.v('Sending <' + msg + '> to Plexus');
+					// log.v('Sending <' + msg + '> to Plexus');
 					sock.write(msg);
 				});
 
 				sock.on('data', function (data) {
 					var n = data.length;
 					var str = data.toString('utf8', 1, n - 1);
-					log.v('Proxy - Plexus: Data <' + str + '>');
+					// log.v('Proxy - Plexus: Data <' + str + '>');
 					str = JSON.parse(str);
 					if (Array.isArray(str))[err, str] = str;
 					var r = str;
