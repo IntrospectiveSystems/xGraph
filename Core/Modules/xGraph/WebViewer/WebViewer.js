@@ -69,7 +69,7 @@
 				}
 			});
 			web.listen(port);
-			// webSocket(web);
+			webSocket(web);
 			log.v(' ** Spider listening on port', port);
 			Vlt.Browser = {};
 

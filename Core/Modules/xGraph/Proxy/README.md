@@ -38,22 +38,22 @@ The `MultipleSystems\BankAccount` system structure object. Proxy is used
 here as a server.
 ```
 {
-    "Sources": {
-        "xGraph": "{xGraph}"
-    },
-    "Modules": {
-        "Bank": {
-            "Module": "xGraph.BankAccount"
-        },
-        "BankServer": {
-            "Module": "xGraph.Proxy",
-            "Par": {
-                "Port": 27002,
-                "Role": "Server",
-                "Link": "$Bank"
-            }
-        }
-    }
+	"Sources": {
+		"xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"Bank": {
+			"Module": "xGraph.BankAccount"
+		},
+		"BankServer": {
+			"Module": "xGraph.Proxy",
+			"Par": {
+				"Port": 27002,
+				"Role": "Server",
+				"Link": "$Bank"
+			}
+		}
+	}
 }
 ```
 
@@ -62,50 +62,50 @@ here as a client.
 ```
 {
 	"Sources": {
-      "xGraph": "{xGraph}"
-    },
-    "Modules": {
-        "BankPatron": {
+	  "xGraph": "{xGraph}"
+	},
+	"Modules": {
+		"BankPatron": {
 			"Module": "xGraph.BankPatron",
 			"Par":{
 				"BankAccount":"$BankServer"
 			}
-        },
-        "BankServer": {
-            "Module": "xGraph.Proxy",
-            "Par": {
+		},
+		"BankServer": {
+			"Module": "xGraph.Proxy",
+			"Par": {
 				"Host": "127.0.0.1",
 				"Port": 27002,
 				"Role": "Client",
 				"Poll": true
-            }
-        }
-    }
+			}
+		}
+	}
 }
 ```
 #### Module Definition Parameters
 
 **Role**: _String_ - Either 'Client' or 'Server'. Determines the
-                        Proxy's operation mode.
+						Proxy's operation mode.
 
 **Host**: _String_ - The URL of the server the Proxy will connect to.
 
 **Port**: _Integer_ - The port to open as a server, or the port
-                        to connect to as a client.
+						to connect to as a client.
 
 **Link**: _String_ - Used when proxy is a Server. A reference to the
-                        module that incoming commands received over the
-                        TCP connection are routed to.
-                        
+						module that incoming commands received over the
+						TCP connection are routed to.
+						
 **Poll**: _Boolean_ - Used to determine if Proxy should attempt to re-connect
-												after failed connection attemps.
-                        
+						after failed connection attemps.
+						
 **Chan**: _String_ - Used when managing connections using the Plexus module.
-										 		Proxies with the same Chan (Channel) name will connect
-										 		automatically when connected to the same Plexus server.
+						Proxies with the same Chan (Channel) name will connect
+						automatically when connected to the same Plexus server.
 
 **Timeout** _Integer_ - The time in milliseconds to wait before poll attempts. 
-													Used only if Poll is set to TRUE. 
+						Used only if Poll is set to TRUE. 
 
 #### Input Commands
 
