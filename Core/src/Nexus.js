@@ -1077,8 +1077,8 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 
 		/**
-	 * Call setup on the required Module Apexes
-	 */
+		 * Call setup on the required Module Apexes
+		 */
 		async function setup() {
 			//build the setup promise array
 			let setupArray = [];
@@ -1240,9 +1240,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	/**
 	 * For retrieving modules
 	 * Modules come from the cache directory on the harddrive or the ModCache if its already been read to RAM.
-	 * @param {Object} modRequest
-	 * @param {String} modRequest.Module
-	 * @param {String=} modRequest.Source
+	 * @param {Object} moduleRequest
+	 * @param {String} moduleRequest.Module
+	 * @param {String=} moduleRequest.Source
 	 * @param {Function} fun
 	 * @returns mod
 	 */
@@ -1275,7 +1275,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					});
 				}
 			} else {
-				err = `Module ${cachedMod} does not exist in the cache`
+				err = `Module ${cachedMod} does not exist in the cache`;
 				log.e(err);
 				fun(err);
 				return;
