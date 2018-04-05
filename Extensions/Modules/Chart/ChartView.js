@@ -26,7 +26,8 @@
 			log.i(`Chart/Start`);
 
 			//subscribe to the server via the webproxy
-			this.send({ Cmd: "Subscribe", Link: "Chart", Pid: this.Par.Pid }, this.Par.Server);
+			if ("Server" in this.Par)
+				this.send({ Cmd: "Subscribe", Link: "Chart", Pid: this.Par.Pid }, this.Par.Server);
 
 			com = await this.asuper(com);
 

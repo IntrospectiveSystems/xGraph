@@ -16,8 +16,12 @@
     "opts": []
   },
   "par": {
-    "required": {},
-    "opts": {}
+    "required": {
+      "Server":"xGraphPid"
+    },
+    "opts": {
+      "Root": "boolean"
+    }
   },
   "name": "Chart",
   "icon": null,
