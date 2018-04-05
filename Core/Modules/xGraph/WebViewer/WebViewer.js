@@ -14,12 +14,23 @@
 		//  */
 		var dispatch = {
 			Setup: Setup,
+			Stop: Stop,
 			'*': Broadcast
 		};
 
 		return {
 			dispatch: dispatch
 		};
+
+		async function Stop(com, fun) {
+			// this.Vlt.sockio.close();
+			this.Vlt.server.close();
+			delete this.Vlt.sockio;
+
+			log.i('HTTP Server Closed...');
+
+			fun(null, com);
+		}
 
 		/**
 		 * Setup the required servers and sockets and define all functions that are required to handle browers 
@@ -32,8 +43,13 @@
 			log.v('--WebViewer/Setup');
 			var that = this;
 			var http = this.require('http');
-			var sockio = this.require('socket.io');
+			var sockio = this.Vlt.sockio = this.require('socket.io');
 
+
+			// setTimeout(_ => {
+			// 	log.d('restarting');
+			// 	this.exit(72);
+			// }, 2000);
 			
 			//Port is set in the Par or defaults to 8080; 
 			var port = this.Par.Port || 8080;
@@ -42,7 +58,7 @@
 			var Vlt = this.Vlt;
 
 			// Setup the webserver and dispatch requests
-			var web = http.createServer(function (req, res) {
+			var web = Vlt.server = http.createServer(function (req, res) {
 				log.i('[HTTP] ' + req.url);
 				switch (req.method) {
 					case 'POST':
@@ -53,7 +69,7 @@
 				}
 			});
 			web.listen(port);
-			webSocket(web);
+			// webSocket(web);
 			log.v(' ** Spider listening on port', port);
 			Vlt.Browser = {};
 
