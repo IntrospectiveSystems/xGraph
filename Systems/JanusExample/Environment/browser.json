@@ -7,14 +7,15 @@
 			"Module": "xGraphDev.Extensions.Modules.Chart",
 			"Source": "local",
 			"Par": {
-				"Root": true
+				"Root": true,
+				"Server": "$Server"
 			}
 		},
 		"Server": {
 			"Module": "xGraphDev.Core.Modules.xGraph.WebProxy",
 			"Source": "local",
 			"Par": {
-				"Link":"Server"
+				"Link": "Server"
 			}
 		}
 	}

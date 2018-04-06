@@ -3,23 +3,20 @@
 		"local": "{local}"
 	},
 	"Modules": {
-		"Bandit": {
-			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+		"DataStore": {
+			"Module": "xGraphDev.Extensions.Modules.SimpleDataStore",
 			"Source": "local",
-			"Par": {
-				"BanditCount": 10,
-				"PreallocationCount": 100,
-				"Means": 1
-			}
+			"Par": {}
 		},
 		"Server": {
 			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
 			"Source": "local",
 			"Par": {
 				"Role": "Server",
-				"Link": "$Bandit"
+				"Link": "$DataStore",
+				"Encrypt": false,
+				"AutoSave": false
 			}
-		},
-		"Deferred": []
+		}
 	}
 }

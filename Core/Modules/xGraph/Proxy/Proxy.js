@@ -18,7 +18,7 @@
 	 * @param {function} fun Must be returned
 	 */
 	function Setup(com, fun) {
-		log.i('--Proxy/' + com.Cmd + ': ' + (this.Par.Chan || ("No Channel - linked to: " + this.Par.Link || null)) + " " + this.Par.Pid);
+		log.i('--Proxy/Setup: \n', JSON.stringify(this.Par, null, 2));
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		var that = this;
@@ -38,14 +38,14 @@
 			cmd.Chan = Par.Chan;
 		cmd.Passport = {};
 		cmd.Passport.Disp = 'Query';
-		switch (Par.Role) {
-			case 'Server':
+		switch (Par.Role.toLowerCase()) {
+			case 'server':
 				cmd.Cmd = 'Publish';
 				var ip = this.require('ip');
 				cmd.Host = ip.address();
 				plexus(server);
 				break;
-			case 'Client':
+			case 'client':
 				cmd.Cmd = 'Subscribe';
 				plexus(client);
 				break;
@@ -97,15 +97,17 @@
 				sock.on('connect', function () {
 					log.i('Proxy - Plexus: Connection Succeeded');
 					var msg = Vlt.STX + JSON.stringify(cmd) + Vlt.ETX;
-					log.v('Sending <' + msg + '> to Plexus');
+					// log.v('Sending <' + msg + '> to Plexus');
 					sock.write(msg);
 				});
 
 				sock.on('data', function (data) {
 					var n = data.length;
 					var str = data.toString('utf8', 1, n - 1);
-					log.v('Proxy - Plexus: Data <' + str + '>');
-					var r = JSON.parse(str);
+					// log.v('Proxy - Plexus: Data <' + str + '>');
+					str = JSON.parse(str);
+					if (Array.isArray(str))[err, str] = str;
+					var r = str;
 					sock.destroy();
 					if ('Host' in r && 'Port' in r) {
 						log.i(`Proxy - Plexus: Connection Complete`);
@@ -190,10 +192,12 @@
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
 
-				sock.write(Vlt.STX + JSON.stringify({
-					Cmd: "SetPublicKey",
-					Key: Vlt.PublicKey
-				}) + Vlt.ETX);
+				if (!("Encrypt" in Par) || Par.Encrypt) {
+					sock.write(Vlt.STX + JSON.stringify({
+						Cmd: "SetPublicKey",
+						Key: Vlt.PublicKey
+					}) + Vlt.ETX);
+				}
 
 				sock.on('error', (err) => {
 					if (err.code == "ECONNRESET")
@@ -501,7 +505,7 @@
 		log.i("Proxy/SetPublicKey");
 		let NodeRSA = this.require('node-rsa');
 		this.Vlt.PublicKey = com.Key;
-		log.v(`Socket Encrypted with public key is \n${this.Vlt.PublicKey}`);
+		log.v(`Socket Encrypted with public key: \n${this.Vlt.PublicKey}`);
 		this.Vlt.RSAKey = new NodeRSA();
 		this.Vlt.RSAKey.importKey(this.Vlt.PublicKey, 'public');
 		if (fun) fun(null, com);
@@ -520,11 +524,11 @@
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		if ('Role' in Par) {
-			switch (Par.Role) {
-				case 'Client':
+			switch (Par.Role.toLowerCase()) {
+				case 'client':
 					client();
 					break;
-				case 'Server':
+				case 'server':
 					server();
 					break;
 				default:
@@ -553,6 +557,7 @@
 			if (Vlt.RSAKey) {
 				com = Vlt.RSAKey.encryptPrivate(com, 'base64');
 			}
+			else com = JSON.stringify(com);
 			var msg = Vlt.STX + com + Vlt.ETX;
 			for (var i = 0; i < Vlt.Socks.length; i++) {
 				var sock = Vlt.Socks[i];
@@ -571,7 +576,7 @@
 			}
 		}
 
-		function client() {
+		async function client() {
 			var sock = Vlt.Sock;
 			if (!sock) {
 				log.v('No Socket');
@@ -588,9 +593,22 @@
 			else {
 				Vlt.Fun[com.Passport.Pid] = null;
 			}
-			if (Vlt.RSAKey) {
-				com = Vlt.RSAKey.encrypt(com, 'base64');
-			}
+			if (!("Encrypt" in Par) || Par.Encrypt) {
+				if (Vlt.RSAKey) {
+					com = Vlt.RSAKey.encrypt(com, 'base64');
+				} else {
+					//we must wait until RSAKey exists
+					com = await new Promise((res, rej) => {
+						Vlt.RaceLoop = setInterval(() => {
+							// log.d(`Race Loop`);
+							if (Vlt.RSAKey) {
+								res(Vlt.RSAKey.encrypt(com, 'base64'));
+								clearInterval(Vlt.RaceLoop);
+							}
+						}, 500);
+					});
+				}
+			} else com = JSON.stringify(com);
 			var msg = Vlt.STX + com + Vlt.ETX;
 			sock.write(msg);
 		}

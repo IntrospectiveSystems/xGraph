@@ -50,7 +50,9 @@
 			"Par": {
 				"Role": "Server",
 				"Link": "$Server",
-				"Port": 25005
+				"Port": 25005,
+				"AutoSave": true,
+				"Encrypt": false
 			}
 		},
 		"Google": {
@@ -59,7 +61,9 @@
 			"Par": {
 				"Role": "Client",
 				"Host": "127.0.0.1",
-				"Port": 25000
+				"Port": 25000,
+				"AutoSave": true,
+				"Encrypt": false
 			}
 		},
 		"Tickets": {
@@ -68,7 +72,9 @@
 			"Par": {
 				"Role": "Client",
 				"Host": "127.0.0.1",
-				"Port": 25001
+				"Port": 25001,
+				"AutoSave": true,
+				"Encrypt": false
 			}
 		},
 		"AuthServer": {
@@ -77,7 +83,9 @@
 			"Par": {
 				"Role": "Client",
 				"Host": "127.0.0.1",
-				"Port": 25002
+				"Port": 25002,
+				"AutoSave": true,
+				"Encrypt": false
 			}
 		},
 		"TicketGenSurrogate": {
@@ -86,7 +94,9 @@
 			"Par": {
 				"Role": "Client",
 				"Host": "127.0.0.1",
-				"Port": 25003
+				"Port": 25003,
+				"AutoSave": true,
+				"Encrypt": false
 			}
 		},
 		"GoogleLoginProvider": {
@@ -95,7 +105,9 @@
 			"Par": {
 				"Role": "Client",
 				"Host": "127.0.0.1",
-				"Port": 25004
+				"Port": 25004,
+				"AutoSave": true,
+				"Encrypt": false
 			}
 		}
 	}

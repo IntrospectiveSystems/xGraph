@@ -1,4 +1,4 @@
-### Proxy v1.1.1
+### Proxy v1.1.2
 
 _Introspective Systems, LLC_
 
@@ -106,6 +106,10 @@ here as a client.
 
 **Timeout** _Integer_ - The time in milliseconds to wait before poll attempts. 
 						Used only if Poll is set to TRUE. 
+
+**AutoSave** _Boolean_ - Should the Proxy be autoSaved into the cache.
+
+**Encrypt** _Boolean_ - If false then we will not use encryption defaults to encrypt.
 
 #### Input Commands
 

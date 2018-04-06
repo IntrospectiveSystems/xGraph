@@ -2,64 +2,96 @@
 (function ChartView() {
 	class ChartView {
 
-		async Setup(com, fun){
+		/**
+		 * Access the div of the view and other provisional setup.
+		 * Also setup an array of colors to use for each of the sets. 
+		 * @param {Object} com 
+		 * @callback fun 
+		 */
+		async Setup(com, fun) {
 			com = await this.asuper(com);
+			this.Vlt.Colors = ['rgba(255, 0,0, 0.8)', 'rgba(0, 255, 0 , 0.8)', 'rgba(0, 0, 255, 0.8'];
 			fun(null, com);
 		}
 
+
+		/**
+		 * Subscribe to the server so that this module is available from the serverside.
+		 * Load in the view canvas in Viewify (super)
+		 * load in the cdn for chart.js
+		 * @param {Object} com 
+		 * @callback fun 
+		 */
 		async Start(com, fun) {
-			log.d(`Chart/Start`)
+			log.i(`Chart/Start`);
+
+			//subscribe to the server via the webproxy
+			if ("Server" in this.Par)
+				this.send({ Cmd: "Subscribe", Link: "Chart", Pid: this.Par.Pid }, this.Par.Server);
 
 			com = await this.asuper(com);
 
 			await this.cdnImportJs("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js");
 
-			var ctx = this.Par.$.myChart;
-			var myChart = new Chart(ctx, {
-				type: 'bar',
-				data: {
-					labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-					datasets: [{
-						label: '# of Votes',
-						data: [12, 19, 3, 5, 2, 3],
-						backgroundColor: [
-							'rgba(255, 99, 132, 0.2)',
-							'rgba(54, 162, 235, 0.2)',
-							'rgba(255, 206, 86, 0.2)',
-							'rgba(75, 192, 192, 0.2)',
-							'rgba(153, 102, 255, 0.2)',
-							'rgba(255, 159, 64, 0.2)'
-						],
-						borderColor: [
-							'rgba(255,99,132,1)',
-							'rgba(54, 162, 235, 1)',
-							'rgba(255, 206, 86, 1)',
-							'rgba(75, 192, 192, 1)',
-							'rgba(153, 102, 255, 1)',
-							'rgba(255, 159, 64, 1)'
-						],
-						borderWidth: 1
-					}]
-				},
-				options: {
-					scales: {
-						yAxes: [{
-							ticks: {
-								beginAtZero: true
-							}
-						}]
-					}
-				}
-			});
-
 			fun(null, com);
+		}
 
-			setInterval(()=>{
-				myChart.data.datasets.forEach((dataset) => {
-					dataset.data=[Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random()),Math.floor(10*Math.random())] ;
+
+		/**
+		 * Adds new data to a chart or updates existing data
+		 * @param {Object} com 
+		 * @param {Array} com.Data 			the full array of data for the given channel
+		 * @param {String} com.Channel	the name of the dataset to be displayed or updated
+		 * @callback fun 
+		 */
+		AddData(com, fun) {
+			// log.d(`ChartView/AddData ${JSON.stringify(com, null, 2)}`);
+
+			if (!("Directory" in this.Vlt)) {
+				this.Par.$.loader.css("display", "none");
+				this.Vlt.Directory = [];
+
+				var indexArray = [];
+				com.Data.map((v, i, a) => { indexArray[i] = i; });
+
+				var ctx = this.Par.$.myChart;
+				this.Vlt.Chart = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: indexArray,
+						datasets: []
+					},
+					options: {
+						scales: {
+							yAxes: [{
+								ticks: {
+									beginAtZero: true
+								}
+							}]
+						}
+					}
 				});
-				myChart.update();
-			}, 1000);
+			}
+
+			if (this.Vlt.Directory.indexOf(com.Channel) == -1) {
+				this.Vlt.Directory.push(com.Channel);
+			}
+			let dataSetIndex = this.Vlt.Directory.indexOf(com.Channel);
+			this.Vlt.Chart.labels = indexArray;
+			if (this.Vlt.Chart.data.datasets.length == dataSetIndex)
+				this.Vlt.Chart.data.datasets[dataSetIndex] = {};
+			this.Vlt.Chart.data.datasets[dataSetIndex].data = com.Data;
+			this.Vlt.Chart.data.datasets[dataSetIndex].label = com.Channel;
+			this.Vlt.Chart.data.datasets[dataSetIndex].backgroundColor = this.Vlt.Colors[dataSetIndex];
+
+			this.Vlt.Chart.update();
+			fun(null, com);
+		}
+
+		Resize(com, fun) {
+			if ("Chart" in this.Vlt)
+				this.Vlt.Chart.resize();
+			fun(null, com);
 		}
 	}
 

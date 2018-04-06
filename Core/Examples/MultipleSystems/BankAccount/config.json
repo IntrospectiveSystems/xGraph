@@ -13,7 +13,8 @@
             "Par": {
                 "Port": 27002,
                 "Role": "Server",
-                "Link": "$Bank"
+                "Link": "$Bank",
+                "AutoSave":false
             }
         }
     }

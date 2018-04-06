@@ -1,12 +1,12 @@
 {
-  "name": "multiarmedbandit",
+  "name": "choosesoftmax",
   "version": "1.0.0",
   "description": "",
-  "main": "Bandit.js",
+  "main": "ChooseSoftmax.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "introspective systems",
   "license": "ISC",
   "dependencies": {
     "probability-distributions": "^0.9.1"
