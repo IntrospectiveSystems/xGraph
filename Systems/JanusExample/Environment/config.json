@@ -1,0 +1,65 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"Environment": {
+			"Module": "xGraphDev.Extensions.Modules.MultiArmedBandit",
+			"Source": "local",
+			"Par": {
+				"BanditCount": 10,
+				"Means": 1,
+				"BackendServer": "$Backend"
+			}
+		},
+		"EnvironmentServer": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "server",
+				"Link": "$Environment",
+				"Port": 27001,
+				"AutoSave": false
+			}
+		},
+		"Backend": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "client",
+				"Encrypt":false,
+				"AutoSave": false
+			}
+		},
+		"Chart": {
+			"Module": "xGraphDev.Core.Modules.xGraph.ServerProxy",
+			"Source": "local",
+			"Par": {
+				"Link": "Chart",
+				"Server": "$WebViewer"
+			}
+		},
+		"ChartServer": {
+			"Module": "xGraphDev.Core.Modules.xGraph.Proxy",
+			"Source": "local",
+			"Par": {
+				"Role": "server",
+				"Link": "$Chart",
+				"Port": 27002,
+				"AutoSave": false
+			}
+		},
+		"WebViewer": {
+			"Module": "xGraphDev.Core.Modules.xGraph.WebViewer",
+			"Source": "local",
+			"Par": {
+				"ApexList": {
+					"Server": "$Server"
+				},
+				"Port": 8080,
+				"Url": "",
+				"": "@system: browser.json"
+			}
+		}
+	}
+}

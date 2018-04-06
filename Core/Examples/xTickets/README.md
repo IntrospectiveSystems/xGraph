@@ -66,7 +66,7 @@ First, run the Tickets system. If you are in the the root directory,
 you can run the system by running this command:
 
 ```
-xgraph reset --cwd .\Examples\xTickets\Systems\Tickets\ --local .\Examples\xTickets\Modules\ --Core .\Modules\
+xgraph reset --cwd ./Examples/xTickets/Systems/Tickets/ --local ./Examples/xTickets/Modules/ --Core ./Modules/
 ```
 
 Now the Tickets system is waiting for the Website system to launch.
@@ -75,7 +75,7 @@ Next, run the Website system. If you are in the root directory, you can
 run the Website system by running this command:
 
 ```
-xgraph reset --cwd .\Examples\xTickets\Systems\Website\ --local .\Examples\xTickets\Modules\ --Core .\Modules\
+xgraph reset --cwd ./Examples/xTickets/Systems/Website/ --local ./Examples/xTickets/Modules/ --Core ./Modules/
 ```
 
 Now you can access the Website system, a browser based GUI, by visiting

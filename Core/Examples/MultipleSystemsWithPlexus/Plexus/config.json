@@ -13,7 +13,8 @@
             "Source": "xGraph",
             "Par": {
                 "Link": "$Plexus",
-                "Role": "Server"
+                "Role": "Server",
+        				"Encrypt": false
             }
         }
     }

@@ -1,0 +1,14 @@
+{
+  "name": "choosesoftmax",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ChooseSoftmax.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "introspective systems",
+  "license": "ISC",
+  "dependencies": {
+    "probability-distributions": "^0.9.1"
+  }
+}

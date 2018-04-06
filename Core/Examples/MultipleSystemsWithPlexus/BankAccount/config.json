@@ -9,14 +9,15 @@
             "Par": {
                 "Balance": "10"
             }
-        }, 
+        },
         "BankServer": {
             "Module": "xGraph.Proxy",
             "Source": "xGraph",
             "Par": {
-                "Chan": "Bank", 
-                "Link": "$Bank", 
-                "Role": "Server"
+                "Chan": "Bank",
+                "Link": "$Bank",
+                "Role": "Server",
+        				"Encrypt": false
             }
         }
     }
