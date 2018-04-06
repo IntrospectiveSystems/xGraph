@@ -16,7 +16,8 @@
             "Par": {
                 "Chan": "Bank",
                 "Link": "$BankPatron",
-                "Role": "Client"
+                "Role": "Client",
+        				"Encrypt": false
             }
         }
     }

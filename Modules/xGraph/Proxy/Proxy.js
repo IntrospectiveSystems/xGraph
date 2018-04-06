@@ -3,6 +3,7 @@
 
 	var dispatch = {
 		Setup: Setup,
+		SetPublicKey,
 		"*": Proxy
 	};
 
@@ -17,11 +18,12 @@
 	 * @param {function} fun Must be returned
 	 */
 	function Setup(com, fun) {
-		log.i('--Proxy/' + com.Cmd + ': ' + (this.Par.Chan || ("No Channel - linked to: " + this.Par.Link || null)) + " " + this.Par.Pid);
+		log.i('--Proxy/Setup: \n', JSON.stringify(this.Par, null, 2));
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		var that = this;
 		var net = this.require('net');
+		var NodeRSA = this.require('node-rsa');
 		var plx;
 		var tmp = new Buffer(2);
 		tmp[0] = 2;
@@ -36,14 +38,14 @@
 			cmd.Chan = Par.Chan;
 		cmd.Passport = {};
 		cmd.Passport.Disp = 'Query';
-		switch (Par.Role) {
-			case 'Server':
+		switch (Par.Role.toLowerCase()) {
+			case 'server':
 				cmd.Cmd = 'Publish';
 				var ip = this.require('ip');
 				cmd.Host = ip.address();
 				plexus(server);
 				break;
-			case 'Client':
+			case 'client':
 				cmd.Cmd = 'Subscribe';
 				plexus(client);
 				break;
@@ -56,6 +58,11 @@
 		}
 
 		function plexus(connect) {
+			if (!('Chan' in Par)) {
+				connect(Par.Host || '127.0.0.1', parseInt(Par.Port || 27000));
+				return;
+			}
+
 			var plex = Par.Plexus || '127.0.0.1:27000';
 
 			//pull the plexus host and port form the process args
@@ -76,10 +83,6 @@
 			var port = that.Par.Port || parts[1] || 27000;
 			if (typeof port != "number")
 				port = parseInt(port);
-			if (!('Chan' in Par)) {
-				connect(host, port);
-				return;
-			}
 			var sock = new net.Socket();
 
 			connectLoop();
@@ -94,15 +97,17 @@
 				sock.on('connect', function () {
 					log.i('Proxy - Plexus: Connection Succeeded');
 					var msg = Vlt.STX + JSON.stringify(cmd) + Vlt.ETX;
-					log.v('Sending <' + msg + '> to Plexus');
+					// log.v('Sending <' + msg + '> to Plexus');
 					sock.write(msg);
 				});
 
 				sock.on('data', function (data) {
 					var n = data.length;
 					var str = data.toString('utf8', 1, n - 1);
-					log.v('Proxy - Plexus: Data <' + str + '>');
-					var r = JSON.parse(str);
+					// log.v('Proxy - Plexus: Data <' + str + '>');
+					str = JSON.parse(str);
+					if (Array.isArray(str))[err, str] = str;
+					var r = str;
 					sock.destroy();
 					if ('Host' in r && 'Port' in r) {
 						log.i(`Proxy - Plexus: Connection Complete`);
@@ -111,10 +116,10 @@
 						connect(r.Host, r.Port);
 					}
 					else {
-						var err = 'Proxy - incorrect reply from Plexus';
-						log.w('Proxy - Plexus: ' + err);
-						if ("Chan" in Par)
-							log.w('  Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
+						var err = `Proxy - the requested channel ${Par.Chan || ""} is not yet available in Plexus`;
+						log.i('Proxy - Plexus: ' + err);
+						// if ("Chan" in Par)
+						// 	log.w('  Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
 						if (!("Timer" in Vlt)) {
 							Vlt.Timer = setTimeout(() => {
 								log.e("Error: Proxy " + Par.Pid + " connection timeout. Last Attempt.");
@@ -147,6 +152,7 @@
 		}
 
 		function server(host, port) {
+			let publicKey = null;
 			if (!port) {
 				var err = 'Proxy - server requires port assignment';
 				log.e(err);
@@ -157,9 +163,20 @@
 				var err = 'Proxy servers require a Link parameter';
 				log.e(err);
 				log.e(JSON.stringify(Par, null, 2));
-				if (fun)
-					fun(err);
+				fun(err);
 				return;
+			}
+			if ("Encrypt" in Par && (!Par.Encrypt)) {
+				keyPair = null;
+			}
+			else {
+				if (("PrivateKey" in Par) && (typeof Par.PrivateKey == "string")) {
+					Vlt.RSAKey = new NodeRSA();
+					Vlt.RSAKey.importKey(Par.PrivateKey, Par.PrivateKeyFormat || "private");
+				} else {
+					Vlt.RSAKey = new NodeRSA({ b: 512 });
+					Vlt.PublicKey = Vlt.RSAKey.exportKey("public");
+				}
 			}
 			Vlt.Buf = '';
 			Vlt.State = 0;
@@ -168,16 +185,26 @@
 			Vlt.Socks = [];
 			net.createServer(function (sock) {
 				log.v('#### Portal connection from',
-					sock.remoteAddress + ':' + sock.remotePort);
+					sock.remoteAddress + ' :: ' + sock.remotePort);
 				Vlt.Socks.push(sock);
 				sock._userData = {};
 				sock._userData.Buf = '';
 				sock._userData.State = 0;
 
+				if (!("Encrypt" in Par) || Par.Encrypt) {
+					sock.write(Vlt.STX + JSON.stringify({
+						Cmd: "SetPublicKey",
+						Key: Vlt.PublicKey|| null
+					}) + Vlt.ETX);
+				}
+
 				sock.on('error', (err) => {
-					log.w('Proxy:genServer:' + err);
+					if (err.code == "ECONNRESET")
+						log.v("Proxy: socket closed by other party");
+					else
+						log.w("Proxy ", err);
 					if ("Chan" in Par)
-						log.w('		Proxy:Chan' + Par.Chan);
+						log.w('		Proxy: Chan - ' + Par.Chan);
 				});
 
 				// Process data received from socket. The messages are
@@ -193,7 +220,7 @@
 					var nd = data.length;
 					var i1 = 0;
 					var i2 = nd - 1;
-					//	console.log(State, i1, i2, Buf.length, data.length, 'data <' + data + '>');
+					// log.d(State, i1, i2, Buf.length, data.length, 'data <' + data + '>');
 					for (let i = 0; i < nd; i++) {
 						switch (State) {
 							case 0:
@@ -207,6 +234,10 @@
 								i2 = i;
 								if (data[i] === ETX) {
 									Buf += data.toString('utf8', i1, i2);
+									if (Vlt.PublicKey) {
+
+										Buf = Vlt.RSAKey.decrypt(Buf, 'utf8');
+									}
 									var obj = JSON.parse(Buf);
 									Fifo.push(obj);
 									State = 0;
@@ -228,7 +259,6 @@
 							isQuery = true;
 						else
 							isQuery = false;
-
 
 						that.send(q, Par.Link, reply);
 
@@ -274,8 +304,11 @@
 										return obj;
 									}
 								}
-
-								str = JSON.stringify(r);
+								// parse it into a message
+								str = JSON.stringify([err, r]);
+								if (Vlt.RSAKey) {
+									str = Vlt.RSAKey.encryptPrivate(str, 'base64');
+								}
 								let msg = Vlt.STX + str + Vlt.ETX;
 								var res = sock.write(msg, 'utf8', loop);
 							}
@@ -283,7 +316,7 @@
 					}
 				});
 			}).listen(port);
-			log.i(`${Par.Chan || ""} Portal listening on port`, port);
+			log.i(`${Par.Chan || ""} Portal listening on port ${port}`);
 			fun();
 		}
 
@@ -322,7 +355,7 @@
 				sock.on('error', (err) => {
 					log.e('ERR:Proxy:genClient: ' + err);
 					if ("Chan" in Par)
-						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Hose:' + host, 'Port:' + port);
+						log.w('    Name:' + Par.Name, 'Chan:', Par.Chan, 'Host:' + host, 'Port:' + port);
 					if (Par.Poll) {
 						if (!("Timer" in Vlt) && "Timeout" in Par) {
 							Vlt.Timer = setTimeout(() => {
@@ -398,9 +431,13 @@
 						default:
 							Vlt.Buf += data.toString('utf8', i1, i2);
 							Vlt.State = 0;
-							let com = JSON.parse(Vlt.Buf);
-							
-							
+							if (Vlt.PublicKey) {
+								Vlt.Buf = Vlt.RSAKey.decryptPublic(Vlt.Buf, 'utf8');
+							}
+							let err, com = JSON.parse(Vlt.Buf);
+							if (Array.isArray(com))[err, com] = com;
+
+
 							// -------------------------- Pid interchange
 							if (com.PidInterchange) {
 								// log.d('IM HERE!!!', com);
@@ -414,7 +451,7 @@
 										&& 'Host' in obj.Value
 										&& 'Port' in obj.Value
 										&& obj.Format == 'is.xgraph.proxyconnection') {
-										let {Host, Port} = obj.Value;
+										let { Host, Port } = obj.Value;
 										let pid = await new Promise(resolve => {
 											that.genModule({
 												Module: 'xGraph.Proxy',
@@ -424,7 +461,7 @@
 													Port
 												}
 											}, (err, apx) => {
-												log.d(`converted to ${apx}`);
+												// log.d(`converted to ${apx}`);
 												resolve(apx);
 											});
 										});
@@ -444,10 +481,12 @@
 								}
 							}
 
-
-							if ('Reply' in com.Passport) {
+							if (!com.Passport) {
+								// log.d(`dispatching ${JSON.stringify(com, null, 2)}`);
+								that.dispatch(com);
+							} else if ('Reply' in com.Passport) {
 								if (Vlt.Fun[com.Passport.Pid])
-									Vlt.Fun[com.Passport.Pid](null, com);
+									Vlt.Fun[com.Passport.Pid](err || null, com);
 							} else {
 								that.send(com, Par.Link);
 							}
@@ -457,7 +496,23 @@
 			}
 		}
 
-		this.save(_=>_);
+		if (this.Par.AutoSave)
+			this.save(_ => _);
+	}
+
+	function SetPublicKey(com, fun) {
+		log.i("Proxy/SetPublicKey");
+		let NodeRSA = this.require('node-rsa');
+		this.Vlt.PublicKey = com.Key;
+		if (!this.Vlt.PublicKey){
+			if (("PublicKey" in this.Par) && (typeof this.Par.PublicKey == "string")){
+				this.Vlt.PublicKey = this.Par.PublicKey;
+			}
+		}
+		log.v(`Socket Encrypted with public key: \n${this.Vlt.PublicKey}`);
+		this.Vlt.RSAKey = new NodeRSA();
+		this.Vlt.RSAKey.importKey(this.Vlt.PublicKey, this.Par.PublicKeyFormat || 'public');
+		if (fun) fun(null, com);
 	}
 
 	//-----------------------------------------------------Proxy
@@ -473,17 +528,17 @@
 		var Par = this.Par;
 		var Vlt = this.Vlt;
 		if ('Role' in Par) {
-			switch (Par.Role) {
-				case 'Client':
+			switch (Par.Role.toLowerCase()) {
+				case 'client':
 					client();
 					break;
-				case 'Server':
+				case 'server':
 					server();
 					break;
 				default:
 					log.i('Par', JSON.stringify(Par, null, 2));
 					var err = 'Proxy role is unknown';
-					log.w('ERR:Proxy:Proxy: ' + err);
+					log.w('ERR:Proxy/Proxy: ' + err);
 					if ("Chan" in Par)
 						log.w('    Proxy:' + Par.Chan);
 					if (fun)
@@ -502,7 +557,12 @@
 
 
 		function server() {
-			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
+			//encrypt as base64 
+			if (Vlt.RSAKey) {
+				com = Vlt.RSAKey.encryptPrivate(com, 'base64');
+			}
+			else com = JSON.stringify(com);
+			var msg = Vlt.STX + com + Vlt.ETX;
 			for (var i = 0; i < Vlt.Socks.length; i++) {
 				var sock = Vlt.Socks[i];
 				sock.write(msg);
@@ -520,7 +580,7 @@
 			}
 		}
 
-		function client() {
+		async function client() {
 			var sock = Vlt.Sock;
 			if (!sock) {
 				log.v('No Socket');
@@ -537,7 +597,23 @@
 			else {
 				Vlt.Fun[com.Passport.Pid] = null;
 			}
-			var msg = Vlt.STX + JSON.stringify(com) + Vlt.ETX;
+			if (!("Encrypt" in Par) || Par.Encrypt) {
+				if (Vlt.RSAKey) {
+					com = Vlt.RSAKey.encrypt(com, 'base64');
+				} else {
+					//we must wait until RSAKey exists
+					com = await new Promise((res, rej) => {
+						Vlt.RaceLoop = setInterval(() => {
+							// log.d(`Race Loop`);
+							if (Vlt.RSAKey) {
+								res(Vlt.RSAKey.encrypt(com, 'base64'));
+								clearInterval(Vlt.RaceLoop);
+							}
+						}, 500);
+					});
+				}
+			} else com = JSON.stringify(com);
+			var msg = Vlt.STX + com + Vlt.ETX;
 			sock.write(msg);
 		}
 	}

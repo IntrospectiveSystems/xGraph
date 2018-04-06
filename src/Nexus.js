@@ -540,7 +540,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		};
 
 		/**
-		 * load a dependency for a module
+		 * Given a module name, `require` loads the given module, returning the module object.
 		 * @param {string} string 	the string of the module to require/load
 		 */
 		function require(string) {
@@ -578,9 +578,10 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * entity access to the genModule command
-		 * @param {object} mod 	the description of the Module to generate
-		 * @param {string} mod.Module the module to generate
+		 * Entity access to the genModule command. When this.genModule is called from an entity,
+		 * the mod and fun parameters are passed along to nxs.genModule.
+		 * @param {object} mod 			The module definition object.
+		 * @param {string} mod.Module 	The namespace of the module that will be generated.
 		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
 		 * @callback fun
 		 */
@@ -602,7 +603,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		/**
 		 * entity access to the genModule command
 		 * @param {object} modObj 	an object containing one or more module descriptions
-		 * @callback fun(err,pidofTop,objectOfAllModulesGenerated)
+		 * @callback fun()
 		 */
 		function genModules(modObj, fun) {
 			//	log.v('--Entity/genModule');
@@ -637,9 +638,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		}
 
 		/**
-		 * Send a message to another entity, you can only send messages to Apexes of modules
-		 * unless both sender and recipient are in the same module
-		 * @param {object} com  		the message object to send
+		 * sends the command object and the callback function to the xGraph part (entity or module, depending on the
+		 * fractal layer) specified in the Pid.
+         * @param {object} com  		the message object to send
 		 * @param {string} com.Cmd		the function to send the message to in the destination entity
 		 * @param {string} pid 			the pid of the recipient (destination) entity
 		 * @callback fun
@@ -880,7 +881,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	}
 
 	/**
-	 * Spin up an entity from cache into memory and retrievd its context
+	 * Spin up an entity from cache into memory and retrieved its context
 	 * otherwise just return it's context from memory
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
@@ -943,7 +944,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	}
 
 	/**
-	 * Starts an instance of a module that exists in the cache.
+	 * Starts an instance of a the given module.
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
 	 * @param {string?} inst.Module 	The name of the module to spin up

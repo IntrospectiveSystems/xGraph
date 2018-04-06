@@ -1,25 +1,37 @@
-### xTickets (A System of Systems Example)
+### xTickets
+#### A System of Systems Example
 
-xTickets is an example of a complicated system of systems built using
-the xGraph platform. xTickets consists of two systems: Tickets and
-Website. The Tickets system is the ticket server, managing and saving
-ticket and user data, while Website is a browser based graphical user
-interface for the Tickets system.
+xTickets is an example of a system of systems built using the xGraph
+platform. *For an example of a simple system, see the HelloWorld
+example system, `.\Examples\HelloWorld\`.*
 
-xTickets modules come from two places: xGraph core modules, which are
-fully documented and ready to use in other systems, and xTicket modules.
-In this same way, you can create modules for your systems and integrate
-them into systems that use xGraph Core modules. The xTickets systems
-show how you can use xGraph to be creative when making your own system.
-You can use xGraph to make systems that work for your unique problem!
+xTickets is an example of an application that consists of a backend
+system and a frontend system. xTickets shows how you can build a fully
+functional application using the xGraph platform.
+
+xTickets consists of two systems, Tickets (`.\Examples\xTickets\Systems\Tickets\`)
+and Website (`.\Examples\xTickets\Systems\Website\`). The Tickets system
+is the ticket server (or backend), which manages and saves ticket and
+user data. The Website system is a browser based graphical user
+interface (or frontend) for the Tickets system, which allows users to
+view tickets, interact with current tickets, and create new tickets.
+
+##### Custom Built Modules
+
+When you are building a solution using the xGraph platform, it is likely
+that you will want to create modules that are unique to your problem.
+The xTickets systems are built using custom modules, found in
+`.\Examples\xTickets\Modules\`, which are built specifically for the
+xTickets system, as well as xGraph core modules, found in `.\Modules\`.
+
+Just like we have done in xTickets, you can create modules for your
+systems and integrate them into systems that use xGraph Core modules
+the same way the xTickets system is built. Be creative when making your
+own system. You can use xGraph to make systems that work for your
+unique problem!
+
 
 #### Getting Started
-
-You can run xTickets locally to see a complicated system of systems in action.
-(See our
-[Systems Guide](https://github.com/IntrospectiveSystems/xGraph/wiki/1.2-Systems-Guide)
-for information on what an xGraph system looks like, how it works, and
-how to run each system.)
 
 ##### Google Authentification
 Before using xTickets, you must register your app to get Google OAuth
@@ -40,10 +52,33 @@ respectively.
 Once this is in place, you are all set to run your systems.
 
 ##### Running Systems of Systems
-xTickets is a system of systems, so you will have to run two systems to
-run xTickets. First, you will run Tickets. Then, when Tickets has
-launched, it will be listening for the Website system. Now you can run
-the Website system. Finally, you can access the Website GUI by visiting
+
+*See our
+[Systems Guide](https://github.com/IntrospectiveSystems/xGraph/wiki/1.2-Systems-Guide)
+for information on what an xGraph system looks like, how it works, and
+how to run each system.*
+
+You can run xTickets locally to see a system of systems in action.
+Because it is a system of systems, you will have to run two systems to
+run the full xTickets application.
+
+First, run the Tickets system. If you are in the the root directory,
+you can run the system by running this command:
+
+```
+xgraph reset --cwd ./Examples/xTickets/Systems/Tickets/ --local ./Examples/xTickets/Modules/ --Core ./Modules/
+```
+
+Now the Tickets system is waiting for the Website system to launch.
+
+Next, run the Website system. If you are in the root directory, you can
+run the Website system by running this command:
+
+```
+xgraph reset --cwd ./Examples/xTickets/Systems/Website/ --local ./Examples/xTickets/Modules/ --Core ./Modules/
+```
+
+Now you can access the Website system, a browser based GUI, by visiting
 `localhost:8080/login`.
 
 ##### localhost and Google Authentication
