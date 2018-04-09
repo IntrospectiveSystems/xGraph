@@ -13,15 +13,15 @@
 
 
 	/**
-	 * Load in the required npm library. 
+	 * Load in the required npm library.
 	 * Initialize pars that weren't set in the config.json
-	 * @param {Object} com 
-	 * @callback fun 
+	 * @param {Object} com
+	 * @callback fun
 	 */
 	function Setup(com, fun) {
 		log.i(`--ChooseEpsilonGreedy/Setup`);
 
-		//load in npm module "probability-distributions" to 
+		//load in npm module "probability-distributions"
 		this.Vlt.ProbabilityDistributions = this.require("probability-distributions");
 
 		if (!("Epsilon" in this.Par) || !(typeof this.Par.Epsilon == "number"))
@@ -41,10 +41,10 @@
 
 	/**
 	 * Try loading in the pre-trained data from the BackendServer if it exists.
-	 * Access the size of the input required for the Environment. 
+	 * Access the size of the input required for the Environment.
 	 * Initialize the Action Loop that chooses the plays from the environment.
-	 * @param {Object} com 
-	 * @callback fun 
+	 * @param {Object} com
+	 * @callback fun
 	 */
 	async function Start(com, fun) {
 		log.i("--ChooseEpsilonGreedy/Start");
@@ -73,7 +73,7 @@
 			});
 		});
 
-		// get the environment state dimensions 
+		// get the environment state dimensions
 		await new Promise((resolve, reject) => {
 			let initialCommand = {
 				Cmd: "Initialize",
@@ -98,8 +98,8 @@
 			});
 		});
 
-		// Define the action loop that performs all the selections. 
-		// This loop is canceled after 1000 plays have been performed. 
+		// Define the action loop that performs all the selections.
+		// This loop is canceled after 1000 plays have been performed.
 		// Once restarted it will continue based on the previously learned information
 		this.Vlt.ActionLoop = setInterval(() => {
 			if (!this.Vlt.Waiting) {
@@ -143,7 +143,7 @@
 					//update the Chart module in the Environment system
 					let cmd = {};
 					cmd.Cmd = "AddData";
-					cmd.Channel = this.Par.Entity;
+					cmd.Channel = "Epsilon Greedy";
 					cmd.Data = this.Vlt.AverageReturn;
 					this.send(cmd, this.Par.Chart);
 

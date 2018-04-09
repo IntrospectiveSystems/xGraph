@@ -14,23 +14,25 @@ module handles the systems functionality. HelloWorld is built to print
 a welcome message to the user, wait for user input, repeat what the user
 said, and increment a counter.
 
-To run this example in your command line make sure you are in the HelloWorld
-folder in the Examples directory and have installed your command line tool in
-the [bin](../bin) folder. You should then be able to run this system using the
-following command
+Before you try to run the HelloWorld system, make sure you have installed
+the xgraph command line tool, found in the [bin](../bin) folder,
+`.\bin\`.
+
+To run this example using the xgraph CLI, first navigate to the HelloWorld
+folder in the Examples directory, `.\Examples\HelloWorld\`.  Now you can
+this system using the following command
 
     xgraph x ./config.json --XGraph ../../Modules
 
-You will then see several messages telling you what various components of xGraph
-are doing for setup and start phases.  Eventually you will be greeted with a
-prompt
+Next you will see several messages as different parts of xGraph are setup
+and started.  Eventually you will be greeted with a prompt:
 
     Welcome to xGraph!
 
     HelloWorld is Listening... Type Something!
 
-If you type a response xGraph's HelloWorld module will echo it back to you and
-increment a value
+Now, if you type a response, xGraph's HelloWorld module will echo your
+message back to you and increment a value
 
     > Hello!
     [INFO] --xGraph Repeats: [Hello!]

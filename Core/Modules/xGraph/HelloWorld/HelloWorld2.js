@@ -31,8 +31,8 @@ function HelloWorld2() {
 
     //-----------------------------------------------------------------------[otherFunction(com,fun)
     /**
-     * Function called by the HelloWorld.js entity.
-     * This reads the data sent in com (msgProperties in HelloWorld.js), adds 1 to someValue,
+     * OtherFunction is called by the HelloWorld.js entity.
+     * This reads the data sent in com (commandObject in HelloWorld.js), adds 1 to someValue,
      * and sends the results back.
      * To see the data, print out com.
      * @param {object} com              The command object.
@@ -55,4 +55,4 @@ function HelloWorld2() {
         dispatch: dispatch
     };
 
-})();//Run it '()'
+})();

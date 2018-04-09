@@ -4,20 +4,35 @@
     "Capacity": 100,
     "ChargeRate": {
       "Charge": 10,
-      "Milliseconds": 1000
+      "Seconds": 1
     },
     "DischargeRate": {
-      "Charge": "5",
-      "Milliseconds": "1000"
+      "Charge": 5,
+      "Seconds": 1
     }
   },
   "Cases": [
     {
       "Command": {
+        "Cmd": "Charge"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Discharge"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Stop"
+      }
+    },
+    {
+      "Command": {
         "Cmd": "GetDepthOfCharge"
       },
       "Response": {
-        "DepthOfCharge": 50
+        "DepthOfCharge": "*"
       }
     },
     {
@@ -25,7 +40,7 @@
         "Cmd": "GetState"
       },
       "Response": {
-        "State": "Stopped"
+        "State": "*"
       }
     }
   ]

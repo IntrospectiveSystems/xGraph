@@ -9,7 +9,7 @@
             "Par": {
                 "Balance": "10"
             }
-        }, 
+        },
         "BankServer": {
             "Module": "xGraph.Proxy",
             "Source": "xGraph",

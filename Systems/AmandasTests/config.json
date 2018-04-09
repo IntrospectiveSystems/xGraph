@@ -8,13 +8,13 @@
 			"Module": "xGraph.Validate",
 			"Source": "local",
 			"Par": {
-				"TestModule": "Battery",
-				"TestJson": "@file: ../../Extensions/Modules/Battery/testGetters.json"
+				"TestModule": "LongTimeBattery",
+				"TestJson": "@file: ../../Extensions/Modules/LongTimeBattery/test.json"
 			}
 		},
 		"Deferred": [
 			{
-				"Module": "Battery",
+				"Module": "LongTimeBattery",
 				"Source": "extensions"
 			}
 		]

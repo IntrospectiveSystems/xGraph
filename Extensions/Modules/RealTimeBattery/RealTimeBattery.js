@@ -4,9 +4,9 @@
      * An idealized battery. The battery entity is able to charge, discharge, and stop the battery.
      * @param {number} this.Par.InitialCharge   The amount of charge the battery has on instatiation.
      * @param {number} this.Par.Capacity        The total capacity of charge that the battery can hold.
-     * @param {object} this.Par.ChargeRate      An object holding the rate (charge/milliseconds) that the battery
+     * @param {object} this.Par.ChargeRate      An object holding the rate (charge/seconds) that the battery
      *                                              charges at.
-     * @param {object} this.Par.DischargeRate   An object holding the rate (charge/milliseconds) that the battery
+     * @param {object} this.Par.DischargeRate   An object holding the rate (charge/Seconds) that the battery
      *                                              discharges at.
      */
     function Battery() {
@@ -49,7 +49,7 @@
                 clearInterval(Vlt.DischargeTimeout);
             }
 
-            let interval = Par.ChargeRate.Milliseconds;
+            let interval = Par.ChargeRate.Seconds * 1000;
 			let charge = Par.ChargeRate.Charge;
 
             Vlt.ChargeTimeout = setInterval(iterativeCharge, interval);
@@ -88,7 +88,7 @@
                 clearInterval(Vlt.ChargeTimeout);
             }
 
-            let interval = Par.DischargeRate.Milliseconds;
+            let interval = Par.DischargeRate.Seconds * 1000;
             let charge = Par.DischargeRate.Charge;
 
             Vlt.DischargeTimeout = setInterval(iterativeDischarge, interval);
