@@ -17,7 +17,8 @@
                 "Chan": "Bank",
                 "Link": "$BankPatron",
                 "Role": "Client",
-        				"Encrypt": false
+                "AutoSave": false,
+                "Encrypt": false
             }
         }
     }

@@ -21,7 +21,7 @@
 	function Setup(com, fun) {
 		log.i(`--ChooseEpsilonGreedy/Setup`);
 
-		//load in npm module "probability-distributions" to
+		//load in npm module "probability-distributions"
 		this.Vlt.ProbabilityDistributions = this.require("probability-distributions");
 
 		if (!("Epsilon" in this.Par) || !(typeof this.Par.Epsilon == "number"))
