@@ -1,28 +1,32 @@
 //# sourceURL=Ticket
-(function Ticket(){
+(
+    /**
+	 * The Ticket entity is the ticket object for the xTickets system. Ticket handles getting and setting ticket data.
+     * @returns {{dispatch}}
+     */
+	function Ticket(){
 	class Tickets {
 		async Setup(com, fun) {
-
 			log.i('Ticket Created!');
+
 			if (!('SetupComplete' in this.Par)) {
 				this.Par.SetupComplete = false;
 				this.Par.Status = 'New';
 				this.Par.Comments = [];
 				this.Par.Changes = [];
 			}
+
 			if(!('CreatedOn' in this.Par)){
 				this.Par.CreatedOn = new Date().getTime();
-			}else {
 			}
-			// log.d(`CreatedOn = ${this.Par.CreatedOn}`);
+
 			fun(null, com);
-			// this.save(_ => fun(null, com));
 		}
 
 		AddComment(com, fun) {
-			// log.d('------------[AddComment]------------\n' + JSON.stringify(com, null, 2));
 			if(!('Authentication' in com.Passport)) return fun('Command needs Authentication', com);
 			if(!com.Passport.Authentication.Valid) return fun('invalid credentials', com);
+
 			let author = com.Passport.Authentication.DisplayName;
 			let comment = com.Comment;
 			let created = new Date().getTime();
@@ -37,8 +41,6 @@
 		}
 
 		async GetData(com, fun) {
-			// log.d(`CreatedOn = ${this.Par.CreatedOn}`);
-			// log.d(this.Par.Pid);
 			log.i(`Getting Ticket Data, "${this.Par.Summary}"`);
 			com.Summary = this.Par.Summary || "Untitled#" + this.Par.Pid.substr(0, 8);
 			com.Details = this.Par.Details;
@@ -46,7 +48,7 @@
 			com.Version = this.Par.Version;
 			com.Severity = this.Par.Severity;
 			com.Priority = this.Par.Priority;
-			// log.d(this.Par.DueBy);
+
 			com.DueBy = this.Par.DueBy;
 			com.AssignedTo = this.Par.AssignedTo;
 			com.Pid = pidInterchange(this.Par.Pid);
@@ -60,11 +62,12 @@
 			com.AuthorEmail = this.Par.AuthorEmail;
 			com.AssignedToDisplayName = this.Par.AssignedToDisplayName;
 			com.SetupComplete = this.Par.SetupComplete;
+
 			fun(null, com);
 		}
 
 		async Accept(com, fun) {
-			function nope(str) { log.w(str); fun(str, com)}
+			function nope(str) { log.w(str); fun(str, com)};
 			if (!('Authentication' in com.Passport)) return nope('Must be logged in to accept ticket');
 			if (com.Passport.Authentication.Valid != true) return nope('Invalid credentials');
 			if (com.Passport.Authentication.Email != this.Par.AssignedTo) return nope(`${com.Passport.Authentication.DisplayName} cannot Accept this ticket, it is assigned to ${this.Par.AssignedTo}`);

@@ -83,7 +83,7 @@
 				//loop through the set of ports to find the next available
 				let iport = 27001;
 				while (Vlt.Ports.indexOf(iport) > -1) {
-					log.w("Port", iport, " is taken");
+					log.v("Port", iport, " is taken");
 					iport++;
 				}
 				port = iport;

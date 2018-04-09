@@ -19,7 +19,7 @@
 	 * @param {Function=} fun   callback
 	 */
 	function Publish(com, fun = _=>_) {
-		log.v(`Publishing from ${this.Par.Link} ServerProxy: ${com.Cmd}`);
+		// log.v(`Publishing from ${this.Par.Link} ServerProxy: ${com.Cmd}`);
 
 		//set the destination on the browser side
 		if ('Server' in this.Par) {
