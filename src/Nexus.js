@@ -272,11 +272,11 @@ module.exports = function xGraph() {
 					try {
 						let jarg = JSON.parse(arg);
 						for (let key in jarg) {
-							log.v(`${key}=${jarg[key]}`);
+							// log.v(`${key}=${jarg[key]}`);
 							Params[key] = jarg[key];
 						}
 					} catch (e) {
-						log.v(arg);
+						// log.v(arg);
 						parts = arg.split('=');
 						if (parts.length == 2) {
 							if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
@@ -352,7 +352,7 @@ module.exports = function xGraph() {
 									if ('$Stop' in instJson)
 										Stop[file] = instJson.$Stop;
 
-									log.d(file);
+									// log.d(file);
 								}
 							}
 						}
@@ -1011,6 +1011,7 @@ module.exports = function xGraph() {
 
 				let Setup = {};
 				let Start = {};
+				let PromiseArray = [];
 				let symbols = {};
 
 				// loop over the keys to assign pids to the local dictionary and the
@@ -1021,8 +1022,9 @@ module.exports = function xGraph() {
 
 				//compile each module
 				for (let moduleKey in moduleDefinitions) {
+					//do a GetModule and compile instance for each 
+					PromiseArray.push(new Promise((res, rej) => {
 					let inst = moduleDefinitions[moduleKey];
-					await (new Promise((res, rej) => {
 						GetModule(inst.Module, async function (err, mod) {
 							if (err) {
 								log.e('GenModule err -', err);
@@ -1084,6 +1086,8 @@ module.exports = function xGraph() {
 						});
 					}));
 				}
+
+				await Promise.all(PromiseArray);
 
 				log.v('Modules', JSON.stringify(symbols, null, 2));
 				log.v('Setup', JSON.stringify(Setup, null, 2));
