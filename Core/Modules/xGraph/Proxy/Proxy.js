@@ -170,10 +170,9 @@
 				keyPair = null;
 			}
 			else {
-				if ("PublicKey" in Par && ("PrivateKey" in Par) && (typeof Par.PublicKey == "string")
-					&& (Par.PrivateKey == "string")) {
-					Vlt.RSAKey = new NodeRSA(Par.PrivateKey, Par.KeyFormat || null);
-					Vlt.PublicKey = Vlt.RSAKey.exportKey("public");
+				if (("PrivateKey" in Par) && (typeof Par.PrivateKey == "string")) {
+					Vlt.RSAKey = new NodeRSA();
+					Vlt.RSAKey.importKey(Par.PrivateKey, Par.PrivateKeyFormat || "private");
 				} else {
 					Vlt.RSAKey = new NodeRSA({ b: 512 });
 					Vlt.PublicKey = Vlt.RSAKey.exportKey("public");
@@ -195,7 +194,7 @@
 				if (!("Encrypt" in Par) || Par.Encrypt) {
 					sock.write(Vlt.STX + JSON.stringify({
 						Cmd: "SetPublicKey",
-						Key: Vlt.PublicKey
+						Key: Vlt.PublicKey|| null
 					}) + Vlt.ETX);
 				}
 
@@ -505,9 +504,14 @@
 		log.i("Proxy/SetPublicKey");
 		let NodeRSA = this.require('node-rsa');
 		this.Vlt.PublicKey = com.Key;
+		if (!this.Vlt.PublicKey){
+			if (("PublicKey" in this.Par) && (typeof this.Par.PublicKey == "string")){
+				this.Vlt.PublicKey = this.Par.PublicKey;
+			}
+		}
 		log.v(`Socket Encrypted with public key: \n${this.Vlt.PublicKey}`);
 		this.Vlt.RSAKey = new NodeRSA();
-		this.Vlt.RSAKey.importKey(this.Vlt.PublicKey, 'public');
+		this.Vlt.RSAKey.importKey(this.Vlt.PublicKey, this.Par.PublicKeyFormat || 'public');
 		if (fun) fun(null, com);
 	}
 
