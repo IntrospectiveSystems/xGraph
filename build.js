@@ -1,5 +1,6 @@
+#! /usr/bin/env node
+
 (async _ => {
-	
 	
 	const Preprocessor = require('preprocessor');
 	const fs = require('fs');
@@ -106,7 +107,7 @@
 	ensureDir('bin/lib')
 	ensureDir('bin/lib/Nexus');
 
-	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('Core/src/Nexus.js'), '.').process({ BUILT: true }));
+	fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('src/Nexus.js'), '.').process({ BUILT: true }));
 	
 	//copy bin/lib into bin/linux/lib
 	ensureDir('bin/linux');
@@ -183,13 +184,19 @@
 	};
 
 	console.log("Ignore the following DeprecationWarning from msi-packager for asynchronous function without callback.");
-	createMsi(options, function (err) {
-		if (/^win/.test(platform)) {
-			console.log("MSI creation can only be done on mac or linux.");
-			console.log('Windows: FAILED!');
-		} else {
-			if (err) throw err
-			console.log('Windows: Done!');
-		}
+	await new Promise(resolve => {
+		createMsi(options, function (err) {
+			if (/^win/.test(platform)) {
+				console.log("MSI creation can only be done on mac or linux.");
+				console.log('Windows: FAILED!');
+			} else {
+				if (err) throw err
+				console.log('Windows: Done!');
+			}
+			resolve();
+		});
 	});
+
+
+
 })();
