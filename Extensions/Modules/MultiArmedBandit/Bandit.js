@@ -236,10 +236,10 @@
 					log.v(`Bandit Server has been updated with Learned Average Returns`);
 				});
 		}
-		log.d(this.Vlt.Bandits);
-		log.d(com.Index);
-		log.d(playIndex);
-		com.Value = this.Vlt.Bandits[com.Index][playIndex];
+		// log.d(this.Vlt.Bandits);
+		// log.d(com.Index);
+		// log.d(playIndex);
+		com.Value = this.Vlt.Bandits[com.Index][playIndex]||0;
 
 		fun(null, com);
 	}
