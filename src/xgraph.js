@@ -1,4 +1,6 @@
 #! /usr/bin/env node
+// anything above this line is removed on npm run build.
+// -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
 let cli = function(argv) {
 	//just do a quick dumb check to see if we have node as a first argument
@@ -316,67 +318,28 @@ let cli = function(argv) {
 		// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
 		return new Promise((resolve) => {
 			let installAttempted = false;
-			// #ifdef LINUX
-			require('https').get({
-				host: 'nodejs.org',
-				path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-linux-x64.tar.gz'
-			}, (response) => {
-				let body = '';
-				response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
-				response.on('end', function () {
-					// console.log('extraction time!');
-					tar.decompress({
-						src: bindir + '/node.tar.gz',
-						dest: bindir
-					}, function () {
-						// console.log(mergedirs);
-						installAttempted = true;
-						try {
-							mergedirs('node-v' + nodeVersion + '-linux-x64/bin', '/usr/bin', 'overwrite');
-							mergedirs('node-v' + nodeVersion + '-linux-x64/include', '/usr/include', 'overwrite');
-							mergedirs('node-v' + nodeVersion + '-linux-x64/lib', '/usr/lib', 'overwrite');
-							mergedirs('node-v' + nodeVersion + '-linux-x64/share', '/usr/share', 'overwrite');
-							//TODO RIMRAF THE ZIP AND EXTRACTED FILES
-							// console.log('dun');
-							resolve();
-						} catch (e) {
-							console.log('Could not install node, try running the command again with sudo\n');
-							console.log("If the problem persists, email support@introspectivesystems.com");
-							console.log('with this ' + e.toString());
-							process.exit(1);
-							resolve();
-						}
-					});
-				});
-			});
-			// #endif
-
-			// #ifdef MAC
-			// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
-			require('https').get({
-				host: 'nodejs.org',
-				path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-darwin-x64.tar.gz'
-			}, (response) => {
-				let body = '';
-				response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
-				response.on('end', function () {
-					tar.decompress({
-						src: bindir + '/node.tar.gz',
-						dest: bindir
-					}, function () {
-						installAttempted = true;
-						try {
-							mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/local/bin', 'overwrite');
-							mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/local/include', 'overwrite');
-							mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/local/lib', 'overwrite');
-							mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/local/share', 'overwrite');
-							resolve();
-						} catch (e) {
+			if(linux) {
+				require('https').get({
+					host: 'nodejs.org',
+					path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-linux-x64.tar.gz'
+				}, (response) => {
+					let body = '';
+					response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
+					response.on('end', function () {
+						// console.log('extraction time!');
+						tar.decompress({
+							src: bindir + '/node.tar.gz',
+							dest: bindir
+						}, function () {
+							// console.log(mergedirs);
+							installAttempted = true;
 							try {
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/bin', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/include', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/lib', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/share', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-linux-x64/bin', '/usr/bin', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-linux-x64/include', '/usr/include', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-linux-x64/lib', '/usr/lib', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-linux-x64/share', '/usr/share', 'overwrite');
+								//TODO RIMRAF THE ZIP AND EXTRACTED FILES
+								// console.log('dun');
 								resolve();
 							} catch (e) {
 								console.log('Could not install node, try running the command again with sudo\n');
@@ -385,16 +348,54 @@ let cli = function(argv) {
 								process.exit(1);
 								resolve();
 							}
-						}
+						});
 					});
 				});
-			});
-			// #endif
+			}
 
-			// #ifdef WINDOWS
-			console.error(`${system} is not yet supported.`);
-			// node-msi.fetch.start
-			// #endif
+			if(mac) {
+				// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
+				require('https').get({
+					host: 'nodejs.org',
+					path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-darwin-x64.tar.gz'
+				}, (response) => {
+					let body = '';
+					response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
+					response.on('end', function () {
+						tar.decompress({
+							src: bindir + '/node.tar.gz',
+							dest: bindir
+						}, function () {
+							installAttempted = true;
+							try {
+								mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/local/bin', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/local/include', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/local/lib', 'overwrite');
+								mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/local/share', 'overwrite');
+								resolve();
+							} catch (e) {
+								try {
+									mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/bin', 'overwrite');
+									mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/include', 'overwrite');
+									mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/lib', 'overwrite');
+									mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/share', 'overwrite');
+									resolve();
+								} catch (e) {
+									console.log('Could not install node, try running the command again with sudo\n');
+									console.log("If the problem persists, email support@introspectivesystems.com");
+									console.log('with this ' + e.toString());
+									process.exit(1);
+									resolve();
+								}
+							}
+						});
+					});
+				});
+			}
+			
+			if(windows) {
+				console.error(`${system} is not yet supported.`);
+			}
 
 			if (!installAttempted) {
 				console.error(`Node installation was skipped.  Please verify Node v${nodeVersion} is installed.`);
