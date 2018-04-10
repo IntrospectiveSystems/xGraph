@@ -5,7 +5,7 @@
   "main": "./src/xgraph.js",
   "scripts": {
     "build": "node ./build.js",
-    "test": "npm build && echo something else"
+    "test": "npm run build && echo something else"
   },
   "repository": {
     "type": "git",
