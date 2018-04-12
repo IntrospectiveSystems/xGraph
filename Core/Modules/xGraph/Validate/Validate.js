@@ -81,19 +81,6 @@
 							}
 
 
-							//test dom appedings
-							if ((typeof document != 'undefined') && test.Document) {
-								let arr = test.Document;
-								for (let index = 0; index < arr.length; index++) {
-									let id = arr[index];
-									if (!document.getElementById(`XGRAPH-${id}`)) {
-										bMatch = false;
-									} else{
-										log.v(`XGRAPH-${id} appended to document appropriately`);
-									}
-								}
-							}
-
 
 							let result = {};
 							result[test.Command.Cmd] = bMatch;

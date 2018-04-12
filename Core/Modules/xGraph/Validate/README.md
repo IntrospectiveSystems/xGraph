@@ -44,6 +44,11 @@ parameters that are necessary for the module to work properly, or parameters
 the module needs to perform the given tests. 
 
 
+
+
+###### Cases
+
+
 Cases references an array of test cases. Each test case must have the
 `"Command"` key defined. This key references the JSON object that is the
 message the that will be sent to the module being tested. The module must
