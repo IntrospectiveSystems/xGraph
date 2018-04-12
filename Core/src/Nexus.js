@@ -1,4 +1,3 @@
-pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
 (async function () {
 	if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
 	if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
@@ -140,9 +139,10 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					}
 					return arr.join(' ');
 				} catch (ex) {
-                    process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
-                    process.stdout.write(ex.toString() + '\u001b[39m');
-                }
+					process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
+					process.stdout.write(ex.toString() + '\u001b[39m');
+				}
+
 			}
 		};
 		console.log = function (...str) {
@@ -229,11 +229,11 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			try {
 				let jarg = JSON.parse(arg);
 				for (let key in jarg) {
-					log.v(`${key}=${jarg[key]}`);
+					// log.v(`${key}=${jarg[key]}`);
 					Params[key] = jarg[key];
 				}
 			} catch (e) {
-				log.v(arg);
+				// log.v(arg);
 				parts = arg.split('=');
 				if (parts.length == 2) {
 					if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
@@ -445,16 +445,15 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	/**
 	 * Send a message from an entity to an Apex entity.
 	 * If a callback is provided, return when finished
-	 * @param {object} com 					the message object
-	 * @param {string} com.Cmd 				the command of the message
-	 * @param {object} com.Passport			the information about the message
-	 * @param {string} com.Passport.To 		the Pid of the recipient module
-	 * @param {string} com.Passport.Pid 	the ID of the message
-	 * @param {string=} com.Passport.From 	the Pid of the sending module
-	 * @callback fun 						the callback function to return to when finished
+	 * @param {object} com 			the message object
+	 * @param {string} com.Cmd 		the command of the message
+	 * @param {object} com.Passport	the information about the message
+	 * @param {string} com.Passport.To the Pid of the recipient module
+	 * @param {string} com.Passport.Pid the ID of the message
+	 * @param {string=} com.Passport.From the Pid of the sending module
+	 * @callback fun 				the callback function to return to when finished
 	 */
 	function sendMessage(com, fun = _ => _) {
-		// log.d('NEXUS MESSAGE:', com)
 		if (!('Passport' in com)) {
 			log.w('Message has no Passport, ignored');
 			log.w('    ' + JSON.stringify(com));
@@ -498,13 +497,12 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			} else {
 				let err = 'Trying to send a message to a non-Apex'
 					+ 'entity outside of the sending module';
-					log.w(err);
-					log.w(JSON.stringify(com, null, 2));
-					fun(err, com);
+				log.w(err);
+				log.w(JSON.stringify(com, null, 2));
+				fun(err, com);
 			}
 		}
 		function reply(err, q) {
-			// log.i('NEXUS MESSAGE:', com)
 			fun(err, q);
 		}
 	}
@@ -564,13 +562,13 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
-			var dispatch = Imp.dispatch;
-			if (com.Cmd in dispatch) {
-				dispatch[com.Cmd].call(this, com, fun);
+			var disp = Imp.dispatch;
+			if (com.Cmd in disp) {
+				disp[com.Cmd].call(this, com, fun);
 				return;
 			}
-			if ('*' in dispatch) {
-				dispatch['*'].call(this, com, fun);
+			if ('*' in disp) {
+				disp['*'].call(this, com, fun);
 				return;
 			}
 			log.e('Nada Cmd:' + com.Cmd);
@@ -593,30 +591,30 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * 										multiple module definitions.
 		 * @callback fun
 		 */
-		function genModule(moduleObject, fun) {
+		function genModule(mod, fun) {
 			//	log.v('--Entity/genModule');
-			nxs.genModule(moduleObject, fun);
+			nxs.genModule(mod, fun);
 		}
 
-        /**
-         * Entity access to the genModule command.
-         * genModules expects two parameters: moduleObject and fun.
-         *
-         * The moduleObject parameter is an object that contains data for each module that will be
-         * generated. If only one module needs to be generated, then moduleObject can be a simple
-         * module definition. If more then one module needs to be generated, moduleObject has a
-         * key for each module definition, such as in a system structure object.
-         *
-         * When this.genModules is called from an entity, the moduleObject and fun parameters are passed
-         * along to the Nexus genModule, which starts the module and adds it to the system.
-         * @param {object} moduleObject		Either a single module definition, or an object containing
-         * 										multiple module definitions.
-         * @callback fun
-         */
-        function genModules(moduleObject, fun) {
-            //	log.v('--Entity/genModule');
-            nxs.genModule(moduleObject, fun);
-        }
+		/**
+		 * Add a module into the in memory Module Cache (ModCache)
+		 * @param {string} modName 		the name of the module
+		 * @param {string} modZip 		the zip of the module
+		 * @callback fun 							the callback just returns the name of the module
+		 */
+		function addModule(modName, modZip, fun) {
+			nxs.addModule(modName, modZip, fun);
+		}
+
+		/**
+		 * entity access to the genModule command
+		 * @param {object} modObj 	an object containing one or more module descriptions
+		 * @callback fun()
+		 */
+		function genModules(modObj, fun) {
+			//	log.v('--Entity/genModule');
+			nxs.genModule(mod, fun);
+		}
 
         /**
 		 * Add a module into the system in memory by adding it to the Module Cache (ModCache).
@@ -664,21 +662,15 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 		 * @callback fun
 		 */
 		function send(com, pid, fun) {
-			// log.v(com, pid);
 			if (!('Passport' in com))
 				com.Passport = {};
-
 			com.Passport.To = pid;
-
 			if ('Apex' in Par)
 				com.Passport.Apex = Par.Apex;
-
 			if (fun)
 				com.Passport.From = Par.Pid;
-
 			if (!("Pid" in com.Passport))
 				com.Passport.Pid = genPid();
-
 			nxs.sendMessage(com, fun);
 		}
 
@@ -991,6 +983,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		let Setup = {};
 		let Start = {};
+		let PromiseArray = [];
 		let symbols = {};
 
 		// loop over the keys to assign pids to the local dictionary and the
@@ -1001,8 +994,9 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 
 		//compile each module
 		for (let moduleKey in moduleDefinitions) {
-			let inst = moduleDefinitions[moduleKey];
-			await (new Promise((res, rej) => {
+			//do a GetModule and compile instance for each
+			PromiseArray.push(new Promise((res, rej) => {
+				let inst = moduleDefinitions[moduleKey];
 				GetModule(inst.Module, async function (err, mod) {
 					if (err) {
 						log.e('GenModule err -', err);
@@ -1065,9 +1059,11 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 			}));
 		}
 
-		log.v('Modules', JSON.stringify(symbols, null, 2));
-		log.v('Setup', JSON.stringify(Setup, null, 2));
-		log.v('Start', JSON.stringify(Start, null, 2));
+		await Promise.all(PromiseArray);
+
+		// log.v('Modules', JSON.stringify(KeyPid, null, 2));
+		// log.v('Setup', JSON.stringify(Setup, null, 2));
+		// log.v('Start', JSON.stringify(Start, null, 2));
 
 		await setup();
 
@@ -1130,7 +1126,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot = false) {
-		log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
+		// log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 		var Local = {};
 		var modnam = (typeof inst.Module == "object") ? inst.Module.Module : inst.Module;
 		var mod;
@@ -1275,7 +1271,7 @@ pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toStri
 					});
 				}
 			} else {
-				err = `Module ${cachedMod} does not exist in the cache`;
+				err = `Module ${cachedMod} does not exist in the cache`
 				log.e(err);
 				fun(err);
 				return;

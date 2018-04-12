@@ -14,7 +14,8 @@
             "Par": {
                 "Link": "$Plexus",
                 "Role": "Server",
-        				"Encrypt": false
+                "AutoSave": false,
+                "Encrypt": false
             }
         }
     }

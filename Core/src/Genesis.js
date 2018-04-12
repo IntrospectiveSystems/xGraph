@@ -412,10 +412,10 @@
 									let ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(dir) });
 
 									ps.stdout.on('data', _ => {
-										process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+										// process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
 									});
 									ps.stderr.on('data', _ => {
-										process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
+										// process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
 									});
 
 									ps.on('err', function (err) {
@@ -647,13 +647,13 @@
 						try {
 							files = fs.readdirSync(containingPath);
 						} catch (err) {
-							err += 'Module <' + containingPath + '? not available'
+							err += ' \nModule \"' + containingPath + '\" not available'
 							log.e(err);
 							fun(err);
 							return;
 						}
 						if (!files) {
-							err += 'Module <' + containingPath + '? not available'
+							err += ' \nModule \"' + containingPath + '\" not available'
 							log.e(err);
 							fun(err);
 							return;
@@ -920,8 +920,13 @@
 
 				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 
-				ps.stdout.on('data', _ => { process.stdout.write(_) });
-				ps.stderr.on('data', _ => process.stderr.write(_));
+				ps.stdout.on('data', _ => {
+					// process.stdout.write(_) 
+				});
+				ps.stderr.on('data', _ => {
+					//process.stderr.write(_)
+				});
+
 
 				ps.on('err', function (err) {
 					log.e('Failed to start child process.');

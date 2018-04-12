@@ -4,6 +4,10 @@
 			com = await this.asuper(com);
 			
 
+			if (!Cookies('xGraph-Authenticated') && !this.Par.AllowAnon) {
+				location.href = this.Par.Redirect || "/login";
+			}
+
 			fun(null, com);
 		}
 

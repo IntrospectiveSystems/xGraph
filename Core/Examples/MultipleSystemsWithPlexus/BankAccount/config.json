@@ -14,10 +14,11 @@
             "Module": "xGraph.Proxy",
             "Source": "xGraph",
             "Par": {
-                "Chan": "Bank",
-                "Link": "$Bank",
+                "Chan": "Bank", 
+                "Link": "$Bank", 
                 "Role": "Server",
-        				"Encrypt": false
+                "AutoSave": false,
+                "Encrypt": false
             }
         }
     }
