@@ -219,6 +219,7 @@ let cli = function(argv) {
 	}
 
 	async function reset() {
+		console.log('doing a heckin\' reset');
 		try {
 			await ensureNode();
 			state = 'production';
@@ -232,6 +233,7 @@ let cli = function(argv) {
 	}
 
 	async function deploy() {
+		console.log('doing a heckin\' deploy');
 		try {
 			await ensureNode();
 			startNexusProcess();
@@ -242,6 +244,7 @@ let cli = function(argv) {
 	}
 
 	async function execute() {
+		console.log('doing a heckin\' execute');
 		try {
 			await ensureNode();
 			state = 'development';
@@ -253,6 +256,7 @@ let cli = function(argv) {
 	}
 
 	async function compile() {
+		console.log('doing a heckin\' compile');
 		try {
 			await ensureNode();
 			state = 'production';
@@ -404,13 +408,19 @@ let cli = function(argv) {
 	}
 
 	function processSwitches() {
+		console.log(args);
+		console.error('------------------------------------');
 		let argLoop = (() => {
 			let nextIndex = 0;
 			return {
 				next: () => {
-					return nextIndex < args.length ?
-						{ value: args[nextIndex++], idx: (nextIndex - 1), done: false } :
-						{ done: true };
+					if(nextIndex < args.length) {
+						let obj = { value: args[nextIndex], idx: (nextIndex), done: false };
+						nextIndex ++;
+						return obj;
+					}else {
+						return { done: true };
+					}
 				},
 				delete: (count) => {
 					args.splice(nextIndex - 1, count);
@@ -424,10 +434,23 @@ let cli = function(argv) {
 		while ('value' in returnVal) {
 			let str = returnVal.value;
 			let i = returnVal.idx;
+			console.log(i);
+			if(typeof str == 'undefined') {
+				console.error('error parsing Switches');
+				console.error('------------------------------------');
+				console.error(i);
+				console.error('------------------------------------');
+				console.error(args);
+				console.error('------------------------------------');
+				console.error(argv);
+				console.error('------------------------------------');
+				process.exit(1);
+			}
 			if (str.startsWith('--')) {
 				let key = args[i].slice(2);
 				applySwitch(key, i);
 			}
+			console.log(i);
 			returnVal = argLoop.next();
 		}
 
@@ -443,6 +466,7 @@ let cli = function(argv) {
 		}
 
 		function applySwitch(str, i) {
+			console.log(`applySwitch ${str}, ${i}`)
 			let remainingArgs = args.length - i - 1;
 			if (str == "debug") {
 				console.log("Doing the debug thing");

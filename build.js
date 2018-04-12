@@ -12,10 +12,12 @@
 	const pkg = require("./package.json");
 	const { execSync } = require('child_process');
 	const platform = process.platform;
+	const rmrf = require('rimraf');
 
 	//helper functions
 	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
+	function rmdir(dir) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function createMacTarball() {
 		console.log("Alternative Mac tar.gz being created since package capability is not available.")
 		//make for mac
@@ -36,6 +38,7 @@
 	try {
 			
 		
+		rmrf.sync('bin');
 
 		ensureDir('bin');
 
@@ -56,74 +59,44 @@
 		xgraphFile = xgraphFile.toString();
 		xgraphFile = xgraphFile.split('// -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-')[1]
 		fs.writeFileSync('temp/xgraph.js', xgraphFile);
+		copy('src/Nexus.js', 'temp/Nexus.js');
+		copy('src/Genesis.js', 'temp/Genesis.js');
 
-		//compile temp/xgraph
+		// compile temp/xgraph
 		await compile({
-			input: 'src/temp/xgraph.js',
+			input: 'temp/xgraph.js',
 			output: 'bin/linux/bin/xgraph',
 			target: 'linux-x64-8.4.0',
 			bundle: true,
-			fakeArgv: false
+			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			fakeArgv: true
 		});
 
-		fs.writeFileSync('src/gen/xgraph-windows.js', xgraphFile);
-		// doImports('src/gen/xgraph-windows.js');
-		// fs.writeFileSync('src/gen/xgraph-windows.js', new Preprocessor(fs.readFileSync('src/gen/xgraph-windows.js'), '.').process({ COMPILED: true }));
-		
 		await compile({
-			input: 'src/gen/xgraph-windows.js',
+			input: 'temp/xgraph.js',
 			output: 'bin/windows/bin/xgraph.exe',
 			target: 'windows-x64-8.4.0',
 			bundle: true,
-			fakeArgv: false
+			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			fakeArgv: true
 		});
 
-		fs.writeFileSync('src/gen/xgraph-mac.js', xgraphFile);
-		// doImports('src/gen/xgraph-mac.js');
-		// fs.writeFileSync('src/gen/xgraph-mac.js', new Preprocessor(fs.readFileSync('src/gen/xgraph-mac.js'), '.').process({ MAC: true }));
-		
+
 		await compile({
-			input: 'src/gen/xgraph-mac.js',
+			input: 'temp/xgraph.js',
 			output: 'bin/mac/bin/xgraph',
 			target: 'mac-x64-8.4.0',
 			bundle: true,
-			fakeArgv: false
+			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			fakeArgv: true
 		});
 
+		// copy('src/Nexus.js', 'bin/mac/bin/Nexus.js');
+		// copy('src/Nexus.js', 'bin/windows/bin/Nexus.js');
 
-		//move all required files to lib of system bin.
+		// copy('src/Genesis.js', 'bin/mac/bin/Genesis.js');
+		// copy('src/Genesis.js', 'bin/windows/bin/Genesis.js');
 
-
-		// copy everything into bin/lib
-		ensureDir('bin/lib')
-		ensureDir('bin/lib/Nexus');
-
-		fs.writeFileSync('bin/lib/Nexus/Nexus.js', new Preprocessor(fs.readFileSync('src/Nexus.js'), '.').process({ BUILT: true }));
-		
-		//copy bin/lib into bin/linux/lib
-		ensureDir('bin/linux');
-		ensureDir('bin/linux/lib');
-		ensureDir('bin/linux/lib/Nexus');
-
-		copy('bin/lib/Nexus/Nexus.js', 'bin/linux/lib/Nexus/Nexus.js');
-
-		//copy bin/lib into bin/windows/lib
-		ensureDir('bin/windows/bin')
-		ensureDir('bin/windows/bin/lib');
-		ensureDir('bin/windows/bin/lib/Nexus');
-
-		copy('bin/lib/Nexus/Nexus.js', 'bin/windows/bin/lib/Nexus/Nexus.js');
-
-		//copy bin/lib into bin/windows/lib
-		ensureDir('bin/mac')
-		ensureDir('bin/mac/lib');
-		ensureDir('bin/mac/lib/Nexus');
-
-		copy('bin/lib/Nexus/Nexus.js', 'bin/mac/lib/Nexus/Nexus.js');
-
-
-		//make the tar.gz ... msi ... mac dmg/pkg
-		//make for linux 
 		tar.compress({
 			src: "bin/linux/",
 			dest: 'bin/xgraph_linux.tar.gz'
@@ -194,10 +167,13 @@
 		console.log(e);
 
 		try {
-
+			rmrf.sync('temp');
 		} catch(e) {}
 
 		process.exit(1);
 	}
+	try {
+		rmrf.sync('temp');
+	} catch(e) {}
 
 })();

@@ -1330,5 +1330,3 @@ module.exports = function genesis(options = {}) {
 		}
 	});
 }
-
-if (!module.parent) module.exports(process.argv);

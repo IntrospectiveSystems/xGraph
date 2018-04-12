@@ -18,12 +18,12 @@ module.exports = function xGraph() {
 	}
 
 	this.boot = function boot(optionsArray) {
-		(async function (arguments) {
+		(async function (__options) {
 			if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-			if (arguments.indexOf("--debug") > -1 || arguments.indexOf("--development") > -1) {
+			if (__options.indexOf("--debug") > -1 || __options.indexOf("--development") > -1) {
 				state = 'development';
 			}
-			module.paths.push(process.cwd() + '/cache/node_modules');
+			// module.paths.push(process.cwd() + '/cache/node_modules');
 
 			console.log(`\nInitializing the Run Engine`);
 
@@ -43,7 +43,7 @@ module.exports = function xGraph() {
 			var EntCache = {};					// {<Entity pid>:<Entity>
 			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 			var packagejson = {};				// The compiled package.json, built from Modules
-			var args = arguments;			// The input arguments --under consideration for deprication
+			var args = __options;			// The input __options --under consideration for deprication
 			var Params = {};					// The set of Macros for defining paths
 			var originalConsoleLog = console.log;
 			var Nxs = {
@@ -220,8 +220,8 @@ module.exports = function xGraph() {
 					// #ifndef BUILT
 				}
 				log.i("Building the Cache");
-				log.i(arguments[1]);
-				let genesisString = fs.readFileSync(`${arguments[1].substr(0, arguments[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
+				log.i(__options[1]);
+				let genesisString = fs.readFileSync(`${__options[1].substr(0, __options[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
 				await eval(genesisString);
 				// #endif
 			}
@@ -258,12 +258,12 @@ module.exports = function xGraph() {
 
 			/**
 			 * Populates Params {OBJECT}
-			 * This is populated from both the arguments array as well as those parsed in the
+			 * This is populated from both the __options array as well as those parsed in the
 			 * binary file if it was used.
 			 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
 			 */
 			function defineMacros() {
-				// Process input arguments and define macro parameters
+				// Process input __options and define macro parameters
 				// All macros are stored case insensitive in the Params object
 
 				let arg, parts;
@@ -881,7 +881,7 @@ module.exports = function xGraph() {
 			 */
 			async function addModule(modName, modZip, fun) {
 				//modZip is the uint8array that can be written directly to the cache directory
-				if (arguments.indexOf('--allow-add-module') > -1) {
+				if (__options.indexOf('--allow-add-module') > -1) {
 					ModCache[modName] = await new Promise(async (res, rej) => {
 						let zip = new jszip();
 						zip.loadAsync(modZip).then((mod) => res(mod));
@@ -920,15 +920,19 @@ module.exports = function xGraph() {
 			 * @param {string} str 			the string of the module to require
 			 */
 			function loadDependency(apx, pid, str) {
-				//load fresh from file
-				try {
-					delete require.cache[require.resolve(str)];
-				} catch (e) { }
-
+				log.d(`Nexus::loadDependency (${apx}, ${pid}, ${str})`);
+				
 				let folder = ApexIndex[apx];
-
-				module.paths = [CacheDir + '/' + folder + '/node_modules/'];
-				return require(str);
+				try {
+					return require(str);
+				}catch (e) {
+					try {
+						return require(Path.join(CacheDir, folder, 'node_modules', str));
+					}catch (e) {
+						log.e(e);
+						process.exit(1);
+					}
+				}
 			}
 
 			/**
