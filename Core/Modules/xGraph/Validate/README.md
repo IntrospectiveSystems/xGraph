@@ -8,7 +8,7 @@ Introspective Systems, LLC.
 ---
 #### Validate
 
-Validate is a module that runs tests on other modules. The tests for a
+The Validate module runs tests on other modules. The tests for a
 module are described in a test.json file, which should be included with
 each module. Validate generates the module being tested, and then
 perform the tests that are laid out it the test.json file.
@@ -17,16 +17,32 @@ perform the tests that are laid out it the test.json file.
 
 #### How To Use Validate
 
-To test a module using Validate, you need to supply Validate with a list
-of tests in the form of a JSON object. These tests should be included in
-a test.json file in each module. Next we will look at how to build a
+To use Validate, you need a module to test. This module needs to have test 
+cases in the form of a test case JSON object. These test cases are typically 
+included in a module as a test.json object. Now we will look at how to build a
 test.json for a module.
 
-The JSON object of the test.json for any module has 2 main sections:
+###### test.json
+
+Inside the test.json file for any module you will find 2 main sections:
 `State` and `Cases`.
 
-State references a json object that defines the parameters, (`this.Par`),
-that must be defined to run the module or perform the tests given.
+Here is an empty test.json file. This is a good place to start when building 
+tests for a new module.
+```
+{
+  "State": {},
+  "Cases": []
+}
+```
+
+###### State
+
+State references a json object that defines the parameters, found in `this.Par`,
+that are passed to the module when the module is generated. These may be 
+parameters that are necessary for the module to work properly, or parameters 
+the module needs to perform the given tests. 
+
 
 Cases references an array of test cases. Each test case must have the
 `"Command"` key defined. This key references the JSON object that is the
