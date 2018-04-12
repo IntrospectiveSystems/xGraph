@@ -7,9 +7,14 @@
 			"Module": "Validate",
 			"Source": "local",
 			"Par": {
-				"TestModule": "",
+				"TestModule": "Suite",
 				"TestJson": "@file: ./Modules/Suite/test.json"
 			}
+		},
+		"Pong": {
+			"Module": "Suite",
+			"Source": "local",
+			"Par": {}
 		},
 		"Deferred": [
 			{

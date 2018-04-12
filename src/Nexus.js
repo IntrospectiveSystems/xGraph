@@ -920,7 +920,7 @@ module.exports = function xGraph() {
 			 * @param {string} str 			the string of the module to require
 			 */
 			function loadDependency(apx, pid, str) {
-				log.d(`Nexus::loadDependency (${apx}, ${pid}, ${str})`);
+				// log.d(`Nexus::loadDependency (${apx}, ${pid}, ${str})`);
 				
 				let folder = ApexIndex[apx];
 				try {

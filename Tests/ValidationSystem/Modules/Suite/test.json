@@ -1,9 +1,24 @@
 {
 	"State": {
-		"Filename": "Test.nedb",
-		"Reset": true
+		"PingLink": "$Pong"
 	},
 	"Cases": [
+		{
+			"Command": {
+				"Cmd": "SendEntity"
+			},
+			"Response": {
+				"Cmd": "SendEntity"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SendModule"
+			},
+			"Response": {
+				"Cmd": "SendModule"
+			}
+		},
 		{
 			"Command": {
 				"Cmd": "StartCalled"
@@ -24,10 +39,28 @@
 		},
 		{
 			"Command": {
+				"Cmd": "Require"
+			},
+			"Response": {
+				"Cmd": "Require",
+				"ModuleLoaded": true
+			}
+		},
+		{
+			"Command": {
 				"Cmd": "GenModuleTest"
 			},
 			"Response": {
 				"Cmd": "GenModuleTest",
+				"Pid": "*"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "GenEntityTest"
+			},
+			"Response": {
+				"Cmd": "GenEntityTest",
 				"Pid": "*"
 			}
 		},
@@ -42,20 +75,11 @@
 		},
 		{
 			"Command": {
-				"Cmd": "Require"
+				"Cmd": "TestGennedEntity"
 			},
 			"Response": {
-				"Cmd": "Require",
-				"Started": true
-			}
-		},
-		{
-			"Command": {
-				"Cmd": "SendEntity"
-			},
-			"Response": {
-				"Cmd": "SendEntity",
-				"Started": true
+				"Cmd": "TestGennedEntity",
+				"Passed": true
 			}
 		}
 	]

@@ -113,8 +113,23 @@
 
 						that.Vlt.SentMessages = {};
 						log.v(`Test Sent ${JSON.stringify(test.Command, null, 2)}`);
-						that.send(test.Command, that.Vlt.InstModule, (err, returnedCommand) => {
+						let timeout = test.Timeout || 2000;
+						let timer;
+						let testReply = (err, returnedCommand) => {
+							clearTimeout(timer);
 							let bMatch = true;
+							if(err === 'TIMEOUT') {
+								log.w(`Test command timed out. if this command just takes a while,`);
+								log.w(`provide a longer timeout in the test.json`);
+								bMatch = false;
+								resolve();
+							}
+							if(err != null) {
+								log.w(`Test returned an error`);
+								log.w(err);
+								bMatch = false;
+								resolve();
+							}
 							let keys, key, hash, hashStash = [], msgIdx;
 
 							//check for a binary match with the test.json test callback
@@ -174,7 +189,9 @@
 
 							Results.push(result);
 							resolve();
-						});
+						};
+						timer = setTimeout(testReply.bind(this, 'TIMEOUT', {}), timeout);
+						that.send(test.Command, that.Vlt.InstModule, testReply);
 					});
 				}
 
