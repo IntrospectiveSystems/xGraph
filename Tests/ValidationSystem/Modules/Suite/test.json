@@ -1,0 +1,62 @@
+{
+	"State": {
+		"Filename": "Test.nedb",
+		"Reset": true
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "StartCalled"
+			},
+			"Response": {
+				"Cmd": "StartCalled",
+				"Started": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SetupCalled"
+			},
+			"Response": {
+				"Cmd": "SetupCalled",
+				"Started": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "GenModuleTest"
+			},
+			"Response": {
+				"Cmd": "GenModuleTest",
+				"Pid": "*"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "TestGennedModule"
+			},
+			"Response": {
+				"Cmd": "TestGennedModule",
+				"Passed": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Require"
+			},
+			"Response": {
+				"Cmd": "Require",
+				"Started": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SendEntity"
+			},
+			"Response": {
+				"Cmd": "SendEntity",
+				"Started": true
+			}
+		}
+	]
+}

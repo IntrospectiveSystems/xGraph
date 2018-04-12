@@ -159,63 +159,63 @@ let cli = function(argv) {
 
 	function help() {
 	console.log(`
-	xGraph ${version}
-	Introspective Systems LLC
+\x20\x20\x20\x20xGraph ${version}
+Introspective Systems LLC
 
-	Compile and Run xGraph systems with a few simple commands.
+Compile and Run xGraph systems with a few simple commands.
 
-	Unless otherwise specified, commands will look in the current working
-	directory for a config.json file or cache directory, depending on the
-	command.
+Unless otherwise specified, commands will look in the current working
+directory for a config.json file or cache directory, depending on the
+command.
 
-	If the system includes local module sources, these must be listed after
-	the command and options, [--source directory ...].
+If the system includes local module sources, these must be listed after
+the command and options, [--source directory ...].
 
-	xGraph
+xGraph
 
-	Usage: xgraph [command] [options] [--source directory ...]
+Usage: xgraph [command] [options] [--source directory ...]
 
-	Command:
-	\x20\x20help         h                    : Displays this help screen.
-	\n
-	\x20\x20compile      c                    : Generates a cache from a system
-	\x20\x20                                    structure file.
-	\n
-	\x20\x20deploy       d                    : Run a system from the cache.
-	\n
-	\x20\x20reset        r                    : Run a system from system structure
-	\x20\x20                                    file, resetting the system's cache.
-	\n
-	\x20\x20generate <module|system>  g <m|s> : Generate a new module or system
-	\x20\x20                                    from a template with the given
-	\x20\x20                                    name.
-	\n
-	\x20\x20execute      x                    : Run a system from the cache, or
-	\x20\x20                                    the system's module references, or
-	\x20\x20                                    compiling the system structure file
-	\x20\x20                                    if the cache does not exist.
-	\n
-	Options:
-	\x20\x20--cwd                             : Sets the current working directory
-	\x20\x20                                    for the command.
-	\x20\x20--config                          : Specifies a system's structure file.
-	\x20\x20--cache                           : Specifies a system's cache directory.
-	\x20\x20--allow-add-module                : Enable a module to add new modules
-																							in memory to the Module cache.
+Command:
+\x20\x20help         h                    : Displays this help screen.
+\n
+\x20\x20compile      c                    : Generates a cache from a system
+\x20\x20                                    structure file.
+\n
+\x20\x20deploy       d                    : Run a system from the cache.
+\n
+\x20\x20reset        r                    : Run a system from system structure
+\x20\x20                                    file, resetting the system's cache.
+\n
+\x20\x20generate <module|system>  g <m|s> : Generate a new module or system
+\x20\x20                                    from a template with the given
+\x20\x20                                    name.
+\n
+\x20\x20execute      x                    : Run a system from the cache, or
+\x20\x20                                    the system's module references, or
+\x20\x20                                    compiling the system structure file
+\x20\x20                                    if the cache does not exist.
+\n
+Options:
+\x20\x20--cwd                             : Sets the current working directory
+\x20\x20                                    for the command.
+\x20\x20--config                          : Specifies a system's structure file.
+\x20\x20--cache                           : Specifies a system's cache directory.
+\x20\x20--allow-add-module                : Enable a module to add new modules
+																						in memory to the Module cache.
 
-	Examples:
-	\x20\x20Compile the system in the current directory.
-	\x20\x20\x20\x20\x20\x20xgraph compile
-	\n
-	\x20\x20Deploy a module from a system structure file.
-	\x20\x20\x20\x20\x20\x20xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
-	\n
-	\x20\x20Reset a system in a different working directory with an external source.
-	\x20\x20\x20\x20\x20\x20xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
-	\n
-	\x20\x20Generate a new module called MyFirstModule.
-	\x20\x20\x20\x20\x20\x20xgraph generate module MyFirstModule
-	`);
+Examples:
+\x20\x20Compile the system in the current directory.
+\x20\x20\x20\x20\x20\x20xgraph compile
+\n
+\x20\x20Deploy a module from a system structure file.
+\x20\x20\x20\x20\x20\x20xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
+\n
+\x20\x20Reset a system in a different working directory with an external source.
+\x20\x20\x20\x20\x20\x20xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
+\n
+\x20\x20Generate a new module called MyFirstModule.
+\x20\x20\x20\x20\x20\x20xgraph generate module MyFirstModule
+`);
 	}
 
 	async function reset() {
@@ -408,8 +408,6 @@ let cli = function(argv) {
 	}
 
 	function processSwitches() {
-		console.log(args);
-		console.error('------------------------------------');
 		let argLoop = (() => {
 			let nextIndex = 0;
 			return {
@@ -434,23 +432,16 @@ let cli = function(argv) {
 		while ('value' in returnVal) {
 			let str = returnVal.value;
 			let i = returnVal.idx;
-			console.log(i);
+			// console.log(i);
 			if(typeof str == 'undefined') {
 				console.error('error parsing Switches');
-				console.error('------------------------------------');
-				console.error(i);
-				console.error('------------------------------------');
-				console.error(args);
-				console.error('------------------------------------');
-				console.error(argv);
-				console.error('------------------------------------');
 				process.exit(1);
 			}
 			if (str.startsWith('--')) {
 				let key = args[i].slice(2);
 				applySwitch(key, i);
 			}
-			console.log(i);
+			// console.log(i);
 			returnVal = argLoop.next();
 		}
 

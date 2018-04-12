@@ -1,6 +1,9 @@
-# xgraph  
+# xGraph 
 
-![xGraph](http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png "xGraph")
+<p align="center">
+  <img src="http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png" alt="Sublime's custom image"/>
+</p>
+
 
 v1.1.1
 
