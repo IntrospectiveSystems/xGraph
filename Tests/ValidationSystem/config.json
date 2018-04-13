@@ -8,7 +8,10 @@
 			"Source": "local",
 			"Par": {
 				"TestModule": "Suite",
-				"TestJson": "@file: ./Modules/Suite/test.json"
+				"TestJson": "@file: ./Modules/Suite/test.json",
+				"Links": {
+					"Pong": "$Pong"
+				}
 			}
 		},
 		"Pong": {

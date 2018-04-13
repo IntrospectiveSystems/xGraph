@@ -90,19 +90,25 @@
 		}
 
 		TestGennedEntity(com, fun) {
+			log.d('TestGennedEntity');
 			this.send({
 				Cmd: 'Ping'
 			}, this.Vlt.gennedEntity, (err, cmd) => {
+				log.d('Pinged');
 				if(!!err) return fun(err, com);
 				this.send({
 					Cmd: 'SetupCalled'
 				}, this.Vlt.gennedEntity, (err, cmd) => {
+					log.d('SetupCalled');
+					log.d(err, com);
 					if(!!err || !cmd.Started) return fun(err, com);
 					this.send({
 						Cmd: 'StartCalled'
 					}, this.Vlt.gennedEntity, (err, cmd) => {
+						log.d('StartCalled');
 						if(!!err || !cmd.Started) return fun(err, com);
 						com.Passed = true;
+						log.d('funnin\'');
 						fun(null, com);
 					});
 				});

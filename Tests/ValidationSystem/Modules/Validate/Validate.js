@@ -226,6 +226,31 @@
 			let inst = {};
 			inst.Module = that.Par.TestModule;
 			inst.Par = that.Vlt.Test.State;
+
+			function Macro(obj) {
+				switch(typeof obj) {
+					case 'object': {
+						for(let key in obj) {
+							obj[key] = Macro(obj[key]);
+						}
+						break;
+					}
+					case 'string': {
+						if(obj.startsWith('$') && (obj.substr(1) in that.Par.Links)) {
+							return that.Par.Links[obj.substr(1)];
+						}
+					}
+					default: {
+						return obj;
+						break;
+					}
+				}
+
+				return obj
+			}
+
+			inst.Par = Macro(inst.Par);
+
 			log.v("Callig genMod on ", JSON.stringify(inst, null, 2));
 			//instantiate the module
 			//this calls setup and start in the instance

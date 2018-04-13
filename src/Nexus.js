@@ -1048,7 +1048,9 @@ module.exports = function xGraph() {
 										if (symbol in symbols) {
 											inst.Par[key] = symbols[symbol];
 										} else {
-											log.e(`${symbol} not in Module key list`);
+											log.w(`${symbol} not in Module key list`);
+											log.d(symbol);
+											log.d(symbols);
 											log.v(`${Object.keys(symbols)}`)
 										}
 									}
