@@ -1,14 +1,12 @@
-# xGraph
-Stable: [![Build Status](https://travis-ci.org/IntrospectiveSystems/xGraph.svg?branch=release)](https://travis-ci.org/IntrospectiveSystems/xGraph)
+[![Travis branch](https://img.shields.io/travis/IntrospectiveSystems/xGraph/release.svg?style=for-the-badge)](https://travis-ci.org/IntrospectiveSystems/xGraph)
+[![npm](https://img.shields.io/npm/v/xgraph.svg?style=for-the-badge)](https://www.npmjs.com/package/xgraph)
 
-Nightly: [![Build Status](https://travis-ci.org/IntrospectiveSystems/xGraph.svg?branch=develop)](https://travis-ci.org/IntrospectiveSystems/xGraph)
+
+# xGraph
 
 <p align="center">
   <img src="http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png" alt="Sublime's custom image"/>
 </p>
-
-
-v1.1.1
 
 Introspective Systems, LLC.
 
@@ -71,26 +69,26 @@ Usage: xgraph [command] [options] [--source directory ...]
 
 Command:
     help        h                       : Displays this help screen.
+
     compile     c                       : Generates a cache from a system
                                             structure file.
     deploy      d                       : Run a system from it's cache.
     reset       r                       : Run a system from system structure
                                             file, resetting the system's cache.
+    execute     x|run                   : Run a system from it's cache, or
+                                            it's system structure file if
+                                            the cache does not exist.
     generate <module|system>    g <m|s> : Generate a new module or system
                                             from a template with the given
                                             name.
-
-    execute     x run                   : Run a system from it's cache, or
-                                            it's system structure file if
-                                            the cache does not exist.
 
 Options:
     --cwd                               : Sets the current working directory
                                             for the command.
     --config                            : Specifies a system's structure file.
-	--cache                             : Specifies a system's cache directory.
-	--allow-add-module                  : Enable a module to add new modules
-    		                                in memory to the Module cache.
+    --cache                             : Specifies a system's cache directory.
+    --allow-add-module                  : Enable a module to add new modules
+                                            in memory to the Module cache.
 
 Examples:
     Compile the system in the current directory.
