@@ -1,4 +1,4 @@
-# 3DView
+### 3DView
 
 v1.0.0
 
@@ -8,21 +8,22 @@ Introspective Systems, LLC.
 ---
 #### 3DView
 
-The 3DView entity is the Apex and only entity of the 3DView Module. This entity requires the Setup function invoked during the Setup phase of Nexus startup. As well as its Start function invoked during the Start phase of Nexus startup.
-
-The main capability of this entity is to add and render a Three.js scene on the div provided by the Viewify class (which is stored stored in `this.Vlt.div`). Currently only Three.js primitives and generative object3D models can be added to the scene/rendered.
+The 3DView Module adds and renders a Three.js scene on the div provided by the Viewify 
+class (which is referenced in `this.Vlt.div`). Currently only Three.js primitives 
+and generative object3D models can be added to the scene and rendered.
 
 ---
 
-### Module Definition Parameters
+#### Module Definition Parameters
 
-Parameters are defined in the module definition and stored in the `Par` attribute
+Parameters passed in the module definition and stored in the `Par` attribute
 of 3DView's `this` attribute, `this.Par`.
 
-Three parameters can be set in the module definition, but they are all optional.
-- "Server" : "xGraphPid"  - where xGraphPid should be replaced by the pid of the Server Module.
-- "Controller": "xGraphPid"  - where xGraphPid should be replaced by the pid of the Module acting as this Modules controller.
-- "EvokeView": "xGraphModuleAddress"  - where xGraphModuleAddress should be replaced by the address of the view that should be popped up when evoked.
+##### Parameters
+- `"Server" : "xGraphPid"`  - *xGraphPid* is the pid of the Server Module.
+- `"Controller": "xGraphPid"`  - *xGraphPid* is the pid of the Module acting as 3DView's controller.
+- `"EvokeView": "xGraphModuleAddress"` - *xGraphModuleAddress* is the address of the 
+                                            view that will be popped up when evoked.
 
 An example of how this looks in the module definition of a config.json
 ``` json

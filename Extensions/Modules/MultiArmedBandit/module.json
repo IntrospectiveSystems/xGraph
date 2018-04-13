@@ -1,0 +1,60 @@
+{
+  "input": {
+    "required": [],
+    "opts": [
+      {
+        "Cmd": "Initialize",
+        "required": {
+          "ID": "string"
+        }
+      },
+      {
+        "Cmd": "Play",
+        "required": {
+          "ID": "string",
+          "Index": "number"
+        }
+      }
+    ]
+  },
+  "output": {
+    "required": [],
+    "opts": [
+      {
+        "par": "BackendServer",
+        "Command": [
+          {
+            "Cmd": "SetData",
+            "required": {
+              "Key": "string",
+              "Data": "object"
+            }
+          },
+          {
+            "Cmd": "GetData",
+            "required": {
+              "Key": "string"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "par": {
+    "required": {},
+    "opts": {
+      "BanditCount": "number",
+      "PreallocationCount": "number",
+      "BackendServer": "xGraphPid",
+      "Means": "number or array",
+      "StandardDeviations": "number or array"
+    }
+  },
+  "name": "MultiArmedBandit",
+  "icon": null,
+  "doc": null,
+  "info": {
+    "author": "TrevorGionet"
+  },
+  "src": "xGraphDev/Modules/MultiArmedBandit"
+}

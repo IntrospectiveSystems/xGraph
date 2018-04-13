@@ -1,0 +1,29 @@
+{
+	"Sources": {
+		"local": "{local}"
+	},
+	"Modules": {
+		"Validator": {
+			"Module": "Validate",
+			"Source": "local",
+			"Par": {
+				"TestModule": "Suite",
+				"TestJson": "@file: ./Modules/Suite/test.json",
+				"Links": {
+					"Pong": "$Pong"
+				}
+			}
+		},
+		"Pong": {
+			"Module": "Suite",
+			"Source": "local",
+			"Par": {}
+		},
+		"Deferred": [
+			{
+				"Module": "Suite",
+				"Source": "local"
+			}
+		]
+	}
+}

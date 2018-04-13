@@ -1,4 +1,4 @@
-### Proxy v1.1.0
+### Proxy v1.1.2
 
 _Introspective Systems, LLC_
 
@@ -9,6 +9,11 @@ to a specific Module within the same system, or as a Client connected to
 another Proxy or other TCP connection. Then, modules can send commands
 to the Proxy as if it were the destination module.
 
+Proxy may also use the Plexus module to route message between modules instead 
+of directly linking to other Proxy modules. In this case set Par.Chan on Proxy 
+in a Proxy pair (Clients, Server). Proxy will need a local Plexus server running.
+See the Examples in Examples/MultipleSystemsWithPlexus
+
 ---
 
 #### Roles
@@ -18,14 +23,16 @@ role is set in the `Role` parameter of it's module definition.
 Proxy requires different parameters depending on what role it has been
 assigned.
 
-Role | Required Parameters
---- | --- |
-Client | Role, Host, Port
-Server | Role, Link, Port
+Role | Required Parameters | Optional Parameters
+--- | --- | --- |
+Client | Role, Link, Host, Port | Chan
+Server | Role, Link, Port | Chan
 
 Here is an example of two systems using the Proxy. The first uses Proxy
 as a server module, setting the `Port` and the `Link` directly. The second
 uses Proxy as a client module, setting the Host and the Port directly.
+Set both Client and Server in the proxy pair to the same chan, and ensure they 
+connect to a running Proxy module (Working example located in Examples/MultipleSystemsWithPlexus).
 
 The `MultipleSystems\BankAccount` system structure object. Proxy is used
 here as a server.
@@ -89,6 +96,20 @@ here as a client.
 **Link**: _String_ - Used when proxy is a Server. A reference to the
                         module that incoming commands received over the
                         TCP connection are routed to.
+                        
+**Poll**: _Boolean_ - Used to determine if Proxy should attempt to re-connect
+												after failed connection attemps.
+                        
+**Chan**: _String_ - Used when managing connections using the Plexus module.
+										 		Proxies with the same Chan (Channel) name will connect
+										 		automatically when connected to the same Plexus server.
+
+**Timeout** _Integer_ - The time in milliseconds to wait before poll attempts. 
+													Used only if Poll is set to TRUE. 
+
+**AutoSave** _Boolean_ - Should the Proxy be autoSaved into the cache.
+
+**Encrypt** _Boolean_ - If false then we will not use encryption defaults to encrypt.
 
 #### Input Commands
 

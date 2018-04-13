@@ -8,25 +8,46 @@ Introspective Systems, LLC.
 ---
 #### Validate
 
-Validate is a module that tests other modules. The tests for a module
-are described in a test.json file, which should be included with each module.
-Validate generates the module being tested, and then perform
-the tests that are laid out it the test.json file.
+The Validate module runs tests on other modules. The tests for a
+module are described in a test.json file, which should be included with
+each module. Validate generates the module being tested, and then
+perform the tests that are laid out it the test.json file.
 
 ---
 
 #### How To Use Validate
 
-To test a module using Validate, you need to supply Validate
-with a list of tests in the form of a JSON object. For existing modules,
-these tests should be included in the test.json file. Next we will look at
-how to build a test.json for a module.
+To use Validate, you need a module to test. This module needs to have test 
+cases in the form of a test case JSON object. These test cases are typically 
+included in a module as a test.json object. Now we will look at how to build a
+test.json for a module.
 
-The JSON object of the test.json for any module has 2 main sections:
+###### test.json
+
+Inside the test.json file for any module you will find 2 main sections:
 `State` and `Cases`.
 
-State references a json object that defines the parameters, (`this.Par`),
-that must be defined to run the module or perform the tests given.
+Here is an empty test.json file. This is a good place to start when building 
+tests for a new module.
+```
+{
+  "State": {},
+  "Cases": []
+}
+```
+
+###### State
+
+State references a json object that defines the parameters, found in `this.Par`,
+that are passed to the module when the module is generated. These may be 
+parameters that are necessary for the module to work properly, or parameters 
+the module needs to perform the given tests. 
+
+
+
+
+###### Cases
+
 
 Cases references an array of test cases. Each test case must have the
 `"Command"` key defined. This key references the JSON object that is the
@@ -131,8 +152,8 @@ Validate requires two parameters must be defined in the module definition.
 
 The following is an example of how this looks in the module definition.
 Note that the module being tested, defined by the xGraphModuleAddress,
-also needs to be in included in the array of deferred modules so that
-its code is compiled.
+also needs to be included in the array of deferred modules so that
+it's code is compiled.
 
 ``` json
 {
@@ -148,13 +169,13 @@ its code is compiled.
 ---
 
 ### Output Commands
-The Output Commands are all the command that Validate can send.
+The Output Commands are all of the commands that Validate can send.
 
 *(Validate does not send any commands.)*
 
 ---
 
 ### Input Commands
-The Input Commands are all the command that Plexus can receive.
+The Input Commands are all of the commands that Plexus can receive.
 
 *(Validate does not send any commands.)*

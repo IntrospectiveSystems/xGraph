@@ -67,61 +67,45 @@ function HelloWorld() {
         let err = null;
 
         // Define an object to hold message to be sent to the OtherEntity (HelloWorld2.js)...
-        var msgProperties = {};
-
         /*
 			The 'Cmd' parameter holds the name of the command we want to send to 'OtherEntity'.
 			The other entity "HelloWorld2" must accept this command or it will be ignored.
+			The someValue parameter is passed with the command to the other entity.
 		*/
-        msgProperties.Cmd = "OtherFunction";
+        var commandObject = {
+            Cmd: "OtherFunction",
+            someValue: 1
+        };
 
-        /*
-            Info to send, saving to a field in msgProperties;
-            The someValue parameter is passed with the command to the other entity.
-        */
-        msgProperties.someValue = 1;
+        process.stdin.on('readable', readAndSendMessage);
 
-        /* Built-in JS function 'setTimeout(stuff to be done, timeout interval)'
-           that loops every interval in milliseconds */
-        setTimeout(
+        function readAndSendMessage(){
+            let message = process.stdin.read();
+            if(message != null){
 
-            // The main Hello World code; repeats what is typed
-            ()=>{
-                //'process' is a built-in Node js function
-                var stdin = process.openStdin();
-
-                // Add the 'data' event listener to Standard In.
-                // This means standard in will respond when it gets data.
-                stdin.addListener("data", function(userInput) {
-
-                    log.i("--xGraph Repeats: [" + userInput.toString().trim() + "]");
+                /*  sends the command object and the callback function to the xGraph part (entity or module, depending on
+                    the fractal layer) specified in the Pid.
+                    function send(com, pid, fun)
+                */
+                // the initialCommand defined above
+                //this.Par.Friend is defined in the schema.json
+                that.send(commandObject, that.Par.Friend, callback);
+            }
 
 
 
+            function callback(err,com){
+                log.i("----Recieved callback from Other, someValue is now: ", com.someValue);
+                commandObject.someValue = com.someValue;
+                log.i("--xGraph Repeats: [" + message.toString().trim() + "]");
+                log.i("HelloWorld is Listening... Type Something!");
+            }
+        }
+
+        log.i("\n\nWelcome to xGraph!\n\n"+
+            "HelloWorld is Listening... Type Something!");
 
 
-                    /*'send' is a function of Nexus, see Nexus.js; "send message to
-                    another entity, callback when message is returned."
-
-                    function send(com, pid, fun)*/
-                    that.send(msgProperties, //"send a message in 'that' context"
-                        that.Par.Friend, //this.Par.Friend is defined in the schema.json
-                        (err,com)=> {
-                            log.i("----Recieved callback from Other, someValue is now: ", com.someValue);
-                        }
-                    );
-
-
-                });
-
-            },
-        10);//TimeoutTime of 0
-
-
-        //setTimeout(()=>{
-            log.i("\n\nWelcome to xGraph!\n\n"+
-                "HelloWorld is Listening... Type Something!");
-        //},1000);// Wait a second
 
         /*
             This if statement must be at the end of every function x
@@ -135,7 +119,6 @@ function HelloWorld() {
             'fun' is the callback function
         */
         if (fun){
-
             fun(null, com);
         }
     }
@@ -145,4 +128,4 @@ function HelloWorld() {
         dispatch: dispatch
     };
 
-})();//Run it '()'
+})();

@@ -34,9 +34,9 @@ __Nexus = (_ => {
 	{
 		// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
 		// Levels include:
-		// v : verbose		Give too much information 
+		// v : verbose		Give too much information
 		// d : debug		For debugging purposes not in production level releases
-		// i : info			General info presented to the end user 
+		// i : info			General info presented to the end user
 		// w : warn			Failures that dont result in a system exit
 		// e : error 		Critical failure should always follow with a system exit
 		window.log = {
@@ -55,7 +55,7 @@ __Nexus = (_ => {
 
 	/**
 	 * The function that is called from the .html file that initializes the system
-	 * @param {string} sockio 	the sockio script  
+	 * @param {string} sockio 	the sockio script
 	 * @param {object} cfg 		the object containing all browser required variables
 	 */
 	async function boot(sockio, cfg) {
@@ -132,7 +132,7 @@ __Nexus = (_ => {
 	//
 
 	/**
-	 * 
+	 *
 	 * @param {object} cfg parameter containing all browser required files
 	 */
 	async function setup(cfg) {
@@ -322,7 +322,7 @@ __Nexus = (_ => {
 
 				/**
 				 * Add the module to the Modules object if unique
-				 * @param {object} mod 		The module object 
+				 * @param {object} mod 		The module object
 				 * @param {string} mod.Module	The name of the module
 				 * @param {object, string} mod.Source The Module broker or path reference
 				 */
@@ -378,11 +378,8 @@ __Nexus = (_ => {
 		 * Make sure all the required modules were in the cache zip
 		 */
 		async function recursiveBuild() {
-			let moduleKeys = Object.keys(Modules);
-			for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
+			for (let folder in Modules) {
 				await new Promise(async (res, rej) => {
-
-					let folder = moduleKeys[ifolder];
 					if (!(folder in ModCache)) {
 						log.w(`Module ${folder} not in Zipped Cache`);
 						rej();
@@ -397,32 +394,28 @@ __Nexus = (_ => {
 					async function styles() {
 						if ('styles.json' in modjson.files) {
 							log.v(`Loading styles.json from ${folder}`);
-							let schema = await new Promise((res2, rej2) => {
-								modjson.file("styles.json").async("string").then((sch) => {
-									res2(sch);
+							let styles = await new Promise((res2, rej2) => {
+								modjson.file("styles.json").async("string").then((sty) => {
+									res2(JSON.parse(sty));
 								});
 							});
-							var obj = JSON.parse(schema);
-							var keys = Object.keys(obj);
-							for (let idx = 0; idx < keys.length; idx++) {
-								let key = keys[idx];
+							for (let key in styles) {
 								if (Css.indexOf(key) >= 0) {
 									continue;
 								}
 								Css.push(key);
-								var file = obj[key];
-								let dat = await new Promise((res1, rej1) => {
+								var file = styles[key];
+								let css = await new Promise((res1, rej1) => {
 									modjson.file(file).async("string").then((dat) => {
 										res1(dat);
 									});
 								});
-								let css = dat;
 								var tag = document.createElement('style');
 								tag.setAttribute("data-css-url", key);
 								tag.setAttribute("type", 'text/css');
 								tag.innerHTML = css;
 								document.head.appendChild(tag);
-								log.v("Evaled styles", file);
+								log.v("Set page styles", file);
 							}
 						}
 						await scripts();
@@ -436,17 +429,14 @@ __Nexus = (_ => {
 							log.v(`Loading scripts.json from ${folder}`);
 							let scripts = await new Promise((res2, rej2) => {
 								modjson.file("scripts.json").async("string").then((dat) => {
-									res2(dat);
+									res2(JSON.parse(dat));
 								});
 							});
-							var obj = JSON.parse(scripts);
-							var keys = Object.keys(obj);
-							for (let idx = 0; idx < keys.length; idx++) {
-								let key = keys[idx];
+							for (let key in scripts) {
 								if (key in Scripts) {
 									continue;
 								}
-								var file = obj[key];
+								var file = scripts[key];
 								let script = await new Promise((res3, rej3) => {
 									modjson.file(file).async("string").then((dat) => {
 										res3(dat);
@@ -454,7 +444,7 @@ __Nexus = (_ => {
 								});
 								Scripts[key] = script;
 								eval(script);
-								log.v("Evaled scr", file);
+								log.v("Evaled script", file);
 							}
 						}
 						await fonts();
@@ -468,17 +458,14 @@ __Nexus = (_ => {
 							log.v(`Loading fonts.json from ${folder}`);
 							let fonts = await new Promise((res2, rej2) => {
 								modjson.file("fonts.json").async("string").then((dat) => {
-									res2(dat);
+									res2(JSON.parse(dat));
 								});
 							});
-							var obj = JSON.parse(fonts);
-							var keys = Object.keys(obj);
-							for (let idx = 0; idx < keys.length; idx++) {
-								let key = keys[idx];
+							for (let key in fonts) {
 								if (key in Fonts) {
 									continue;
 								}
-								var file = obj[key];
+								var file = fonts[key];
 								log.v("Evaled font", file);
 								let font = await new Promise((res3, rej3) => {
 									modjson.file(file).async("string").then((dat) => {
@@ -590,28 +577,26 @@ __Nexus = (_ => {
 
 	/**
 	 * Generate array of entities from module
-	 * Module must be in cache 
-	 * 
+	 * Module must be in cache
+	 *
 	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-	 * @param {object} inst 
+	 * @param {object} inst
 	 * @param {string} inst.Module	The module definition in dot notation
 	 * @param {object} inst.Par		The par object that defines the par of the instance
 	 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
 	 */
 	async function compileInstance(pidapx, inst, saveRoot) {
 		log.v('compileInstance', inst.Module, pidapx);
-		var Local = {};
-		var modnam = inst.Module;
-		var mod;
-		var ents = [];
-		var modnam = modnam.replace(/\:/, '.').replace(/\//g, '.');
 
+		var modnam = inst.Module.replace(/\:/, '.').replace(/\//g, '.');
+		//check if we have access to the module
 		if (modnam in ModCache) {
-			mod = ModCache[modnam];
+			var mod = ModCache[modnam];
 		} else {
 			log.e('Module <' + modnam + '> not in ModCache');
 			return;
 		}
+		ApexIndex[pidapx] = modnam;
 
 		var schema = await new Promise(async (res, rej) => {
 			if ('schema.json' in mod.files) {
@@ -625,63 +610,48 @@ __Nexus = (_ => {
 			}
 		});
 
-		var entkeys = Object.keys(schema);
+		var Local = {};
 
-		//set Pids for each entity in the schema
-		for (j = 0; j < entkeys.length; j++) {
-			let entkey = entkeys[j];
-			if (entkey === 'Apex') {
-				Local[entkey] = pidapx;
-				ApexIndex[pidapx] = modnam;
-			} else
-				Local[entkey] = genPid();
-		}
-
-		//unpack the par of each ent
-		for (let j = 0; j < entkeys.length; j++) {
-			let entkey = entkeys[j];
+		//fill out all the pars for each entity in this module
+		for (let entkey in schema) {
+			//unpack the pars of each ent
 			let ent = schema[entkey];
-			ent.Pid = Local[entkey];
 			ent.Module = modnam;
 			ent.Apex = pidapx;
+			ent.sendSock = sendSocket;
 
-			//give the webProxy modules access to the websocket and callback message stack
-			if (modnam.split(/[\.\/]/g)[modnam.split(/[\.\/]/g).length - 1] == 'WebProxy')
-				ent.sendSock = sendSocket;
-
-			//unpack the config pars to the par of the apex of the instance
-			if (entkey == 'Apex' && 'Par' in inst) {
-				let pars = Object.keys(inst.Par);
-				for (let ipar = 0; ipar < pars.length; ipar++) {
-					let par = pars[ipar];
-					ent[par] = inst.Par[par];
+			//set the entity's pid
+			if (entkey == 'Apex') {
+				ent.Pid = pidapx;
+				//unpack the config pars to the par of the apex of the instance
+				if ('Par' in inst) {
+					for (par in inst.Par) {
+						ent[par] = inst.Par[par];
+					}
 				}
+			} else {
+				ent.Pid = genPid();
 			}
-
-			//load pars from schema
-			var pars = Object.keys(ent);
-			for (ipar = 0; ipar < pars.length; ipar++) {
-				var par = pars[ipar];
-				var val = ent[par];
-				if (entkey == "Apex" && saveRoot) {
-					if (par == "$Setup") Root.Setup[ent.Pid] = val;
-					if (par == "$Start") Root.Start[ent.Pid] = val;
-				}
-				ent[par] = await symbol(val);
-			}
-			ents.push(ent);
+			Local[entkey] = ent.Pid;
 		}
 
-		for (let entIdx = 0; entIdx < ents.length; entIdx++) {
-			let par = ents[entIdx];
-			let impkey = modnam + par.Entity;
+		for (let entkey in schema) {
+			let ent = schema[entkey];
+			let impkey = modnam + "." + ent.Entity;
 			if (!(impkey in ImpCache)) {
 				let entString = await new Promise(async (res, rej) => {
-					mod.file(par.Entity).async("string").then((string) => res(string))
+					mod.file(ent.Entity).async("string").then((string) => res(string))
 				});
-				ImpCache[impkey] = (1, eval)(entString);
+				ImpCache[impkey] = evalInContext(entString, schema);
 			}
-			EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+			for (par in schema[entkey]) {
+				if (entkey == "Apex" && saveRoot) {
+					if (par == "$Setup") Root.Setup[ent.Pid] = ent[par];
+					if (par == "$Start") Root.Start[ent.Pid] = ent[par];
+				}
+				ent[par] = await symbol(ent[par]);
+			}
+			EntCache[ent.Pid] = new Entity(Nxs, ImpCache[impkey], ent);
 		}
 
 		async function symbol(val) {
@@ -712,7 +682,7 @@ __Nexus = (_ => {
 	/**
 	 * Send a message from an entity to an Apex entity.
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
+	 * @param {object} com 			the message object
 	 * @param {string} com.Cmd 		the command of the message
 	 * @param {object} com.Passport	the information about the message
 	 * @param {string} com.Passport.To the Pid of the recipient module
@@ -773,7 +743,7 @@ __Nexus = (_ => {
 	/**
 	 * Send a message over the websocket
 	 * If a callback is provided, return when finished
-	 * @param {object} com 			the message object 
+	 * @param {object} com 			the message object
 	 * @param {string} com.Cmd 		the command of the message
 	 * @param {object} com.Passport	the information about the message
 	 * @param {string} com.Passport.To the Pid of the recipient module
@@ -830,41 +800,50 @@ __Nexus = (_ => {
 		let mod = ModCache[module];
 		if (filename in mod.files) {
 			mod.file(filename).async("string").then((dat) => {
-				fun(null, mod[filename])
+				fun(null, dat);
 				return;
 			});
+		} else if (`static/${filename}` in mod.files) {
+			mod.file(`static/${filename}`).async("string").then((dat) => {
+				fun(null, dat);
+				return;
+			});
+		} else if ('static' in mod) {
+		// 	let filearr = filename.split('/');
+		// 	let store = mod["static"];
+		// 	let [err, file] = subSearch(filearr, store);
+		// 	fun(err, file);
+		// 	return;
+
+		// 	// /**
+		// 	//  * Recursive object search
+		// 	//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
+		// 	//  * @param {Object} st 		The directory we're searching in 
+		// 	//  */
+		// 	function subSearch(ar, st) {
+		// 		if (ar[0] in st) {
+		// 			if (ar.length == 1) {
+		// 				return [null, st[ar[0]]];
+		// 			}
+		// 			else {
+		// 				return subSearch(arr.slice(1), st[ar[0]]);
+		// 			}
+		// 		} else {
+		// 			let err = `${url} does not exist in Par.Static`;
+		// 			log.w(err);
+		// 			return [err, null];
+		// 		}
+		// 	}
+		} else {
+			let err = `File ${filename} does not exist in module ${module}`;
+			log.w(err);
+			fun(err);
 		}
 
-		if ('static' in mod) {
-			let filearr = filename.split('/');
-			let store = mod["static"];
-			let [err, file] = subSearch(filearr, store);
-			fun(err, file);
-			return;
-
-			// /**
-			//  * Recursive object search
-			//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
-			//  * @param {Object} st 		The directort we're searching in 
-			//  */
-			function subSearch(ar, st) {
-				if (ar[0] in st) {
-					if (ar.length == 1) {
-						return [null, st[ar[0]]];
-					}
-					else {
-						return subSearch(arr.slice(1), st[ar[0]]);
-					}
-				} else {
-					let err = `${url} does not exist in Par.Static`;
-					log.w(err);
-					return [err, null];
-				}
-			}
-		}
-		let err = `File ${filename} does not exist in module ${module}`;
-		log.e(err);
-		fun(err);
+		
+		// let err = `File ${filename} does not exist in module ${module}`;
+		// log.e(err);
+		// fun(err);
 	}
 
 
@@ -881,7 +860,7 @@ __Nexus = (_ => {
 	 * The base class for all xGraph Entities
 	 * @param {object} nxs 	the nxs context to give the entity acess too
 	 * @param {object} imp 	the evaled Entity functionality returned by the dispatch table
-	 * @param {object} par	the par of the entity 
+	 * @param {object} par	the par of the entity
 	 */
 	function Entity(nxs, imp, par) {
 		var Par = par;
@@ -922,9 +901,9 @@ __Nexus = (_ => {
 
 		/**
 		 * Route a message to this entity with its context
-		 * @param {object} com		The message to be dispatched in this entities context 
+		 * @param {object} com		The message to be dispatched in this entities context
 		 * @param {string} com.Cmd	The actual message we wish to send
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
 			var disp = Imp.dispatch;
@@ -945,7 +924,7 @@ __Nexus = (_ => {
 		 * @param {object} mod 	the description of the Module to generate
 		 * @param {string} mod.Module the module to generate
 		 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genModule(mod, fun) {
 			nxs.genModule(mod, fun);
@@ -953,7 +932,7 @@ __Nexus = (_ => {
 
 		/**
 		 * deletes the current entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function deleteEntity(fun) {
 			log.v(`Deleting Entity ${Par.Pid}`);
@@ -965,7 +944,7 @@ __Nexus = (_ => {
 		 * @param {object} par the par of the entity to be generated
 		 * @param {string} par.Entity The entity type that will be generated
 		 * @param {string=} par.Pid	the pid to define as the pid of the entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function genEntity(par, fun) {
 			nxs.genEntity(Par.Apex, par, fun);
@@ -979,12 +958,12 @@ __Nexus = (_ => {
 		}
 
 		/**
-		 * Send a message to another entity, you can only send messages to Apexes of modules 
+		 * Send a message to another entity, you can only send messages to Apexes of modules
 		 * unless both sender and recipient are in the same module
-		 * @param {object} com  		the message object to send 
-		 * @param {string} com.Cmd		the function to send the message to in the destination entity 
+		 * @param {object} com  		the message object to send
+		 * @param {string} com.Cmd		the function to send the message to in the destination entity
 		 * @param {string} pid 			the pid of the recipient (destination) entity
-		 * @callback fun 
+		 * @callback fun
 		 */
 		function send(com, pid, fun) {
 			if (!('Passport' in com))
@@ -1015,7 +994,7 @@ __Nexus = (_ => {
 			return;
 		}
 
-		var impkey = ApexIndex[apx] + '/' + par.Entity;
+		var impkey = ApexIndex[apx] + '.' + par.Entity;
 		var mod = ModCache[ApexIndex[apx]];
 
 		if (!(par.Entity in mod)) {
@@ -1032,7 +1011,7 @@ __Nexus = (_ => {
 			let entString = await new Promise(async (res, rej) => {
 				mod.file(par.Entity).async("string").then((string) => res(string))
 			});
-			ImpCache[impkey] = (1, eval)(entString);
+			ImpCache[impkey] = evalInContext(entString);
 		}
 		EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 
@@ -1041,7 +1020,7 @@ __Nexus = (_ => {
 
 	/**
 	 * Delete an entity file. If the entity is an Apex of a Module,
-	 * then delete all the entities found in that module as well. 
+	 * then delete all the entities found in that module as well.
 	 * @param {string} apx 		the pid of the entities apex
 	 * @param {string} pid 		the pid of the entity
 	 * @callback fun  			the callback to return te pid of the generated entity to
@@ -1072,7 +1051,7 @@ __Nexus = (_ => {
 	 * After generating, the instance Apex receives a setup and start command synchronously
 	 * @param {Object} inst 		Definition of the instance to be spun up
 	 * @param {string} inst.Module 	The name of te module to spin up
-	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par	
+	 * @param {Object=} inst.Par	The par of the to be encorporated with the Moduel Apex Par
 	 * @callback fun 				(err, pid of module apex)
 	 */
 	function genModule(inst, fun = _ => _) {
@@ -1103,7 +1082,7 @@ __Nexus = (_ => {
 					return;
 				}
 			});
-			
+
 			setup();
 
 			function setup() {
@@ -1139,3 +1118,8 @@ __Nexus = (_ => {
 		})();
 	}
 })();
+
+function evalInContext(_string, _schema) {
+	let schema = _schema;
+	return eval(_string);
+}

@@ -1,0 +1,61 @@
+{
+	"name": "RealTimeBattery",
+	"version": "1.0.0",
+	"info": {
+		"author": "IntrospectiveSystems"
+	},
+	"doc": "README.md",
+	"input": {
+		"required": [
+			{
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		],
+		"optional": [
+			{
+				"Cmd": "Charge"
+			},
+			{
+				"Cmd": "Discharge"
+			},
+			{
+				"Cmd": "Stop"
+			},
+			{
+				"Cmd": "GetDepthOfCharge"
+			},
+			{
+				"Cmd": "GetState"
+			}
+		]
+	},
+	"output": {
+		"required": [
+			{
+				"par": "",
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		],
+		"optional": [
+			{
+				"par": "",
+				"Cmd": "",
+				"required": {},
+				"optional": {}
+			}
+		]
+	},
+	"par": {
+		"required": {
+			"InitialCharge": "number",
+			"Capacity": "number",
+			"ChargeRate": "object",
+			"DischargeRate": "object"
+		},
+		"optional": {}
+	}
+}

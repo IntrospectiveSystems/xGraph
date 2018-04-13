@@ -29,7 +29,7 @@
 		com.Passport.To = this.Par.Link;
 
 		this.Par.sendSock(com, async (err, com) => {
-
+			
 			if(com.PidInterchange) {
 				let table = [];
 				com = await recurse(com);
@@ -66,11 +66,18 @@
 				}
 			}
 
-			fun(null, com);
+			fun(err, com);
 		});
 	}
-
-	async function Subscribe(com, fun) {
+/**
+	 * `Subscribe` messages received by this WebProxy Module will immediately be
+	 * sent to the Server and register the sender/`com.Pid` to recieve messages
+	 * broadcasted on this `Par.Link`
+	 * 
+	 * @param {Object} com   message object
+	 * @param {Function=} fun   callback
+ */
+async function Subscribe(com, fun) {
 		com.Link = com.Link || this.Par.Link;
 		com.Pid = com.Pid || com.Passport.From;
 		this.Par.sendSock(com, async _ => {
