@@ -627,14 +627,13 @@ module.exports = function xGraph() {
 							return;
 						}
 						log.e('Nada Cmd:' + com.Cmd);
+						fun('Nada', com);
 					} catch(e) {
 						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
 						log.e(e.toString());
 						// console.dir(e);
 						// console.trace();
 						process.exit(2);
-					} finally {
-						fun('Nada', com);
 					}
 				}
 
