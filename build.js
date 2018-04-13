@@ -62,7 +62,6 @@
 		copy('src/Nexus.js', 'temp/Nexus.js');
 		copy('src/Genesis.js', 'temp/Genesis.js');
 
-		console.log('COMPILING LINUX');
 
 		// compile temp/xgraph
 		await compile({
@@ -74,7 +73,6 @@
 			fakeArgv: true
 		});
 
-		console.log('COMPILING WINDOWS');
 
 		await compile({
 			input: 'temp/xgraph.js',
@@ -85,8 +83,7 @@
 			fakeArgv: true
 		});
 
-		console.log('COMPILING MACOS');
-
+		
 		await compile({
 			input: 'temp/xgraph.js',
 			output: 'bin/mac/bin/xgraph',
@@ -95,23 +92,24 @@
 			resources: ['src/Nexus.js', 'src/Genesis.js'],
 			fakeArgv: true
 		});
-
+		
+		console.log('Compilation completed');
 		// copy('src/Nexus.js', 'bin/mac/bin/Nexus.js');
 		// copy('src/Nexus.js', 'bin/windows/bin/Nexus.js');
 
 		// copy('src/Genesis.js', 'bin/mac/bin/Genesis.js');
 		// copy('src/Genesis.js', 'bin/windows/bin/Genesis.js');
 
-		// tar.compress({
-		// 	src: "bin/linux/",
-		// 	dest: 'bin/xgraph_linux.tar.gz'
-		// }, function (err) {
-		// 	if (err) {
-		// 		console.log(err);
-		// 	} else {
-		// 		console.log("Linux: Done!");
-		// 	}
-		// });
+		tar.compress({
+			src: "bin/linux/",
+			dest: 'bin/xgraph_linux.tar.gz'
+		}, function (err) {
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Linux: Done!");
+			}
+		});
 
 		// try {
 		// 	var canCreatePackage = false;
