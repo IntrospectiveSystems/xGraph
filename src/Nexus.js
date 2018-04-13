@@ -8,7 +8,7 @@ module.exports = function xGraph() {
 	};
 
 	let dispatchEvent = this.dispatchEvent = function dispatchEvent(eventName, options) {
-		for(let callback of eventListeners[eventName]) {
+		for (let callback of eventListeners[eventName]) {
 			callback(options);
 		}
 	}
@@ -247,7 +247,7 @@ module.exports = function xGraph() {
 				await Promise.all(stopTasks);
 				log.v(`--Nexus: All Stops Complete`);
 
-				dispatchEvent('exit', {exitCode: code});
+				dispatchEvent('exit', { exitCode: code });
 			}
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,7 +384,7 @@ module.exports = function xGraph() {
 
 					await Promise.all(setupArray);
 					log.v(`--Nexus: All Setups Complete`);
-					
+
 				}
 
 				/**
@@ -546,9 +546,9 @@ module.exports = function xGraph() {
 					} else {
 						let err = 'Trying to send a message to a non-Apex'
 							+ 'entity outside of the sending module';
-							log.w(err);
-							log.w(JSON.stringify(com, null, 2));
-							fun(err, com);
+						log.w(err);
+						log.w(JSON.stringify(com, null, 2));
+						fun(err, com);
 					}
 				}
 				function reply(err, q) {
@@ -921,14 +921,14 @@ module.exports = function xGraph() {
 			 */
 			function loadDependency(apx, pid, str) {
 				// log.d(`Nexus::loadDependency (${apx}, ${pid}, ${str})`);
-				
+
 				let folder = ApexIndex[apx];
 				try {
 					return require(str);
-				}catch (e) {
+				} catch (e) {
 					try {
 						return require(Path.join(CacheDir, folder, 'node_modules', str));
-					}catch (e) {
+					} catch (e) {
 						log.e(e);
 						process.exit(1);
 					}
@@ -1028,7 +1028,7 @@ module.exports = function xGraph() {
 				for (let moduleKey in moduleDefinitions) {
 					//do a GetModule and compile instance for each 
 					PromiseArray.push(new Promise((res, rej) => {
-					let inst = moduleDefinitions[moduleKey];
+						let inst = moduleDefinitions[moduleKey];
 						GetModule(inst.Module, async function (err, mod) {
 							if (err) {
 								log.e('GenModule err -', err);
@@ -1233,16 +1233,21 @@ module.exports = function xGraph() {
 					ents.push(ent);
 				}
 
-				ents.forEach(async function (par) {
-					let impkey = modnam + par.Entity;
-					if (!(impkey in ImpCache)) {
-						let entString = await new Promise(async (res, rej) => {
-							mod.file(par.Entity).async("string").then((string) => res(string))
-						});
-						ImpCache[impkey] = (1, eval)(entString);
-					}
-					EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
-				});
+				let entsPromise = [];
+
+				for (let par of ents) {
+					entsPromise.push((async function () {
+						let impkey = modnam + par.Entity;
+						if (!(impkey in ImpCache)) {
+							let entString = await new Promise(async (res, rej) => {
+								mod.file(par.Entity).async("string").then((string) => res(string))
+							});
+							ImpCache[impkey] = (1, eval)(entString);
+						}
+						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+					})());
+				}
+				await Promise.all(entsPromise);
 
 				async function symbol(val) {
 					if (typeof val === 'object') {
