@@ -1,6 +1,0 @@
-{
-	"Apex": {
-		"Entity": "TicketHistoryView.js",
-		"$Setup": "Setup"
-	}
-}

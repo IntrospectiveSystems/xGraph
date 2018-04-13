@@ -1,0 +1,6 @@
+{
+	"Apex": {
+		"Entity": "Set.js",
+		"$Setup": "Setup"
+	}
+}
