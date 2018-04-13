@@ -62,6 +62,8 @@
 		copy('src/Nexus.js', 'temp/Nexus.js');
 		copy('src/Genesis.js', 'temp/Genesis.js');
 
+		console.log('COMPILING LINUX');
+
 		// compile temp/xgraph
 		await compile({
 			input: 'temp/xgraph.js',
@@ -72,6 +74,8 @@
 			fakeArgv: true
 		});
 
+		console.log('COMPILING WINDOWS');
+
 		await compile({
 			input: 'temp/xgraph.js',
 			output: 'bin/windows/bin/xgraph.exe',
@@ -81,6 +85,7 @@
 			fakeArgv: true
 		});
 
+		console.log('COMPILING MACOS');
 
 		await compile({
 			input: 'temp/xgraph.js',
@@ -97,78 +102,78 @@
 		// copy('src/Genesis.js', 'bin/mac/bin/Genesis.js');
 		// copy('src/Genesis.js', 'bin/windows/bin/Genesis.js');
 
-		tar.compress({
-			src: "bin/linux/",
-			dest: 'bin/xgraph_linux.tar.gz'
-		}, function (err) {
-			if (err) {
-				console.log(err);
-			} else {
-				console.log("Linux: Done!");
-			}
-		});
+		// tar.compress({
+		// 	src: "bin/linux/",
+		// 	dest: 'bin/xgraph_linux.tar.gz'
+		// }, function (err) {
+		// 	if (err) {
+		// 		console.log(err);
+		// 	} else {
+		// 		console.log("Linux: Done!");
+		// 	}
+		// });
 
-		try {
-			var canCreatePackage = false;
+		// try {
+		// 	var canCreatePackage = false;
 		
-			if (/^linux/.test(platform)) {
-				let xar = '';
-				try {
-					xar = (execSync('which xar').toString());
-				}catch(e) {}
-				if (xar != '') {
-					let bomUtils = (execSync('which mkbom').toString());
-					if (bomUtils != '') {
-						canCreatePackage = true;
-					} else {
-						console.log("Missing xar: please install using");
-						console.log("  'wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/xar/xar-1.5.2.tar.gz && tar -zxvf ./xar-1.5.2.tar.gz && cd ./xar-1.5.2 && ./configure && make && sudo make install'");
-					}
-				} else {
-					console.log("Missing bomutils: please install using");
-					console.log("  'git clone https://github.com/hogliux/bomutils && cd bomutils && make && sudo make install'")
-				}
-			} 
+		// 	if (/^linux/.test(platform)) {
+		// 		let xar = '';
+		// 		try {
+		// 			xar = (execSync('which xar').toString());
+		// 		}catch(e) {}
+		// 		if (xar != '') {
+		// 			let bomUtils = (execSync('which mkbom').toString());
+		// 			if (bomUtils != '') {
+		// 				canCreatePackage = true;
+		// 			} else {
+		// 				console.log("Missing xar: please install using");
+		// 				console.log("  'wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/xar/xar-1.5.2.tar.gz && tar -zxvf ./xar-1.5.2.tar.gz && cd ./xar-1.5.2 && ./configure && make && sudo make install'");
+		// 			}
+		// 		} else {
+		// 			console.log("Missing bomutils: please install using");
+		// 			console.log("  'git clone https://github.com/hogliux/bomutils && cd bomutils && make && sudo make install'")
+		// 		}
+		// 	} 
 
-			if (canCreatePackage) {
-				console.log("Building mac pkg installer.")
-				let buildResults = (execSync('./build_mac_pkg.sh').toString());
-				console.log(buildResults);
-				console.log("Mac: Done!");
-			} else {
-				createMacTarball();
-			}
+		// 	if (canCreatePackage) {
+		// 		console.log("Building mac pkg installer.")
+		// 		let buildResults = (execSync('./build_mac_pkg.sh').toString());
+		// 		console.log(buildResults);
+		// 		console.log("Mac: Done!");
+		// 	} else {
+		// 		createMacTarball();
+		// 	}
 
-			//make for windows
-			var options = {
-				source: 'bin/windows',
-				output: 'bin/xgraph.msi',
-				name: 'xGraph',
-				upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
-				version: pkg.version,
-				manufacturer: 'Introspective Systems, LLC.',
-				iconPath: 'IS.png',
-				executable: 'bin/windows/bin/xgraph.exe',
-				arch: 'x64',
-			};
+		// 	//make for windows
+		// 	var options = {
+		// 		source: 'bin/windows',
+		// 		output: 'bin/xgraph.msi',
+		// 		name: 'xGraph',
+		// 		upgradeCode: '67dd6b8a-fedf-4aa3-925a-d0dc4f620d8f',
+		// 		version: pkg.version,
+		// 		manufacturer: 'Introspective Systems, LLC.',
+		// 		iconPath: 'IS.png',
+		// 		executable: 'bin/windows/bin/xgraph.exe',
+		// 		arch: 'x64',
+		// 	};
 
-			console.log("Ignore the following DeprecationWarning from msi-packager for asynchronous function without callback.");
-			await new Promise(resolve => {
-				createMsi(options, function (err) {
-					if (/^win/.test(platform)) {
-						console.log("MSI creation can only be done on mac or linux.");
-						console.log('Windows: FAILED!');
-					} else {
-						if (err) throw err
-						console.log('Windows: Done!');
-					}
-					resolve();
-				});
-			});
-		} catch (e) {
-			console.log(e);
-			console.log('TODO: revisit how packaging works...');
-		}
+		// 	console.log("Ignore the following DeprecationWarning from msi-packager for asynchronous function without callback.");
+		// 	await new Promise(resolve => {
+		// 		createMsi(options, function (err) {
+		// 			if (/^win/.test(platform)) {
+		// 				console.log("MSI creation can only be done on mac or linux.");
+		// 				console.log('Windows: FAILED!');
+		// 			} else {
+		// 				if (err) throw err
+		// 				console.log('Windows: Done!');
+		// 			}
+		// 			resolve();
+		// 		});
+		// 	});
+		// } catch (e) {
+		// 	console.log(e);
+		// 	console.log('TODO: revisit how packaging works...');
+		// }
 
 
 	}catch (e) {
