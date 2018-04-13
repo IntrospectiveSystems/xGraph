@@ -110,7 +110,10 @@
 
 		var canCreatePackage = false;
 		if (/^linux/.test(platform)) {
-			let xar = (execSync('which xar').toString());
+			let xar = '';
+			try {
+				xar = (execSync('which xar').toString());
+			}catch(e) {}
 			if (xar != '') {
 				let bomUtils = (execSync('which mkbom').toString());
 				if (bomUtils != '') {
