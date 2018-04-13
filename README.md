@@ -1,5 +1,7 @@
 [![Travis branch](https://img.shields.io/travis/IntrospectiveSystems/xGraph/release.svg?style=for-the-badge)](https://travis-ci.org/IntrospectiveSystems/xGraph)
 [![npm](https://img.shields.io/npm/v/xgraph.svg?style=for-the-badge)](https://www.npmjs.com/package/xgraph)
+[![npm](https://img.shields.io/npm/l/xgraph.svg?style=for-the-badge)](https://github.com/IntrospectiveSystems/xGraph/blob/release/LICENSE.txt)
+
 
 
 # xGraph
