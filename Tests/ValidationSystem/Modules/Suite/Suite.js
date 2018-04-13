@@ -94,6 +94,7 @@
 				Cmd: 'Ping'
 			}, this.Vlt.gennedEntity, (err, cmd) => {
 				if(!!err) return fun(err, com);
+				com.Passed = true;
 				fun(null, com);
 			});
 		}
