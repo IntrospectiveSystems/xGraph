@@ -198,21 +198,7 @@
 					elevations: []
 				};
 				q.Objects.push(obj);
-				// add a module 
-				// obj = {
-				// 	id: "module",
-				// 	module: "Extensions.Modules.Modelx3D",
-				// 	parentId: "plane",
-				// 	position: {
-				// 		x: 0,
-				// 		y: 0,
-				// 		z: 0
-				// 	},
-				// 	model: "Geo.101Plants.Cactus3",
-				// 	axis: [0, 0, 1],
-				// 	angle: 0
-				// };
-				// q.Objects.push(obj);
+
 
 				this.send(q, this.Par.Pid, _ =>
 					//callback
@@ -222,19 +208,7 @@
 
 				/*
 
-
-
-
-
-
 				END EXAMPLE CODE
-
-
-
-
-
-
-
 
 				*/
 			}

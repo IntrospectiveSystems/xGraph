@@ -8,7 +8,7 @@
 			"Source": "xGraph",
 			"Par": {
 				"TestModule": "Core.Modules.xGraph.3DView",
-				"TestJson": "@file: ../../Core/Modules/Core/3DView/test.json"
+				"TestJson": "@file: ../../Core/Modules/xGraph/3DView/test.json"
 			}
 		},
 		"Deferred": [

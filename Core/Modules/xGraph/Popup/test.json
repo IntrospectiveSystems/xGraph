@@ -7,10 +7,7 @@
 		{
 			"Command": {
 				"Cmd": "Setup"
-			},
-			"Document": [
-				"xGraphSelfPid"
-			]
+			}
 		}
 	]
 }
