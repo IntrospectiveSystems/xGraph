@@ -55,7 +55,10 @@ try {
 
 	// build npm version
 	{
-		exec('npm install -g .');
+		try {exec('npm install -g .');}
+		catch(e){
+			exec('sudo npm install -g .');
+		}
 		exec('which xgraph');
 		exec('xgraph -v');
 	}
