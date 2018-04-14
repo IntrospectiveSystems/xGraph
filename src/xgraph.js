@@ -34,6 +34,7 @@ let cli = function(argv) {
 	const genesis = require('./Genesis.js');
 	const nexus = require('./Nexus.js');
 	let subcommand = '';
+	let flags = {};
 
 
 	let windows, mac, linux, unix, system;
@@ -219,11 +220,10 @@ Examples:
 	}
 
 	async function reset() {
-		console.log('doing a heckin\' reset');
 		try {
 			await ensureNode();
 			state = 'production';
-			await genesis({state, pathOverrides});
+			await genesis(Object.assign({state}, pathOverrides));
 			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
 			process.chdir(processPath);
 			startNexusProcess();
@@ -233,7 +233,6 @@ Examples:
 	}
 
 	async function deploy() {
-		console.log('doing a heckin\' deploy');
 		try {
 			await ensureNode();
 			startNexusProcess();
@@ -244,11 +243,10 @@ Examples:
 	}
 
 	async function execute() {
-		console.log('doing a heckin\' execute');
 		try {
 			await ensureNode();
 			state = 'development';
-			await genesis({state, pathOverrides});
+			await genesis(Object.assign({state}, pathOverrides));
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -256,31 +254,32 @@ Examples:
 	}
 
 	async function compile() {
-		console.log('doing a heckin\' compile');
 		try {
 			await ensureNode();
 			state = 'production';
-			await genesis({state, pathOverrides});
+			// console.dir(pathOverrides);
+			await genesis(Object.assign({state}, pathOverrides));
 		} catch (e) {
 			console.error(e);
 		}
 	}
 
 
-	function startNexusProcess() {
-		const { spawn } = require('child_process');
+	async function startNexusProcess() {
 
+		//get the cache dir
 		let cacheDir = pathOverrides["cache"];
 		console.log(`Starting from ${cacheDir}`);
 		
+		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
 		process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
 
-		params = ['node.exe', 'nexus.js', ...argv, JSON.stringify(pathOverrides)];
+		//combine flags and path overrides to create the options object for nexus
+		params = Object.assign(pathOverrides, flags);
 
 		let system = new nexus();
-		console.dir(system);
-
 		system.on('exit', _ => {
+			// HACK: to restart systems
 			if(_.exitCode == 72) {
 				setTimeout(_ => {
 					process.chdir(originalCwd);
@@ -289,7 +288,12 @@ Examples:
 			}
 		});
 
-		system.boot(params);
+		try {
+			await system.boot(params);
+		} catch (e) {
+			console.error(e);
+			process.exit(1);
+		}
 
 	}
 
@@ -314,7 +318,7 @@ Examples:
 				await install();
 			}
 		} else {
-			console.warn(`[WARN] Automated Version Validation for ${system} is not yet supported.\r\nYou will need to install Node v${nodeVersion} manually, if you have not already.`);
+			console.warn(`\u001b[33m[WARN] Automated Version Validation for ${system} is not yet supported.\r\nYou will need to install Node v${nodeVersion} manually, if you have not already.\u001b[39m`);
 		}
 	}
 
@@ -457,16 +461,22 @@ Examples:
 		}
 
 		function applySwitch(str, i) {
-			console.log(`applySwitch ${str}, ${i}`)
 			let remainingArgs = args.length - i - 1;
-			if (str == "debug") {
-				console.log("Doing the debug thing");
-				argLoop.delete(1);
-				return;
-			}
-			if (remainingArgs >= 1) { // switch has a value
-				pathOverrides[str.toLowerCase()] = args[i + 1];
-				argLoop.delete(2);
+			// if (str == "debug") {
+			// 	console.log("Doing the debug thing");
+			// 	argLoop.delete(1);
+			// 	return;
+			// }
+			if (remainingArgs >= 1) { // switch has another argument
+				if(!args[i + 1].startsWith('--')) {
+					//if its justt some more plain text, not another switch
+					//we add it to path overrides
+					pathOverrides[str.toLowerCase()] = args[i + 1];
+					argLoop.delete(2);
+				}else {
+					//otherwise, we add it to flags
+					flags[str.toLowerCase()] = true;
+				}
 			}
 		}
 	}
@@ -662,4 +672,8 @@ Examples:
 	}
 }
 
-cli(process.argv);
+if(require.main === module) cli(process.argv);
+else module.exports = {
+	Nexus: require('./Nexus.js'),
+	Genesis: require('./Genesis.js')
+};

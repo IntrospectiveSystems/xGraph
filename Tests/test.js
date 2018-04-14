@@ -1,5 +1,6 @@
 const {execSync} = require('child_process');
 const path = require('path');
+const xgraph = require('xgraph');
 
 function exec(cmd) {
 	console.log(`\n> ${cmd}\n`);
@@ -85,7 +86,13 @@ try {
 		exec('xgraph d --CWD ValidationSystem --local ./ValidationSystem/Modules');
 	}
 
-	console.log('All Tests passed Successfully! Congratulations, you\'re ready to merge!');
+	// test API access
+	// {
+	// 	console.dir(xgraph);
+	// }
+
+
+	console.log('\u001b[42;30mAll Tests passed Successfully!\nCongratulations, you\'re ready to merge!\u001b[0m');
 	process.exit(0);
 } catch (e) {
 	console.log(e.message);

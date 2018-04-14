@@ -18,9 +18,15 @@ module.exports = function xGraph() {
 	}
 
 	this.boot = function boot(optionsArray) {
-		(async function (__options) {
+		return (async function (__options) {
+
+			function checkFlag(flag) {
+				console.dir(__options);
+				return flag in __options && __options[flag];
+			}
+
 			if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-			if (__options.indexOf("--debug") > -1 || __options.indexOf("--development") > -1) {
+			if (checkFlag('debug') || checkFlag('development')) {
 				state = 'development';
 			}
 			// module.paths.push(process.cwd() + '/cache/node_modules');
@@ -43,8 +49,6 @@ module.exports = function xGraph() {
 			var EntCache = {};					// {<Entity pid>:<Entity>
 			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 			var packagejson = {};				// The compiled package.json, built from Modules
-			var args = __options;			// The input __options --under consideration for deprication
-			var Params = {};					// The set of Macros for defining paths
 			var originalConsoleLog = console.log;
 			var Nxs = {
 				genPid,
@@ -193,37 +197,30 @@ module.exports = function xGraph() {
 					console.timers[_] = undefined;
 					log.i(`${_}: ${elapsed}ms`);
 				}
-				process.on('unhandledRejection', event => {
-					log.e('------------------ [Stack] ------------------');
-					log.e(`line ${event.lineNumber}, ${event}`);
-					log.e(event.stack);
-					log.e('------------------ [/Stack] -----------------');
-					process.exit(1);
-				});
+				// process.on('unhandledRejection', event => {
+				// 	log.e('------------------ [Stack] ------------------');
+				// 	log.e(`line ${event.lineNumber}, ${event}`);
+				// 	log.e(event.stack);
+				// 	log.e('------------------ [/Stack] -----------------');
+				// 	process.exit(1);
+				// });
 
 			}
 
 			log.i('=================================================');
 			log.i(`Nexus Warming Up:`);
 
-			defineMacros();
+			//set CWD
+			__options.cwd = __options.cwd ? Path.resolve(__options.cwd) : Path.resolve('.');
+			log.v(`CWD set to ${__options.cwd}`);
 
-			// if called from binary quit or if called from
-			// the command line and node build cache first
-			if (!fs.existsSync(CacheDir) || (state == "development")) {
-				// #ifndef BUILT
-				if (isBinary()) {
-					// #endif
-					log.e(`No cache exists at ${CacheDir}. Try xgraph run`);
-					process.exit(1);
-					return;
-					// #ifndef BUILT
-				}
-				log.i("Building the Cache");
-				log.i(__options[1]);
-				let genesisString = fs.readFileSync(`${__options[1].substr(0, __options[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
-				await eval(genesisString);
-				// #endif
+			//set Cache location
+			__options.cache = __options.cache || Path.join(CWD, 'cache');
+
+			// if the cache doesnt exist, throw
+			if (!fs.existsSync(CacheDir)) {
+				log.e(`No cache exists at ${CacheDir}. Try xgraph run`);
+				throw new Error(`No cache exists at ${CacheDir}. Try xgraph run`);
 			}
 
 			initiate();
@@ -256,42 +253,6 @@ module.exports = function xGraph() {
 			//
 			//
 
-			/**
-			 * Populates Params {OBJECT}
-			 * This is populated from both the __options array as well as those parsed in the
-			 * binary file if it was used.
-			 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
-			 */
-			function defineMacros() {
-				// Process input __options and define macro parameters
-				// All macros are stored case insensitive in the Params object
-
-				let arg, parts;
-				for (var iarg = 0; iarg < args.length; iarg++) {
-					arg = args[iarg];
-					try {
-						let jarg = JSON.parse(arg);
-						for (let key in jarg) {
-							// log.v(`${key}=${jarg[key]}`);
-							Params[key] = jarg[key];
-						}
-					} catch (e) {
-						// log.v(arg);
-						parts = arg.split('=');
-						if (parts.length == 2) {
-							if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
-							Params[parts[0].toLowerCase()] = parts[1];
-						}
-					}
-				}
-
-				//set CWD
-				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
-				log.v(`CWD set to ${CWD}`);
-
-				//set Cache location
-				CacheDir = Params.cache || Path.join(CWD, 'cache');
-			}
 
 			/**
 			 *  The main process of starting an xGraph System.
@@ -460,8 +421,8 @@ module.exports = function xGraph() {
 							break;
 						case 2:
 							if (chr == '}') {
-								if (param in Params)
-									s += Params[param];
+								if (param in __options)
+									s += __options[param];
 								else
 									throw 'Parameter <' + param + '> not defined';
 								state = 1;

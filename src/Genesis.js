@@ -1,22 +1,28 @@
-module.exports = function genesis(options = {}) {
-	if(!('state' in options)) {
-		console.error("[ERRR] No state was given to Genesis\r\n[ERRR] Exitting with code 1");
-		process.exit(1);
+module.exports = function genesis(__options = {}) {
+
+	function checkFlag(flag) {
+		console.dir(__options);
+		return flag in __options && __options[flag];
 	}
-	if(!('pathOverrides' in options)) {
-		console.error("[ERRR] No pathOverrides was given to Genesis\r\n[ERRR] Exitting with code 1");
-		process.exit(1);
+
+	if(!('state' in __options)) {
+		__options.state = process.env.XGRAPH_ENV || "production";
+
+		// console.error("[ERRR] No state was given to Genesis\r\n[ERRR] Exitting with code 1");
+		// process.exit(1);
 	}
-	let state = options.state;
-	let pathOverrides = options.pathOverrides;
+	if(checkFlag("development") || checkFlag("debug")) {
+		__options.state = 'development';
+	}
+
+
+	// if(!('pathOverrides' in options)) {
+	// 	console.error("[ERRR] No pathOverrides was given to Genesis\r\n[ERRR] Exitting with code 1");
+	// 	process.exit(1);
+	// }
 	return new Promise(async (resolve, reject) => {
 
-		if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-		if (process.argv.indexOf("--debug") > -1 || process.argv.indexOf("--development") > -1) {
-			state = 'development';
-		}
-
-		process.stdout.write(`Initializing the Compile Engine in ${state} Mode \r\n`);
+		process.stdout.write(`Initializing the Compile Engine in ${__options.state} Mode \r\n`);
 
 		const fs = require('fs');
 		const Path = require('path');
@@ -182,9 +188,9 @@ module.exports = function genesis(options = {}) {
 						Params[parts[0].toLowerCase()] = parts[1];
 					}
 				}
-				if (!(typeof pathOverrides == "undefined")) {
-					for (let key in pathOverrides) {
-						Params[key] = pathOverrides[key];
+				if (!(typeof __options == "undefined")) {
+					for (let key in __options) {
+						Params[key] = __options[key];
 					}
 				}
 
@@ -254,8 +260,8 @@ module.exports = function genesis(options = {}) {
 			function cleanCache() {
 				// Remove the provided cache directory
 				if (fs.existsSync(CacheDir)) {
-					if (state == 'development') {
-						state = 'updateOnly';
+					if (__options.state == 'development') {
+						__options.state = 'updateOnly';
 						return;
 					}
 					log.v(`About to remove the cacheDir: "${CacheDir}"`);
@@ -456,7 +462,7 @@ module.exports = function genesis(options = {}) {
 
 				await Promise.all(npmDependenciesArray);
 
-				if (state == 'updateOnly') {
+				if (__options.state == 'updateOnly') {
 					log.i(`Genesis Update Stop: ${new Date().toString()}`);
 					log.i(`=================================================${endOfLine}`);
 					resolve();
@@ -935,7 +941,7 @@ module.exports = function genesis(options = {}) {
 
 				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				try { fs.mkdirSync(CacheDir); } catch (e) { }
+				try { fs.mkdirSync(CacheDir); } catch (e) {console.log(e) }
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 
 				//call npm install on a childprocess of node
