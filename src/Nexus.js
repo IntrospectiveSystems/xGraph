@@ -616,17 +616,25 @@ module.exports = function xGraph() {
 				 * @callback fun
 				 */
 				function dispatch(com, fun = _ => _) {
-					var disp = Imp.dispatch;
-					if (com.Cmd in disp) {
-						disp[com.Cmd].call(this, com, fun);
-						return;
+					try {
+						var disp = Imp.dispatch;
+						if (com.Cmd in disp) {
+							disp[com.Cmd].call(this, com, fun);
+							return;
+						}
+						if ('*' in disp) {
+							disp['*'].call(this, com, fun);
+							return;
+						}
+						log.e('Nada Cmd:' + com.Cmd);
+						fun('Nada', com);
+					} catch(e) {
+						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
+						log.e(e.toString());
+						// console.dir(e);
+						// console.trace();
+						process.exit(2);
 					}
-					if ('*' in disp) {
-						disp['*'].call(this, com, fun);
-						return;
-					}
-					log.e('Nada Cmd:' + com.Cmd);
-					fun('Nada', com);
 				}
 
 				/**
