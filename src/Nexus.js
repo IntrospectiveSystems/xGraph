@@ -39,7 +39,6 @@ module.exports = function xGraph() {
 			const endOfLine = require('os').EOL;
 			var consoleNotification = false;
 			var Uuid;
-			var CacheDir;						// The location of where the Cache will be stored
 			var Config = {};					// The read config.json
 			var ModCache = {};					// {<folder>: <module>}
 			var ApexIndex = {}; 				// {<Apex pid>:<folder>}
@@ -218,9 +217,9 @@ module.exports = function xGraph() {
 			__options.cache = __options.cache || Path.join(CWD, 'cache');
 
 			// if the cache doesnt exist, throw
-			if (!fs.existsSync(CacheDir)) {
-				log.e(`No cache exists at ${CacheDir}. Try xgraph run`);
-				throw new Error(`No cache exists at ${CacheDir}. Try xgraph run`);
+			if (!fs.existsSync(__options.cache)) {
+				log.e(`No cache exists at ${__options.cache}. Try xgraph run`);
+				throw new Error(`No cache exists at ${__options.cache}. Try xgraph run`);
 			}
 
 			initiate();
@@ -281,18 +280,18 @@ module.exports = function xGraph() {
 				 * Load in the cache and poulate setup Setup, Start, and ApexIndex {Objects}
 				 */
 				function loadCache() {
-					var folders = fs.readdirSync(CacheDir);
+					var folders = fs.readdirSync(__options.cache);
 
 					for (var ifold = 0; ifold < folders.length; ifold++) {
 						let folder = folders[ifold];
-						let path = `${CacheDir}/${folder}/Module.zip`;
+						let path = `${__options.cache}/${folder}/Module.zip`;
 						if (!fs.existsSync(path))
 							continue;
 
 						parseMod(folder)
 
 						function parseMod(folder) {
-							let dir = CacheDir + '/' + folder;
+							let dir = __options.cache + '/' + folder;
 							var instancefiles = fs.readdirSync(dir);
 							for (var ifile = 0; ifile < instancefiles.length; ifile++) {
 								var file = instancefiles[ifile];
@@ -443,7 +442,7 @@ module.exports = function xGraph() {
 			 */
 			function genPid() {
 				if (!Uuid) {
-					module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+					module.paths = [Path.join(Path.resolve(__options.cache), 'node_modules')];
 					Uuid = require('uuid/v4');
 				}
 				var str = Uuid();
@@ -736,7 +735,7 @@ module.exports = function xGraph() {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function deleteEntity(apx, pid, fun = _ => _) {
-				let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;
+				let apxpath = `${__options.cache}/${ApexIndex[apx]}/${apx}/`;
 
 				let rmList = [];
 				//we first check to see if it's an apex
@@ -771,7 +770,7 @@ module.exports = function xGraph() {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
-				let modpath = `${CacheDir}/${ApexIndex[apx]}`;
+				let modpath = `${__options.cache}/${ApexIndex[apx]}`;
 				let apxpath = `${modpath}/${apx}`;
 				let entpath = `${apxpath}/${pid}.json`;
 
@@ -896,7 +895,7 @@ module.exports = function xGraph() {
 					return require(str);
 				} catch (e) {
 					try {
-						return require(Path.join(CacheDir, folder, 'node_modules', str));
+						return require(Path.join(__options.cache, folder, 'node_modules', str));
 					} catch (e) {
 						log.e(e);
 						process.exit(1);
@@ -923,7 +922,7 @@ module.exports = function xGraph() {
 				}
 
 				let folder = ApexIndex[apx];
-				let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
+				let path = __options.cache + '/' + folder + '/' + apx + '/' + pid + '.json';
 				fs.readFile(path, function (err, data) {
 					if (err) {
 						log.e('<' + path + '> unavailable');
@@ -1257,7 +1256,7 @@ module.exports = function xGraph() {
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
 				//get the module from cache
-				var cachedMod = `${CacheDir}/${ModName}/Module.zip`;
+				var cachedMod = `${__options.cache}/${ModName}/Module.zip`;
 				fs.lstat(cachedMod, function (err, stat) {
 					if (err) {
 						log.e(`Error retreiving ${cachedMod} from cache`);
