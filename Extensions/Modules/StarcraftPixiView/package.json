@@ -1,8 +1,0 @@
-{
-  "name": "pixiview",
-  "version": "1.0.0",
-  "description": "Adding a Pixi.js Module to a browser xGraph System",
-  "main": "PixiView.js",
-  "author": "Introspective Systems, LLC.",
-  "license": "ISC"
-}
