@@ -63,6 +63,15 @@
 		copy('src/Genesis.js', 'temp/Genesis.js');
 
 
+		console.log('Calling Nexe with');
+		console.dir({
+			input: 'temp/xgraph.js',
+			output: 'bin/linux/bin/xgraph',
+			target: 'linux-x64-8.4.0',
+			bundle: true,
+			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			fakeArgv: true
+		});
 		// compile temp/xgraph
 		await compile({
 			input: 'temp/xgraph.js',
@@ -73,6 +82,15 @@
 			fakeArgv: true
 		});
 
+		console.log('Calling Nexe with');
+		console.dir({
+			input: 'temp/xgraph.js',
+			output: 'bin/windows/bin/xgraph.exe',
+			target: 'windows-x64-8.4.0',
+			bundle: true,
+			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			fakeArgv: true
+		});
 
 		await compile({
 			input: 'temp/xgraph.js',
@@ -83,6 +101,15 @@
 			fakeArgv: true
 		});
 
+		console.log('Calling Nexe with');
+		console.dir({
+			input: 'temp/xgraph.js',
+			output: 'bin/mac/bin/xgraph',
+			target: 'mac-x64-8.4.0',
+			bundle: true,
+			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			fakeArgv: true
+		});
 		
 		await compile({
 			input: 'temp/xgraph.js',
