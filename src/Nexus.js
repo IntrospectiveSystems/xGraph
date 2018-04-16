@@ -205,7 +205,6 @@ module.exports = function xGraph() {
 
 			function indirectEvalImp(entString) {
 				let imp = (1, eval)(entString);
-				console.dir(imp);
 				if(typeof imp != 'undefined') return imp;
 				else return { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
 			}
