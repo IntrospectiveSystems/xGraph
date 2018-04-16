@@ -203,6 +203,13 @@ module.exports = function xGraph() {
 
 			}
 
+			function indirectEvalImp(entString) {
+				let imp = (1, eval)(entString);
+				if(typeof imp != 'undefined') return imp;
+				else return { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
+			}
+
+
 			log.i('=================================================');
 			log.i(`Nexus Warming Up:`);
 
@@ -756,7 +763,7 @@ module.exports = function xGraph() {
 					let entString = await new Promise(async (res, rej) => {
 						mod.file(par.Entity).async("string").then((string) => res(string))
 					});
-					ImpCache[impkey] = (1, eval)(entString);
+					ImpCache[impkey] = indirectEvalImp(entString);
 				}
 
 				par.Pid = par.Pid || genPid();
@@ -995,7 +1002,7 @@ module.exports = function xGraph() {
 						});
 
 						log.v(`Spinning up entity ${folder}-${par.Entity.split('.')[0]}`);
-						ImpCache[impkey] = (1, eval)(entString);
+						ImpCache[impkey] = indirectEvalImp(entString);
 						BuildEnt();
 					});
 
@@ -1250,7 +1257,8 @@ module.exports = function xGraph() {
 							let entString = await new Promise(async (res, rej) => {
 								mod.file(par.Entity).async("string").then((string) => res(string))
 							});
-							ImpCache[impkey] = (1, eval)(entString);
+							ImpCache[impkey] = indirectEvalImp(entString);
+							
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 					})());
