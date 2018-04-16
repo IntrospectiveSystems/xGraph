@@ -203,6 +203,13 @@ module.exports = function xGraph() {
 
 			}
 
+			function indirectEvalImp(entString) {
+				let imp = (1, eval)(entString);
+				if(typeof imp != 'undefined') return imp;
+				else return { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
+			}
+
+
 			log.i('=================================================');
 			log.i(`Nexus Warming Up:`);
 
@@ -592,7 +599,7 @@ module.exports = function xGraph() {
 				 * @param {string} string 	the string of the module to require/load
 				 */
 				function require(string) {
-					return nxs.loadDependency(Par.Apex, Par.Pid, string);
+					return nxs.loadDependency(Par.Apex, Par.Pid, string.toLowerCase());
 				}
 
 				function exit(code) {
@@ -616,17 +623,25 @@ module.exports = function xGraph() {
 				 * @callback fun
 				 */
 				function dispatch(com, fun = _ => _) {
-					var disp = Imp.dispatch;
-					if (com.Cmd in disp) {
-						disp[com.Cmd].call(this, com, fun);
-						return;
+					try {
+						var disp = Imp.dispatch;
+						if (com.Cmd in disp) {
+							disp[com.Cmd].call(this, com, fun);
+							return;
+						}
+						if ('*' in disp) {
+							disp['*'].call(this, com, fun);
+							return;
+						}
+						log.e('Nada Cmd:' + com.Cmd);
+						fun('Nada', com);
+					} catch(e) {
+						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
+						log.e(e.toString());
+						// console.dir(e);
+						// console.trace();
+						process.exit(2);
 					}
-					if ('*' in disp) {
-						disp['*'].call(this, com, fun);
-						return;
-					}
-					log.e('Nada Cmd:' + com.Cmd);
-					fun('Nada', com);
 				}
 
 				/**
@@ -748,7 +763,7 @@ module.exports = function xGraph() {
 					let entString = await new Promise(async (res, rej) => {
 						mod.file(par.Entity).async("string").then((string) => res(string))
 					});
-					ImpCache[impkey] = (1, eval)(entString);
+					ImpCache[impkey] = indirectEvalImp(entString);
 				}
 
 				par.Pid = par.Pid || genPid();
@@ -987,7 +1002,7 @@ module.exports = function xGraph() {
 						});
 
 						log.v(`Spinning up entity ${folder}-${par.Entity.split('.')[0]}`);
-						ImpCache[impkey] = (1, eval)(entString);
+						ImpCache[impkey] = indirectEvalImp(entString);
 						BuildEnt();
 					});
 
@@ -1242,7 +1257,8 @@ module.exports = function xGraph() {
 							let entString = await new Promise(async (res, rej) => {
 								mod.file(par.Entity).async("string").then((string) => res(string))
 							});
-							ImpCache[impkey] = (1, eval)(entString);
+							ImpCache[impkey] = indirectEvalImp(entString);
+							
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 					})());
