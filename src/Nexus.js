@@ -592,7 +592,7 @@ module.exports = function xGraph() {
 				 * @param {string} string 	the string of the module to require/load
 				 */
 				function require(string) {
-					return nxs.loadDependency(Par.Apex, Par.Pid, string);
+					return nxs.loadDependency(Par.Apex, Par.Pid, string.toLowerCase());
 				}
 
 				function exit(code) {
