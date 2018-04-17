@@ -1,7 +1,0 @@
-{
-  "name": "MSSQL",
-  "version": "1.0.0",
-  "dependencies": {
-    "mssql": "^4.1.0"
-  }
-}

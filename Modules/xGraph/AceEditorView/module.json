@@ -1,0 +1,47 @@
+{
+	"name": "AceEditorView",
+	"version": "1.0.0",
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			}
+		],
+		"optional": [
+			{
+				"Cmd": "*",
+				"required": {},
+				"optional": {
+					"Arguments": []
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"optional": [
+			{
+				"par": "Controller",
+				"Command": [
+					{
+						"Cmd": "Save",
+						"required": {
+							"Data": "String"
+						}
+					}
+				]
+			}
+		]
+	},
+	"par": {
+		"required": {},
+		"optional": {
+			"Controller": "xGraphPid",
+			"AutoSave": "boolean"
+		}
+	}
+}

@@ -1,0 +1,18 @@
+{
+  "name": "aceeditorview",
+  "version": "1.0.0",
+  "description": "xGraph's Ace Code Editor wrapper",
+  "main": "AceEditorView.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Text Editor",
+    "Text",
+    "Code",
+    "Ace",
+    "Editor"
+  ],
+  "author": "Introspective Systems, LLC.",
+  "license": "ISC"
+}

@@ -1,0 +1,8 @@
+{
+	"name": "FlatFile",
+	"version": "1.1.0",
+	"dependencies": {
+		"flat-file-db": "^1.0.0",
+		"flatfile": "^2.0.0"
+	}
+}
