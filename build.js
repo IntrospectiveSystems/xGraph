@@ -81,6 +81,7 @@
 		console.timeEnd('Linux');
 
 		config.target = 'windows-x64-8.4.0';
+		config.output = 'bin/windows/bin/xgraph';
 
 
 		console.log('> Calling Nexe with\n');
@@ -92,7 +93,7 @@
 		console.timeEnd('Windows');
 		
 		config.target = 'mac-x64-8.4.0';
-
+		config.output = 'bin/mac/bin/xgraph';
 
 
 		console.log('> Calling Nexe with\n');
