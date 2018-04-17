@@ -1,0 +1,20 @@
+{
+	"State": {
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			}
+		},
+		{
+			"Command":{
+				"Cmd":"getValue"
+			},
+			"Response":{
+				"Cmd":"getValue",
+				"Data":"*"
+			}
+		}
+	]
+}

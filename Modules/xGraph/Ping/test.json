@@ -1,0 +1,23 @@
+{
+  "State": {
+    "Pong": "*"
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd":"Start"
+      },
+      "SentMessages": {
+        "Cmd:": "Ping"
+      }
+    },
+    {
+      "Command": {
+        "Cmd":"Pong"
+      },
+      "SentMessages": {
+        "Cmd:": "Ping"
+      }
+    }
+  ]
+}

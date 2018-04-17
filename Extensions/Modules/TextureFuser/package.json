@@ -1,8 +1,0 @@
-{
-	"name" : "Web",
-	"version" : "0.0.3",
-	"dependencies" : {
-	  "jimp":"~0.2.27",
-	  "jpeg-js":"~0.2.0"
-	}
-}

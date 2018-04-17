@@ -1,0 +1,38 @@
+{
+	"name": "Plexus",
+	"version": "1.0.0",
+	"doc": "README.md",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"input": {
+		"required": [
+			{
+				"Cmd": "Setup"
+			}
+		],
+		"optional": [
+			{
+				"Cmd": "Subscribe",
+				"required": {
+					"Chan": "string"
+				}
+			},
+			{
+				"Cmd": "Publish",
+				"required": {
+					"Chan": "string",
+					"Host": "string"
+				}
+			}
+		]
+	},
+	"output": {
+		"required": [],
+		"optional": []
+	},
+	"par": {
+		"required": {},
+		"optional": {}
+	}
+}

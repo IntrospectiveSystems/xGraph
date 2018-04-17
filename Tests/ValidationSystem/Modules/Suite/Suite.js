@@ -31,6 +31,11 @@
 
 		StartCommand(com, fun) {
 			this.Vlt.StartCalled = true;
+			log.v('Verbose log');
+			log.d('Debug log');
+			log.i('Information log');
+			log.w('Warning log');
+			log.e('Error log');
 			fun(null, com);
 		}
 

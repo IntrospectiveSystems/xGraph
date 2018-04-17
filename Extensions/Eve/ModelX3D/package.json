@@ -1,7 +1,0 @@
-{
-	"name" : "Model",
-	"version" : "0.0.3",
-	"dependencies" : {
-		"async" : "~0.9.0"
-	}
-}
