@@ -62,70 +62,52 @@
 		copy('src/Nexus.js', 'temp/Nexus.js');
 		copy('src/Genesis.js', 'temp/Genesis.js');
 
-
-		console.log('Calling Nexe with');
-		console.dir({
+		let config = {
 			input: 'temp/xgraph.js',
 			output: 'bin/linux/bin/xgraph',
 			target: 'linux-x64-8.4.0',
 			bundle: true,
 			resources: ['src/Nexus.js', 'src/Genesis.js'],
-			fakeArgv: true
-		});
+			fakeArgv: true,
+			temp: 'NexeBin'
+		};
+
+		console.log('> Calling Nexe with\n');
+		console.dir(config);
+		console.time('Linux');
+		console.log('\n');
 		// compile temp/xgraph
-		await compile({
-			input: 'temp/xgraph.js',
-			output: 'bin/linux/bin/xgraph',
-			target: 'linux-x64-8.4.0',
-			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js'],
-			fakeArgv: true
-		});
+		await compile(config);
+		console.timeEnd('Linux');
 
-		console.log('Calling Nexe with');
-		console.dir({
-			input: 'temp/xgraph.js',
-			output: 'bin/windows/bin/xgraph.exe',
-			target: 'windows-x64-8.4.0',
-			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js'],
-			fakeArgv: true
-		});
+		config.target = 'windows-x64-8.4.0';
 
-		await compile({
-			input: 'temp/xgraph.js',
-			output: 'bin/windows/bin/xgraph.exe',
-			target: 'windows-x64-8.4.0',
-			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js'],
-			fakeArgv: true
-		});
 
-		console.log('Calling Nexe with');
-		console.dir({
-			input: 'temp/xgraph.js',
-			output: 'bin/mac/bin/xgraph',
-			target: 'mac-x64-8.4.0',
-			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js'],
-			fakeArgv: true
-		});
+		console.log('> Calling Nexe with\n');
+		console.dir(config);
+		console.time('Windows');
+		console.log('\n');
+		// compile temp/xgraph
+		await compile(config);
+		console.timeEnd('Windows');
 		
-		await compile({
-			input: 'temp/xgraph.js',
-			output: 'bin/mac/bin/xgraph',
-			target: 'mac-x64-8.4.0',
-			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js'],
-			fakeArgv: true
-		});
-		
+		config.target = 'mac-x64-8.4.0';
+
+
+
+		console.log('> Calling Nexe with\n');
+		console.dir(config);
+		console.time('macOS');
+		console.log('\n');
+		// compile temp/xgraph
+		await compile(config);
+		console.timeEnd('macOS');
+
+
 		console.log('Compilation completed');
-		// copy('src/Nexus.js', 'bin/mac/bin/Nexus.js');
-		// copy('src/Nexus.js', 'bin/windows/bin/Nexus.js');
 
-		// copy('src/Genesis.js', 'bin/mac/bin/Genesis.js');
-		// copy('src/Genesis.js', 'bin/windows/bin/Genesis.js');
+
+
 
 		tar.compress({
 			src: "bin/linux/",
