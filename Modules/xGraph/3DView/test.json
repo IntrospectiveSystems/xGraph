@@ -1,0 +1,28 @@
+{
+	"State": {
+		"Server": "xGraphTesterPid"
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Start"
+			},
+			"SentMessages": [
+				{
+					"Cmd": "Subscribe",
+					"Pid": "xGraphSelfPid",
+					"Link": "3DView"
+				}
+			]
+		},
+		{
+			"Command": {
+				"Cmd": "ImageCapture"
+			},
+			"Response": {
+				"Image": "*",
+				"Name": "*"
+			}
+		}
+	]
+}

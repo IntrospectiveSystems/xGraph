@@ -1,0 +1,7 @@
+{
+  "Apex": {
+	"$Setup": "Setup",
+	"Entity": "WebViewer.js",
+	"HTML": "<!DOCTYPE html>\n<html class=\"casco\">\n<meta charset=\"utf-8\" />\n\n<head>\n\t<title>xGraph</title>\n\n\t<script src=\"/socket.io/socket.io.js\"></script>\n\t<script>\n\t\t(function () {\n\t\t\tlet SockIO = io();\n\t\t\tSockIO.on('connect', () => { SockIO.emit('message', JSON.stringify({ Cmd: 'GetConfig', Path: location.pathname.substr(1).toLowerCase() })); });\n\t\t\tSockIO.on('message', function (data) {\n\t\t\t\tvar com = JSON.parse(data);\n\t\t\t\t(1, eval)(com.Nxs);\n\t\t\t\t__Nexus.boot(SockIO, com);\n\t\t\t});\n\t\t})();\n\t</script>\n</head>\n\n<body id=\"Body\" style=\"height:100vh;margin:0px\" oncontextmenu=\"return false;\">\n\n\t<div class=\"spinner removeOnLoad\">\n\t\t<p>Loading xGraph Views</p>\n\t</div>\n</body>\n\n</html>"
+  }
+}

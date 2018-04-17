@@ -58,7 +58,17 @@ try {
 	{
 		try {exec('npm install -g .');}
 		catch(e){
-			exec('sudo npm install -g .');
+			if(unix) {
+				try {
+					exec('sudo npm install -g .');
+				}catch(e) {
+					console.error(e);
+					process.exit(1);
+				}
+			}
+			else {
+				process.exit(1);
+			}
 		}
 		exec('which xgraph');
 		exec('xgraph -v');
