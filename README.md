@@ -17,62 +17,81 @@ Introspective Systems, LLC.
 ---
 
 The xGraph package comes with two main features: the xGraph core and the xGraph 
-Command Line Interface.
+Command Line Interface (CLI). The xGraph core architecture handles compiling, 
+instantiating and communication between xGraph systems. The xGraph CLI makes it 
+easy to interact with xGraph systems. You can easily install xGraph using the 
+npm package installer.
 
+#### Getting Started with npm
+To install xGraph directly form npm, you will need the [npm package manager](https://www.npmjs.com/). 
+Once you have installed npm, you can install xGraph using the package manager.
 
-### xGraph Core
-The xGraph core architecture handles compiling, instantiating and communication 
-between xGraph systems. The xGraph core consists of Genesis and Nexus. Genesis 
-handles compilation of xGraph systems, while Nexus handles instantiation of and 
-communication between xGraph systems.
-
-
-### xGraph Command Line Interface (CLI)
-The xGraph command line interface accelerates the building and running of xGraph 
-Systems. Using the xGraph CLI, you can generate new modules and systems, compile 
-systems from a system structure object, and run systems from a system cache. 
-
-
-#### Getting Started
-You can install xGraph using the [npm package manager](https://www.npmjs.com/). 
-Because xGraph is developed on the node.js platform, you will have to install 
-node.js, and the npm package manager which comes with it. This is easy to do 
-from the [node.js homepage](https://nodejs.org/en/). Once you have installed 
-node.js and npm, you can install xGraph using the package manager, or [download 
-the xGraph core from github](https://github.com/IntrospectiveSystems/xGraph) and 
-build the package locally.
-
-
-##### Install using npm package installer
 In your command line tool, use the following command to install xGraph core 
 globally using the npm package installer.
 ```
 npm install -g xgraph
 ```
 
-If you are on a unix machine, you may have to use the `sudo` prefix.
+If you are on a unix operating system, such as macOS or Ubuntu, you may have to use 
+the `sudo` prefix.
 ```
 sudo npm install -g xgraph
 ```
 
-##### Install using npm package builder
+#### Getting Started from Github
 If you have [cloned the xGraph core from github](https://github.com/IntrospectiveSystems/xGraph), 
-you can build and install xGraph locally using the npm package builder. 
+you can install xGraph locally using system-specific installation files, or compile 
+native executables using npm build.  
 
+##### Install using system-specific installation files
+You will installation files for the major operating systems (Windows, MacOS and Linux) 
+in the `.\bin\` directory. To install the xGraph CLI, follow the instructions for your 
+operating system found below.
+
+##### For Windows:
+You can use the `xgraph.msi` file to install the xgraph CLI. Simply double
+click the file and the installer will run.
+
+Additionally, you will have to add the xgraph path variable to your
+systems environment variable. This can be done for a single session
+through the command line, or you can set the environment variable
+permanently through windows settings.
+
+The xgraph path variable is ``` {path to...}ProgramFiles/xGraph```.
+Append this to your your Environmental Path Variable ($PATH).
+
+To add the xgraph path variable to your system environment variable, go
+to "My Computer" > "Properties" > "Advanced" > "Environment Variables" > "Path"
+and add it to the list.
+
+##### For Mac:
+You can use the `xGraph.dmg` file to install the xgraph CLI. Simply double
+click the file and the installer will walk you through the installation
+process.
+
+Because the package is unsigned, you may have to allow the installation
+of unsigned packages in the security control panel.
+
+##### For Linux:
+Simply unpack the installation file (.tar or .gz) and restart your terminal
+session.
+
+
+##### Compile native executables
 In your command line tool, navigate to the root of your xGraph core repository. 
-Here, you can enter the following command to build and install xGraph using the 
-npm package builder.
+Here, you can enter the following command to build the xGraph executable directly.
 
 ```
 npm run build
 ```
 
-If you are on a unix machine, you may have to use the `sudo` prefix.
+If you are on a unix operating system, such as macOS or Ubuntu, you may have to use 
+the `sudo` prefix.
 ```
 sudo npm run build
 ```
 
-#### Testing using the npm package tester
+### Testing using the npm package tester
 xGraph core is verified using a number of tests. These tests can easily be run using 
 the npm test command. 
 
@@ -88,7 +107,12 @@ npm run test
 ```
 
 
-### API
+### xGraph Command Line Interface (CLI)
+The xGraph command line interface accelerates the building and running of xGraph 
+Systems. Using the xGraph CLI, you can generate new modules and systems, compile 
+systems from a system structure object, and run systems from a system cache. 
+
+xGraph uses the following API commands, available in the xGraph CLI using `xgraph help`
 ```
 Compile and Run xGraph systems with a few simple commands.
 
