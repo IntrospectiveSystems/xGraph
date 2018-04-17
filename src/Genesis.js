@@ -1,4 +1,5 @@
-module.exports = function genesis(__options = {}) {
+module.exports = genesis;
+function genesis(__options = {}) {
 
 	function checkFlag(flag) {
 		console.dir(__options);
@@ -1335,4 +1336,4 @@ module.exports = function genesis(__options = {}) {
 			});
 		}
 	});
-}
+};
