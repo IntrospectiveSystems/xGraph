@@ -1,0 +1,11 @@
+{
+	"State": {
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			}
+		}
+	]
+}

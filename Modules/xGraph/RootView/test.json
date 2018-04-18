@@ -1,0 +1,12 @@
+{
+	"State": {
+		"Layout": "xGraph.PanelView"
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			}
+		}
+	]
+}

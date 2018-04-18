@@ -1,0 +1,56 @@
+{
+	"name": "NeDB",
+	"version": "1.0.0",
+	"info": {
+		"author": "Introspective Systems, LLC."
+	},
+	"doc": "README.md",
+	"input": {
+		"optional": [
+			{
+				"Cmd": "Insert",
+				"required": [
+					"Document"
+				]
+			},
+			{
+				"Cmd": "Count",
+				"required": [
+				],
+				"optional": [
+					"Filter"
+				]
+			},
+			{
+				"Cmd": "Find",
+				"required": [
+					"Where"
+				],
+				"optional": [
+					"Projection"
+				]
+			},
+			{
+				"Cmd": "Update",
+				"required": [
+					"Where",
+					"Set"
+				]
+			},
+			{
+				"Cmd": "Remove",
+				"required": [
+					"Where"
+				]
+			}
+		]
+	},
+	"par": {
+		"required": [
+			"Filename"
+		],
+		"optional": [
+			"Reset"
+		]
+	}
+}
