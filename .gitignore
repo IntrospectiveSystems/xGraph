@@ -83,7 +83,7 @@ xcuserdata/
 
 # installer build items
 darwin/
-
+bomutils
 
 **/cache/**/*.*
 Work/*/css.json

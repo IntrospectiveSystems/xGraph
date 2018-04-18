@@ -15,9 +15,9 @@
 	const rmrf = require('rimraf');
 
 	//helper functions
-	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
-	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
-	function rmdir(dir) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) {if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
+	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
+	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
+	function rmdir(dir) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function createMacTarball() {
 		console.log("Alternative Mac tar.gz being created since package capability is not available.")
 		//make for mac
@@ -32,12 +32,40 @@
 			}
 		});
 	}
+	let windows, mac, linux, unix, system;
 
+	switch(process.platform) {
+		case 'win32': {
+			system = 'windows';
+			windows = true;
+			unix = linux = mac = false;
+			break;
+		}
+		case 'darwin': {
+			system = 'macOS';
+			windows = linux = false;
+			unix = mac = true;
+			break;
+		}
+		case 'linux': {
+			system = 'linux';
+			linux = unix = true;
+			mac = windows = false;
+			break;
+		}
+		default: {
+			// arbitrary unix system
+			system = 'unix';
+			unix = true;
+			linux = mac = windows = false;
+			break;
+		}
+	}
 
 	// real code in here
 	try {
-			
-		
+
+
 		rmrf.sync('bin');
 
 		ensureDir('bin');
@@ -91,10 +119,9 @@
 		// compile temp/xgraph
 		await compile(config);
 		console.timeEnd('Windows');
-		
+
 		config.target = 'mac-x64-8.4.0';
 		config.output = 'bin/mac/bin/xgraph';
-
 
 		console.log('> Calling Nexe with\n');
 		console.dir(config);
@@ -104,31 +131,31 @@
 		await compile(config);
 		console.timeEnd('macOS');
 
-
 		console.log('Compilation completed');
 
-
-
-
-		tar.compress({
-			src: "bin/linux/",
-			dest: 'bin/xgraph_linux.tar.gz'
-		}, function (err) {
-			if (err) {
-				console.log(err);
-			} else {
-				console.log("Linux: Done!");
-			}
-		});
+		// try {
+		// 	tar.compress({
+		// 		src: "bin/linux/",
+		// 		dest: 'bin/xgraph_linux.tar.gz'
+		// 	}, function (err) {
+		// 		if (err) {
+		// 			console.log(err);
+		// 		} else {
+		// 			console.log("Linux: Done!");
+		// 		}
+		// 	});
+		// }catch(error){
+		// 	console.log(error);
+		// }
 
 		// try {
 		// 	var canCreatePackage = false;
-		
-		// 	if (/^linux/.test(platform)) {
+
+		// 	if (unix) {
 		// 		let xar = '';
 		// 		try {
 		// 			xar = (execSync('which xar').toString());
-		// 		}catch(e) {}
+		// 		} catch (e) { }
 		// 		if (xar != '') {
 		// 			let bomUtils = (execSync('which mkbom').toString());
 		// 			if (bomUtils != '') {
@@ -141,7 +168,7 @@
 		// 			console.log("Missing bomutils: please install using");
 		// 			console.log("  'git clone https://github.com/hogliux/bomutils && cd bomutils && make && sudo make install'")
 		// 		}
-		// 	} 
+		// 	}
 
 		// 	if (canCreatePackage) {
 		// 		console.log("Building mac pkg installer.")
@@ -184,18 +211,18 @@
 		// }
 
 
-	}catch (e) {
+	} catch (e) {
 		console.log('build failed');
 		console.log(e);
 
 		try {
 			rmrf.sync('temp');
-		} catch(e) {}
+		} catch (e) { }
 
 		process.exit(1);
 	}
 	try {
 		rmrf.sync('temp');
-	} catch(e) {}
+	} catch (e) { }
 
 })();
