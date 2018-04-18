@@ -2,7 +2,7 @@
 (
 	/**
 	 * The 3DView entity is the Apex and only entity of the 3DView Module.
-	 * This entity requres the Setup function invoked during the Setup phase of Nexus startup. As well as its
+	 * This entity requires the Setup function invoked during the Setup phase of Nexus startup. As well as its
 	 * Start function invoked during the Start phase of Nexus startup.
 	 *
 	 * The main capability of this entity is to add and render a Three.js scene on the div provided by
@@ -14,14 +14,14 @@
 		let dispatch = {
 			Setup,
 			Start,
+            EvokeExample,
+            DOMLoaded,
+            Cleanup,
+            Render,
+            Resize,
 			SetObjects,
 			ImageCapture,
-			Resize,
-			Render,
-			DOMLoaded,
-			Cleanup,
-			DispatchEvent,
-			EvokeExample
+			DispatchEvent
 		};
 
 		//Using views we must inject basic functionality via the viewify script.
@@ -32,18 +32,18 @@
 		/**
 		 * Create the Three.js WebGL renderer and Scene and append the rendered canvas to the div
 		 * @param {Object} com
-		 * @param {Function} fun
+		 * @callback fun
 		 */
 		function Setup(com, fun) {
 			this.super(com, (err, cmd) => {
 				log.i('--3DView/Setup');
 				let div = this.Vlt.div;
 
-				//set live for true for the example of an updating system
+
 				let live = false;
 
 				this.Vlt.View = {};
-				View = this.Vlt.View;
+				let View = this.Vlt.View;
 				View.Geometries = {};
 				View.Meshs = {};
 				View.ResponseHandlers = {};
@@ -72,30 +72,40 @@
 				View.Camera.lookAt(View.Focus);
 				View.Camera.updateProjectionMatrix();
 
-				View.RenderLoop = setInterval(_ => {
+				View.RenderLoop = setInterval(renderObjectChanges, 20);  // updates roughly every 20 milliseconds
 
-					//For testing of updating elevations
-					if (this.Vlt.Update || live) {
-						this.Vlt.Update = false;
-						let q = {}
-						q.Cmd = "SetObjects";
-						q.Objects = [];
-						let obj = {
-							id: "plane",
-							elevations: []
-						};
-						q.Objects.push(obj);
+				var renderObjectChanges = () => {
+                    //For testing of updating elevations
+                    if (this.Vlt.Update || live) {
+                        this.Vlt.Update = false;
+                        let setObjects = {};
+                        setObjects.Cmd = "SetObjects";
+                        setObjects.Objects = [];
+                        let object = {
+                            id: "plane",
+                            elevations: []
+                        };
+                        setObjects.Objects.push(object);
 
-						this.send(q, this.Par.Pid, (err, com) => {
-							setTimeout(this.dispatch({ Cmd: "ImageCapture" }, _ => _), 40);
-						});
-					}
-					//end TEST
+                        this.send(setObjects, this.Par.Pid, setObjectsCallback);
+                    }
 
-					View.Renderer.render(View.Scene, View.Camera);
-				}, 20);  // updates roughly every 20 milliseconds
+                    var setObjectsCallback = (err, com) => {
+                    	log.e(err);
+                        setTimeout(dispatchImageCapture, 40);
+                    };
 
-				fun(null, com);
+                    var dispatchImageCapture = () => {
+                        this.dispatch({ Cmd: "ImageCapture" }, () => {})
+                    };
+
+                    //end TEST
+
+                    View.Renderer.render(View.Scene, View.Camera);
+				}
+
+				if(fun)
+					fun(null, com);
 			});
 		}
 
@@ -103,7 +113,7 @@
 		 * Subscribes to the server to allow for server communications to reach this module.
 		 * If there was a controller defined we also register with that.
 		 * @param {Object} com
-		 * @param {Function} fun
+		 * @callback fun
 		 */
 		function Start(com, fun) {
 			log.i('--3DView/Start');
@@ -214,7 +224,6 @@
 			}
 		}
 
-
 		/**
 		 * This is an example of an Evoke handler. This particular example
 		 * generates a popup module containing a 3DView module or the one set in
@@ -223,29 +232,33 @@
 		 * @param {Object} 		com
 		 * @param {String}		com.id			the id of the object being evoked
 		 * @param {Object}		com.mouse 	 the coordinates of the mouse when evoked {x:_x,y:_y}
-		 * @param {Function=} 	fun
+		 * @callback 	fun
 		 */
-		function EvokeExample(com, fun = _ => _) {
+		function EvokeExample(com, fun) {
 			log.v("EVOKE EXAMPLE", com.id);
 
 			log.v("Popup");
-			this.genModule({
-				"Module": "xGraph.Popup",
-				"Par": {
-					Left: com.mouse.x,
-					Top: com.mouse.y,
-					"View": this.Par.EvokeView || "xGraph.3DView",
-					"Width": 800,
-					"Height": 600
-				}
-			}, () => {})
-			fun(null, com)
+
+			let popupModule = {
+                "Module": "xGraph.Popup",
+                "Par": {
+                    Left: com.mouse.x,
+                    Top: com.mouse.y,
+                    "View": this.Par.EvokeView || "xGraph.3DView",
+                    "Width": 800,
+                    "Height": 600
+                }
+            };
+
+			this.genModule(popupModule, () => {})
+			if (fun)
+				fun(null, com)
 		}
 
 		/**
 		 * Propagate a DomLoaded Event to children views. We append the canvas to the div.
 		 * @param {Object} com
-		 * @param {Function} fun
+		 * @callback fun
 		 */
 		function DOMLoaded(com, fun) {
 			log.v("--3DView/DOMLoaded");
@@ -272,22 +285,23 @@
 			this.super(com, fun);
 		}
 
-		/**
-		 * Removes the render loop
-		 * @param {Object} com
-		 * @param {Function=} fun
-		 */
-		function Cleanup(com, fun = _ => _) {
+        /**
+         * Removes the render loop, so the scene will no longer look for updates.
+         * @param {Object} com
+         * @callback fun
+         */
+		function Cleanup(com, fun) {
 			log.v("--3DView/Cleanup", this.Par.Pid.substr(30));
 
 			clearInterval(this.Vlt.View.RenderLoop);
-			fun(null, com);
+			if(fun)
+				fun(null, com);
 		}
 
 		/**
 		 * Cascade a render down the DOM tree of views
 		 * @param {Object} com
-		 * @param {Function} fun
+		 * @callback fun
 		 */
 		function Render(com, fun) {
 			log.v("--3DView/Render", this.Par.Pid.substr(30));
@@ -298,7 +312,7 @@
 		/**
 		 * Sent when a resize event occurs on the div.
 		 * @param {Object} com
-		 * @param {Function} fun
+		 * @callback fun
 		 */
 		function Resize(com, fun) {
 			this.super(com, (err, cmd) => {
@@ -310,15 +324,17 @@
 			});
 		}
 
-		/**
-		 * The main Three.js functionality. Primatives as well as generative models can be added.
-		 * An array of objects is recieved and added to the scene before being
-		 * rendered.
-		 * @param {Object} com
-		 * @param {Object} com.Objects 	The array of pixi graphics objects to be displayed
-		 * @param {Function} fun
-		 */
-		async function SetObjects(com, fun = (err, com) => { if (err) log.e(err) }) {
+        /**
+         * SetObjects handles the main Three.js functionality. An array of objects
+         * is received and added to the scene before being rendered. Model objects
+         * can be primitives as well as generated models can be added.
+         *
+         * @param {Object} com
+         * @param {Object} com.Objects 	The array of model objects that will be added
+         * 								to the scene and rendered.
+         * @callback fun
+         */
+		async function SetObjects(com, fun) {
 			/**
 			 *
 			 * the com will contain an Objects key that lists an array of objects
@@ -361,218 +377,241 @@
 			 * ]
 			 */
 
-			//return if com.Objects is not an array
-			if ((!com.Objects)||(!Array.isArray(com.Objects))) {
-				fun("com.Objects must be an array (Array.isArray(com.Objects) == true)", com);
-				return;
-			}
+            if(!fun) {
+                fun = (err, com) => {
+                    if (err) log.e(err)
+                }
+            }
 
-			for (let i = 0; i < com.Objects.length; i++) {
+            //return if com.Objects is not an array
+            if ((!com.Objects)||(!Array.isArray(com.Objects))) {
+                fun("com.Objects must be an array (Array.isArray(com.Objects) == true)", com);
+                return;
+            }
 
-				let unit = com.Objects[i];
+            // loop through the objects array, checking to see if each object is a model object
+            // or a module definition object.
+            for (let i = 0; i < com.Objects.length; i++) {
 
-				if (typeof unit.id == "undefined") {
-					log.v("A unit sent to 3DView/SetObjects did not have an id");
-					continue;
-				}
+                let unit = com.Objects[i];
 
-				let obj = this.Vlt.View.Scene.getObjectByName(unit.id);
+                if (typeof unit.id == "undefined") {
+                    log.v("A unit sent to 3DView/SetObjects did not have an id");
+                    continue;
+                }
 
-				if (!obj) {
-					unit.new = true;
-					if (!unit.module) {
-						//we're building a 3JS object
-						if (!unit.geometry || !unit.mesh) {
-							log.v("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
-							continue;
-						}
-						let geom, mesh;
+                // Get the object from the current scene by name if it exists.
+                // If it doesn't exist, create a new model.
+                let obj = this.Vlt.View.Scene.getObjectByName(unit.id);
+                if (!obj) {
+                    unit.new = true;
 
-						if ("id" in unit.geometry) {
-							if (unit.geometry.id in this.Vlt.View.Geometries) {
-								geom = this.Vlt.View.Geometries[unit.geometry.id];
-							} else {
-								geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
-								this.Vlt.View.Geometries[unit.geometry.id] = geom;
-							}
-						} else {
-							geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
-						}
+                    // if the object is not a module definition, generate a three.js geometry object.
+                    // if it is a module definition, generate the module.
+                    if (!unit.module) {
+                        //we're building a 3JS object
+                        if (!unit.geometry || !unit.mesh) {
+                            log.v("A unit sent to 3DView/SetObjects did not have a geometry or mesh");
+                            continue;
+                        }
+                        let geom, mesh;
 
-						if ("id" in unit.mesh) {
-							if (unit.mesh.id in this.Vlt.View.Meshs) {
-								mesh = this.Vlt.View.Meshs[unit.mesh.id];
-							} else {
-								mesh = new THREE[unit.mesh.name](unit.mesh.arguments);
-								this.Vlt.View.Meshs[unit.mesh.id] = mesh;
-							}
-						} else {
-							mesh = new THREE[unit.mesh.name](...unit.mesh.arguments);
-						}
+                        if ("id" in unit.geometry) {
+                            if (unit.geometry.id in this.Vlt.View.Geometries) {
+                                geom = this.Vlt.View.Geometries[unit.geometry.id];
+                            } else {
+                                geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
+                                this.Vlt.View.Geometries[unit.geometry.id] = geom;
+                            }
+                        } else {
+                            geom = new THREE[unit.geometry.name](...unit.geometry.arguments);
+                        }
 
-						obj = new THREE.Mesh(geom, mesh);
-						obj.name = unit.id;
-					} else {
+                        if ("id" in unit.mesh) {
+                            if (unit.mesh.id in this.Vlt.View.Meshs) {
+                                mesh = this.Vlt.View.Meshs[unit.mesh.id];
+                            } else {
+                                mesh = new THREE[unit.mesh.name](unit.mesh.arguments);
+                                this.Vlt.View.Meshs[unit.mesh.id] = mesh;
+                            }
+                        } else {
+                            mesh = new THREE[unit.mesh.name](...unit.mesh.arguments);
+                        }
 
-						//we're passed a module and need to generate it
-						let mod = {
-							"Module": unit.module,
-							"Par": {
-								"Name": unit.id
-							}
-						};
+                        obj = new THREE.Mesh(geom, mesh);
+                        obj.name = unit.id;
+                    } else {
 
-						if (unit.position)
-							mod.Par.Position = unit.position;
-						if (unit.model)
-							mod.Par.Model = unit.model;
-						if (unit.axis)
-							mod.Par.Axis = unit.axis;
-						if (unit.angle)
-							mod.Par.Angle = unit.angle;
+                        //we're passed a module and need to generate it
+                        let mod = {
+                            "Module": unit.module,
+                            "Par": {
+                                "Name": unit.id
+                            }
+                        };
 
-						obj = await new Promise((res, rej) => {
-							this.genModule(mod, (err, pidApex) => {
-								let that = this;
+                        if (unit.position)
+                            mod.Par.Position = unit.position;
+                        if (unit.model)
+                            mod.Par.Model = unit.model;
+                        if (unit.axis)
+                            mod.Par.Axis = unit.axis;
+                        if (unit.angle)
+                            mod.Par.Angle = unit.angle;
 
-								//save the modules pid in unit.Pid
-								unit.Pid = pidApex;
+                        obj = await new Promise((res, rej) => {
+                            this.genModule(mod, (err, pidApex) => {
+                                let that = this;
 
-								unit.responseHandler = {
-									Cmd: "Evoke",
-									Handler: unit.Pid
-								};
+                                //save the modules pid in unit.Pid
+                                unit.Pid = pidApex;
 
-								var q = {};
-								q.Cmd = 'GetGraph';
-								this.send(q, unit.Pid, scene);
+                                unit.responseHandler = {
+                                    Cmd: "Evoke",
+                                    Handler: unit.Pid
+                                };
 
-								function scene(err, r) {
-									log.v('..View3D/scene');
-									Inst = r.Inst;
-									if (err) {
-										log.v(' ** ERR:' + err);
-										if (fun)
-											fun(err);
-										return;
-									}
+                                var q = {};
+                                q.Cmd = 'GetGraph';
+                                this.send(q, unit.Pid, scene);
 
-									let inst = Inst[0];
-									var q = {};
-									q.Cmd = 'GetModel';
-									q.Instance = inst.Instance;
-									that.send(q, unit.Pid, rply);
+                                function scene(err, r) {
+                                    log.v('..View3D/scene');
+                                    Inst = r.Inst;
+                                    if (err) {
+                                        log.v(' ** ERR:' + err);
+                                        if (fun)
+                                            fun(err);
+                                        return;
+                                    }
 
-									function rply(err, x) {
-										if (err) {
-											func(err);
-											return;
-										}
-										if (!('Obj3D' in x)) {
-											var err = 'No model returned';
-											log.v(' ** ERR:' + err);
-											func(err);
-											return;
-										}
-										var objinst = new THREE.Object3D();
-										if ('Position' in inst) {
-											var pos = inst.Position;
-											objinst.position.x = pos[0];
-											objinst.position.y = pos[1];
-											objinst.position.z = pos[2];
-										}
-										if ('Axis' in inst && 'Angle' in inst) {
-											var axis = inst.Axis;
-											var ang = inst.Angle * Math.PI / 180.0;
-											var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
-											objinst.setRotationFromAxisAngle(vec, ang);
-										}
-										var data = {};
-										if ('Role' in inst)
-											data.Role = inst.Role;
-										else
-											data.Role = 'Fixed';
-										data.Pid = inst.Instance;
-										objinst.userData = data;
-										objinst.add(x.Obj3D);
-										res(objinst);
-										log.v("Done Generating the Module/Model");
-									}
-								}
-							});
-						});
-					}
-				} else if (unit.removed) {
-					this.Vlt.View.Scene.remove(obj);
-					continue;
-				}
+                                    let inst = Inst[0];
+                                    var q = {};
+                                    q.Cmd = 'GetModel';
+                                    q.Instance = inst.Instance;
+                                    that.send(q, unit.Pid, rply);
 
-				if (unit.position) {
-					if (unit.position.x || (unit.position.x == 0))
-						obj.position.x = Math.round(unit.position.x);
-					if (unit.position.y || (unit.position.y == 0))
-						obj.position.y = Math.round(unit.position.y);
-					if (unit.position.z || (unit.position.z == 0))
-						obj.position.z = Math.round(unit.position.z);
-				}
+                                    function rply(err, x) {
+                                        if (err) {
+                                            func(err);
+                                            return;
+                                        }
+                                        if (!('Obj3D' in x)) {
+                                            var err = 'No model returned';
+                                            log.v(' ** ERR:' + err);
+                                            func(err);
+                                            return;
+                                        }
+                                        var objinst = new THREE.Object3D();
+                                        if ('Position' in inst) {
+                                            var pos = inst.Position;
+                                            objinst.position.x = pos[0];
+                                            objinst.position.y = pos[1];
+                                            objinst.position.z = pos[2];
+                                        }
+                                        if ('Axis' in inst && 'Angle' in inst) {
+                                            var axis = inst.Axis;
+                                            var ang = inst.Angle * Math.PI / 180.0;
+                                            var vec = new THREE.Vector3(axis[0], axis[1], axis[2]);
+                                            objinst.setRotationFromAxisAngle(vec, ang);
+                                        }
+                                        var data = {};
+                                        if ('Role' in inst)
+                                            data.Role = inst.Role;
+                                        else
+                                            data.Role = 'Fixed';
+                                        data.Pid = inst.Instance;
+                                        objinst.userData = data;
+                                        objinst.add(x.Obj3D);
+                                        res(objinst);
+                                        log.v("Done Generating the Module/Model");
+                                    }
+                                }
+                            });
+                        });
+                    }
+                } else if (unit.removed) { // if the object exists, but the model object needs to be removed, remove it
+                    this.Vlt.View.Scene.remove(obj);
+                    continue;
+                }
 
-				if (unit.elevations) {
-					// add in the known elevations
-					for (let i = 0, l = obj.geometry.vertices.length; i < l; i++) {
-						let row = Math.floor(i / obj.geometry.parameters.width);
-						let col = i - row * obj.geometry.parameters.width;
-						let idx = (obj.geometry.parameters.height - row) * obj.geometry.parameters.width + col;
-						obj.geometry.vertices[i].z = unit.elevations[idx] || Math.random();
-					}
-					obj.geometry.verticesNeedUpdate = true;
-					obj.geometry.elementsNeedUpdate = true;
-					obj.geometry.normalsNeedUpdate = true;
-					obj.updateMatrix();
-				}
 
-				if (unit.scale) {
-					obj.scale.set(unit.scale.x || 1, unit.scale.y || 1, unit.scale.z || 1);
-				}
+                // if the unit has a position, set it
+                if (unit.position) {
+                    if (unit.position.x || (unit.position.x == 0))
+                        obj.position.x = Math.round(unit.position.x);
+                    if (unit.position.y || (unit.position.y == 0))
+                        obj.position.y = Math.round(unit.position.y);
+                    if (unit.position.z || (unit.position.z == 0))
+                        obj.position.z = Math.round(unit.position.z);
+                }
 
-				if (unit.responseHandler) {
-					this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
-				}
 
-				if (unit.new) {
-					if (unit.parentId) {
-						let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
-						if (parent) {
-							parent.add(obj);
-							obj.matrixWorldNeedsUpdate = true;
-							obj.updateMatrixWorld();
-						} else {
-							log.v("Parent not defined in three.js scene");
-							this.Vlt.View.Scene.add(obj);
-						}
-					} else {
-						this.Vlt.View.Scene.add(obj);
-					}
-				}
-			}
+                // if the unit has an elevation, set it
+                if (unit.elevations) {
 
-			if (fun)
-				fun(null, com);
+                    for (let i = 0, l = obj.geometry.vertices.length; i < l; i++) {
+                        let row = Math.floor(i / obj.geometry.parameters.width);
+                        let col = i - row * obj.geometry.parameters.width;
+                        let idx = (obj.geometry.parameters.height - row) * obj.geometry.parameters.width + col;
+                        obj.geometry.vertices[i].z = unit.elevations[idx] || Math.random();
+                    }
+                    obj.geometry.verticesNeedUpdate = true;
+                    obj.geometry.elementsNeedUpdate = true;
+                    obj.geometry.normalsNeedUpdate = true;
+                    obj.updateMatrix();
+                }
+
+                // if the unit has a scale, set it
+                if (unit.scale) {
+                    obj.scale.set(unit.scale.x || 1, unit.scale.y || 1, unit.scale.z || 1);
+                }
+
+                // if the unit has a respose handler, set it
+                if (unit.responseHandler) {
+                    this.Vlt.View.ResponseHandlers[unit.id] = unit.responseHandler;
+                }
+
+                // if the unit is new, add it to the scene
+                if (unit.new) {
+                    if (unit.parentId) {
+                        let parent = this.Vlt.View.Scene.getObjectByName(unit.parentId);
+                        if (parent) {
+                            parent.add(obj);
+                            obj.matrixWorldNeedsUpdate = true;
+                            obj.updateMatrixWorld();
+                        } else {
+                            log.v("Parent not defined in three.js scene");
+                            this.Vlt.View.Scene.add(obj);
+                        }
+                    } else {
+                        this.Vlt.View.Scene.add(obj);
+                    }
+                }
+            }
+
+            if (fun)
+                fun(null, com);
 		}
 
 
-		/**
-		 * Captures the canvas as a base64 image and sends it off the controller (on
-		 * the server), if implemented, to be saved.
-		 * @param {Object} com
-		 * @param {Function} fun	the callback function
-		 * @returns {com.Image} the base 64 of the image
-		 * @returns {com.Name}	the image count
-		 */
+        /**
+         * Captures the canvas as a base64 data url, saves the data url to the "Image"
+         * attribute and the index of the image to the "Name" attribute, sends a
+         * "SaveImage" command to the controller if implemented, and then returns
+         * the "Image" and "Name" attributes with the command in the callback function.
+         * @param {Object} com
+         * @callback fun
+         * @returns {com.Image} the base 64 of the image
+         * @returns {com.Name}	the image count
+         */
 		function ImageCapture(com, fun) {
 			if (this.Vlt.Count)
 				this.Vlt.Count++
 			else
 				this.Vlt.Count = 1;
+
+			let View = this.Vlt.View;
 
 			View.Renderer.render(View.Scene, View.Camera);
 
@@ -582,11 +621,15 @@
 			com.Name = this.Vlt.Count;
 
 			if ("Controller" in this.Par) {
-				com.Cmd = "SaveImage";
-				this.send(com, this.Par.Controller);
+                let cmd = {};
+                cmd.Cmd = "SaveImage";
+                cmd.Image = com.Image;
+                cmd.Name = com.Name;
+                this.send(cmd, this.Par.Controller);
 			}
 
-			fun(null, com);
+			if(fun)
+				fun(null, com);
 		}
 
 
@@ -648,6 +691,11 @@
 			}
 		}
 
+        //
+        //
+        // END COMMAND FUNCTIONS
+        //
+        //
 		/**
 		 * Perform a raycast to see if any of the objects in the scene graph were hit
 		 *
