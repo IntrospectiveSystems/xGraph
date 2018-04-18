@@ -5,7 +5,7 @@
 
 BUILD_DIR="bin/mac"
 BASE_DIR="bin"
-VERSION="1.1"
+VERSION="1.2"
 IDENTIFIER="com.introspectivesystems.xgraph"
 APPNAME="xGraph"
 BACKGROUND="installerbackground.png"

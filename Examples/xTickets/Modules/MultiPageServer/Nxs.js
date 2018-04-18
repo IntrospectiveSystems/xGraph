@@ -43,7 +43,7 @@ __Nexus = (_ => {
 			v: console.log.bind(window.console, `%c[VRBS] %s`, 'color: gray'),
 			d: console.log.bind(window.console, `%c[DBUG] %s`, 'color: magenta'),
 			i: console.log.bind(window.console, `%c[INFO] %s`, 'color: cyan'),
-			w: console.log.bind(window.console, `%c[WARN] %s`, 'color: color:yellow;background-color:#242424;'),
+			w: console.log.bind(window.console, `%c[WARN] %s`, 'color:yellow;background-color:#242424;'),
 			e: console.log.bind(window.console, `%c[ERRR] %s`, 'color: red')
 		};
 		window.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function() {return this.Value} } };

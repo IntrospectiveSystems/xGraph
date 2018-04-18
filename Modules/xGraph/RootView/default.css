@@ -1,0 +1,59 @@
+:root {
+	/* GENERAL STUFF */
+	--introspective-green: #66BC45;
+	/* NEON PALETTE */
+	--neon-base: #1E023F;
+	--neon-1: #fe0000;
+	--neon-2: #fdfe02;
+	--neon-3: #0bff01;
+	--neon-4: #011efe;
+	--neon-5: #fe00f6;
+	--neon-6: #18DD00;
+	--neon-7: #E1C829;
+	--neon-8: #2FB5F3;
+	--neon-9: #FC82C3;
+	--neon-10: #C8FF00;
+	--neon-11: #FA023C;
+	/* STANDARD THEMING VARIABLES*/
+	--scrollbar-color: rgba(195, 255, 241, 1);
+	--view-color: #404040;
+	--view-lighter: #303030;
+	--view-border-color-light: #5C5C5C;
+	--subtext: #777;
+	--accent-subtext: rgba(0,0,0,.65);
+	--view-border-color: #212121;
+	--text: #CCC;
+	--accent-color: var(--introspective-green);
+	--accent-700: #478530;
+	--accent-error: #5B0000;
+	--text-error: #FF8888;
+	--error-background: #280000;
+	--accent-text: #111;
+	--view-border-divider: #2A2A2A;
+
+
+	/* Font family should be here so it can be overwritten. */
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+p, h1, h2, h3, h4, h5, div, span {
+	/* however, this declaring of text should be super specific, so you can overwrite --text before this gets baked in */
+	color: var(--text);
+}
+
+h1, h2, h3 {
+	font-weight: 100;
+}
+
+hr {
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	border-bottom: 1px solid var(--view-border-color-light);
+	margin: 0px;
+}
+
+h1 {
+	margin-bottom: 12px;
+	padding-left: 27px;
+}

@@ -1,0 +1,15 @@
+{
+  "State": {
+    "Ping": "*"
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd":"Ping"
+      },
+      "SentMessages": {
+        "Cmd:": "Pong"
+      }
+    }
+  ]
+}
