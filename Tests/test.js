@@ -88,12 +88,20 @@ try {
 	{
 		exec(`${nativePath} c --CWD ValidationSystem --local ./ValidationSystem/Modules`);
 		exec(`${nativePath} d --CWD ValidationSystem --local ./ValidationSystem/Modules`);
+		exec(`${nativePath} r --CWD ValidationSystem --local ./ValidationSystem/Modules`);
+		exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`);
+		exec('rm -rf ValidationSystem/cache');
+		exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`);
 	}
-
+	
 	// run tests on npm version
 	{
 		exec('xgraph c --CWD ValidationSystem --local ./ValidationSystem/Modules');
 		exec('xgraph d --CWD ValidationSystem --local ./ValidationSystem/Modules');
+		exec('xgraph r --CWD ValidationSystem --local ./ValidationSystem/Modules');
+		exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules');
+		exec('rm -rf ValidationSystem/cache');
+		exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules');
 	}
 
 	// test API access
