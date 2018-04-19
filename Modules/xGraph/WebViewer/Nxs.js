@@ -22,6 +22,7 @@ __Nexus = (_ => {
 		genPid,
 		genEntity,
 		deleteEntity,
+		addModule,
 		genModule,
 		getFile,
 		sendMessage,
@@ -809,38 +810,38 @@ __Nexus = (_ => {
 				return;
 			});
 		} else if ('static' in mod) {
-		// 	let filearr = filename.split('/');
-		// 	let store = mod["static"];
-		// 	let [err, file] = subSearch(filearr, store);
-		// 	fun(err, file);
-		// 	return;
+			// 	let filearr = filename.split('/');
+			// 	let store = mod["static"];
+			// 	let [err, file] = subSearch(filearr, store);
+			// 	fun(err, file);
+			// 	return;
 
-		// 	// /**
-		// 	//  * Recursive object search
-		// 	//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
-		// 	//  * @param {Object} st 		The directory we're searching in 
-		// 	//  */
-		// 	function subSearch(ar, st) {
-		// 		if (ar[0] in st) {
-		// 			if (ar.length == 1) {
-		// 				return [null, st[ar[0]]];
-		// 			}
-		// 			else {
-		// 				return subSearch(arr.slice(1), st[ar[0]]);
-		// 			}
-		// 		} else {
-		// 			let err = `${url} does not exist in Par.Static`;
-		// 			log.w(err);
-		// 			return [err, null];
-		// 		}
-		// 	}
+			// 	// /**
+			// 	//  * Recursive object search
+			// 	//  * @param {Object} ar 		An array of requested files (requested file separated by '/')
+			// 	//  * @param {Object} st 		The directory we're searching in 
+			// 	//  */
+			// 	function subSearch(ar, st) {
+			// 		if (ar[0] in st) {
+			// 			if (ar.length == 1) {
+			// 				return [null, st[ar[0]]];
+			// 			}
+			// 			else {
+			// 				return subSearch(arr.slice(1), st[ar[0]]);
+			// 			}
+			// 		} else {
+			// 			let err = `${url} does not exist in Par.Static`;
+			// 			log.w(err);
+			// 			return [err, null];
+			// 		}
+			// 	}
 		} else {
 			let err = `File ${filename} does not exist in module ${module}`;
 			log.w(err);
 			fun(err);
 		}
 
-		
+
 		// let err = `File ${filename} does not exist in module ${module}`;
 		// log.e(err);
 		// fun(err);
@@ -873,6 +874,7 @@ __Nexus = (_ => {
 			dispatch,
 			genModule,
 			genEntity,
+			addModule,
 			deleteEntity,
 			genPid,
 			send,
@@ -906,17 +908,24 @@ __Nexus = (_ => {
 		 * @callback fun
 		 */
 		function dispatch(com, fun = _ => _) {
-			var disp = Imp.dispatch;
-			if (com.Cmd in disp) {
-				disp[com.Cmd].call(this, com, fun);
-				return;
+			try {
+				var disp = Imp.dispatch;
+				if (com.Cmd in disp) {
+					disp[com.Cmd].call(this, com, fun);
+					return;
+				}
+				if ('*' in disp) {
+					disp['*'].call(this, com, fun);
+					return;
+				}
+				log.e('Nada Cmd:' + com.Cmd);
+				fun('Nada', com);
+			} catch (e) {
+				log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
+				log.e(e.toString());
+
+				process.exit(2);
 			}
-			if ('*' in disp) {
-				disp['*'].call(this, com, fun);
-				return;
-			}
-			log.e(' Nada Cmd:' + com.Cmd);
-			fun('Nada', com);
 		}
 
 		/**
@@ -929,6 +938,17 @@ __Nexus = (_ => {
 		function genModule(mod, fun) {
 			nxs.genModule(mod, fun);
 		}
+
+		/**
+		 * Add a module into the in memory Module Cache (ModCache)
+		 * @param {string} modName 		the name of the module
+		 * @param {string} modZip 		the zip of the module
+		 * @callback fun 							the callback just returns the name of the module
+		 */
+		function addModule(modName, modZip, fun) {
+			nxs.addModule(modName, modZip, fun);
+		}
+
 
 		/**
 		 * deletes the current entity
@@ -1044,6 +1064,22 @@ __Nexus = (_ => {
 		for (var i = 0; i < 32; i++)
 			pid += hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
 		return pid;
+	}
+
+
+	/**
+	 * Add a module into the in memory Module Cache (ModCache)
+	 * @param {string} modName 		the name of the module
+	 * @param {string} modZip 		the zip of the module
+	 * @callback fun 							the callback just returns the name of the module
+	 */
+	async function addModule(modName, modZip, fun) {
+		//modZip is the uint8array that can be written directly to the cache directory
+			ModCache[modName] = await new Promise(async (res, rej) => {
+				let zip = new jszip();
+				zip.loadAsync(modZip).then((mod) => res(mod));
+			});
+			fun(null, modName);
 	}
 
 	/**

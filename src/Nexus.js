@@ -598,8 +598,7 @@ module.exports = function xGraph() {
 					} catch(e) {
 						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
 						log.e(e.toString());
-						// console.dir(e);
-						// console.trace();
+
 						process.exit(2);
 					}
 				}

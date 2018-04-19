@@ -106,7 +106,7 @@
 					var str = data.toString('utf8', 1, n - 1);
 					// log.v('Proxy - Plexus: Data <' + str + '>');
 					str = JSON.parse(str);
-					if (Array.isArray(str))[err, str] = str;
+					if (Array.isArray(str)) [err, str] = str;
 					var r = str;
 					sock.destroy();
 					if ('Host' in r && 'Port' in r) {
@@ -194,7 +194,7 @@
 				if (!("Encrypt" in Par) || Par.Encrypt) {
 					sock.write(Vlt.STX + JSON.stringify({
 						Cmd: "SetPublicKey",
-						Key: Vlt.PublicKey|| null
+						Key: Vlt.PublicKey || null
 					}) + Vlt.ETX);
 				}
 
@@ -435,8 +435,7 @@
 								Vlt.Buf = Vlt.RSAKey.decryptPublic(Vlt.Buf, 'utf8');
 							}
 							let err, com = JSON.parse(Vlt.Buf);
-							if (Array.isArray(com))[err, com] = com;
-
+							if (Array.isArray(com)) [err, com] = com;
 
 							// -------------------------- Pid interchange
 							if (com.PidInterchange) {
@@ -487,6 +486,7 @@
 							} else if ('Reply' in com.Passport) {
 								if (Vlt.Fun[com.Passport.Pid])
 									Vlt.Fun[com.Passport.Pid](err || null, com);
+									delete Vlt.Fun[com.Passport.Pid];
 							} else {
 								that.send(com, Par.Link);
 							}
@@ -504,8 +504,8 @@
 		log.i("Proxy/SetPublicKey");
 		let NodeRSA = this.require('node-rsa');
 		this.Vlt.PublicKey = com.Key;
-		if (!this.Vlt.PublicKey){
-			if (("PublicKey" in this.Par) && (typeof this.Par.PublicKey == "string")){
+		if (!this.Vlt.PublicKey) {
+			if (("PublicKey" in this.Par) && (typeof this.Par.PublicKey == "string")) {
 				this.Vlt.PublicKey = this.Par.PublicKey;
 			}
 		}
@@ -567,17 +567,6 @@
 				var sock = Vlt.Socks[i];
 				sock.write(msg);
 			}
-
-			if (!(Vlt.Fun))
-				Vlt.Fun = {};
-
-			if (fun) {
-				Vlt.Fun[com.Passport.Pid] = fun;
-				com.Passport.Disp = 'Query';
-			}
-			else {
-				Vlt.Fun[com.Passport.Pid] = null;
-			}
 		}
 
 		async function client() {
@@ -587,15 +576,14 @@
 				//we are purposely withholding the callback we should call it back once the socket is formed but we need an event listener for this
 				return;
 			}
-			if (!(Vlt.Fun))
-				Vlt.Fun = {};
-
+			if (!("Fun" in Vlt)) Vlt.Fun = {};
+			
 			if (fun) {
 				Vlt.Fun[com.Passport.Pid] = fun;
 				com.Passport.Disp = 'Query';
 			}
 			else {
-				Vlt.Fun[com.Passport.Pid] = null;
+				if (com.Passport.Pid in Vlt.Fun) delete Vlt.Fun[com.Passport.Pid];
 			}
 			if (!("Encrypt" in Par) || Par.Encrypt) {
 				if (Vlt.RSAKey) {
