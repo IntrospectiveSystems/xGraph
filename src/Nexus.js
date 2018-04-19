@@ -1,5 +1,6 @@
 global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
-module.exports = function xGraph() {
+module.exports = function xGraph(__options={}) {
+	this.__options=__options;
 	let eventListeners = {
 		exit: [],
 		setup: [],
@@ -17,12 +18,14 @@ module.exports = function xGraph() {
 		eventListeners[eventName].push(listener);
 	}
 
-	this.boot = function boot(optionsArray) {
-		(async function (__options) {
-			if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-			if (__options.indexOf("--debug") > -1 || __options.indexOf("--development") > -1) {
-				state = 'development';
+	this.boot = function boot() {
+		return (async function (__options) {
+
+			function checkFlag(flag) {
+				// console.dir(__options);
+				return flag in __options && __options[flag];
 			}
+
 			// module.paths.push(process.cwd() + '/cache/node_modules');
 
 			console.log(`\nInitializing the Run Engine`);
@@ -33,7 +36,6 @@ module.exports = function xGraph() {
 			const endOfLine = require('os').EOL;
 			var consoleNotification = false;
 			var Uuid;
-			var CacheDir;						// The location of where the Cache will be stored
 			var Config = {};					// The read config.json
 			var ModCache = {};					// {<folder>: <module>}
 			var ApexIndex = {}; 				// {<Apex pid>:<folder>}
@@ -43,8 +45,6 @@ module.exports = function xGraph() {
 			var EntCache = {};					// {<Entity pid>:<Entity>
 			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 			var packagejson = {};				// The compiled package.json, built from Modules
-			var args = __options;			// The input __options --under consideration for deprication
-			var Params = {};					// The set of Macros for defining paths
 			var originalConsoleLog = console.log;
 			var Nxs = {
 				genPid,
@@ -193,13 +193,13 @@ module.exports = function xGraph() {
 					console.timers[_] = undefined;
 					log.i(`${_}: ${elapsed}ms`);
 				}
-				process.on('unhandledRejection', event => {
-					log.e('------------------ [Stack] ------------------');
-					log.e(`line ${event.lineNumber}, ${event}`);
-					log.e(event.stack);
-					log.e('------------------ [/Stack] -----------------');
-					process.exit(1);
-				});
+				// process.on('unhandledRejection', event => {
+				// 	log.e('------------------ [Stack] ------------------');
+				// 	log.e(`line ${event.lineNumber}, ${event}`);
+				// 	log.e(event.stack);
+				// 	log.e('------------------ [/Stack] -----------------');
+				// 	process.exit(1);
+				// });
 
 			}
 
@@ -213,24 +213,17 @@ module.exports = function xGraph() {
 			log.i('=================================================');
 			log.i(`Nexus Warming Up:`);
 
-			defineMacros();
+			//set CWD
+			__options.cwd = __options.cwd ? Path.resolve(__options.cwd) : Path.resolve('.');
+			log.v(`CWD set to ${__options.cwd}`);
 
-			// if called from binary quit or if called from
-			// the command line and node build cache first
-			if (!fs.existsSync(CacheDir) || (state == "development")) {
-				// #ifndef BUILT
-				if (isBinary()) {
-					// #endif
-					log.e(`No cache exists at ${CacheDir}. Try xgraph run`);
-					process.exit(1);
-					return;
-					// #ifndef BUILT
-				}
-				log.i("Building the Cache");
-				log.i(__options[1]);
-				let genesisString = fs.readFileSync(`${__options[1].substr(0, __options[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
-				await eval(genesisString);
-				// #endif
+			//set Cache location
+			__options.cache = __options.cache || Path.join(__options.cwd, 'cache');
+
+			// if the cache doesnt exist, throw
+			if (!fs.existsSync(__options.cache)) {
+				log.e(`No cache exists at ${__options.cache}. Try xgraph run`);
+				throw new Error(`No cache exists at ${__options.cache}. Try xgraph run`);
 			}
 
 			initiate();
@@ -263,42 +256,6 @@ module.exports = function xGraph() {
 			//
 			//
 
-			/**
-			 * Populates Params {OBJECT}
-			 * This is populated from both the __options array as well as those parsed in the
-			 * binary file if it was used.
-			 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
-			 */
-			function defineMacros() {
-				// Process input __options and define macro parameters
-				// All macros are stored case insensitive in the Params object
-
-				let arg, parts;
-				for (var iarg = 0; iarg < args.length; iarg++) {
-					arg = args[iarg];
-					try {
-						let jarg = JSON.parse(arg);
-						for (let key in jarg) {
-							// log.v(`${key}=${jarg[key]}`);
-							Params[key] = jarg[key];
-						}
-					} catch (e) {
-						// log.v(arg);
-						parts = arg.split('=');
-						if (parts.length == 2) {
-							if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
-							Params[parts[0].toLowerCase()] = parts[1];
-						}
-					}
-				}
-
-				//set CWD
-				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
-				log.v(`CWD set to ${CWD}`);
-
-				//set Cache location
-				CacheDir = Params.cache || Path.join(CWD, 'cache');
-			}
 
 			/**
 			 *  The main process of starting an xGraph System.
@@ -327,18 +284,18 @@ module.exports = function xGraph() {
 				 * Load in the cache and poulate setup Setup, Start, and ApexIndex {Objects}
 				 */
 				function loadCache() {
-					var folders = fs.readdirSync(CacheDir);
+					var folders = fs.readdirSync(__options.cache);
 
 					for (var ifold = 0; ifold < folders.length; ifold++) {
 						let folder = folders[ifold];
-						let path = `${CacheDir}/${folder}/Module.zip`;
+						let path = `${__options.cache}/${folder}/Module.zip`;
 						if (!fs.existsSync(path))
 							continue;
 
 						parseMod(folder)
 
 						function parseMod(folder) {
-							let dir = CacheDir + '/' + folder;
+							let dir = __options.cache + '/' + folder;
 							var instancefiles = fs.readdirSync(dir);
 							for (var ifile = 0; ifile < instancefiles.length; ifile++) {
 								var file = instancefiles[ifile];
@@ -467,8 +424,8 @@ module.exports = function xGraph() {
 							break;
 						case 2:
 							if (chr == '}') {
-								if (param in Params)
-									s += Params[param];
+								if (param in __options)
+									s += __options[param];
 								else
 									throw 'Parameter <' + param + '> not defined';
 								state = 1;
@@ -489,7 +446,7 @@ module.exports = function xGraph() {
 			 */
 			function genPid() {
 				if (!Uuid) {
-					module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+					module.paths = [Path.join(Path.resolve(__options.cache), 'node_modules')];
 					Uuid = require('uuid/v4');
 				}
 				var str = Uuid();
@@ -781,7 +738,7 @@ module.exports = function xGraph() {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function deleteEntity(apx, pid, fun = _ => _) {
-				let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;
+				let apxpath = `${__options.cache}/${ApexIndex[apx]}/${apx}/`;
 
 				let rmList = [];
 				//we first check to see if it's an apex
@@ -816,7 +773,7 @@ module.exports = function xGraph() {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
-				let modpath = `${CacheDir}/${ApexIndex[apx]}`;
+				let modpath = `${__options.cache}/${ApexIndex[apx]}`;
 				let apxpath = `${modpath}/${apx}`;
 				let entpath = `${apxpath}/${pid}.json`;
 
@@ -941,7 +898,7 @@ module.exports = function xGraph() {
 					return require(str);
 				} catch (e) {
 					try {
-						return require(Path.join(CacheDir, folder, 'node_modules', str));
+						return require(Path.join(__options.cache, folder, 'node_modules', str));
 					} catch (e) {
 						log.e(e);
 						process.exit(1);
@@ -968,7 +925,7 @@ module.exports = function xGraph() {
 				}
 
 				let folder = ApexIndex[apx];
-				let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
+				let path = __options.cache + '/' + folder + '/' + apx + '/' + pid + '.json';
 				fs.readFile(path, function (err, data) {
 					if (err) {
 						log.e('<' + path + '> unavailable');
@@ -1303,7 +1260,7 @@ module.exports = function xGraph() {
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
 				//get the module from cache
-				var cachedMod = `${CacheDir}/${ModName}/Module.zip`;
+				var cachedMod = `${__options.cache}/${ModName}/Module.zip`;
 				fs.lstat(cachedMod, function (err, stat) {
 					if (err) {
 						log.e(`Error retreiving ${cachedMod} from cache`);
@@ -1332,7 +1289,7 @@ module.exports = function xGraph() {
 					}
 				});
 			}
-		})(optionsArray);
+		})(this.__options);
 	}
 }
 

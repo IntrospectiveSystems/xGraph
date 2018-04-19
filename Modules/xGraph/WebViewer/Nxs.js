@@ -923,8 +923,6 @@ __Nexus = (_ => {
 			} catch (e) {
 				log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
 				log.e(e.toString());
-
-				process.exit(2);
 			}
 		}
 
