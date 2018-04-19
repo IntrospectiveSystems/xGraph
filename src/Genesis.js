@@ -2,7 +2,7 @@ module.exports = genesis;
 function genesis(__options = {}) {
 
 	function checkFlag(flag) {
-		console.dir(__options);
+		// console.dir(__options);
 		return flag in __options && __options[flag];
 	}
 
@@ -942,7 +942,7 @@ function genesis(__options = {}) {
 
 				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				try { fs.mkdirSync(CacheDir); } catch (e) {console.log(e) }
+				try { fs.mkdirSync(CacheDir); } catch (e) {}
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 
 				//call npm install on a childprocess of node

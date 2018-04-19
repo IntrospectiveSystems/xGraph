@@ -2,14 +2,14 @@
 // anything above this line is removed on npm run build.
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
-let cli = function(argv) {
+let cli = function (argv) {
 	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	let originalCwd = process.cwd();
 
-	if(argv[0].indexOf('node')) {
+	if (argv[0].indexOf('node')) {
 		argv = argv.slice(1);
-	}else {
+	} else {
 		console.log('REAL COMMAND LINE ARGUMENTS DETECTED. ABORT. REPEAT,\r\n\t\tAB0RT\r\n\t\t\t\tM IS5  I ON.');
 		console.log('---------------------------------------------------');
 		console.log(argv.join('\n'));
@@ -39,7 +39,7 @@ let cli = function(argv) {
 
 	let windows, mac, linux, unix, system;
 
-	switch(process.platform) {
+	switch (process.platform) {
 		case 'win32': {
 			system = 'windows';
 			windows = true;
@@ -159,7 +159,7 @@ let cli = function(argv) {
 	}
 
 	function help() {
-	console.log(`
+		console.log(`
 \x20\x20\x20\x20xGraph ${version}
 Introspective Systems LLC
 
@@ -223,7 +223,7 @@ Examples:
 		try {
 			await ensureNode();
 			state = 'production';
-			await genesis(Object.assign({state}, pathOverrides));
+			await genesis(Object.assign({ state }, pathOverrides));
 			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
 			process.chdir(processPath);
 			startNexusProcess();
@@ -246,7 +246,7 @@ Examples:
 		try {
 			await ensureNode();
 			state = 'development';
-			await genesis(Object.assign({state}, pathOverrides));
+			await genesis(Object.assign({ state }, pathOverrides));
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -258,7 +258,7 @@ Examples:
 			await ensureNode();
 			state = 'production';
 			// console.dir(pathOverrides);
-			await genesis(Object.assign({state}, pathOverrides));
+			await genesis(Object.assign({ state }, pathOverrides));
 		} catch (e) {
 			console.error(e);
 		}
@@ -266,21 +266,18 @@ Examples:
 
 
 	async function startNexusProcess() {
-
 		//get the cache dir
 		let cacheDir = pathOverrides["cache"];
 		console.log(`Starting from ${cacheDir}`);
-		
+
 		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
 		process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
 
 		//combine flags and path overrides to create the options object for nexus
-		params = Object.assign(pathOverrides, flags);
-
-		let system = new nexus();
+		let system = new nexus(Object.assign(flags, pathOverrides));
 		system.on('exit', _ => {
 			// HACK: to restart systems
-			if(_.exitCode == 72) {
+			if (_.exitCode == 72) {
 				setTimeout(_ => {
 					process.chdir(originalCwd);
 					cli(originalArgv);
@@ -289,7 +286,7 @@ Examples:
 		});
 
 		try {
-			await system.boot(params);
+			await system.boot();
 		} catch (e) {
 			console.error(e);
 			process.exit(1);
@@ -298,7 +295,7 @@ Examples:
 	}
 
 	async function ensureNode() {
-		if(linux) {
+		if (linux) {
 			let node = (execSync('which node').toString());
 
 			if (node != '') {
@@ -326,7 +323,7 @@ Examples:
 		// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
 		return new Promise((resolve) => {
 			let installAttempted = false;
-			if(linux) {
+			if (linux) {
 				require('https').get({
 					host: 'nodejs.org',
 					path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-linux-x64.tar.gz'
@@ -361,7 +358,7 @@ Examples:
 				});
 			}
 
-			if(mac) {
+			if (mac) {
 				// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
 				require('https').get({
 					host: 'nodejs.org',
@@ -400,8 +397,8 @@ Examples:
 					});
 				});
 			}
-			
-			if(windows) {
+
+			if (windows) {
 				console.error(`${system} is not yet supported.`);
 			}
 
@@ -416,11 +413,11 @@ Examples:
 			let nextIndex = 0;
 			return {
 				next: () => {
-					if(nextIndex < args.length) {
+					if (nextIndex < args.length) {
 						let obj = { value: args[nextIndex], idx: (nextIndex), done: false };
-						nextIndex ++;
+						nextIndex++;
 						return obj;
-					}else {
+					} else {
 						return { done: true };
 					}
 				},
@@ -437,7 +434,7 @@ Examples:
 			let str = returnVal.value;
 			let i = returnVal.idx;
 			// console.log(i);
-			if(typeof str == 'undefined') {
+			if (typeof str == 'undefined') {
 				console.error('error parsing Switches');
 				process.exit(1);
 			}
@@ -456,8 +453,10 @@ Examples:
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
 
+		pathOverrides.cwd = path.resolve(pathOverrides.cwd || process.cwd());
+
 		if (!path.isAbsolute(pathOverrides.cache)) {
-			pathOverrides.cache = path.resolve(path.resolve(pathOverrides.cwd || process.cwd()), pathOverrides.cache);
+			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
 		}
 
 		function applySwitch(str, i) {
@@ -468,12 +467,12 @@ Examples:
 			// 	return;
 			// }
 			if (remainingArgs >= 1) { // switch has another argument
-				if(!args[i + 1].startsWith('--')) {
+				if (!args[i + 1].startsWith('--')) {
 					//if its justt some more plain text, not another switch
 					//we add it to path overrides
 					pathOverrides[str.toLowerCase()] = args[i + 1];
 					argLoop.delete(2);
-				}else {
+				} else {
 					//otherwise, we add it to flags
 					flags[str.toLowerCase()] = true;
 				}
@@ -672,7 +671,7 @@ Examples:
 	}
 }
 
-if(require.main === module) cli(process.argv);
+if (require.main === module) cli(process.argv);
 else module.exports = {
 	Nexus: require('./Nexus.js'),
 	Genesis: require('./Genesis.js')

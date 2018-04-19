@@ -1,5 +1,6 @@
 global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
-module.exports = function xGraph() {
+module.exports = function xGraph(__options={}) {
+	this.__options=__options;
 	let eventListeners = {
 		exit: [],
 		setup: [],
@@ -17,18 +18,14 @@ module.exports = function xGraph() {
 		eventListeners[eventName].push(listener);
 	}
 
-	this.boot = function boot(optionsArray) {
+	this.boot = function boot() {
 		return (async function (__options) {
 
 			function checkFlag(flag) {
-				console.dir(__options);
+				// console.dir(__options);
 				return flag in __options && __options[flag];
 			}
 
-			if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-			if (checkFlag('debug') || checkFlag('development')) {
-				state = 'development';
-			}
 			// module.paths.push(process.cwd() + '/cache/node_modules');
 
 			console.log(`\nInitializing the Run Engine`);
@@ -221,7 +218,7 @@ module.exports = function xGraph() {
 			log.v(`CWD set to ${__options.cwd}`);
 
 			//set Cache location
-			__options.cache = __options.cache || Path.join(CWD, 'cache');
+			__options.cache = __options.cache || Path.join(__options.cwd, 'cache');
 
 			// if the cache doesnt exist, throw
 			if (!fs.existsSync(__options.cache)) {
@@ -1292,7 +1289,7 @@ module.exports = function xGraph() {
 					}
 				});
 			}
-		})(optionsArray);
+		})(this.__options);
 	}
 }
 
