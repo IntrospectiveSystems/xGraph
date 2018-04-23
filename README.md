@@ -43,7 +43,7 @@ native executables using npm build.
 
 ##### Install using system-specific installation files
 You will installation files for the major operating systems (Windows, MacOS and Linux) 
-in the `.\bin\` directory. To install the xGraph CLI, follow the instructions for your 
+in the `./bin/` directory. To install the xGraph CLI, follow the instructions for your 
 operating system found below.
 
 ##### For Windows:
