@@ -17,8 +17,7 @@ function BankPatron() {
 
 	/**
 	 * When BankPatron is Setup, the command and user options are set up, and a stream to standard
-	 * in is set up. When the user selects an option, the command is sent to BankAccount. BankAccount
-	 * processes the command, and then returns a com.Message to BankPatron.
+	 * in is set up.
 	 *
 	 * @param {object} com 	The command object.
 	 * @callback fun
@@ -52,77 +51,75 @@ function BankPatron() {
 
 	}
 
+    /**
+     * Start sends a command to the BankAccount module (this.Par.BankAccount).
+     * When it receives a callback from BankAccount with the command argument Ready set to true,
+     * BankPatron dispatches it's StartUserInteraction command, which launches the text interface.
+     * @param {object} com  The command object.
+     * @callback fun
+     */
 	function Start(com, fun){
         log.i("--BankPatron/Start");
         let that = this;
-        let Vlt = this.Vlt;
-        let Par = this.Par
+        let Par = this.Par;
         let errors = null;
 
-		//log.i("\n\nStarting an action loop!\n");
-        //setTimeout(promptUser,1000);
-
-        // clear the input stream and restart it
-        // Standard in listens for any "data", and calls selectAction when it recieves data.
-
-
-        let sayHelloCommand = {
-            Cmd: "SayHello"
+        // Send a BankPatronWaiting command to the Par.BankAccount module,
+        // so the text interface doesn't start before the rest of the system.
+        let bankPatronWaitingCommand = {
+            Cmd: "BankPatronWaiting"
         };
 
-        this.send(sayHelloCommand, Par.BankAccount, callback);
+        that.send(bankPatronWaitingCommand, Par.BankAccount, bankAccountResponse);
 
-        function callback(err, cmd){
+        function bankAccountResponse(err, cmd){
             if(err) {
                 log.e(err);
                 errors = err;
             }
 
-            if(cmd.Ready) {
-                let startUserInteraction = {
-                    Cmd: "StartUserInteraction"
-                };
-                that.dispatch(startUserInteraction, backcall);
+            let startUserInteraction = {
+                Cmd: "StartUserInteraction"
+            };
+            that.dispatch(startUserInteraction, backcall);
 
-                function backcall(err, msg) {
-                    if (err) {
-                        log.e(err);
-                        errors = err;
-                    }
+            function backcall(err, msg) {
+                if (err) {
+                    log.e(err);
+                    errors = err;
                 }
             }
         }
 
         if (fun)
             fun(errors,com);
-
-
-
-
-
-
 	}
 
+    /**
+     * StartUserInteraction starts the text user interface for interacting with the BankAccount module.
+     * Users are presented with three options: Check Balance, Deposit Funds or Withdraw Funds.
+     * If the user chooses to Deposit or Withdraw funds, the user is then prompted to enter an amount.
+     * @param {object} com   The command object.
+     * @callback fun
+     */
     function StartUserInteraction(com, fun){
         log.i("--BankPatron/StartUserInteraction");
         let that = this;
         let Vlt = this.Vlt;
         let Par = this.Par
 
-        // Prompt the user to select a command, then send that command to the BankAccount.
-
+        // Start by prompting the user to select a command.
         promptAction();
 
 
         if (fun)
             fun(null,com);
 
-
-
-
-
+        // displays the initial prompt
         function promptAction() {
-
+            // change event function to readAmount
+            // Prompt the user to input an amount to be deposited/withdrawn
+            // then send the command.
             Vlt.stdin.removeAllListeners('data');
             Vlt.stdin.addListener('data', readAction);
             // Prompt user in the console. Options are defined on setup.
@@ -132,6 +129,7 @@ function BankPatron() {
         }
 
 
+        // reads the selection from the initial prompt
         function readAction(data) {
 
             // trim any extra spaces off the input
@@ -160,40 +158,48 @@ function BankPatron() {
             }
         }
 
+        // display the prompt for selections requiring an amount
         function promptAmount(){
             // change event function from selectAction to readAmount
             // Prompt the user to input an amount to be deposited/withdrawn
             // then send the command.
-            that.Vlt.stdin.removeListener('data', readAction);
-            that.Vlt.stdin.addListener('data', readAmount);
+            Vlt.stdin.removeListener('data', readAction);
+            Vlt.stdin.addListener('data', readAmount);
 
-            log.i("Enter amount to " + that.Vlt.options[that.Vlt.selection])
+            log.i("Type `x` to cancel.");
+            log.i("Enter amount to " + Vlt.options[Vlt.selection]);
+
         }
 
+        // reads the amount entered
         function readAmount(userAmount){
-            that.Vlt.amount = userAmount.toString().trim();
+            Vlt.amount = userAmount.toString().trim();
 
-            if(isNaN(that.Vlt.amount || that.Vlt.amount < 0)){
-                log.e("Amount to " + Vlt.selection + "must be a positive number.")
+            if (Vlt.amount == 'x' || Vlt.amount == 'X') {
+                log.i("Canceling " + Vlt.options[Vlt.selection] + ".");
+                promptAction();
+
+            } else if(isNaN(Vlt.amount) || Vlt.amount < 0){
+                log.i("Amount to " + Vlt.amount + " must be a positive number.");
+                log.i("Type `x` to cancel.");
+                log.i("Please enter an amount to deposit.");
 
             } else {
-
-                log.i("The amount is ", that.Vlt.amount);
+                log.i("The amount is ", Vlt.amount);
 
                 let userSelection = {};
 
 
                 userSelection = {
                     Cmd: Vlt.commands[Vlt.selection],
-                    Amount: that.Vlt.amount
+                    Amount: Vlt.amount
                 };
 
                 sendCommand(userSelection);
             }
         }
 
-        // Send the command object userSelection. Print the messaged recieved in the callback, and
-        // prompt the user to make another selection.
+        // Send the command object userSelection.
         function sendCommand(userSelection) {
             that.send(userSelection, Par.BankAccount, callback);
 

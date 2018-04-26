@@ -13,7 +13,7 @@ function BankAccount() {
 
 	var dispatch = {
 		Start: Start,
-		SayHello: SayHello,
+        BankPatronWaiting: BankPatronWaiting,
 		Deposit: Deposit,
 		Withdraw: Withdrawal,
 		CheckBalance: CheckBalance
@@ -34,13 +34,17 @@ function BankAccount() {
 		fun(null, com);
 	}
 
-	function SayHello(com, fun){
+    /**
+	 * Receives the BankPatronWaiting command and sends it back.
+     * @param com
+     * @callback fun
+     */
+	function BankPatronWaiting(com, fun){
         log.i("--BankAccount/SayHello");
         let that = this;
         let Par = this.Par;
 		let err = null;
 
-		com.Ready = true;
 
         if (fun)
             fun (err, com);

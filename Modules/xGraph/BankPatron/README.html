@@ -199,6 +199,16 @@ input[type="search"]::-webkit-search-cancel-button {
                         </li>
 
 
+                        <li class="method-link scope-public">
+                            <a href="#bankpatron.js-start" title="Start">Start</a>
+                        </li>
+
+
+                        <li class="method-link scope-public">
+                            <a href="#bankpatron.js-startuserinteraction" title="StartUserInteraction">StartUserInteraction</a>
+                        </li>
+
+
                         </ul>
 
                     </li>
@@ -290,8 +300,141 @@ The user is presented with 3 options: check balance, deposit funds, withdraw fun
                         <div class="description lead">
 
                             <p>When BankPatron is Setup, the command and user options are set up, and a stream to standard
-in is set up. When the user selects an option, the command is sent to BankAccount. BankAccount
-processes the command, and then returns a com.Message to BankPatron.</p>
+in is set up.</p>
+
+
+                        </div>
+
+
+                        <section class="parameters">
+
+                            <h3>Parameters</h3>
+
+                            <div class="table-responsive">
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr>
+                                        <td>com</td>
+                                        <td>
+                                            <code>object</code>
+                                        </td>
+                                        <td><p>The command object.</p>
+</td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </section>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="bankpatron.js-start">
+                            <a href="#bankpatron.js-start" class="permalink">#</a>
+                            <span class="method-name" title="Start(com)">Start(com)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <p>Start sends a command to the BankAccount module (this.Par.BankAccount).
+When it receives a callback from BankAccount with the command argument Ready set to true,
+BankPatron dispatches it's StartUserInteraction command, which launches the text interface.</p>
+
+
+                        </div>
+
+
+                        <section class="parameters">
+
+                            <h3>Parameters</h3>
+
+                            <div class="table-responsive">
+                                <table class="table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr>
+                                        <td>com</td>
+                                        <td>
+                                            <code>object</code>
+                                        </td>
+                                        <td><p>The command object.</p>
+</td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </section>
+
+
+
+
+                        <section class="returns">
+
+                            <h3>Returns</h3>
+
+
+                            <p><code>Void</code></p>
+
+
+                        </section>
+
+                    </div>
+
+
+                    <div class="method scope-public">
+
+                        <h2 id="bankpatron.js-startuserinteraction">
+                            <a href="#bankpatron.js-startuserinteraction" class="permalink">#</a>
+                            <span class="method-name" title="StartUserInteraction(com)">StartUserInteraction(com)</span>
+                        </h2>
+
+                        <div class="description lead">
+
+                            <p>StartUserInteraction starts the text user interface for interacting with the BankAccount module.
+Users are presented with three options: Check Balance, Deposit Funds or Withdraw Funds.
+If the user chooses to Deposit or Withdraw funds, the user is then prompted to enter an amount.</p>
 
 
                         </div>
