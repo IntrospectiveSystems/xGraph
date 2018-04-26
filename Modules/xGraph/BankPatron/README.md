@@ -1,5 +1,8 @@
 ### BankPatron
 
+v1.1
+
+Introspective Systems
 ---
 #### Description
 
@@ -20,6 +23,18 @@ command to the BankAccount system.
 
 ### Output Commands
 The following Commands can be sent by BankPatron.
+
+##### Cmd: 'BankPatronWaiting'
+BankPatronWaiting is sent to the module refereed at `this.Par.BankAccount`.
+When the command is returned from BankAccount, BankPatron know's communication 
+is set up, and will launch the text interface.
+
+###### Command Object
+- **object.Cmd**: "BankPatronWaiting" (The command.)
+
+###### Reference
+`this.Par.BankAccount`
+
 
 ##### Cmd: 'CheckBalance'
 CheckBalance is sent to the module referenced at `this.Par.BankAccount`.
@@ -59,7 +74,6 @@ with a "Message" key in the command object, `object.Message`.
 ###### Reference
 `this.Par.BankAccount`
 
-
 ---
 
 ### Input Commands
@@ -67,10 +81,30 @@ The following Commands can be received by BankPatron.
 
 ##### Setup(com, fun)
 Setup is called when BankPatron is instantiated. It sets up a stream from
-standard in, waits for user input, and sends the appropriate command to
-the BankAccount. Users can choose to "Check Balance", "Deposit", or "Withdraw".
-If the user selects "Deposit" or "Withdraw", they are prompted to enter an
-amount.
+standard in.
+
+###### Parameters
+- **com** (*required*): The command object.
+- **fun** (*required*): The callback function.
+
+
+##### Start(com, fun)
+Start is called after Setup. Start sends a `BankPatronWaiting` command to the 
+module referenced at `this.Par.BankAccount` so that it can establish communication 
+is happening. Once BankPatron receives the callback from the BankPatronWaiting 
+command, it dispatches the `StartUserInteraction` command to itself.
+
+###### Parameters
+- **com** (*required*): The command object.
+- **fun** (*required*): The callback function.
+
+
+##### StartUserInteraction(com, fun)
+StartUserInteraction is called after from Start once communication with BankAccount 
+has been established. StartUserInteraction prompts the user with their options, waits 
+for user input, and sends the appropriate command to the BankAccount. Users can choose 
+to "Check Balance", "Deposit", or "Withdraw". If the user selects "Deposit" or "Withdraw", 
+they are prompted to enter an amount. 
 
 ###### Parameters
 - **com** (*required*): The command object.
