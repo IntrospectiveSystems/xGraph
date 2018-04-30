@@ -155,6 +155,9 @@ let cli = function (argv) {
 				initModule(names);
 				break;
 			}
+			default: {
+				console.log(`Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system"`);
+			}
 		}
 	}
 
@@ -536,7 +539,7 @@ Examples:
 				try {
 					fs.mkdirSync(systemDir);
 				} catch (e) {
-					console.log(`${systemDir} directory already exists`);
+
 				}
 			}
 
@@ -571,7 +574,7 @@ Examples:
 				try {
 					fs.mkdirSync(moduleDir);
 				} catch (e) {
-					console.log(`${moduleDir} directory already exists`);
+
 				}
 			}
 
@@ -660,9 +663,15 @@ Examples:
 				}
 			};
 
+            let testJson = {
+                "State": {},
+                "Cases": []
+            };
+
 			fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
 			fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
 			fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
+            fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
 		}
 	}
 
