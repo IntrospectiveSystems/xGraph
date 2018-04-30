@@ -24,12 +24,21 @@ The xTickets systems are built using custom modules, found in
 `./Examples/xTickets/Modules/`, which are built specifically for the
 xTickets system, as well as xGraph core modules, found in `./Modules/`.
 
+Reflecting this, if you examine the system configuration file for our 
+Tickets and Website systems, you will find two `"Sources"` defined:`"local"` 
+and `"Core"`. The `"local"` source should point to the modules unique to 
+xTickets, found in `.Examples/xTickets/Modules/`, while `"Core"` should 
+point to the core xGraph modules, found at `./Modules/`. You can give your 
+module sources any name you like, and include this as the `"Source"` 
+attribute of the module definition object for each module you include. 
+
 Just like we have done in xTickets, you can create modules for your
 systems and integrate them into systems that use xGraph Core modules
 the same way the xTickets system is built. Be creative when making your
 own system. You can use xGraph to make systems that work for your
 unique problem!
 
+For detailed information on xGraph systems, see our [Systems Guide](https://github.com/IntrospectiveSystems/xGraph/wiki/1.2-Systems-Guide).
 
 #### Getting Started
 
