@@ -423,14 +423,19 @@ function genesis(__options = {}) {
 
 									//write the compiled package.json to disk
 									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
-
+									log.d('test');
 									//call npm install on a childprocess of node
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
+									log.d('test');
 
 									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(dir) });
+									
+									log.d('test');
 
-									npmInstallProcess.stdout.on('data', process.stderr.write);
+									npmInstallProcess.stdout.on('data', process.stdout.write);
+									log.d('test');
 									npmInstallProcess.stderr.on('data', process.stderr.write);
+									log.d('test');
 
 									npmInstallProcess.on('err', function (err) {
 										log.e('Failed to start child process.');
@@ -439,6 +444,7 @@ function genesis(__options = {}) {
 									});
 
 									npmInstallProcess.on('exit', function (code) {
+										log.d('test');
 										process.stderr.write(`\r\n`);
 										if (code == 0)
 											log.i(`${folder}: dependencies installed correctly`);
