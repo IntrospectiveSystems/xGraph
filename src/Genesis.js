@@ -466,7 +466,12 @@ function genesis(__options = {}) {
 				}
 
 				log.d('awaiting promises of npm');
-				await Promise.all(npmDependenciesArray);
+				try{
+					await Promise.all(npmDependenciesArray);
+				} catch(e) {
+					console.dir(e);
+					log.d(e.stack);
+				}
 				log.d('await promises of npm finished');
 
 				if (__options.state == 'updateOnly') {
