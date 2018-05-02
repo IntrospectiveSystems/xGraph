@@ -430,7 +430,9 @@ function genesis(__options = {}) {
 									
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
+									npmInstallProcess.stdout.on('error', e => log.e('out: ' + e));
 									npmInstallProcess.stderr.on('data', process.stderr.write);
+									npmInstallProcess.stderr.on('error', e => log.e('err: ' + e));
 
 									npmInstallProcess.on('err', function (err) {
 										log.e('Failed to start child process.');
