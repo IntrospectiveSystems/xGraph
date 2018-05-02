@@ -28,6 +28,7 @@ function genesis(__options = {}) {
 		const fs = require('fs');
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
+		const proc = require('child_process');
 		let jszip = null;
 
 		let log;
@@ -421,19 +422,17 @@ function genesis(__options = {}) {
 
 									//write the compiled package.json to disk
 									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
-
 									//call npm install on a childprocess of node
-									const proc = require('child_process');
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
 
 									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(dir) });
+									
 
-									npmInstallProcess.stdout.on('data', _ => {
-										process.stdout.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-									});
-									npmInstallProcess.stderr.on('data', _ => {
-										process.stderr.write(`${_.toString().replace('\n', `\n${folder}: `)}`)
-									});
+									npmInstallProcess.stdout.on('data', process.stdout.write);
+									npmInstallProcess.stderr.on('data', process.stderr.write);
+
+									npmInstallProcess.stdout.on('error', e => log.v('stdout/err: ' + e));
+									npmInstallProcess.stderr.on('error', e => log.v('stderr/err: ' + e));
 
 									npmInstallProcess.on('err', function (err) {
 										log.e('Failed to start child process.');
@@ -461,7 +460,14 @@ function genesis(__options = {}) {
 					}));
 				}
 
-				await Promise.all(npmDependenciesArray);
+				
+				try{
+					await Promise.all(npmDependenciesArray);
+				} catch(e) {
+					console.dir(e);
+					log.e(e.stack);
+				}
+				
 
 				if (__options.state == 'updateOnly') {
 					log.i(`Genesis Update Stop: ${new Date().toString()}`);
@@ -779,7 +785,9 @@ function genesis(__options = {}) {
 					Local[entkey] = genPid();
 			}
 
+
 			//unpack the par of each ent
+			log.v('Phase 1');
 			for (j = 0; j < entkeys.length; j++) {
 				let entkey = entkeys[j];
 				//start with the pars from the schema
@@ -804,19 +812,148 @@ function genesis(__options = {}) {
 				for (ipar = 0; ipar < pars.length; ipar++) {
 					var par = pars[ipar];
 					var val = ent[par];
-					ent[par] = await symbol(val);
+					ent[par] = await symbolPhase1(val);
 				}
 				ents.push(ent);
 			}
+
+			log.v('Phase 2');
+			for (j = 0; j < entkeys.length; j++) {
+				let entkey = entkeys[j];
+				//start with the pars from the schema
+				let ent = schema[entkey];
+				//iterate over all the pars to pars out symbols
+				var pars = Object.keys(ent);
+				for (ipar = 0; ipar < pars.length; ipar++) {
+					var par = pars[ipar];
+					var val = ent[par];
+					ent[par] = await symbolPhase2(val);
+				}
+				ents.push(ent);
+			}
+
 			return ents;
 
-			async function symbol(val) {
+			async function symbolPhase1(val) {
+				//recurse if needed
 				if (typeof val === 'object') {
 					if (Array.isArray(val)) {
-						val = await Promise.all(val.map(v => symbol(v)));
+						val = await Promise.all(val.map(v => symbolPhase1(v)));
 					} else {
 						for (let key in val) {
-							val[key] = await symbol(val[key]);
+							val[key] = await symbolPhase1(val[key]);
+						}
+					}
+					return val;
+				}
+
+				// if its not a string or if its a string, but not an @ directive
+				// we just pass it on to the next phase by returning it unchanged
+				if (typeof val !== 'string' || (!val.startsWith('@')))
+					return val;
+				if (val.charAt(0) === '@') {
+					let directive = val.substr(0);
+					val = val.split(":");
+					let key = val[0].toLocaleLowerCase().trim();
+					let encoding = undefined;
+					if (key.split(",").length == 2) {
+						key = key.split(',')[0].trim();
+						let encoding = key.split(',')[1].trim();
+					}
+					val = val.slice(1).join(':').trim();
+					switch (key) {
+						case "@system": {
+							let path, config;
+							try {
+								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+
+								if (Path.isAbsolute(val))
+									path = val;
+								else {
+									path = Path.join(Path.resolve(systemPath), val);
+								}
+
+								config = fs.readFileSync(path).toString(encoding);
+
+								let systemObject = await GenTemplate(config);
+
+								try{fs.mkdir('Static')}catch(e){}
+
+								await new Promise(resolve => {
+									let zip = new jszip();
+									zip.loadAsync(Buffer.from(systemObject.Cache, 'base64')).then(async (a) => {
+										// console.dir(a);
+										for(let key in a.files) {
+											if(key === 'manifest.json') continue;
+											let modZip = new jszip()
+											let moduleZipBinary = await new Promise((res) => zip.file(key).async('base64').then(a => res(a)))
+											modZip = await new Promise ((res) => {
+												// log.i('HERE', key);
+												modZip.loadAsync(Buffer.from(moduleZipBinary, 'base64')).then(zip => {
+													// log.i('HERE', key);
+													res(zip);
+												});
+											});
+											if('bower.json' in modZip.files) {
+												let bowerjson = await new Promise((res) => modZip.file('bower.json').async('string').then(a => res(a)));
+												let dependencies = JSON.parse(bowerjson).dependencies;
+												let packageArray = [];
+												for(let bowerModuleName in dependencies) {
+													if(dependencies[bowerModuleName].indexOf('/') > 0)
+														packageArray.push(`${dependencies[bowerModuleName]}`);
+													else
+														packageArray.push(`${bowerModuleName}#${dependencies[bowerModuleName]}`);
+												}
+												// packageArray = ['PolymerVis/monaco-editor#1.0.0', 'jquery#^3.0.0']
+												await new Promise (res => {
+													proc.execSync(`bower install "--config.directory=${Path.join(__options.cwd, 'Static', 'bower_components')}" "${packageArray.join('" "')}"`);
+													log.i(`[BOWER] Installed ${packageArray.join(', ')}`);
+													res();
+
+													// if we can even do programmatic bower, this.
+													// bower.commands.install(packageArray, {}, {directory: 'Static'}).on('end', installed => {
+													// 	let pkgs = [];
+													// 	for(let _package in installed) {
+													// 		let pkg = installed[_package].pkgMeta
+													// 		pkgs.push(pkg.name + "#" + pkg.version);
+													// 	}
+													// 	if(pkgs.length == 0)
+													// 		log.i('[BOWER] Nothing to install')
+													// 	else
+													// 		log.i(`[BOWER] Installed ${pkgs.join(', ')}`);
+													// 	res();
+													// });
+												});
+											}
+										}
+										resolve();
+									});
+								});
+
+								return systemObject;
+
+							} catch (err) {
+								log.e("@system: (compileInstance) Error reading file ", path);
+								log.w(`Module ${modnam} may not operate as expected.`);
+							}
+							break;
+						}
+						default: {
+							log.v(`Passing '${directive}' to phase 2`);
+							return directive;
+						}
+					}
+				}
+				return val;
+			}
+
+			async function symbolPhase2(val) {
+				if (typeof val === 'object') {
+					if (Array.isArray(val)) {
+						val = await Promise.all(val.map(v => symbolPhase2(v)));
+					} else {
+						for (let key in val) {
+							val[key] = await symbolPhase2(val[key]);
 						}
 					}
 					return val;
@@ -831,6 +968,7 @@ function genesis(__options = {}) {
 				if (val.charAt(0) === '\\')
 					return sym;
 				if (val.charAt(0) === '@') {
+					let directive = val.substr(0);
 					val = val.split(":");
 					let key = val[0].toLocaleLowerCase().trim();
 					let encoding = undefined;
@@ -842,6 +980,7 @@ function genesis(__options = {}) {
 					switch (key) {
 						case "@filename":
 						case "@file": {
+							log.v(`Compiling ${directive}`);
 							let path;
 							try {
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
@@ -859,6 +998,7 @@ function genesis(__options = {}) {
 						}
 						case "@folder":
 						case "@directory": {
+							log.v(`Compiling ${directive}`);
 							try {
 								let dir;
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
@@ -886,27 +1026,6 @@ function genesis(__options = {}) {
 								}
 							} catch (err) {
 								log.e("Error reading directory ", path);
-								log.w(`Module ${modnam} may not operate as expected.`);
-							}
-							break;
-						}
-						case "@system": {
-							let path, config;
-							try {
-								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-
-								if (Path.isAbsolute(val))
-									path = val;
-								else {
-									path = Path.join(Path.resolve(systemPath), val);
-								}
-
-								config = fs.readFileSync(path).toString(encoding);
-
-								return await GenTemplate(config);
-
-							} catch (err) {
-								log.e("@system: (compileInstance) Error reading file ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
 							}
 							break;
@@ -946,7 +1065,6 @@ function genesis(__options = {}) {
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 
 				//call npm install on a childprocess of node
-				const proc = require('child_process');
 
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
@@ -1083,9 +1201,7 @@ function genesis(__options = {}) {
 					// Create new cache and install high level
 					// module subdirectories. Each of these also
 					// has a link to the source of that module (Module.zip).
-					var keys = Object.keys(Config.Modules);
-					for (let i = 0; i < keys.length; i++) {
-						let key = keys[i];
+					for(let key in Config.Modules) {
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
 							for (let idx = 0; idx < arr.length; idx++) {
@@ -1138,106 +1254,6 @@ function genesis(__options = {}) {
 						}
 					}
 
-					async function symbol(val) {
-						if (typeof val === 'object') {
-							if (Array.isArray(val)) {
-								val = await Promise.all(val.map(v => symbol(v)));
-							} else {
-								for (let key in val) {
-									val[key] = await symbol(val[key]);
-								}
-							}
-							return val;
-						}
-						if (typeof val !== 'string')
-							return val;
-						var sym = val.substr(1);
-						if (val.charAt(0) === '\\')
-							return sym;
-						if (val.charAt(0) === '@') {
-							val = val.split(":");
-							let key = val[0].toLocaleLowerCase().trim();
-							let encoding = undefined;
-							if (key.split(",").length == 2) {
-								key = key.split(',')[0].trim();
-								let encoding = key.split(',')[1].trim();
-							}
-							val = val.slice(1).join(':').trim();
-							switch (key) {
-								case "@filename":
-								case "@file": {
-									let path;
-									try {
-										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-										if (Path.isAbsolute(val))
-											path = val;
-										else {
-											path = Path.join(Path.resolve(systemPath), val);
-										}
-										return fs.readFileSync(path).toString(encoding);
-									} catch (err) {
-										log.e("@file: (generateModuleCatalog) Error reading file ", path);
-										log.w(`Module ${modnam} may not operate as expected.`);
-									}
-									break;
-								}
-								case "@folder":
-								case "@directory": {
-									try {
-										let dir;
-										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-										if (Path.isAbsolute(val))
-											dir = val;
-										else
-											dir = Path.join(Path.resolve(systemPath), val);
-										return buildDir(dir);
-
-										function buildDir(path) {
-											let dirObj = {};
-											if (fs.existsSync(path)) {
-												files = fs.readdirSync(path);
-												files.forEach(function (file, index) {
-													var curPath = path + "/" + file;
-													if (fs.lstatSync(curPath).isDirectory()) {
-														// recurse
-														dirObj[file] = buildDir(curPath);
-													} else {
-														dirObj[file] = fs.readFileSync(curPath).toString(encoding);
-													}
-												});
-												return dirObj;
-											}
-										}
-									} catch (err) {
-										log.e("Error reading directory ", path);
-										log.w(`Module ${modnam} may not operate as expected.`);
-									}
-									break;
-								}
-								case "@system": {
-									try {
-										let path, config;
-										let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
-										if (Path.isAbsolute(val))
-											path = val;
-										else {
-											path = Path.join(Path.resolve(systemPath), val);
-										}
-										config = fs.readFileSync(path).toString(encoding);
-										return await GenTemplate(config);
-									} catch (err) {
-										log.e("@system: (generateModuleCatalog) Error reading file ", path);
-										log.w(`Module ${modnam} may not operate as expected.`);
-									}
-									break;
-								}
-								default: {
-									log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
-								}
-							}
-						}
-						return val;
-					}
 				}
 
 				/**
@@ -1332,6 +1348,107 @@ function genesis(__options = {}) {
 							Config[key] = val;
 						}
 					}
+				}
+
+				async function symbol(val) {
+					if (typeof val === 'object') {
+						if (Array.isArray(val)) {
+							val = await Promise.all(val.map(v => symbol(v)));
+						} else {
+							for (let key in val) {
+								val[key] = await symbol(val[key]);
+							}
+						}
+						return val;
+					}
+					if (typeof val !== 'string')
+						return val;
+					var sym = val.substr(1);
+					if (val.charAt(0) === '\\')
+						return sym;
+					if (val.charAt(0) === '@') {
+						val = val.split(":");
+						let key = val[0].toLocaleLowerCase().trim();
+						let encoding = undefined;
+						if (key.split(",").length == 2) {
+							key = key.split(',')[0].trim();
+							let encoding = key.split(',')[1].trim();
+						}
+						val = val.slice(1).join(':').trim();
+						switch (key) {
+							case "@filename":
+							case "@file": {
+								let path;
+								try {
+									let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+									if (Path.isAbsolute(val))
+										path = val;
+									else {
+										path = Path.join(Path.resolve(systemPath), val);
+									}
+									return fs.readFileSync(path).toString(encoding);
+								} catch (err) {
+									log.e("@file: (generateModuleCatalog) Error reading file ", path);
+									log.w(`Module ${modnam} may not operate as expected.`);
+								}
+								break;
+							}
+							case "@folder":
+							case "@directory": {
+								try {
+									let dir;
+									let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+									if (Path.isAbsolute(val))
+										dir = val;
+									else
+										dir = Path.join(Path.resolve(systemPath), val);
+									return buildDir(dir);
+
+									function buildDir(path) {
+										let dirObj = {};
+										if (fs.existsSync(path)) {
+											files = fs.readdirSync(path);
+											files.forEach(function (file, index) {
+												var curPath = path + "/" + file;
+												if (fs.lstatSync(curPath).isDirectory()) {
+													// recurse
+													dirObj[file] = buildDir(curPath);
+												} else {
+													dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+												}
+											});
+											return dirObj;
+										}
+									}
+								} catch (err) {
+									log.e("Error reading directory ", path);
+									log.w(`Module ${modnam} may not operate as expected.`);
+								}
+								break;
+							}
+							case "@system": {
+								try {
+									let path, config;
+									let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
+									if (Path.isAbsolute(val))
+										path = val;
+									else {
+										path = Path.join(Path.resolve(systemPath), val);
+									}
+									config = fs.readFileSync(path).toString(encoding);
+									return await GenTemplate(config);
+								} catch (err) {
+									log.e("@system: (generateModuleCatalog) Error reading file ", path);
+									log.w(`Module ${modnam} may not operate as expected.`);
+								}
+								break;
+							}
+							default: {
+								log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
+							}
+						}
+					}
+					return val;
 				}
 			});
 		}
