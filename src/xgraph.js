@@ -535,13 +535,15 @@ Examples:
 				systemPath = path.join(systemDir, name);
 				console.log("System dir is ", systemDir);
 
-				//ensure that the encapsulating directory exists
+				//ensure that the systems or modules directory exists
 				try {
 					fs.mkdirSync(systemDir);
 				} catch (e) {
 
 				}
 			}
+
+
 
 			try {
 				fs.mkdirSync(systemPath);
