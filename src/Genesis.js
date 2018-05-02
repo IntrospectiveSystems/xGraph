@@ -41,7 +41,6 @@ function genesis(__options = {}) {
 		let args = process.argv;			// The input arguments --under consideration for deprication
 		let Params = {};					// The set of Macros for defining paths
 		let CWD = '';						// The current working directory
-		// const bower = require('bower');
 
 		//
 		// Logging Functionality
