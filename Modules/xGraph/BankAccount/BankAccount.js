@@ -13,6 +13,7 @@ function BankAccount() {
 
 	var dispatch = {
 		Start: Start,
+        BankPatronWaiting: BankPatronWaiting,
 		Deposit: Deposit,
 		Withdraw: Withdrawal,
 		CheckBalance: CheckBalance
@@ -33,6 +34,22 @@ function BankAccount() {
 		fun(null, com);
 	}
 
+    /**
+	 * Receives the BankPatronWaiting command and sends it back.
+     * @param com
+     * @callback fun
+     */
+	function BankPatronWaiting(com, fun){
+        log.i("--BankAccount/SayHello");
+        let that = this;
+        let Par = this.Par;
+		let err = null;
+
+
+        if (fun)
+            fun (err, com);
+	}
+
 	/**
 	 * The Deposit command takes an Amount parameter and adds that amount into the account Balance.
 	 * Amount must be a positive number or the deposit will not be made.
@@ -46,6 +63,7 @@ function BankAccount() {
 		let that = this;
 		let Par = this.Par;
 		let message = "";
+		let err = null;
 
 		let amount = Number(com.Amount);
 

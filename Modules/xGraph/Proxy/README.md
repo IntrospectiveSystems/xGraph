@@ -34,7 +34,7 @@ uses Proxy as a client module, setting the Host and the Port directly.
 Set both Client and Server in the proxy pair to the same chan, and ensure they 
 connect to a running Proxy module (Working example located in Examples/MultipleSystemsWithPlexus).
 
-The `MultipleSystems\BankAccount` system structure object. Proxy is used
+The `MultipleSystems/BankAccount` system structure object. Proxy is used
 here as a server.
 ```
 {
@@ -57,7 +57,7 @@ here as a server.
 }
 ```
 
-The `MultipleSystems\BankPatron` system structure object. Proxy is used
+The `MultipleSystems/BankPatron` system structure object. Proxy is used
 here as a client.
 ```
 {

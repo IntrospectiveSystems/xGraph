@@ -682,7 +682,7 @@ Examples:
 	}
 }
 
-if (require.main === module) cli(process.argv);
+if (require.main === module || !('id' in module)) cli(process.argv);
 else module.exports = {
 	Nexus: require('./Nexus.js'),
 	Genesis: require('./Genesis.js')

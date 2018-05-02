@@ -17,6 +17,11 @@
     },
     {
       "Command": {
+        "Cmd": "BankPatronWaiting"
+      }
+    },
+    {
+      "Command": {
         "Cmd":"Deposit",
         "Amount": "10"
       },

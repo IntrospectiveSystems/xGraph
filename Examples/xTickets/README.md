@@ -3,14 +3,14 @@
 
 xTickets is an example of a system of systems built using the xGraph
 platform. *For an example of a simple system, see the HelloWorld
-example system, `.\Examples\HelloWorld\`.*
+example system, `./Examples/HelloWorld/`.*
 
 xTickets is an example of an application that consists of a backend
 system and a frontend system. xTickets shows how you can build a fully
 functional application using the xGraph platform.
 
-xTickets consists of two systems, Tickets (`.\Examples\xTickets\Systems\Tickets\`)
-and Website (`.\Examples\xTickets\Systems\Website\`). The Tickets system
+xTickets consists of two systems, Tickets (`./Examples/xTickets/Systems/Tickets/`)
+and Website (`./Examples/xTickets/Systems/Website/`). The Tickets system
 is the ticket server (or backend), which manages and saves ticket and
 user data. The Website system is a browser based graphical user
 interface (or frontend) for the Tickets system, which allows users to
@@ -21,8 +21,16 @@ view tickets, interact with current tickets, and create new tickets.
 When you are building a solution using the xGraph platform, it is likely
 that you will want to create modules that are unique to your problem.
 The xTickets systems are built using custom modules, found in
-`.\Examples\xTickets\Modules\`, which are built specifically for the
-xTickets system, as well as xGraph core modules, found in `.\Modules\`.
+`./Examples/xTickets/Modules/`, which are built specifically for the
+xTickets system, as well as xGraph core modules, found in `./Modules/`.
+
+Reflecting this, if you examine the system configuration file for our 
+Tickets and Website systems, you will find two `"Sources"` defined:`"local"` 
+and `"Core"`. The `"local"` source should point to the modules unique to 
+xTickets, found in `.Examples/xTickets/Modules/`, while `"Core"` should 
+point to the core xGraph modules, found at `./Modules/`. You can give your 
+module sources any name you like, and include this as the `"Source"` 
+attribute of the module definition object for each module you include. 
 
 Just like we have done in xTickets, you can create modules for your
 systems and integrate them into systems that use xGraph Core modules
@@ -30,6 +38,7 @@ the same way the xTickets system is built. Be creative when making your
 own system. You can use xGraph to make systems that work for your
 unique problem!
 
+For detailed information on xGraph systems, see our [Systems Guide](https://github.com/IntrospectiveSystems/xGraph/wiki/1.2-Systems-Guide).
 
 #### Getting Started
 
@@ -45,7 +54,7 @@ section of Google's "Integrating Google Sign-In into your web app" site.
 can enter `http://localhost:8080`.
 
 Once you have your credentials, you will have to add them to the Tickets'
-system structure file, `Tickets\config.json`. These are saved in the
+system structure file, `Tickets/config.json`. These are saved in the
 `Google` module definition, with the key's `ClientID` and `ClientSecret`,
 respectively.
 
