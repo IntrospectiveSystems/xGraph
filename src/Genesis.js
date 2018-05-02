@@ -419,25 +419,26 @@ function genesis(__options = {}) {
 							if ('package.json' in zip.files) {
 								zip.file('package.json').async('string').then(function (packageString) {
 									log.i(`${folder}: Installing dependencies`);
-									log.v(packageString);
+									// log.v(packageString);
 
 									//write the compiled package.json to disk
 									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
-									log.d('test');
 									//call npm install on a childprocess of node
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
-									log.d('test');
 
 									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(dir) });
 									
-									log.d('test');
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
-									log.d('test');
 									npmInstallProcess.stderr.on('data', process.stderr.write);
-									log.d('test');
 
 									npmInstallProcess.on('err', function (err) {
+										log.e('Failed to start child process.');
+										log.e('err:' + err);
+										reject(err);
+									});
+
+									npmInstallProcess.on('error', function (err) {
 										log.e('Failed to start child process.');
 										log.e('err:' + err);
 										reject(err);
@@ -464,7 +465,9 @@ function genesis(__options = {}) {
 					}));
 				}
 
+				log.d('awaiting promises of npm');
 				await Promise.all(npmDependenciesArray);
+				log.d('await promises of npm finished');
 
 				if (__options.state == 'updateOnly') {
 					log.i(`Genesis Update Stop: ${new Date().toString()}`);
