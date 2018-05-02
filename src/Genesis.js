@@ -419,7 +419,7 @@ function genesis(__options = {}) {
 							if ('package.json' in zip.files) {
 								zip.file('package.json').async('string').then(function (packageString) {
 									log.i(`${folder}: Installing dependencies`);
-									// log.v(packageString);
+									log.v(packageString);
 
 									//write the compiled package.json to disk
 									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
@@ -430,9 +430,10 @@ function genesis(__options = {}) {
 									
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
-									npmInstallProcess.stdout.on('error', e => log.e('out: ' + e));
 									npmInstallProcess.stderr.on('data', process.stderr.write);
-									npmInstallProcess.stderr.on('error', e => log.e('err: ' + e));
+
+									npmInstallProcess.stdout.on('error', e => log.v('stdout/err: ' + e));
+									npmInstallProcess.stderr.on('error', e => log.v('stderr/err: ' + e));
 
 									npmInstallProcess.on('err', function (err) {
 										log.e('Failed to start child process.');
@@ -440,14 +441,7 @@ function genesis(__options = {}) {
 										reject(err);
 									});
 
-									npmInstallProcess.on('error', function (err) {
-										log.e('Failed to start child process.');
-										log.e('err:' + err);
-										reject(err);
-									});
-
 									npmInstallProcess.on('exit', function (code) {
-										log.d('test');
 										process.stderr.write(`\r\n`);
 										if (code == 0)
 											log.i(`${folder}: dependencies installed correctly`);
@@ -467,14 +461,14 @@ function genesis(__options = {}) {
 					}));
 				}
 
-				log.d('awaiting promises of npm');
+				
 				try{
 					await Promise.all(npmDependenciesArray);
 				} catch(e) {
 					console.dir(e);
-					log.d(e.stack);
+					log.e(e.stack);
 				}
-				log.d('await promises of npm finished');
+				
 
 				if (__options.state == 'updateOnly') {
 					log.i(`Genesis Update Stop: ${new Date().toString()}`);
@@ -870,7 +864,6 @@ function genesis(__options = {}) {
 					val = val.slice(1).join(':').trim();
 					switch (key) {
 						case "@system": {
-							log.d('@system in compile instance (894)');
 							let path, config;
 							try {
 								let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
@@ -893,7 +886,6 @@ function genesis(__options = {}) {
 										// console.dir(a);
 										for(let key in a.files) {
 											if(key === 'manifest.json') continue;
-											// log.d(key);
 											let modZip = new jszip()
 											let moduleZipBinary = await new Promise((res) => zip.file(key).async('base64').then(a => res(a)))
 											modZip = await new Promise ((res) => {
@@ -903,7 +895,6 @@ function genesis(__options = {}) {
 													res(zip);
 												});
 											});
-											// log.d('poop', Object.keys(modZip.files));
 											if('bower.json' in modZip.files) {
 												let bowerjson = await new Promise((res) => modZip.file('bower.json').async('string').then(a => res(a)));
 												let dependencies = JSON.parse(bowerjson).dependencies;
@@ -949,7 +940,7 @@ function genesis(__options = {}) {
 							break;
 						}
 						default: {
-							log.d(`Passing '${directive}' to phase 2`);
+							log.v(`Passing '${directive}' to phase 2`);
 							return directive;
 						}
 					}
@@ -1437,7 +1428,6 @@ function genesis(__options = {}) {
 								break;
 							}
 							case "@system": {
-							log.d('@system in generateModuleCatalog (1219)');
 								try {
 									let path, config;
 									let systemPath = Params.config ? Path.dirname(Params.config) : CWD;
