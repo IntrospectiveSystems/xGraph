@@ -1,0 +1,86 @@
+{
+	"State": {
+		"PingLink": "$Pong"
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "SendEntity"
+			},
+			"Response": {
+				"Cmd": "SendEntity"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SendModule"
+			},
+			"Response": {
+				"Cmd": "SendModule"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "StartCalled"
+			},
+			"Response": {
+				"Cmd": "StartCalled",
+				"Started": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SetupCalled"
+			},
+			"Response": {
+				"Cmd": "SetupCalled",
+				"Started": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "Require"
+			},
+			"Response": {
+				"Cmd": "Require",
+				"ModuleLoaded": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "GenModuleTest"
+			},
+			"Response": {
+				"Cmd": "GenModuleTest",
+				"Pid": "*"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "GenEntityTest"
+			},
+			"Response": {
+				"Cmd": "GenEntityTest",
+				"Pid": "*"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "TestGennedModule"
+			},
+			"Response": {
+				"Cmd": "TestGennedModule",
+				"Passed": true
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "TestGennedEntity"
+			},
+			"Response": {
+				"Cmd": "TestGennedEntity",
+				"Passed": true
+			}
+		}
+	]
+}

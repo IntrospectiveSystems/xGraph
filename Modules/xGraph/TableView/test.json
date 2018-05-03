@@ -1,0 +1,58 @@
+{
+	"State": {
+	},
+	"Cases": [
+		{
+			"Command": {
+				"Cmd": "Setup"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SetDataHeaders",
+				"Headers": [
+					{
+						"Name": "Name",
+						"Key": "Name"
+					},
+					{
+						"Name": "Enum",
+						"Key": "Enum",
+						"Enum": {
+							"1": "One",
+							"2": "Two",
+							"3": "Three"
+						}
+					}
+				]
+			},
+			"Response": {
+				"Cmd": "SetDataHeaders"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SetRows",
+				"Rows": [
+					{
+						"Name": "Row 1",
+						"Enum": 1,
+						"Pid": "12345678901234567890123456789012"
+					},
+					{
+						"Name": "Row 2",
+						"Enum": 2,
+						"Pid": "12345678901234567890123456789012"
+					},
+					{
+						"Name": "Row 3",
+						"Enum": 3,
+						"Pid": "12345678901234567890123456789012"
+					}
+				]
+			},
+			"Response": {
+			}
+		}
+	]
+}

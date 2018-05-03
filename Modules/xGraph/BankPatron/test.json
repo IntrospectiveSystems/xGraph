@@ -1,0 +1,22 @@
+{
+  "State": {
+    "BankAccount": "*"
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd":"Setup"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "Start"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "StartUserInteraction"
+      }
+    }
+  ]
+}

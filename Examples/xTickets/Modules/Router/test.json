@@ -1,0 +1,39 @@
+{
+	"State": {
+		"Server":"xGraphTesterPid",
+		"Table":{
+			"Test":"xGraphTesterPid"
+		}	
+	},
+    "Cases": [
+		{
+			"Command": {
+				"Cmd":"Start"
+			},
+			"SentMessages":[
+				{
+					"Cmd":"Subscribe", 
+					"Pid":"xGraphSelfPid"
+				}
+			]
+		},
+		{
+			"Command": {
+				"Cmd":"Subscribe", 
+				"Name":"TestDestination",
+				"Pid": "xGraphTesterPid"
+			}
+		},
+		{
+			"Command": {
+				"Cmd":"Test", 
+				"Destination":"TestDestination",
+				"Pid": "xGraphTesterPid"
+			},
+			"Response": {
+				"Cmd": "Test",
+				"Pid": "*"				
+			}
+		}
+    ]
+}

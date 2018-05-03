@@ -1,6 +1,0 @@
-{
-	"Apex": {
-		"$Setup":"Setup",
-		"Entity": "SimpleDataStore.js"
-	}
-}

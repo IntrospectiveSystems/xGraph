@@ -1,0 +1,34 @@
+{
+  "name": "WebViewer",
+  "version": "1.1.1",
+  "doc": "README.md",
+  "info": {
+    "author": "Introspective Systems, LLC."
+  },
+  "input": {
+    "required":[
+      {
+        "Cmd": "Setup"
+      }
+    ],
+    "optional":[
+      {
+        "Cmd": "*",
+        "required":{
+          "Forward": "string"
+        }
+      }
+    ]
+  },
+  "output":{
+    "required":[],
+    "optional":[]
+  },
+  "par": {
+    "required":{"ApexList": "array",
+      "Url": "string"},
+    "optional": {
+      "Port": "number"
+    }
+  }
+}

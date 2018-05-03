@@ -1,0 +1,54 @@
+{
+  "name": "HelloWorld",
+  "version": "1.0.0",
+  "info": {
+    "author": "Introspective Systems, LLC."
+  },
+  "doc": "README.md",
+  "input": {
+    "required":[
+      {
+        "Cmd": "",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ],
+    "optional":[
+      {
+        "Cmd": "",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ]
+  },
+  "output":{
+    "required":[
+      {
+        "par":"",
+        "Cmd": "",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ],
+    "optional":[
+      {
+        "par":"",
+        "Cmd": "",
+        "required": {
+        },
+        "optional": {
+        }
+      }
+    ]
+  },
+  "par": {
+    "required": {},
+    "optional": {}
+  }
+}

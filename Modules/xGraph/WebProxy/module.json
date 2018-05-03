@@ -1,0 +1,23 @@
+{
+  "input": {
+    "required":[],
+    "optional":[]
+  },
+  "output":{
+    "required":[],
+    "optional":[]
+  },
+  "par": {
+    "required":{
+      "Link": "string"
+    },
+    "optional":[]
+  },
+  "name": "WebProxy",
+	"version": "1.1.0",
+	"info": {
+		"authors": "Introspective Systems, LLC"
+	},
+	"doc": "README.md",
+  "src": "xGraph.WebProxy"
+}

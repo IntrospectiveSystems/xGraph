@@ -1,7 +1,0 @@
-{
-	"Apex": {
-		"$Setup": "Setup",
-		"$Start": "Start",
-		"Entity": "Keras.js"
-	}
-}

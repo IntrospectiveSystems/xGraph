@@ -1,0 +1,20 @@
+{
+  "State": {
+    "SomePar": "Hello Mars"
+  },
+  "Cases": [
+    {
+      "Command": {
+        "Cmd":"Setup"
+      }
+    },
+    {
+      "Command": {
+        "Cmd":"Start"
+      },
+      "SentMessages": {
+        "Cmd:": "OtherFunction"
+      }
+    }
+  ]
+}

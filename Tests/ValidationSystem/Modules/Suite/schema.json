@@ -1,0 +1,13 @@
+{
+	"Apex": {
+		"Entity": "Suite.js",
+		"$Setup": "SetupCommand",
+		"$Start": "StartCommand",
+		"B": "#B"
+	},
+	"B": {
+		"Entity": "Suite.js",
+		"$Setup": "SetupCommand",
+		"$Start": "StartCommand"
+	}
+}
