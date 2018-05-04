@@ -1125,7 +1125,7 @@ function genesis(__options = {}) {
 							if (param in Params)
 								s += Params[param];
 							else
-								throw 'Parameter <' + param + '> not defined';
+								throw 'Required command line parameter <' + param + '> is not defined.';
 							state = 1;
 						} else {
 							param += chr;
