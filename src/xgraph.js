@@ -563,8 +563,8 @@ Examples:
 
 			try {
 				fs.mkdirSync(systemPath);
-                fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
-                console.log("System generated at: " + systemPath);
+				fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
+				console.log("System generated at: " + systemPath);
 			} catch (e) {
 				console.log(`The system already exists: ${systemPath}`);
 			}
