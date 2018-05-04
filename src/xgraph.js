@@ -683,15 +683,15 @@ Examples:
 				}
 			};
 
-            let testJson = {
-                "State": {},
-                "Cases": []
-            };
+			let testJson = {
+				"State": {},
+				"Cases": []
+			};
 
 			fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
 			fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
 			fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
-            fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
+			fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
 		}
 	}
 
