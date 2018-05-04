@@ -142,21 +142,25 @@ let cli = function (argv) {
 			case 'system':
 			case 's': {
 				let names = args.slice(1);
-				console.log(`Create xGraph ${names.length > 1 ? 'Systems' : 'System'} with ${names.length > 1 ?
-					'names' : 'name'}: ${args.slice(1)}`);
-				initSystem(names);
+				if(names.length > 0) {
+                    console.log(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${names.length > 1 ?
+                        'names' : 'name'}: ${args.slice(1)}`);
+                    initSystem(names);
+                } else {
+					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+				}
 				break;
 			}
 			case 'module':
 			case 'm': {
 				let names = args.slice(1);
-				console.log(`Create xGraph ${names.length > 1 ? 'Modules' : 'Module'} with ${names.length > 1 ?
+				console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
 					'names' : 'name'}: ${args.slice(1)}`);
 				initModule(names);
 				break;
 			}
 			default: {
-				console.log(`Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system"`);
+				console.log(`Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system".`);
 			}
 		}
 	}
@@ -205,7 +209,7 @@ Options:
 \x20\x20--config                          : Specifies a system's structure file.
 \x20\x20--cache                           : Specifies a system's cache directory.
 \x20\x20--allow-add-module                : Enable a module to add new modules
-																						in memory to the Module cache.
+\x20\x20                                    in memory to the Module cache.
 
 Examples:
 \x20\x20Compile the system in the current directory.
@@ -533,11 +537,12 @@ Examples:
 			} else {
 				let systemDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Systems');
 				systemPath = path.join(systemDir, name);
-				console.log("System dir is ", systemDir);
+				console.log("Generating system in directory: ", systemDir);
 
 				//ensure that the systems or modules directory exists
 				try {
 					fs.mkdirSync(systemDir);
+
 				} catch (e) {
 
 				}
@@ -547,11 +552,14 @@ Examples:
 
 			try {
 				fs.mkdirSync(systemPath);
+                fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
+                console.log("System generated at: " + systemPath);
 			} catch (e) {
 				console.log(`The system already exists: ${systemPath}`);
 			}
 
-			fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
+
+
 		}
 	}
 
