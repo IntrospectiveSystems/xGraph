@@ -154,9 +154,13 @@ let cli = function (argv) {
 			case 'module':
 			case 'm': {
 				let names = args.slice(1);
-				console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
-					'names' : 'name'}: ${args.slice(1)}`);
-				initModule(names);
+                if(names.length > 0) {
+					console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
+						'names' : 'name'}: ${args.slice(1)}`);
+					initModule(names);
+                } else {
+                    console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+                }
 				break;
 			}
 			default: {
@@ -598,7 +602,6 @@ Examples:
 			try {
 				fs.mkdirSync(modulePath);
 			} catch (e) {
-				console.error(e);
 				console.log(`The module already exists: ${modulePath}`);
 			}
 
@@ -623,7 +626,7 @@ Examples:
 			\treturn {dispatch:${name}.prototype}
 			})();`;
 
-			Schema.Apex.Entity = `${name}.js`
+			Schema.Apex.Entity = `${name}.js`;
 
 			let moduleJson = {
 				"name": `${name}`,
