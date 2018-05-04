@@ -143,10 +143,10 @@ let cli = function (argv) {
 			case 's': {
 				let names = args.slice(1);
 				if(names.length > 0) {
-                    console.log(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${names.length > 1 ?
-                        'names' : 'name'}: ${args.slice(1)}`);
-                    initSystem(names);
-                } else {
+					console.log(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${names.length > 1 ?
+						'names' : 'name'}: ${args.slice(1)}`);
+					initSystem(names);
+				} else {
 					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
 				}
 				break;
@@ -154,13 +154,13 @@ let cli = function (argv) {
 			case 'module':
 			case 'm': {
 				let names = args.slice(1);
-                if(names.length > 0) {
+				if(names.length > 0) {
 					console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
 						'names' : 'name'}: ${args.slice(1)}`);
 					initModule(names);
-                } else {
-                    console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
-                }
+				} else {
+					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+				}
 				break;
 			}
 			default: {
