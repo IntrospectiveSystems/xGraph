@@ -232,7 +232,7 @@ Examples:
 			state = 'production';
 			await genesis(Object.assign({ state }, pathOverrides));
 			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
-			process.chdir(processPath);
+			// process.chdir(processPath);
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -286,7 +286,7 @@ Examples:
 			// HACK: to restart systems
 			if (_.exitCode == 72) {
 				setTimeout(_ => {
-					process.chdir(originalCwd);
+					// process.chdir(originalCwd);
 					cli(originalArgv);
 				}, 1000);
 			}
@@ -453,7 +453,14 @@ Examples:
 			returnVal = argLoop.next();
 		}
 
-		pathOverrides["cache"] = pathOverrides["cache"] || "./cache";
+		//sanitize and default cwd
+		if('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
+			pathOverrides['cwd'] = path.normalize(pathOverrides['cwd']);
+		} else {
+			pathOverrides['cwd'] = path.normalize(process.cwd());
+		}
+
+		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 

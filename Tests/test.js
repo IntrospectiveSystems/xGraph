@@ -112,14 +112,24 @@ switch(process.platform) {
 		let extension = '';
 		if(windows) extension = '.exe';
 		let nativePath = path.join(__dirname, '..', 'bin', binfolder, 'bin', `xgraph${extension}`);
+		
+		//build standalone version
+		{
+			await exec('npm run build');
+			await exec(`${nativePath} -v`, true);
+			// await exec('npm run build');
+		}
+
+		// move in to the test directory
+		process.chdir('Tests');
 
 		// build npm version
 		{
-			try {await exec('npm install -g .');}
+			try {await exec('npm install');}
 			catch(e){
 				if(unix) {
 					try {
-						await exec('sudo npm install -g .');
+						await exec('sudo npm install');
 					}catch(e) {
 						console.error(e);
 						process.exit(1);
@@ -132,16 +142,6 @@ switch(process.platform) {
 			// await exec('which xgraph');
 			await exec('xgraph -v', true);
 		}
-		
-		//build standalone version
-		{
-			await exec('npm run build');
-			await exec(`${nativePath} -v`, true);
-			// await exec('npm run build');
-		}
-
-		// move in to the test directory
-		process.chdir('Tests');
 		
 		// run tests on standalone version
 		{
