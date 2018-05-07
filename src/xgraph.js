@@ -545,6 +545,7 @@ Examples:
 
 			if (path.isAbsolute(name)) {
 				systemPath = name;
+				console.log("Generating system in directory: ", systemPath);
 			} else {
 				let systemDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Systems');
 				systemPath = path.join(systemDir, name);
@@ -576,34 +577,73 @@ Examples:
 
 	function initModule(names) {
 		let modulePath;
-		let Schema = {
-			"Apex": {
-				"$Setup": "Setup",
-				"$Start": "Start"
-			}
-		};
+
 		for (let index = 0; index < names.length; index++) {
 			let name = names[index];
+			let module = "";
 
-			if (path.isAbsolute(name))
+
+			module = createDirectories(name);
+
+			createModule(module);
+
+		}
+
+		function createDirectories(name) {
+			let regEx = new RegExp("(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/");
+			let makeDirectories = name.split(regEx);
+			let makePath = "";
+			let thisDirectory = "";
+
+
+			if (path.isAbsolute(name)) {
+				console.log("Absolute");
 				modulePath = name;
-			else {
-				let moduleDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Modules');
+				console.log("Generating module in directory: ", modulePath);
+				makePath = "\\";
+			} else {
+				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
 				modulePath = path.join(moduleDir, name);
-				console.log("Module dir is ", moduleDir);
+				console.log("Generating module in directory: ", modulePath);
 
-				try {
-					fs.mkdirSync(moduleDir);
-				} catch (e) {
+				console.log(modulePath);
 
+
+			}
+
+			console.log(name);
+
+
+			console.log(makeDirectories);
+
+			for (let i = 0; i < makeDirectories.length; i++) {
+				thisDirectory = makeDirectories[i];
+				if (thisDirectory && thisDirectory != "") {
+					makePath += thisDirectory+"\\";
+					makeDirectory(makePath);
 				}
 			}
 
-			try {
-				fs.mkdirSync(modulePath);
-			} catch (e) {
-				console.log(`The module already exists: ${modulePath}`);
+			console.log(makePath);
+			return thisDirectory;
+
+			function makeDirectory(dir) {
+				console.log("makeDir" + dir);
+				try {
+					fs.mkdirSync(dir);
+				} catch (e) {
+					console.log(e);
+				}
 			}
+		}
+
+		function createModule(name){
+			let Schema = {
+				"Apex": {
+					"$Setup": "Setup",
+					"$Start": "Start"
+				}
+			};
 
 			let jsTemplate =
 				`//# sourceURL=${name}.js
@@ -688,10 +728,19 @@ Examples:
 				"Cases": []
 			};
 
-			fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
-			fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
-			fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
-			fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
+
+
+			try {
+
+				fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
+				fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
+				fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
+				fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
+				console.log("Module generated at: " + modulePath);
+			} catch (e) {
+				console.log(e);
+				console.log(`The module already exists: ${modulePath}`);
+			}
 		}
 	}
 
