@@ -498,10 +498,10 @@ function genesis(__options = {}) {
 					folder = inst.Module;
 					// The following is for backword compatibility only
 					var folder = folder.replace(/[\/\:]/g, '.');
-					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
+					var dirinst = Path.join(CacheDir, 'System', folder, pidinst);
 					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
-						let path = dirinst + '/' + ent.Pid + '.json';
+						let path = Path.join(dirinst, `${ent.Pid}.json`);
 						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
 					});
 				}
@@ -1078,7 +1078,7 @@ function genesis(__options = {}) {
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
-				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+				// module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 
 				ps.stdout.on('data', _ => {
 					// process.stdout.write(_) 
@@ -1151,7 +1151,7 @@ function genesis(__options = {}) {
 		 */
 		function genPid() {
 			if (!Uuid) {
-				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+				// module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 				Uuid = require('uuid/v4');
 			}
 			var str = Uuid();

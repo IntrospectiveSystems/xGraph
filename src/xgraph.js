@@ -22,7 +22,6 @@ let cli = function (argv) {
 	const fs = require('fs');
 	const path = require('path');
 	const mergedirs = require('merge-dirs').default;
-	const winr = require('why-is-node-running');
 	let state = 'production';
 	if (argv.length == 1) argv[1] = 'help';
 	let args = argv.slice(1);
@@ -36,10 +35,6 @@ let cli = function (argv) {
 	const nexus = require('./Nexus.js');
 	let subcommand = '';
 	let flags = {};
-
-	setTimeout(function () {
-  	// winr()
-	}, 1000)
 
 	let windows, mac, linux, unix, system;
 
