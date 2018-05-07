@@ -992,6 +992,7 @@ module.exports = function xGraph(__options={}) {
 					});
 
 					function BuildEnt() {
+						// TODO: add in checks for $SETUP and $Start
 						EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
 						fun(null, EntCache[pid]);
 					}
