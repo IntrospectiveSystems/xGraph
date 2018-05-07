@@ -233,6 +233,15 @@ module.exports = function xGraph(__options={}) {
 				//build the Stop promise array
 				let stopTasks = [];
 
+				log.i('Nexus unloading node modules');
+				log.v(Object.keys(require.cache).join('\n'));
+				var readdir = require('fs').readdir;
+
+				readdir('/proc/self/fd', function(err, list) {
+					if (err) throw err;
+					console.log(list.length);
+				});
+
 				for (let pid in Stop) {
 					stopTasks.push(new Promise((resolve, reject) => {
 						var com = {};

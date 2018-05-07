@@ -21,6 +21,7 @@
   "homepage": "https://github.com/IntrospectiveSystems/xGraph#readme",
   "license": "AGPL-3.0",
   "dependencies": {
+    "why-is-node-running": "2.0.2",
     "async": "2.6.0",
     "doxdox": "2.0.3",
     "jszip": "3.1.5",

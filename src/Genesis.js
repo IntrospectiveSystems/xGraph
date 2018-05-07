@@ -1,5 +1,6 @@
 module.exports = genesis;
 function genesis(__options = {}) {
+	
 
 	function checkFlag(flag) {
 		// console.dir(__options);
@@ -29,7 +30,7 @@ function genesis(__options = {}) {
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
 		const proc = require('child_process');
-		let jszip = null;
+		const jszip = require("jszip");
 
 		let log;
 		let Uuid;
@@ -404,10 +405,12 @@ function genesis(__options = {}) {
 				// Write cache to CacheDir
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					let dir = CacheDir + '/' + folder;
-					try { fs.mkdirSync(dir); } catch (e) { }
+					let entdir = Path.join(CacheDir, "System", folder);
+					let libdir = Path.join(CacheDir, "Lib", folder);
+					try { fs.mkdirSync(entdir); } catch (e) { }
+					try { fs.mkdirSync(libdir); } catch (e) { }
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
-					let path = dir + '/Module.zip';
+					let path = Path.join(entdir, 'Module.zip');
 					fs.writeFileSync(path, ModCache[folder]);
 
 					const zipmod = new jszip();
@@ -421,11 +424,11 @@ function genesis(__options = {}) {
 									log.v(packageString);
 
 									//write the compiled package.json to disk
-									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
+									fs.writeFileSync(Path.join(libdir, 'package.json'), packageString);
 									//call npm install on a childprocess of node
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
 
-									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(dir) });
+									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(libdir) });
 									
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
@@ -449,7 +452,7 @@ function genesis(__options = {}) {
 											process.exit(1);
 											reject();
 										}
-										fs.unlinkSync(Path.join(dir, 'package.json'));
+										fs.unlinkSync(Path.join(libdir, 'package.json'));
 										resolve();
 									});
 								});
@@ -1055,14 +1058,20 @@ function genesis(__options = {}) {
 				if (!packagejson.dependencies) packagejson.dependencies = {};
 
 				//include Genesis/Nexus required npm modules
-				packagejson.dependencies["uuid"] = "3.1.0";
-				packagejson.dependencies["jszip"] = "3.1.3";
+				// packagejson.dependencies["uuid"] = "3.1.0";
+				// packagejson.dependencies["jszip"] = "3.1.3";
 
 
 				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
 				try { fs.mkdirSync(CacheDir); } catch (e) {}
+				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'System')); } catch (e) {}
+				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'Lib')); } catch (e) {}
+
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
+				fs.writeFileSync(Path.join(Path.resolve(CacheDir), '.cache'), JSON.stringify({
+					version: '1.3.0'
+				}, '\t', 1));
 
 				//call npm install on a childprocess of node
 
@@ -1093,7 +1102,6 @@ function genesis(__options = {}) {
 						reject();
 					}
 					fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
-					jszip = require("jszip");
 					resolve();
 				});
 			});
@@ -1157,6 +1165,7 @@ function genesis(__options = {}) {
 		 * @param {string} path the directory to be recursively removed
 		 */
 		function remDir(path) {
+			
 			var files = [];
 			if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);

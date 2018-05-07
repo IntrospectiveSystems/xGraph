@@ -1,7 +1,0 @@
-{
-	"Apex": {
-		"Entity": "Menubar.js",
-		"$Setup": "Setup",
-		"$Start": "Start"
-	}
-}
