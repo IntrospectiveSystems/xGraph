@@ -654,6 +654,8 @@ function genesis(__options = {}) {
 						let err = null;
 						if (Array.isArray(response)) [err, response] = response;
 						fun(err, Buffer.from(response.Module, 'base64'));
+						sock.end();
+						sock.destroy();
 					}
 				});
 			}
