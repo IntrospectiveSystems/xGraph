@@ -200,12 +200,7 @@ input[type="search"]::-webkit-search-cancel-button {
 
 
                         <li class="method-link scope-public">
-                            <a href="#bankaccount.js-deposit" title="Deposit">Deposit</a>
-                        </li>
-
-
-                        <li class="method-link scope-public">
-                            <a href="#bankaccount.js-withdrawal" title="Withdrawal">Withdrawal</a>
+                            <a href="#bankaccount.js-bankpatronwaiting" title="BankPatronWaiting">BankPatronWaiting</a>
                         </li>
 
 
@@ -364,15 +359,14 @@ check the balance, deposit funds, or withdrawal funds from an account.</p>
 
                     <div class="method scope-public">
 
-                        <h2 id="bankaccount.js-deposit">
-                            <a href="#bankaccount.js-deposit" class="permalink">#</a>
-                            <span class="method-name" title="Deposit(com)">Deposit(com)</span>
+                        <h2 id="bankaccount.js-bankpatronwaiting">
+                            <a href="#bankaccount.js-bankpatronwaiting" class="permalink">#</a>
+                            <span class="method-name" title="BankPatronWaiting(com)">BankPatronWaiting(com)</span>
                         </h2>
 
                         <div class="description lead">
 
-                            <p>The Deposit command takes an Amount parameter and adds that amount into the account Balance.
-Amount must be a positive number or the deposit will not be made.</p>
+                            <p>Receives the BankPatronWaiting command and sends it back.</p>
 
 
                         </div>
@@ -398,20 +392,8 @@ Amount must be a positive number or the deposit will not be made.</p>
                                     <tr>
                                         <td>com</td>
                                         <td>
-                                            <code>object</code>
                                         </td>
-                                        <td><p>The command object.</p>
-</td>
-                                        <td>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>com.Amount</td>
-                                        <td>
-                                            <code>number</code>
-                                        </td>
-                                        <td><p>The amount to be deposited. Must be a positive number.</p>
-</td>
+                                        <td></td>
                                         <td>
                                         </td>
                                     </tr>
@@ -430,97 +412,7 @@ Amount must be a positive number or the deposit will not be made.</p>
                             <h3>Returns</h3>
 
 
-
-                                    <p>
-                                            <code>string</code>
-                                    </p>
-
-                                    <p>com.Message A message containing either the new account balance or an error message.</p>
-
-
-
-
-                        </section>
-
-                    </div>
-
-
-                    <div class="method scope-public">
-
-                        <h2 id="bankaccount.js-withdrawal">
-                            <a href="#bankaccount.js-withdrawal" class="permalink">#</a>
-                            <span class="method-name" title="Withdrawal(com)">Withdrawal(com)</span>
-                        </h2>
-
-                        <div class="description lead">
-
-                            <p>The Withdrawal command takes an Amount parameter and subtracts that amount from the account Balance.
-Amount must be a positive number or the withdrawal will not be made.</p>
-
-
-                        </div>
-
-
-                        <section class="parameters">
-
-                            <h3>Parameters</h3>
-
-                            <div class="table-responsive">
-                                <table class="table">
-
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Type</th>
-                                            <th>Description</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                    <tr>
-                                        <td>com</td>
-                                        <td>
-                                            <code>object</code>
-                                        </td>
-                                        <td><p>The command object.</p>
-</td>
-                                        <td>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>com.Amount</td>
-                                        <td>
-                                            <code>number</code>
-                                        </td>
-                                        <td><p>The amount to be withdrawn. Must be a positive number.</p>
-</td>
-                                        <td>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-
-                                </table>
-                            </div>
-
-                        </section>
-
-
-
-
-                        <section class="returns">
-
-                            <h3>Returns</h3>
-
-
-
-                                    <p>
-                                            <code>string</code>
-                                    </p>
-
-                                    <p>com.Message A message containing either the new account balance or an error message.</p>
-
-
+                            <p><code>Void</code></p>
 
 
                         </section>

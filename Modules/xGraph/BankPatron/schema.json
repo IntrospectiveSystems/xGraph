@@ -1,6 +1,7 @@
 {
 	"Apex": {
 		"$Setup": "Setup",
+		"$Start": "Start",
 		"Entity": "BankPatron.js"
 	}
 }

@@ -1,14 +1,14 @@
 //# sourceURL=3DView
 (
-	/**
-	 * The 3DView entity is the Apex and only entity of the 3DView Module.
-	 * This entity requres the Setup function invoked during the Setup phase of Nexus startup. As well as its
-	 * Start function invoked during the Start phase of Nexus startup.
-	 *
-	 * The main capability of this entity is to add and render a Three.js scene on the div provided by
-	 * the Viewify class (which is stored in this.Vlt.div). Currently only Three.js primitives and generative
-	 * object3D models can be added to the scene/rendered.
-	 */
+    /**
+     * The 3DView entity is the Apex and only entity of the 3DView Module.
+     * This entity requires the Setup function invoked during the Setup phase of Nexus startup. As well as its
+     * Start function invoked during the Start phase of Nexus startup.
+     *
+     * The main capability of this entity is to add and render a Three.js scene on the div provided by
+     * the Viewify class (which is stored in this.Vlt.div). Currently only Three.js primitives and generative
+     * object3D models can be added to the scene/rendered.
+     */
 	function _3DView() {
 
 		let dispatch = {
@@ -29,11 +29,17 @@
 		//div from this.Vlt.div. The div is already appended to the body.
 		return Viewify(dispatch, "3.1");
 
-		/**
-		 * Create the Three.js WebGL renderer and Scene and append the rendered canvas to the div
-		 * @param {Object} com
-		 * @param {Function} fun
-		 */
+        /**
+         * Create the Three.js pieces:
+         * - THREE.Raycaster() saved at this.Vlt.View.Ray
+         * - THREE.WebGLRenderer() saved at this.Vlt.View.Renderer
+         * - THREE.Scene() saved at this.Vlt.View.Scene
+         * - THREE.PerspectiveCamera() saved at this.Vlt.View.Camera
+         * Next append the rendered canvas to the div
+         * Finnish setting up the 3DView and set a loop to check for updates and render them.
+         * @param {Object} com
+         * @callback fun
+         */
 		function Setup(com, fun) {
 			this.super(com, (err, cmd) => {
 				log.i('--3DView/Setup');
@@ -99,12 +105,12 @@
 			});
 		}
 
-		/**
-		 * Subscribes to the server to allow for server communications to reach this module.
-		 * If there was a controller defined we also register with that.
-		 * @param {Object} com
-		 * @param {Function} fun
-		 */
+        /**
+         * Subscribes to the server to allow for server communications to reach this module.
+         * If there was a controller defined we also register with that.
+         * @param {Object} com
+         * @callback fun
+         */
 		function Start(com, fun) {
 			log.i('--3DView/Start');
 
@@ -215,16 +221,16 @@
 		}
 
 
-		/**
-		 * This is an example of an Evoke handler. This particular example
-		 * generates a popup module containing a 3DView module or the one set in
-		 * Par.EvokeView. In deployment this code can be removed and EvokeExample
-		 * removed from the dispatch table.
-		 * @param {Object} 		com
-		 * @param {String}		com.id			the id of the object being evoked
-		 * @param {Object}		com.mouse 	 the coordinates of the mouse when evoked {x:_x,y:_y}
-		 * @param {Function=} 	fun
-		 */
+        /**
+         * This is an example of an Evoke handler. This particular example
+         * generates a popup module containing a 3DView module or the one set in
+         * Par.EvokeView. In deployment this code can be removed and EvokeExample
+         * removed from the dispatch table.
+         * @param {Object} 		com
+         * @param {String}		com.id			the id of the object being evoked
+         * @param {Object}		com.mouse 	 the coordinates of the mouse when evoked {x:_x,y:_y}
+         * @callback 	fun
+         */
 		function EvokeExample(com, fun = _ => _) {
 			log.v("EVOKE EXAMPLE", com.id);
 
@@ -242,11 +248,13 @@
 			fun(null, com)
 		}
 
-		/**
-		 * Propagate a DomLoaded Event to children views. We append the canvas to the div.
-		 * @param {Object} com
-		 * @param {Function} fun
-		 */
+        /**
+         * First, append the Canvas (as rendered using WebGLRenderer.domElement) to the this.Vlt.div.
+         * Next, set the size of the Canvas to the size of the div and center the Camera.
+         * Generate the Mouse module and
+         * @param {Object} com
+         * @callback fun
+         */
 		function DOMLoaded(com, fun) {
 			log.v("--3DView/DOMLoaded");
 			let div = this.Vlt.div;
@@ -272,11 +280,11 @@
 			this.super(com, fun);
 		}
 
-		/**
-		 * Removes the render loop
-		 * @param {Object} com
-		 * @param {Function=} fun
-		 */
+        /**
+         * Removes the render loop, so the scene will no longer look for updates.
+         * @param {Object} com
+         * @callback fun
+         */
 		function Cleanup(com, fun = _ => _) {
 			log.v("--3DView/Cleanup", this.Par.Pid.substr(30));
 
@@ -284,22 +292,22 @@
 			fun(null, com);
 		}
 
-		/**
-		 * Cascade a render down the DOM tree of views
-		 * @param {Object} com
-		 * @param {Function} fun
-		 */
+        /**
+         * Cascade a render down the DOM tree of views
+         * @param {Object} com
+         * @callback fun
+         */
 		function Render(com, fun) {
 			log.v("--3DView/Render", this.Par.Pid.substr(30));
 			this.Vlt.div.append(this.Vlt.View.Renderer.domElement);
 			this.super(com, fun);
 		}
 
-		/**
-		 * Sent when a resize event occurs on the div.
-		 * @param {Object} com
-		 * @param {Function} fun
-		 */
+        /**
+         * Sent when a resize event occurs on the div.
+         * @param {Object} com
+         * @callback fun
+         */
 		function Resize(com, fun) {
 			this.super(com, (err, cmd) => {
 				let View = this.Vlt.View;
@@ -310,14 +318,16 @@
 			});
 		}
 
-		/**
-		 * The main Three.js functionality. Primatives as well as generative models can be added.
-		 * An array of objects is recieved and added to the scene before being
-		 * rendered.
-		 * @param {Object} com
-		 * @param {Object} com.Objects 	The array of pixi graphics objects to be displayed
-		 * @param {Function} fun
-		 */
+        /**
+         * SetObjects handles the main Three.js functionality. An array of objects
+         * is received and added to the scene before being rendered. Model objects
+         * can be primitives as well as generated models can be added.
+         *
+         * @param {Object} com
+         * @param {Object} com.Objects 	The array of model objects that will be added
+         * 								to the scene and rendered.
+         * @callback fun
+         */
 		async function SetObjects(com, fun = (err, com) => { if (err) log.e(err) }) {
 			/**
 			 *
@@ -560,14 +570,16 @@
 		}
 
 
-		/**
-		 * Captures the canvas as a base64 image and sends it off the controller (on
-		 * the server), if implemented, to be saved.
-		 * @param {Object} com
-		 * @param {Function} fun	the callback function
-		 * @returns {com.Image} the base 64 of the image
-		 * @returns {com.Name}	the image count
-		 */
+        /**
+         * Captures the canvas as a base64 data url, saves the data url to the "Image"
+         * attribute and the index of the image to the "Name" attribute, sends a
+         * "SaveImage" command to the controller if implemented, and then returns
+         * the "Image" and "Name" attributes with the command in the callback function.
+         * @param {Object} com
+         * @callback fun
+         * @returns {com.Image} the base 64 of the image
+         * @returns {com.Name}	the image count
+         */
 		function ImageCapture(com, fun) {
 			if (this.Vlt.Count)
 				this.Vlt.Count++
@@ -590,12 +602,12 @@
 		}
 
 
-		/**
-		 * Used by the mouse module to propagate interactions.
-		 * @param {Object} com
-		 * @param {Object} com.info 	the interaction info
-		 * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
-		 */
+        /**
+         * Used by the mouse module to propagate interactions.
+         * @param {Object} com
+         * @param {Object} com.info 	the interaction info
+         * @param {String} com.info.Action The interaction action "ex. LeftMouseDown
+         */
 		function DispatchEvent(com) {
 			let info = com.info;
 			let Vlt = this.Vlt;
@@ -648,6 +660,11 @@
 			}
 		}
 
+        //
+        //
+        // END COMMAND FUNCTIONS
+        //
+        //
 		/**
 		 * Perform a raycast to see if any of the objects in the scene graph were hit
 		 *

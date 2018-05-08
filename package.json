@@ -5,7 +5,7 @@
   "main": "./src/xgraph.js",
   "scripts": {
     "build": "node ./build.js",
-    "test": "node Tests/test.js && echo Test Suite Finished with exit code 0!"
+    "test": "cd Tests && npm install && cd .. && node Tests/test.js && echo Test Suite Finished with exit code 0!"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,6 @@
     "nexe": "2.0.0-rc.25",
     "npm": "5.8.0",
     "osx-pkg": "1.0.0",
-    "preprocessor": "1.4.0",
     "rimraf": "2.6.2",
     "targz": "1.0.1",
     "typescript": "2.5.3"

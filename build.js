@@ -3,7 +3,6 @@
 (async _ => {
 
 	// imports
-	const Preprocessor = require('preprocessor');
 	const fs = require('fs');
 	const tar = require('targz');
 	const { compile } = require('nexe');

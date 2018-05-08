@@ -7,6 +7,16 @@
       "Command": {
         "Cmd":"Setup"
       }
+    },
+    {
+      "Command": {
+        "Cmd": "Start"
+      }
+    },
+    {
+      "Command": {
+        "Cmd": "StartUserInteraction"
+      }
     }
   ]
 }

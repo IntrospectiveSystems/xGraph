@@ -1,5 +1,6 @@
 global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
-module.exports = function xGraph() {
+module.exports = function xGraph(__options={}) {
+	this.__options=__options;
 	let eventListeners = {
 		exit: [],
 		setup: [],
@@ -17,12 +18,14 @@ module.exports = function xGraph() {
 		eventListeners[eventName].push(listener);
 	}
 
-	this.boot = function boot(optionsArray) {
-		(async function (__options) {
-			if (typeof state == "undefined") state = process.env.XGRAPH_ENV || "production";
-			if (__options.indexOf("--debug") > -1 || __options.indexOf("--development") > -1) {
-				state = 'development';
+	this.boot = function boot() {
+		return (async function (__options) {
+
+			function checkFlag(flag) {
+				// console.dir(__options);
+				return flag in __options && __options[flag];
 			}
+
 			// module.paths.push(process.cwd() + '/cache/node_modules');
 
 			console.log(`\nInitializing the Run Engine`);
@@ -33,7 +36,6 @@ module.exports = function xGraph() {
 			const endOfLine = require('os').EOL;
 			var consoleNotification = false;
 			var Uuid;
-			var CacheDir;						// The location of where the Cache will be stored
 			var Config = {};					// The read config.json
 			var ModCache = {};					// {<folder>: <module>}
 			var ApexIndex = {}; 				// {<Apex pid>:<folder>}
@@ -43,8 +45,6 @@ module.exports = function xGraph() {
 			var EntCache = {};					// {<Entity pid>:<Entity>
 			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
 			var packagejson = {};				// The compiled package.json, built from Modules
-			var args = __options;			// The input __options --under consideration for deprication
-			var Params = {};					// The set of Macros for defining paths
 			var originalConsoleLog = console.log;
 			var Nxs = {
 				genPid,
@@ -193,13 +193,13 @@ module.exports = function xGraph() {
 					console.timers[_] = undefined;
 					log.i(`${_}: ${elapsed}ms`);
 				}
-				process.on('unhandledRejection', event => {
-					log.e('------------------ [Stack] ------------------');
-					log.e(`line ${event.lineNumber}, ${event}`);
-					log.e(event.stack);
-					log.e('------------------ [/Stack] -----------------');
-					process.exit(1);
-				});
+				// process.on('unhandledRejection', event => {
+				// 	log.e('------------------ [Stack] ------------------');
+				// 	log.e(`line ${event.lineNumber}, ${event}`);
+				// 	log.e(event.stack);
+				// 	log.e('------------------ [/Stack] -----------------');
+				// 	process.exit(1);
+				// });
 
 			}
 
@@ -213,24 +213,17 @@ module.exports = function xGraph() {
 			log.i('=================================================');
 			log.i(`Nexus Warming Up:`);
 
-			defineMacros();
+			//set CWD
+			__options.cwd = __options.cwd ? Path.resolve(__options.cwd) : Path.resolve('.');
+			log.v(`CWD set to ${__options.cwd}`);
 
-			// if called from binary quit or if called from
-			// the command line and node build cache first
-			if (!fs.existsSync(CacheDir) || (state == "development")) {
-				// #ifndef BUILT
-				if (isBinary()) {
-					// #endif
-					log.e(`No cache exists at ${CacheDir}. Try xgraph run`);
-					process.exit(1);
-					return;
-					// #ifndef BUILT
-				}
-				log.i("Building the Cache");
-				log.i(__options[1]);
-				let genesisString = fs.readFileSync(`${__options[1].substr(0, __options[1].lastIndexOf(Path.sep))}/Genesis.js`).toString();
-				await eval(genesisString);
-				// #endif
+			//set Cache location
+			__options.cache = __options.cache || Path.join(__options.cwd, 'cache');
+
+			// if the cache doesnt exist, throw
+			if (!fs.existsSync(__options.cache)) {
+				log.e(`No cache exists at ${__options.cache}. Try xgraph run`);
+				throw new Error(`No cache exists at ${__options.cache}. Try xgraph run`);
 			}
 
 			initiate();
@@ -263,42 +256,6 @@ module.exports = function xGraph() {
 			//
 			//
 
-			/**
-			 * Populates Params {OBJECT}
-			 * This is populated from both the __options array as well as those parsed in the
-			 * binary file if it was used.
-			 * Such asignments are of the form Config=... Cache=... or paths xGraph=....
-			 */
-			function defineMacros() {
-				// Process input __options and define macro parameters
-				// All macros are stored case insensitive in the Params object
-
-				let arg, parts;
-				for (var iarg = 0; iarg < args.length; iarg++) {
-					arg = args[iarg];
-					try {
-						let jarg = JSON.parse(arg);
-						for (let key in jarg) {
-							// log.v(`${key}=${jarg[key]}`);
-							Params[key] = jarg[key];
-						}
-					} catch (e) {
-						// log.v(arg);
-						parts = arg.split('=');
-						if (parts.length == 2) {
-							if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
-							Params[parts[0].toLowerCase()] = parts[1];
-						}
-					}
-				}
-
-				//set CWD
-				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
-				log.v(`CWD set to ${CWD}`);
-
-				//set Cache location
-				CacheDir = Params.cache || Path.join(CWD, 'cache');
-			}
 
 			/**
 			 *  The main process of starting an xGraph System.
@@ -327,18 +284,18 @@ module.exports = function xGraph() {
 				 * Load in the cache and poulate setup Setup, Start, and ApexIndex {Objects}
 				 */
 				function loadCache() {
-					var folders = fs.readdirSync(CacheDir);
+					var folders = fs.readdirSync(__options.cache);
 
 					for (var ifold = 0; ifold < folders.length; ifold++) {
 						let folder = folders[ifold];
-						let path = `${CacheDir}/${folder}/Module.zip`;
+						let path = `${__options.cache}/${folder}/Module.zip`;
 						if (!fs.existsSync(path))
 							continue;
 
 						parseMod(folder)
 
 						function parseMod(folder) {
-							let dir = CacheDir + '/' + folder;
+							let dir = __options.cache + '/' + folder;
 							var instancefiles = fs.readdirSync(dir);
 							for (var ifile = 0; ifile < instancefiles.length; ifile++) {
 								var file = instancefiles[ifile];
@@ -467,8 +424,8 @@ module.exports = function xGraph() {
 							break;
 						case 2:
 							if (chr == '}') {
-								if (param in Params)
-									s += Params[param];
+								if (param in __options)
+									s += __options[param];
 								else
 									throw 'Parameter <' + param + '> not defined';
 								state = 1;
@@ -489,7 +446,7 @@ module.exports = function xGraph() {
 			 */
 			function genPid() {
 				if (!Uuid) {
-					module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+					module.paths = [Path.join(Path.resolve(__options.cache), 'node_modules')];
 					Uuid = require('uuid/v4');
 				}
 				var str = Uuid();
@@ -594,10 +551,10 @@ module.exports = function xGraph() {
 					exit
 				};
 
-				/**
-				 * load a dependency for a module
-				 * @param {string} string 	the string of the module to require/load
-				 */
+                /**
+                 * Given a module name, `require` loads the module, returning the module object.
+                 * @param {string} string 	the string of the module to require/load
+                 */
 				function require(string) {
 					return nxs.loadDependency(Par.Apex, Par.Pid, string.toLowerCase());
 				}
@@ -606,22 +563,22 @@ module.exports = function xGraph() {
 					nxs.exit(code)
 				}
 
-				/**
-				 * get a file in the module.json module definition
-				 * @param {string} filename  	The file to get from this module's module.json
-				 * @callback fun 				return the file to caller
-				 */
+                /**
+                 * get a file in the module.json module definition
+                 * @param {string} filename  	The file to get from this module's module.json
+                 * @callback fun 				return the file to caller
+                 */
 				function getFile(filename, fun) {
 					log.v(`Entity - Getting file ${filename} from ${Par.Module}`);
 					nxs.getFile(Par.Module, filename, fun);
 				}
 
-				/**
-				 * Route a message to this entity with its context
-				 * @param {object} com		The message to be dispatched in this entities context
-				 * @param {string} com.Cmd	The actual message we wish to send
-				 * @callback fun
-				 */
+                /**
+                 * Route a message to this entity with its context
+                 * @param {object} com		The message to be dispatched in this entities context
+                 * @param {string} com.Cmd	The actual message we wish to send
+                 * @callback fun
+                 */
 				function dispatch(com, fun = _ => _) {
 					try {
 						var disp = Imp.dispatch;
@@ -643,16 +600,25 @@ module.exports = function xGraph() {
 					}
 				}
 
-				/**
-				 * entity access to the genModule command
-				 * @param {object} mod 	the description of the Module to generate
-				 * @param {string} mod.Module the module to generate
-				 * @param {object=} mod.Par 	the Par to merge with the modules Apex Par
-				 * @callback fun
-				 */
-				function genModule(mod, fun) {
+                /**
+                 * Entity access to the genModule command.
+                 * genModule is the same as genModules.
+                 * genModule expects two parameters: moduleObject and fun.
+                 *
+                 * The moduleObject parameter is an object that contains data for each module that will be
+                 * generated. If only one module needs to be generated, then moduleObject can be a simple
+                 * module definition. If more then one module needs to be generated, moduleObject has a
+                 * key for each module definition, such as in a system structure object.
+                 *
+                 * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+                 * along to nxs.genModule, which starts the module and adds it to the system.
+                 * @param {object} moduleObject		Either a single module definition, or an object containing
+                 * 										multiple module definitions.
+                 * @callback fun
+                 */
+				function genModule(moduleObject, fun) {
 					//	log.v('--Entity/genModule');
-					nxs.genModule(mod, fun);
+					nxs.genModule(moduleObject, fun);
 				}
 
 				/**
@@ -665,14 +631,24 @@ module.exports = function xGraph() {
 					nxs.addModule(modName, modZip, fun);
 				}
 
-				/**
-				 * entity access to the genModule command
-				 * @param {object} modObj 	an object containing one or more module descriptions
-				 * @callback fun(err,pidofTop,objectOfAllModulesGenerated)
-				 */
-				function genModules(modObj, fun) {
+                /**
+                 * Entity access to the genModule command.
+                 * genModule expects two parameters: moduleObject and fun.
+                 *
+                 * The moduleObject parameter is an object that contains data for each module that will be
+                 * generated. If only one module needs to be generated, then moduleObject can be a simple
+                 * module definition. If more then one module needs to be generated, moduleObject has a
+                 * key for each module definition, such as in a system structure object.
+                 *
+                 * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+                 * along to nxs.genModule, which starts the module and adds it to the system.
+                 * @param {object} moduleObject		Either a single module definition, or an object containing
+                 * 										multiple module definitions.
+                 * @callback fun
+                 */
+				function genModules(moduleObject, fun) {
 					//	log.v('--Entity/genModule');
-					nxs.genModule(mod, fun);
+					nxs.genModule(moduleObject, fun);
 				}
 
 				/**
@@ -684,32 +660,32 @@ module.exports = function xGraph() {
 					nxs.deleteEntity(Par.Apex, Par.Pid, fun);
 				}
 
-				/**
-				 * create an entity in the same module
-				 * @param {object} par the par of the entity to be generated
-				 * @param {string} par.Entity The entity type that will be generated
-				 * @param {string=} par.Pid	the pid to define as the pid of the entity
-				 * @callback fun
-				 */
+                /**
+                 * Create an entity in the same module. Entities can only communicate within a module.
+                 * @param {object} par 			The parameter object of the entity to be generated.
+                 * @param {string} par.Entity 	The entity type that will be generated.
+                 * @param {string=} par.Pid		The pid to set as the pid of the entity.
+                 * @callback fun
+                 */
 				function genEntity(par, fun) {
 					nxs.genEntity(Par.Apex, par, fun);
 				}
 
-				/**
-				 * create a 32 character hexidecimal pid
-				 */
+                /**
+                 * Create and return a 32 character hexadecimal pid.
+                 */
 				function genPid() {
 					return nxs.genPid();
 				}
 
-				/**
-				 * Send a message to another entity, you can only send messages to Apexes of modules
-				 * unless both sender and recipient are in the same module
-				 * @param {object} com  		the message object to send
-				 * @param {string} com.Cmd		the function to send the message to in the destination entity
-				 * @param {string} pid 			the pid of the recipient (destination) entity
-				 * @callback fun
-				 */
+                /**
+                 * Sends the command object and the callback function to the xGraph part (entity or module, depending
+				 * on the fractal layer) specified in the Pid.
+                 * @param {object} com  	The message object to send.
+                 * @param {string} com.Cmd	The function to send the message to in the destination entity.
+                 * @param {string} pid 		The pid of the recipient (destination) entity.
+                 * @callback fun
+                 */
 				function send(com, pid, fun) {
 					// log.v(com, pid);
 					if (!('Passport' in com))
@@ -724,11 +700,12 @@ module.exports = function xGraph() {
 					nxs.sendMessage(com, fun);
 				}
 
-				/**
-				 * save the current entity to cache if not an Apex send the save message to Apex
-				 * if it is an Apex we save it as well as all other relevant information
-				 * @callback fun
-				 */
+                /**
+                 * Save this entity, including it's current Par and Vlt, to the cache.
+                 * If this entity is not an Apex, send the save message to Apex of this entity's module.
+                 * If it is an Apex we save the entity's information, as well as all other relevant information
+                 * @callback fun
+                 */
 				function save(fun) {
 					nxs.saveEntity(Par.Apex, Par.Pid, fun);
 				}
@@ -781,7 +758,7 @@ module.exports = function xGraph() {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function deleteEntity(apx, pid, fun = _ => _) {
-				let apxpath = `${CacheDir}/${ApexIndex[apx]}/${apx}/`;
+				let apxpath = `${__options.cache}/${ApexIndex[apx]}/${apx}/`;
 
 				let rmList = [];
 				//we first check to see if it's an apex
@@ -816,7 +793,7 @@ module.exports = function xGraph() {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
-				let modpath = `${CacheDir}/${ApexIndex[apx]}`;
+				let modpath = `${__options.cache}/${ApexIndex[apx]}`;
 				let apxpath = `${modpath}/${apx}`;
 				let entpath = `${apxpath}/${pid}.json`;
 
@@ -941,7 +918,7 @@ module.exports = function xGraph() {
 					return require(str);
 				} catch (e) {
 					try {
-						return require(Path.join(CacheDir, folder, 'node_modules', str));
+						return require(Path.join(__options.cache, folder, 'node_modules', str));
 					} catch (e) {
 						log.e(e);
 						process.exit(1);
@@ -968,7 +945,7 @@ module.exports = function xGraph() {
 				}
 
 				let folder = ApexIndex[apx];
-				let path = CacheDir + '/' + folder + '/' + apx + '/' + pid + '.json';
+				let path = __options.cache + '/' + folder + '/' + apx + '/' + pid + '.json';
 				fs.readFile(path, function (err, data) {
 					if (err) {
 						log.e('<' + path + '> unavailable');
@@ -1006,6 +983,7 @@ module.exports = function xGraph() {
 					});
 
 					function BuildEnt() {
+						// TODO: add in checks for $SETUP and $Start
 						EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
 						fun(null, EntCache[pid]);
 					}
@@ -1303,7 +1281,7 @@ module.exports = function xGraph() {
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
 
 				//get the module from cache
-				var cachedMod = `${CacheDir}/${ModName}/Module.zip`;
+				var cachedMod = `${__options.cache}/${ModName}/Module.zip`;
 				fs.lstat(cachedMod, function (err, stat) {
 					if (err) {
 						log.e(`Error retreiving ${cachedMod} from cache`);
@@ -1332,7 +1310,7 @@ module.exports = function xGraph() {
 					}
 				});
 			}
-		})(optionsArray);
+		})(this.__options);
 	}
 }
 
