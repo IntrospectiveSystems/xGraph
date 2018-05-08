@@ -142,7 +142,7 @@ let cli = function (argv) {
 			case 'system':
 			case 's': {
 				let names = args.slice(1);
-				if(names.length > 0) {
+				if (names.length > 0) {
 					console.log(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${names.length > 1 ?
 						'names' : 'name'}: ${args.slice(1)}`);
 					initSystem(names);
@@ -154,7 +154,7 @@ let cli = function (argv) {
 			case 'module':
 			case 'm': {
 				let names = args.slice(1);
-				if(names.length > 0) {
+				if (names.length > 0) {
 					console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
 						'names' : 'name'}: ${args.slice(1)}`);
 					initModule(names);
@@ -458,7 +458,7 @@ Examples:
 		}
 
 		//sanitize and default cwd
-		if('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
+		if ('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
 			pathOverrides['cwd'] = path.normalize(pathOverrides['cwd']);
 		} else {
 			pathOverrides['cwd'] = path.normalize(process.cwd());
@@ -532,9 +532,9 @@ Examples:
 	};
 
 	function initSystem(names) {
-		let systemPath;
 
 		for (let index = 0; index < names.length; index++) {
+			let systemPath;
 			let name = names[index];
 			createDirectories(name);
 			createSystem();
@@ -547,38 +547,37 @@ Examples:
 			let thisDirectory = "";
 
 			if (path.isAbsolute(name)) {
-				if(name.charAt(0) != '\\'){
-					makePath = makeDirectories[0] + "\\\\";
-					makeDirectories.splice(0, 1);
-				} else {
-					makePath = "\\";
-				}
+				if (name.charAt(0) != path.sep) {
+					makePath = makeDirectories.shift();
+				} 
 				systemPath = name;
-				console.log("Generating system in directory: ", systemPath);
 			} else {
-				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
-				systemPath = path.join(moduleDir, name);
-				console.log("Generating system in directory: ", systemPath);
+				let sysDir = pathOverrides['cwd'] || path.resolve('./');
+				makePath = sysDir;
+				systemPath = path.join(sysDir, name);
 			}
+
+			console.log("Generating system in directory: ", systemPath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
 				thisDirectory = makeDirectories[i];
 				if (thisDirectory && thisDirectory != "") {
-					makePath += thisDirectory+"\\";
+					makePath += path.sep+thisDirectory;
 					makeDirectory(makePath);
 				}
 			}
 		}
 
-		function createSystem(){
-			const ConfigTemplate = {
-				"Sources": {},
-				"Modules": {
-					"Deferred": []
-				}
-			};
+		function createSystem() {
+			const ConfigTemplate =
+				{
+					"Sources": {},
+					"Modules": {
+						"Deferred": []
+					}
+				};
 
-			if(!fs.existsSync(path.join(systemPath, 'config.json'))) {
+			if (!fs.existsSync(path.join(systemPath, 'config.json'))) {
 				try {
 					fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
 					console.log("System generated at: " + systemPath);
@@ -591,9 +590,9 @@ Examples:
 	}
 
 	function initModule(names) {
-		let modulePath;
 
 		for (let index = 0; index < names.length; index++) {
+			let modulePath;
 			let name = names[index];
 			let module = createDirectories(name);
 			createModule(module);
@@ -606,7 +605,7 @@ Examples:
 			let thisDirectory = "";
 
 			if (path.isAbsolute(name)) {
-				if(name.charAt(0) != '\\'){
+				if (name.charAt(0) != '\\') {
 					makePath = makeDirectories[0] + "\\\\";
 					makeDirectories.splice(0, 1);
 				} else {
@@ -623,7 +622,9 @@ Examples:
 			for (let i = 0; i < makeDirectories.length; i++) {
 				thisDirectory = makeDirectories[i];
 				if (thisDirectory && thisDirectory != "") {
-					makePath += thisDirectory+"\\";
+					makePath += thisDirectory;
+					if (i < makeDirectories.length - 1)
+						makePath += "\\";
 					makeDirectory(makePath);
 				}
 			}
@@ -631,7 +632,7 @@ Examples:
 			return thisDirectory;
 		}
 
-		function createModule(name){
+		function createModule(name) {
 			let Schema = {
 				"Apex": {
 					"$Setup": "Setup",
@@ -721,7 +722,7 @@ Examples:
 				"Cases": []
 			};
 
-			if(!fs.existsSync(path.join(modulePath, `${name}.js`))){
+			if (!fs.existsSync(path.join(modulePath, `${name}.js`))) {
 				try {
 					fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
 					fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
