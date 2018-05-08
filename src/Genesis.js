@@ -575,7 +575,9 @@ function genesis(__options = {}) {
 					let cmd = {};
 					cmd.Cmd = "GetModule";
 					cmd.Name = modnam;
-
+					cmd.Passport = {
+						"Disp" : "Query"
+					}
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
@@ -614,6 +616,7 @@ function genesis(__options = {}) {
 							}
 
 							var obj = JSON.parse(sbstr);
+							
 							Fifo.push(obj);
 							continue;
 						}
@@ -634,8 +637,9 @@ function genesis(__options = {}) {
 							return;
 
 						let response = Fifo.shift();
-
-						fun(null, response.Module);
+						let err = null;
+						if (Array.isArray(response))[err, response]= response;
+						fun(err, Buffer.from(response.Module, 'base64'));
 					}
 				});
 			}
