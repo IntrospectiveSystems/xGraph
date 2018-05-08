@@ -444,7 +444,7 @@ Examples:
 		while ('value' in returnVal) {
 			let str = returnVal.value;
 			let i = returnVal.idx;
-			// console.log(i);
+
 			if (typeof str == 'undefined') {
 				console.error('error parsing Switches');
 				process.exit(1);
@@ -453,7 +453,7 @@ Examples:
 				let key = args[i].slice(2);
 				applySwitch(key, i);
 			}
-			// console.log(i);
+
 			returnVal = argLoop.next();
 		}
 
@@ -533,60 +533,11 @@ Examples:
 
 	function initSystem(names) {
 		let systemPath;
-		const ConfigTemplate = {
-			"Sources": {},
-			"Modules": {
-				"Deferred": []
-			}
-		};
 
 		for (let index = 0; index < names.length; index++) {
 			let name = names[index];
-
-			if (path.isAbsolute(name)) {
-				systemPath = name;
-				console.log("Generating system in directory: ", systemPath);
-			} else {
-				let systemDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Systems');
-				systemPath = path.join(systemDir, name);
-				console.log("Generating system in directory: ", systemDir);
-
-				//ensure that the systems or modules directory exists
-				try {
-					fs.mkdirSync(systemDir);
-
-				} catch (e) {
-
-				}
-			}
-
-
-
-			try {
-				fs.mkdirSync(systemPath);
-				fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
-				console.log("System generated at: " + systemPath);
-			} catch (e) {
-				console.log(`The system already exists: ${systemPath}`);
-			}
-
-
-
-		}
-	}
-
-	function initModule(names) {
-		let modulePath;
-
-		for (let index = 0; index < names.length; index++) {
-			let name = names[index];
-			let module = "";
-
-
-			module = createDirectories(name);
-
-			createModule(module);
-
+			createDirectories(name);
+			createSystem();
 		}
 
 		function createDirectories(name) {
@@ -595,26 +546,79 @@ Examples:
 			let makePath = "";
 			let thisDirectory = "";
 
+			if (path.isAbsolute(name)) {
+				if(name.charAt(0) != '\\'){
+					makePath = makeDirectories[0] + "\\\\";
+					makeDirectories.splice(0, 1);
+				} else {
+					makePath = "\\";
+				}
+				systemPath = name;
+				console.log("Generating system in directory: ", systemPath);
+			} else {
+				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
+				systemPath = path.join(moduleDir, name);
+				console.log("Generating system in directory: ", systemPath);
+			}
+
+			for (let i = 0; i < makeDirectories.length; i++) {
+				thisDirectory = makeDirectories[i];
+				if (thisDirectory && thisDirectory != "") {
+					makePath += thisDirectory+"\\";
+					makeDirectory(makePath);
+				}
+			}
+		}
+
+		function createSystem(){
+			const ConfigTemplate = {
+				"Sources": {},
+				"Modules": {
+					"Deferred": []
+				}
+			};
+
+			if(!fs.existsSync(path.join(systemPath, 'config.json'))) {
+				try {
+					fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
+					console.log("System generated at: " + systemPath);
+				} catch (e) {
+				}
+			} else {
+				console.log(`No system generated. The system already exists: ${systemPath}`);
+			}
+		}
+	}
+
+	function initModule(names) {
+		let modulePath;
+
+		for (let index = 0; index < names.length; index++) {
+			let name = names[index];
+			let module = createDirectories(name);
+			createModule(module);
+		}
+
+		function createDirectories(name) {
+			let regEx = new RegExp("(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/");
+			let makeDirectories = name.split(regEx);
+			let makePath = "";
+			let thisDirectory = "";
 
 			if (path.isAbsolute(name)) {
-				console.log("Absolute");
+				if(name.charAt(0) != '\\'){
+					makePath = makeDirectories[0] + "\\\\";
+					makeDirectories.splice(0, 1);
+				} else {
+					makePath = "\\";
+				}
 				modulePath = name;
 				console.log("Generating module in directory: ", modulePath);
-				makePath = "\\";
 			} else {
 				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
 				modulePath = path.join(moduleDir, name);
 				console.log("Generating module in directory: ", modulePath);
-
-				console.log(modulePath);
-
-
 			}
-
-			console.log(name);
-
-
-			console.log(makeDirectories);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
 				thisDirectory = makeDirectories[i];
@@ -624,24 +628,15 @@ Examples:
 				}
 			}
 
-			console.log(makePath);
 			return thisDirectory;
-
-			function makeDirectory(dir) {
-				console.log("makeDir" + dir);
-				try {
-					fs.mkdirSync(dir);
-				} catch (e) {
-					console.log(e);
-				}
-			}
 		}
 
 		function createModule(name){
 			let Schema = {
 				"Apex": {
 					"$Setup": "Setup",
-					"$Start": "Start"
+					"$Start": "Start",
+					"Entity": `${name}.js`
 				}
 			};
 
@@ -665,8 +660,6 @@ Examples:
 			\t}
 			\treturn {dispatch:${name}.prototype}
 			})();`;
-
-			Schema.Apex.Entity = `${name}.js`;
 
 			let moduleJson = {
 				"name": `${name}`,
@@ -728,29 +721,33 @@ Examples:
 				"Cases": []
 			};
 
-
-
-			try {
-
-				fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
-				fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
-				fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
-				fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
-				console.log("Module generated at: " + modulePath);
-			} catch (e) {
-				console.log(e);
-				console.log(`The module already exists: ${modulePath}`);
+			if(!fs.existsSync(path.join(modulePath, `${name}.js`))){
+				try {
+					fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
+					fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
+					fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
+					fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
+					console.log("Module generated at: " + modulePath);
+				} catch (e) {
+				}
+			} else {
+				console.log("No module generated. Module already exists: " + modulePath);
 			}
 		}
 	}
 
-	function initView() {
-
+	function makeDirectory(dir) {
+		try {
+			fs.mkdirSync(dir);
+		} catch (e) {
+		}
 	}
-}
 
-if (require.main === module || !('id' in module)) cli(process.argv);
-else module.exports = {
+};
+
+if (require.main === module || !('id' in module)) {
+	cli(process.argv);
+} else module.exports = {
 	Nexus: require('./Nexus.js'),
 	Genesis: require('./Genesis.js')
 };
