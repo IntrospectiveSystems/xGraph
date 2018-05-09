@@ -605,26 +605,21 @@ Examples:
 			let thisDirectory = "";
 
 			if (path.isAbsolute(name)) {
-				if (name.charAt(0) != '\\') {
-					makePath = makeDirectories[0] + "\\\\";
-					makeDirectories.splice(0, 1);
-				} else {
-					makePath = "\\";
+				if (name.charAt(0) != path.sep) {
+					makePath = makeDirectories.shift();
 				}
 				modulePath = name;
-				console.log("Generating module in directory: ", modulePath);
 			} else {
 				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
+				makePath = moduleDir;
 				modulePath = path.join(moduleDir, name);
-				console.log("Generating module in directory: ", modulePath);
 			}
+			console.log("Generating module in directory: ", modulePath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
 				thisDirectory = makeDirectories[i];
 				if (thisDirectory && thisDirectory != "") {
-					makePath += thisDirectory;
-					if (i < makeDirectories.length - 1)
-						makePath += "\\";
+					makePath += path.sep+thisDirectory;
 					makeDirectory(makePath);
 				}
 			}
