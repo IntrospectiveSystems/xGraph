@@ -4,6 +4,6 @@
 	"version": "1.1.2",
  	"dependencies": {
 		"ip": "^1.1.5",
-		"node-rsa": "^0.4.2"
+		"node-rsa": "^1.0.0"
 	}
 }
