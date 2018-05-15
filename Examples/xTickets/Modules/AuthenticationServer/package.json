@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.5.0",
-    "google-auth-library": "^0.10.0",
+    "google-auth-library": "^1.4.0",
     "md5": "^2.2.1",
     "nedb": "^1.8.0"
   }
