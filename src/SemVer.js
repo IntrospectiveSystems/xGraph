@@ -26,4 +26,4 @@ class SemVer {
 		return (this.major * 1e6) + (this.minor * 1e3) + (this.patch);
 	}
 }
-exports = SemVer;
+module.exports = SemVer;

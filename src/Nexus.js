@@ -1,4 +1,7 @@
 global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
+
+const CacheInterface = require('./CacheInterface.js');
+
 module.exports = function xGraph(__options={}) {
 	this.__options=__options;
 	let eventListeners = {
@@ -34,13 +37,13 @@ module.exports = function xGraph(__options={}) {
 			const Path = require('path');
 			const jszip = require("jszip");
 			const endOfLine = require('os').EOL;
+			const Uuid = require('uuid/v4');
+
 			var consoleNotification = false;
-			var Uuid;
+			let cacheInterface;
 			var Config = {};					// The read config.json
 			var ModCache = {};					// {<folder>: <module>}
 			var ApexIndex = {}; 				// {<Apex pid>:<folder>}
-			var Setup = {};						// {<Apex pid>:<function>}
-			var Start = {};						// {<Apex pid>:<function>}
 			var Stop = {};						// {<Apex pid>:<function>}
 			var EntCache = {};					// {<Entity pid>:<Entity>
 			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
@@ -228,31 +231,6 @@ module.exports = function xGraph(__options={}) {
 
 			initiate();
 
-			async function exit(code = 0) {
-				log.i(`--Nexus/Stop`);
-				//build the Stop promise array
-				let stopTasks = [];
-
-				log.i('Nexus unloading node modules');
-				log.v(Object.keys(require.cache).join('\n'));
-
-				for (let pid in Stop) {
-					stopTasks.push(new Promise((resolve, reject) => {
-						var com = {};
-						com.Cmd = Stop[pid];
-						com.Passport = {};
-						com.Passport.To = pid;
-						com.Passport.Pid = genPid();
-						sendMessage(com, resolve);
-					}));
-				}
-				console.log = originalConsoleLog;
-				await Promise.all(stopTasks);
-				log.v(`--Nexus: All Stops Complete`);
-
-				dispatchEvent('exit', { exitCode: code });
-			}
-
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
 			// Only Function Definitions Beyond This Point
@@ -266,10 +244,18 @@ module.exports = function xGraph(__options={}) {
 			async function initiate() {
 				log.i(`--Nexus/Initiate`);
 				ApexIndex = {};
-				Setup = {};
-				Start = {};
+				let Setup = {};
+				let Start = {};
+				cacheInterface = new CacheInterface({
+					path: __options.cache
+				});
 
-				loadCache();
+
+				let cache = await cacheInterface.loadCache();
+				ApexIndex = cache.apexIndex;
+				Start = cache.start;
+				Setup = cache.setup;
+				Stop = Object.assign(Stop, cache.stop);
 
 				await setup();
 
@@ -348,16 +334,36 @@ module.exports = function xGraph(__options={}) {
 			//
 			//
 
-
-			// #ifndef BUILT
 			/**
-			 * Check if the system is running from binary
+			 * @description stop the system by calling all stop methods and
+			 * releasing all entities from memory
+			 * exit code 0 will gracefully exit,
+			 * @param {number} [code=0] the code to exit with
 			 */
-			function isBinary() {
-				return (typeof tar !== 'undefined');
-			}
-			// #endif
+			async function exit(code = 0) {
+				log.i(`--Nexus/Stop`);
+				//build the Stop promise array
+				let stopTasks = [];
 
+				log.i('Nexus unloading node modules');
+				log.v(Object.keys(require.cache).join('\n'));
+
+				for (let pid in Stop) {
+					stopTasks.push(new Promise((resolve, reject) => {
+						var com = {};
+						com.Cmd = Stop[pid];
+						com.Passport = {};
+						com.Passport.To = pid;
+						com.Passport.Pid = genPid();
+						sendMessage(com, resolve);
+					}));
+				}
+				console.log = originalConsoleLog;
+				await Promise.all(stopTasks);
+				log.v(`--Nexus: All Stops Complete`);
+
+				dispatchEvent('exit', { exitCode: code });
+			}
 
 			/**
 			 * replace the macros for local path info
@@ -402,10 +408,6 @@ module.exports = function xGraph(__options={}) {
 			 * generate a 32 character hex pid
 			 */
 			function genPid() {
-				if (!Uuid) {
-					module.paths = [Path.join(Path.resolve(__options.cache), 'node_modules')];
-					Uuid = require('uuid/v4');
-				}
 				var str = Uuid();
 				var pid = str.replace(/-/g, '').toUpperCase();
 				return pid;
@@ -891,60 +893,7 @@ module.exports = function xGraph(__options={}) {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function getEntityContext(apx, pid, fun = _ => _) {
-				let imp;
-				let par;
-				let ent;
-
-				// Check to see if pid is also an apex entity in this system
-				// if not then we assume that the pid is an entity inside of the sending Module
-				if (pid in ApexIndex) {
-					apx = pid;
-				}
-
-				let folder = ApexIndex[apx];
-				let path = __options.cache + '/' + folder + '/' + apx + '/' + pid + '.json';
-				fs.readFile(path, function (err, data) {
-					if (err) {
-						log.e('<' + path + '> unavailable');
-						fun('Unavailable');
-						return;
-					}
-					let par = JSON.parse(data.toString());
-					let impkey = folder + '/' + par.Entity;
-					let imp;
-					if (impkey in ImpCache) {
-						BuildEnt();
-						return;
-					}
-
-					GetModule(folder, async function (err, mod) {
-						if (err) {
-							log.e('Module <' + folder + '> not available');
-							fun('Module not available');
-							return;
-						}
-
-						if (!(par.Entity in mod.files)) {
-							log.e('<' + par.Entity + '> not in module <' + folder + '>');
-							fun('Null entity');
-							return;
-						}
-
-						let entString = await new Promise(async (res, rej) => {
-							mod.file(par.Entity).async("string").then((string) => res(string))
-						});
-
-						log.v(`Spinning up entity ${folder}-${par.Entity.split('.')[0]}`);
-						ImpCache[impkey] = indirectEvalImp(entString);
-						BuildEnt();
-					});
-
-					function BuildEnt() {
-						// TODO: add in checks for $SETUP and $Start
-						EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
-						fun(null, EntCache[pid]);
-					}
-				});
+				cacheInterface.getEntityContext(apx, pid, fun);
 			}
 
 			/**
