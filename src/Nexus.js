@@ -879,6 +879,7 @@ module.exports = function xGraph(__options={}) {
 					try {
 						return require(Path.join(__options.cache, folder, 'node_modules', str));
 					} catch (e) {
+						log.e(`error loading ${str}`);
 						log.e(e);
 						process.exit(1);
 					}
@@ -893,7 +894,55 @@ module.exports = function xGraph(__options={}) {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function getEntityContext(apx, pid, fun = _ => _) {
-				cacheInterface.getEntityContext(apx, pid, fun);
+				let imp;
+				let par;
+				let ent;
+				let moduleType = ApexIndex[apx];
+
+				cacheInterface.getEntityPar(moduleType, apx, pid, (err, data) => {
+					if (err) {
+						log.e(`Error retrieving a ${moduleType} from cache. Pid: ${pid}`);
+						log.e(err);
+						fun('Unavailable');
+						return;
+					}
+					let par = JSON.parse(data.toString());
+					let impkey = moduleType + '/' + par.Entity;
+					let imp;
+					if (impkey in ImpCache) {
+						BuildEnt();
+						return;
+					}
+
+					GetModule(moduleType, async function (err, mod) {
+						log.d('GetModule');
+						if (err) {
+							log.e('Module <' + moduleType + '> not available');
+							fun('Module not available');
+							return;
+						}
+
+						if (!(par.Entity in mod.files)) {
+							log.e('<' + par.Entity + '> not in module <' + moduleType + '>');
+							fun('Null entity');
+							return;
+						}
+
+						let entString = await new Promise(async (res, rej) => {
+							mod.file(par.Entity).async("string").then((string) => res(string))
+						});
+
+						log.v(`Spinning up entity ${moduleType}-${par.Entity.split('.')[0]}`);
+						ImpCache[impkey] = indirectEvalImp(entString);
+						BuildEnt();
+					});
+
+					function BuildEnt() {
+						// TODO: rethink the whole process of having to call out a setup and start
+						EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
+						fun(null, EntCache[pid]);
+					}
+				});
 			}
 
 			/**
@@ -1181,39 +1230,13 @@ module.exports = function xGraph(__options={}) {
 			 * @returns mod
 			 */
 			function GetModule(ModName, fun = _ => _) {
+				log.d('Nexus::GetModule');
 				ModName = ModName.replace(/\:\//g, '.');
-
-				//get the module from memory (ModCache) if it has already been retrieved
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
-
-				//get the module from cache
-				var cachedMod = `${__options.cache}/${ModName}/Module.zip`;
-				fs.lstat(cachedMod, function (err, stat) {
-					if (err) {
-						log.e(`Error retreiving ${cachedMod} from cache`);
-						fun(err);
-					}
-					if (stat) {
-						if (!stat.isDirectory()) {
-							fs.readFile(cachedMod, async function (err, data) {
-								if (err) {
-									fun(err);
-									return;
-								}
-								ModCache[ModName] = await new Promise(async (res, rej) => {
-									let zip = new jszip();
-									zip.loadAsync(data).then((mod) => res(mod));
-								});
-								fun(null, ModCache[ModName]);
-								return;
-							});
-						}
-					} else {
-						err = `Module ${cachedMod} does not exist in the cache`
-						log.e(err);
-						fun(err);
-						return;
-					}
+				else cacheInterface.getModule(ModName, (err, moduleZip) => {
+					if(err) return fun(err);
+					ModCache[ModName] = moduleZip;
+					return fun(null, ModCache[ModName]);
 				});
 			}
 		})(this.__options);

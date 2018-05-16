@@ -1,68 +1,76 @@
 const Path = require('path');
 const SemVer = require('./SemVer.js');
 const fs = require('fs');
+const jszip = require('jszip');
+const ver130 = new SemVer('1.3');
 
 module.exports = class CacheInterface {
 	constructor(__options) {
 		this.__options = __options;
 		// this.loadCache();
 	}
-	
-	getEntityContext(apx, pid, fun = _ => _) {
-		let imp;
-		let par;
-		let ent;
 
-		// Check to see if pid is also an apex entity in this system
-		// if not then we assume that the pid is an entity inside of the sending Module
-		if (pid in ApexIndex) {
-			apx = pid;
+	getModule(moduleType, fun = _ => _) {
+		let __options = this.__options;
+		let that = this;
+
+		//get the module from cache
+		let cachedMod;
+		
+		if(this._version < ver130) {
+			log.d('old');
+			cachedMod = Path.join(__options.path, moduleType, 'Module.zip');
+		}else {
+			log.d('new');
+			cachedMod = Path.join(__options.path, 'System', moduleType, 'Module.zip');
+			log.d(cachedMod);
 		}
 
-		let folder = ApexIndex[apx];
-		let path = __options.cache + '/' + folder + '/' + apx + '/' + pid + '.json';
-		fs.readFile(path, function (err, data) {
+		fs.lstat(cachedMod, function (err, stat) {
 			if (err) {
-				log.e('<' + path + '> unavailable');
-				fun('Unavailable');
-				return;
+				log.e(`Error retreiving ${cachedMod} from cache`);
+				fun(err);
 			}
-			let par = JSON.parse(data.toString());
-			let impkey = folder + '/' + par.Entity;
-			let imp;
-			if (impkey in ImpCache) {
-				BuildEnt();
+			if (stat) {
+				if (!stat.isDirectory()) {
+					fs.readFile(cachedMod, async function (err, data) {
+						if (err) {
+							fun(err);
+							return;
+						}
+						fun(null, await new Promise(async (res, rej) => {
+							let zip = new jszip();
+							zip.loadAsync(data).then((mod) => res(mod));
+						}));
+						return;
+					});
+				}
+			} else {
+				err = `Module ${cachedMod} does not exist in the cache`
+				log.e(err);
+				fun(err);
 				return;
-			}
-
-			GetModule(folder, async function (err, mod) {
-				if (err) {
-					log.e('Module <' + folder + '> not available');
-					fun('Module not available');
-					return;
-				}
-
-				if (!(par.Entity in mod.files)) {
-					log.e('<' + par.Entity + '> not in module <' + folder + '>');
-					fun('Null entity');
-					return;
-				}
-
-				let entString = await new Promise(async (res, rej) => {
-					mod.file(par.Entity).async("string").then((string) => res(string))
-				});
-
-				log.v(`Spinning up entity ${folder}-${par.Entity.split('.')[0]}`);
-				ImpCache[impkey] = indirectEvalImp(entString);
-				BuildEnt();
-			});
-
-			function BuildEnt() {
-				// TODO: rethink the whole process of having to call out a setup and start
-				EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
-				fun(null, EntCache[pid]);
 			}
 		});
+	}
+	
+	getEntityPar(moduleType, apx, pid, fun = _ => _) {
+		log.d('getEntityPar', moduleType, apx, pid);
+		let __options = this.__options;
+		let that = this;
+		let path;
+		// log.d(this._version);
+
+		if(this._version < ver130) {
+			log.d('old');
+			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
+		}else {
+			log.d('new');
+			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
+			log.d(path);
+		}
+
+		fs.readFile(path, fun);
 	}
 
 	async loadCache() {
@@ -79,7 +87,7 @@ module.exports = class CacheInterface {
 				}
 			});
 		});
-		let version = new SemVer(manifest.version);
+		let version = this._version = new SemVer(manifest.version);
 
 		let modulesDirectory;
 		if(version < new SemVer('1.3')) {
