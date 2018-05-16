@@ -2,38 +2,9 @@
   "groups": {
     "default": {
       "packages": [
-        "Examples/xTickets/Modules/AuthenticationServer/package.json",
-        "Examples/xTickets/Modules/GenModuleSurrogate/package.json",
-        "Examples/xTickets/Modules/GoogleLoginProvider/package.json",
-        "Examples/xTickets/Modules/MultiPageServer/package.json",
-        "Examples/xTickets/Modules/Set/package.json",
-        "Modules/xGraph/2DView/package.json",
-        "Modules/xGraph/3DView/package.json",
-        "Modules/xGraph/AceEditorView/package.json",
-        "Modules/xGraph/BankAccount/package.json",
-        "Modules/xGraph/BankPatron/package.json",
-        "Modules/xGraph/FlatFile/package.json",
-        "Modules/xGraph/HelloWorld/package.json",
-        "Modules/xGraph/Menubar/package.json",
-        "Modules/xGraph/Mouse/package.json",
-        "Modules/xGraph/NeDB/package.json",
-        "Modules/xGraph/PanelView/package.json",
-        "Modules/xGraph/Perceptron/package.json",
-        "Modules/xGraph/Ping/package.json",
-        "Modules/xGraph/Pong/package.json",
-        "Modules/xGraph/Popup/package.json",
-        "Modules/xGraph/Proxy/package.json",
-        "Modules/xGraph/RootView/package.json",
-        "Modules/xGraph/SQLite/package.json",
-        "Modules/xGraph/ServerProxy/package.json",
-        "Modules/xGraph/TableView/package.json",
-        "Modules/xGraph/Validate/package.json",
-        "Modules/xGraph/WebProxy/package.json",
-        "Modules/xGraph/WebViewer/package.json",
         "Tests/ValidationSystem/Modules/Suite/package.json",
         "Tests/ValidationSystem/Modules/Validate/package.json",
-        "package.json",
-        "src/package.json"
+        "package.json"
       ]
     }
   }
