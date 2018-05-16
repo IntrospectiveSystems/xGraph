@@ -6,13 +6,13 @@ function genesis(__options = {}) {
 		return flag in __options && __options[flag];
 	}
 
-	if(!('state' in __options)) {
+	if (!('state' in __options)) {
 		__options.state = process.env.XGRAPH_ENV || "production";
 
 		// console.error("[ERRR] No state was given to Genesis\r\n[ERRR] Exitting with code 1");
 		// process.exit(1);
 	}
-	if(checkFlag("development") || checkFlag("debug")) {
+	if (checkFlag("development") || checkFlag("debug")) {
 		__options.state = 'development';
 	}
 
@@ -235,10 +235,24 @@ function genesis(__options = {}) {
 							sources = ini["Sources"];
 							for (let subkey in sources) {
 								subval = sources[subkey];
-								if (typeof subval == 'string') {
-									Config.Sources[subkey] = Macro(subval);
-								} else {
-									Config.Sources[subkey] = subval;
+								switch (typeof subval) {
+									case "string": {
+										Config.Sources[subkey] = Macro(subval);
+										break;
+									}
+									case "object": {
+										Config.Sources[subkey] = {};
+										for (let id in subval) {
+											Config.Sources[subkey][id.toLowerCase()] = (typeof subval[id] == "string") ?
+												Macro(subval[id]) : subval[id];
+										}
+										if (!("port" in Config.Sources[subkey])) Config.Sources[subkey]["port"] = 27000;
+										break;
+									}
+									default: {
+										log.e(`Invalid Source ${subkey} of type ${typeof subval
+											}. Must be of type string or object`);
+									}
 								}
 							}
 						} else {
@@ -378,8 +392,8 @@ function genesis(__options = {}) {
 							"Source": Config.Sources[Modules[folder]]
 						};
 
-						log.v(`Requesting ${modrequest.Module} from ${modrequest.Source}`);
-
+						log.v(`Requesting ${modrequest.Module} from ${(typeof modrequest.Source == "object") ?
+							`\n${JSON.stringify(modrequest.Source, null, 2)}` : modrequest.Source}`);
 						GetModule(modrequest, function (err, mod) {
 							if (err) {
 								log.w(`Failed to retreive ${folder}`);
@@ -426,7 +440,7 @@ function genesis(__options = {}) {
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
 
 									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(dir) });
-									
+
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
 									npmInstallProcess.stderr.on('data', process.stderr.write);
@@ -460,14 +474,14 @@ function genesis(__options = {}) {
 					}));
 				}
 
-				
-				try{
+
+				try {
 					await Promise.all(npmDependenciesArray);
-				} catch(e) {
+				} catch (e) {
 					console.dir(e);
 					log.e(e.stack);
 				}
-				
+
 
 				if (__options.state == 'updateOnly') {
 					log.i(`Genesis Update Stop: ${new Date().toString()}`);
@@ -576,7 +590,7 @@ function genesis(__options = {}) {
 					cmd.Cmd = "GetModule";
 					cmd.Name = modnam;
 					cmd.Passport = {
-						"Disp" : "Query"
+						"Disp": "Query"
 					}
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
@@ -616,7 +630,7 @@ function genesis(__options = {}) {
 							}
 
 							var obj = JSON.parse(sbstr);
-							
+
 							Fifo.push(obj);
 							continue;
 						}
@@ -638,8 +652,10 @@ function genesis(__options = {}) {
 
 						let response = Fifo.shift();
 						let err = null;
-						if (Array.isArray(response))[err, response]= response;
+						if (Array.isArray(response)) [err, response] = response;
 						fun(err, Buffer.from(response.Module, 'base64'));
+						sock.end();
+						sock.destroy();
 					}
 				});
 			}
@@ -730,8 +746,8 @@ function genesis(__options = {}) {
 			log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 
 			function parseMacros(obj) {
-				for(let key in obj) {
-					if(typeof obj[key] == 'string') obj[key] = Macro(obj[key]);
+				for (let key in obj) {
+					if (typeof obj[key] == 'string') obj[key] = Macro(obj[key]);
 					else if (typeof obj[key] == 'object') obj[key] = parseMacros(obj[key]);
 				}
 				return obj;
@@ -774,7 +790,7 @@ function genesis(__options = {}) {
 			});
 
 			var entkeys = Object.keys(schema);
-			if(!('Apex' in schema)) {
+			if (!('Apex' in schema)) {
 				log.v("keys in schema.json");
 				log.v(Object.keys(schema).join('\r\n'));
 				throw new SyntaxError("Apex key not present in schema.json.");
@@ -881,35 +897,35 @@ function genesis(__options = {}) {
 
 								let systemObject = await GenTemplate(config);
 
-								try{fs.mkdir('Static')}catch(e){}
+								try { fs.mkdir('Static') } catch (e) { }
 
 								await new Promise(resolve => {
 									let zip = new jszip();
 									zip.loadAsync(Buffer.from(systemObject.Cache, 'base64')).then(async (a) => {
 										// console.dir(a);
-										for(let key in a.files) {
-											if(key === 'manifest.json') continue;
+										for (let key in a.files) {
+											if (key === 'manifest.json') continue;
 											let modZip = new jszip()
 											let moduleZipBinary = await new Promise((res) => zip.file(key).async('base64').then(a => res(a)))
-											modZip = await new Promise ((res) => {
+											modZip = await new Promise((res) => {
 												// log.i('HERE', key);
 												modZip.loadAsync(Buffer.from(moduleZipBinary, 'base64')).then(zip => {
 													// log.i('HERE', key);
 													res(zip);
 												});
 											});
-											if('bower.json' in modZip.files) {
+											if ('bower.json' in modZip.files) {
 												let bowerjson = await new Promise((res) => modZip.file('bower.json').async('string').then(a => res(a)));
 												let dependencies = JSON.parse(bowerjson).dependencies;
 												let packageArray = [];
-												for(let bowerModuleName in dependencies) {
-													if(dependencies[bowerModuleName].indexOf('/') > 0)
+												for (let bowerModuleName in dependencies) {
+													if (dependencies[bowerModuleName].indexOf('/') > 0)
 														packageArray.push(`${dependencies[bowerModuleName]}`);
 													else
 														packageArray.push(`${bowerModuleName}#${dependencies[bowerModuleName]}`);
 												}
 												// packageArray = ['PolymerVis/monaco-editor#1.0.0', 'jquery#^3.0.0']
-												await new Promise (res => {
+												await new Promise(res => {
 													proc.execSync(`bower install "--config.directory=${Path.join(__options.cwd, 'Static', 'bower_components')}" "${packageArray.join('" "')}"`);
 													log.i(`[BOWER] Installed ${packageArray.join(', ')}`);
 													res();
@@ -1065,7 +1081,7 @@ function genesis(__options = {}) {
 
 				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				try { fs.mkdirSync(CacheDir); } catch (e) {}
+				try { fs.mkdirSync(CacheDir); } catch (e) { }
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 
 				//call npm install on a childprocess of node
@@ -1205,7 +1221,7 @@ function genesis(__options = {}) {
 					// Create new cache and install high level
 					// module subdirectories. Each of these also
 					// has a link to the source of that module (Module.zip).
-					for(let key in Config.Modules) {
+					for (let key in Config.Modules) {
 						if (key == 'Deferred') {
 							var arr = Config.Modules[key];
 							for (let idx = 0; idx < arr.length; idx++) {
@@ -1342,10 +1358,24 @@ function genesis(__options = {}) {
 							sources = ini["Sources"];
 							for (let subkey in sources) {
 								subval = sources[subkey];
-								if (typeof subval == 'string') {
-									Config.Sources[subkey] = Macro(subval);
-								} else {
-									Config.Sources[subkey] = subval;
+								switch (typeof subval) {
+									case "string": {
+										Config.Sources[subkey] = Macro(subval);
+										break;
+									}
+									case "object": {
+										Config.Sources[subkey] = {};
+										for (let id in subval) {
+											Config.Sources[subkey][id.toLowerCase()] = (typeof subval[id] == "string") ?
+												Macro(subval[id]) : subval[id];
+										}
+										if (!("port" in Config.Sources[subkey])) Config.Sources[subkey]["port"] = 27000;
+										break;
+									}
+									default: {
+										log.e(`Invalid Source ${subkey} of type ${typeof subval
+											}. Must be of type string or object`);
+									}
 								}
 							}
 						} else {
