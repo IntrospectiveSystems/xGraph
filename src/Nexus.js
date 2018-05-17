@@ -519,7 +519,7 @@ module.exports = function xGraph(__options={}) {
 				}
 
 				function exit(code) {
-					nxs.exit(code)
+					nxs.exit(code);
 				}
 
 				/**
@@ -872,18 +872,8 @@ module.exports = function xGraph(__options={}) {
 			function loadDependency(apx, pid, str) {
 				// log.d(`Nexus::loadDependency (${apx}, ${pid}, ${str})`);
 
-				let folder = ApexIndex[apx];
-				try {
-					return require(str);
-				} catch (e) {
-					try {
-						return require(Path.join(__options.cache, folder, 'node_modules', str));
-					} catch (e) {
-						log.e(`error loading ${str}`);
-						log.e(e);
-						process.exit(1);
-					}
-				}
+				let moduleType = ApexIndex[apx];
+				return cacheInterface.loadDependency(moduleType, str)
 			}
 
 			/**
@@ -897,7 +887,7 @@ module.exports = function xGraph(__options={}) {
 				let imp;
 				let par;
 				let ent;
-				let moduleType = ApexIndex[apx];
+				let moduleType = ApexIndex[pid];
 
 				cacheInterface.getEntityPar(moduleType, apx, pid, (err, data) => {
 					if (err) {

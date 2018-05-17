@@ -116,7 +116,7 @@ switch(process.platform) {
 		//build standalone version
 		{
 			await exec('npm run build');
-			await exec(`${nativePath} -v`, true);
+			// await exec(`${nativePath} -v`, true);
 			// await exec('npm run build');
 		}
 
@@ -145,12 +145,12 @@ switch(process.platform) {
 		
 		// run tests on standalone version
 		{
-			await exec(`${nativePath} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${nativePath} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${nativePath} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			rimraf('ValidationSystem/cache');
-			await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			// await exec(`${nativePath} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			// await exec(`${nativePath} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			// await exec(`${nativePath} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			// await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			// rimraf('ValidationSystem/cache');
+			// await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 		}
 		
 		// run tests on npm version

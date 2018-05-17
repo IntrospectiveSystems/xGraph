@@ -1,6 +1,7 @@
 {
 	"State": {
-		"PingLink": "$Pong"
+		"PingLink": "$Pong",
+		"Asleep": "$Asleep"
 	},
 	"Cases": [
 		{

@@ -147,6 +147,27 @@ module.exports = class CacheInterface {
 		return {apexIndex, setup, start, stop};
 	}
 
+	loadDependency(moduleType, moduleName) {
+		let __options = this.__options;
+		let version = this._version;
+		let that = this, nodeModulesPath;
+		if(version < new SemVer('1.3')) {
+			nodeModulesPath = Path.join(__options.path, moduleType, 'node_modules');
+		}else {
+			nodeModulesPath = Path.join(__options.path, 'Lib', moduleType, 'node_modules');
+		}
 
+		try {
+			return require(moduleName);
+		} catch (e) {
+			try {
+				return require(Path.join(nodeModulesPath, moduleName));
+			} catch (e) {
+				log.e(`error loading ${moduleName}`);
+				log.e(e);
+				process.exit(1);
+			}
+		}
+	}
 
 }
