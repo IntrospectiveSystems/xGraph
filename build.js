@@ -17,6 +17,9 @@
 	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function rmdir(dir) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
+	function include(file) {
+		copy(`src/${file}`, `temp/${file}`)
+	}
 	function createMacTarball() {
 		console.log("Alternative Mac tar.gz being created since package capability is not available.")
 		//make for mac
@@ -86,15 +89,17 @@
 		xgraphFile = xgraphFile.toString();
 		xgraphFile = xgraphFile.split('// -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-')[1]
 		fs.writeFileSync('temp/xgraph.js', xgraphFile);
-		copy('src/Nexus.js', 'temp/Nexus.js');
-		copy('src/Genesis.js', 'temp/Genesis.js');
+		
+		include('Nexus.js');
+		include('Genesis.js');
+		include('CacheInterface.js');
+		include('SemVer.js');
 
 		let config = {
 			input: 'temp/xgraph.js',
 			output: 'bin/linux/bin/xgraph',
 			target: 'linux-x64-8.4.0',
 			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js', './CacheInterface.js', './SemVer.js'],
 			fakeArgv: true,
 			temp: 'NexeBin'
 		};
