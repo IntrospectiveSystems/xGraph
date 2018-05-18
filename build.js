@@ -94,7 +94,7 @@
 			output: 'bin/linux/bin/xgraph',
 			target: 'linux-x64-8.4.0',
 			bundle: true,
-			resources: ['src/Nexus.js', 'src/Genesis.js'],
+			resources: ['src/Nexus.js', 'src/Genesis.js', './CacheInterface.js', './SemVer.js'],
 			fakeArgv: true,
 			temp: 'NexeBin'
 		};
