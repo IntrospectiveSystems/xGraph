@@ -125,11 +125,10 @@ function genesis(__options = {}) {
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
 			}
-			process.on('unhandledRejection', event => {
-				log.e('------------------ [Stack] ------------------');
-				log.e(`line ${event.lineNumber}, ${event}`);
-				log.e(event.stack);
-				log.e('------------------ [/Stack] -----------------');
+			process.on('unhandledRejection', (reason, p) => {
+				log.e('------- [Unhandled Promise Rejection] -------');
+				log.e(reason.stack);
+				log.e('------- [/Unhandled Promise Rejection] ------');
 				process.exit(1);
 			});
 		}

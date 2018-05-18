@@ -43,7 +43,6 @@ module.exports = function xGraph(__options={}) {
 			let cacheInterface;
 			var Config = {};					// The read config.json
 			var ModCache = {};					// {<folder>: <module>}
-			var ApexIndex = {}; 				// {<Apex pid>:<folder>}
 			var Stop = {};						// {<Apex pid>:<function>}
 			var EntCache = {};					// {<Entity pid>:<Entity>
 			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
@@ -208,8 +207,23 @@ module.exports = function xGraph(__options={}) {
 
 			function indirectEvalImp(entString) {
 				let imp = (1, eval)(entString);
-				if(typeof imp != 'undefined') return imp;
-				else return { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
+				if(typeof imp != 'undefined') {
+					if(!('dispatch' in imp)) {
+						log.e('Entity does not return a dispatch Table');
+						throw new Error('E_NO_DISPATCH_TABLE');
+					}
+					return imp;
+				}
+				else {
+					imp = { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
+					if(typeof imp != 'undefined') {
+						if(!('dispatch' in imp)) {
+							log.e('Entity does not return a dispatch Table');
+							throw new Error('E_NO_DISPATCH_TABLE');
+						}
+						return imp;
+					}
+				}
 			}
 
 
@@ -243,7 +257,6 @@ module.exports = function xGraph(__options={}) {
 			 */
 			async function initiate() {
 				log.i(`--Nexus/Initiate`);
-				ApexIndex = {};
 				let Setup = {};
 				let Start = {};
 				cacheInterface = new CacheInterface({
@@ -252,7 +265,6 @@ module.exports = function xGraph(__options={}) {
 
 
 				let cache = await cacheInterface.loadCache();
-				ApexIndex = cache.apexIndex;
 				Start = cache.start;
 				Setup = cache.setup;
 				Stop = Object.assign(Stop, cache.stop);
@@ -425,7 +437,6 @@ module.exports = function xGraph(__options={}) {
 			 * @callback fun 				the callback function to return to when finished
 			 */
 			function sendMessage(com, fun = _ => _) {
-				// log.d('NEXUS MESSAGE:', com)
 				if (!('Passport' in com)) {
 					log.w('Message has no Passport, ignored');
 					log.w('    ' + JSON.stringify(com));
@@ -453,7 +464,8 @@ module.exports = function xGraph(__options={}) {
 					done(null, EntCache[pid]);
 					return;
 				} else {
-					getEntityContext(apx, pid, done);
+					// if(pid in ApexIndex) apx = pid;
+					getEntityContext(pid, done);
 				}
 
 				function done(err, entContext) {
@@ -464,7 +476,7 @@ module.exports = function xGraph(__options={}) {
 						return;
 					}
 
-					if ((pid in ApexIndex) || (entContext.Par.Apex == apx)) {
+					if ((pid in cacheInterface.ApexIndex) || (entContext.Par.Apex == apx)) {
 						entContext.dispatch(com, reply);
 					} else {
 						let err = 'Trying to send a message to a non-Apex'
@@ -685,11 +697,11 @@ module.exports = function xGraph(__options={}) {
 					return;
 				}
 
-				var impkey = Path.join(ApexIndex[apx], par.Entity);
-				var mod = ModCache[ApexIndex[apx]];
+				var impkey = Path.join(cacheInterface.ApexIndex[apx], par.Entity);
+				var mod = ModCache[cacheInterface.ApexIndex[apx]];
 
 				if (!(par.Entity in mod.files)) {
-					log.e('<' + par.Entity + '> not in module <' + ApexIndex[apx] + '>');
+					log.e('<' + par.Entity + '> not in module <' + cacheInterface.ApexIndex[apx] + '>');
 					fun('Null entity');
 					return;
 				}
@@ -702,7 +714,7 @@ module.exports = function xGraph(__options={}) {
 				}
 
 				par.Pid = par.Pid || genPid();
-				par.Module = ApexIndex[apx];
+				par.Module = cacheInterface.ApexIndex[apx];
 				par.Apex = apx;
 
 				EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
@@ -717,7 +729,7 @@ module.exports = function xGraph(__options={}) {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function deleteEntity(apx, pid, fun = _ => _) {
-				let apxpath = `${__options.cache}/${ApexIndex[apx]}/${apx}/`;
+				let apxpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}/${apx}/`;
 
 				let rmList = [];
 				//we first check to see if it's an apex
@@ -752,7 +764,7 @@ module.exports = function xGraph(__options={}) {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
-				let modpath = `${__options.cache}/${ApexIndex[apx]}`;
+				let modpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}`;
 				let apxpath = `${modpath}/${apx}`;
 				let entpath = `${apxpath}/${pid}.json`;
 
@@ -766,7 +778,7 @@ module.exports = function xGraph(__options={}) {
 							//the following code is deprecated since including deferred modules all module zip files
 							//must exist in the cache prior to starting the system
 
-							fun(`No Directory for the requested module: ${ApexIndex[apx]}`);
+							fun(`No Directory for the requested module: ${cacheInterface.ApexIndex[apx]}`);
 						}
 					})
 				});
@@ -784,12 +796,12 @@ module.exports = function xGraph(__options={}) {
 								checkEntity();
 							} else {
 								var schema = await new Promise(async (res, rej) => {
-									if ('schema.json' in ModCache[ApexIndex[apx]]) {
-										ModCache[ApexIndex[apx]].file('schema.json').async('string').then(function (schemaString) {
+									if ('schema.json' in ModCache[cacheInterface.ApexIndex[apx]]) {
+										ModCache[cacheInterface.ApexIndex[apx]].file('schema.json').async('string').then(function (schemaString) {
 											res(JSON.parse(schemaString));
 										});
 									} else {
-										log.e('Module <' + ApexIndex[apx] + '> schema not in ModCache');
+										log.e('Module <' + cacheInterface.ApexIndex[apx] + '> schema not in ModCache');
 										res();
 										return;
 									}
@@ -870,9 +882,8 @@ module.exports = function xGraph(__options={}) {
 			 * @param {string} str 			the string of the module to require
 			 */
 			function loadDependency(apx, pid, str) {
-				// log.d(`Nexus::loadDependency (${apx}, ${pid}, ${str})`);
 
-				let moduleType = ApexIndex[apx];
+				let moduleType = cacheInterface.ApexIndex[apx];
 				return cacheInterface.loadDependency(moduleType, str)
 			}
 
@@ -883,13 +894,12 @@ module.exports = function xGraph(__options={}) {
 			 * @param {string} pid 		the pid of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function getEntityContext(apx, pid, fun = _ => _) {
+			function getEntityContext(pid, fun = _ => _) {
 				let imp;
 				let par;
 				let ent;
-				let moduleType = ApexIndex[pid];
 
-				cacheInterface.getEntityPar(moduleType, apx, pid, (err, data) => {
+				cacheInterface.getEntityPar(pid, (err, data) => {
 					if (err) {
 						log.e(`Error retrieving a ${moduleType} from cache. Pid: ${pid}`);
 						log.e(err);
@@ -897,23 +907,22 @@ module.exports = function xGraph(__options={}) {
 						return;
 					}
 					let par = JSON.parse(data.toString());
-					let impkey = moduleType + '/' + par.Entity;
+					let impkey = par.Module + '/' + par.Entity;
 					let imp;
 					if (impkey in ImpCache) {
 						BuildEnt();
 						return;
 					}
 
-					GetModule(moduleType, async function (err, mod) {
-						log.d('GetModule');
+					GetModule(par.Module, async function (err, mod) {
 						if (err) {
-							log.e('Module <' + moduleType + '> not available');
+							log.e('Module <' + par.Module + '> not available');
 							fun('Module not available');
 							return;
 						}
 
 						if (!(par.Entity in mod.files)) {
-							log.e('<' + par.Entity + '> not in module <' + moduleType + '>');
+							log.e('<' + par.Entity + '> not in module <' + par.Module + '>');
 							fun('Null entity');
 							return;
 						}
@@ -922,7 +931,7 @@ module.exports = function xGraph(__options={}) {
 							mod.file(par.Entity).async("string").then((string) => res(string))
 						});
 
-						log.v(`Spinning up entity ${moduleType}-${par.Entity.split('.')[0]}`);
+						log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
 						ImpCache[impkey] = indirectEvalImp(entString);
 						BuildEnt();
 					});
@@ -973,7 +982,7 @@ module.exports = function xGraph(__options={}) {
 								return;
 							}
 							let pidapx = symbols[moduleKey];
-							ApexIndex[pidapx] = inst.Module;
+							cacheInterface.ApexIndex[pidapx] = inst.Module;
 
 
 							for (let key in inst.Par) {
@@ -986,8 +995,6 @@ module.exports = function xGraph(__options={}) {
 											inst.Par[key] = symbols[symbol];
 										} else {
 											log.w(`${symbol} not in Module key list`);
-											log.d(symbol);
-											log.d(symbols);
 											log.v(`${Object.keys(symbols)}`)
 										}
 									}
@@ -1220,7 +1227,6 @@ module.exports = function xGraph(__options={}) {
 			 * @returns mod
 			 */
 			function GetModule(ModName, fun = _ => _) {
-				log.d('Nexus::GetModule');
 				ModName = ModName.replace(/\:\//g, '.');
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
 				else cacheInterface.getModule(ModName, (err, moduleZip) => {

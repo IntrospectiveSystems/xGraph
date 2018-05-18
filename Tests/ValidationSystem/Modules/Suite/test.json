@@ -22,6 +22,22 @@
 		},
 		{
 			"Command": {
+				"Cmd": "SendEntitySleeping"
+			},
+			"Response": {
+				"Cmd": "SendEntitySleeping"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SendModuleSleeping"
+			},
+			"Response": {
+				"Cmd": "SendModuleSleeping"
+			}
+		},
+		{
+			"Command": {
 				"Cmd": "StartCalled"
 			},
 			"Response": {

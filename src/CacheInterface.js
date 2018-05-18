@@ -10,6 +10,14 @@ module.exports = class CacheInterface {
 		// this.loadCache();
 	}
 
+	get ApexIndex() {
+		return this._apexIndex;
+	}
+
+	set ApexIndex(val) {
+		this._apexIndex = val;
+	}
+
 	getModule(moduleType, fun = _ => _) {
 		let __options = this.__options;
 		let that = this;
@@ -18,12 +26,9 @@ module.exports = class CacheInterface {
 		let cachedMod;
 		
 		if(this._version < ver130) {
-			log.d('old');
 			cachedMod = Path.join(__options.path, moduleType, 'Module.zip');
 		}else {
-			log.d('new');
 			cachedMod = Path.join(__options.path, 'System', moduleType, 'Module.zip');
-			log.d(cachedMod);
 		}
 
 		fs.lstat(cachedMod, function (err, stat) {
@@ -54,20 +59,19 @@ module.exports = class CacheInterface {
 		});
 	}
 	
-	getEntityPar(moduleType, apx, pid, fun = _ => _) {
-		log.d('getEntityPar', moduleType, apx, pid);
+	getEntityPar(pid, fun = _ => _) {
+
+		let apx = this._entIndex[pid];
+		let moduleType = this._apexIndex[pid];
+
 		let __options = this.__options;
 		let that = this;
 		let path;
-		// log.d(this._version);
 
 		if(this._version < ver130) {
-			log.d('old');
 			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
 		}else {
-			log.d('new');
 			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
-			log.d(path);
 		}
 
 		fs.readFile(path, fun);
@@ -77,7 +81,7 @@ module.exports = class CacheInterface {
 		let __options = this.__options;
 		let that = this;
 		let manifestPath = Path.join(__options.path, '.cache');
-		let setup = {}, start = {}, stop = {}, apexIndex = {};
+		let setup = {}, start = {}, stop = {}, apexIndex = {}, entIndex = {};
 		let manifest = await new Promise(resolve => {
 			fs.lstat(manifestPath, (err, stat) => {
 				if(!err && stat.isFile()) {
@@ -96,7 +100,6 @@ module.exports = class CacheInterface {
 			modulesDirectory = Path.join(__options.path, 'System');
 		}
 
-		log.d(modulesDirectory);
 		// await new Promise(res => fs.readFile(Path.__options``)
 		// let modulesFolder = Path.join(__options.path, '');
 		var folders = fs.readdirSync(modulesDirectory);
@@ -104,7 +107,6 @@ module.exports = class CacheInterface {
 
 		for (var ifold = 0; ifold < folders.length; ifold++) {
 			let folder = folders[ifold];
-			log.d(folder);
 			let path = Path.join(modulesDirectory, folder, 'Module.zip');
 			if (!fs.existsSync(path))
 				continue;
@@ -116,7 +118,6 @@ module.exports = class CacheInterface {
 				var instancefiles = fs.readdirSync(dir);
 				for (var ifile = 0; ifile < instancefiles.length; ifile++) {
 					var file = instancefiles[ifile];
-
 					//check that it's an instance of the module
 					if (file.length !== 32)
 						continue;
@@ -126,6 +127,10 @@ module.exports = class CacheInterface {
 						apexIndex[file] = folder;
 						let instJson = JSON.parse(fs.readFileSync(Path.join(path, `${file}.json`)));
 
+						for(let filename of fs.readdirSync(path)) {
+							entIndex[Path.parse(filename).name] = file;
+						}
+
 						if ('$Setup' in instJson)
 							setup[file] = instJson.$Setup;
 						if ('$Start' in instJson)
@@ -133,16 +138,19 @@ module.exports = class CacheInterface {
 						if ('$Stop' in instJson)
 							stop[file] = instJson.$Stop;
 
-						// log.d(file);
 					}
 				}
 			}
 		}
 
 		log.v('ApexIndex', JSON.stringify(apexIndex, null, 2));
+		log.v('EntIndex', JSON.stringify(entIndex, null, 2));
 		log.v('Setup', JSON.stringify(setup, null, 2));
 		log.v('Start', JSON.stringify(start, null, 2));
 		log.v('Stop', JSON.stringify(stop, null, 2));
+
+		this._entIndex = entIndex;
+		this._apexIndex = apexIndex;
 
 		return {apexIndex, setup, start, stop};
 	}

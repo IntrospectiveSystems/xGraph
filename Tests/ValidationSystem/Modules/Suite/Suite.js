@@ -25,6 +25,18 @@
 			})
 		}
 
+		SendEntitySleeping(com, fun) {
+			this.send({Cmd: 'Ping'}, this.Par.C, (err, cmd) => {
+				fun(err, com);
+			})
+		}
+
+		SendModuleSleeping(com, fun) {
+			this.send({Cmd: 'Ping'}, this.Par.Asleep, (err, cmd) => {
+				fun(err, com);
+			})
+		}
+
 		Ping(com, fun) {
 			fun(null, com);
 		}
