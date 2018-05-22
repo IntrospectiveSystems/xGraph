@@ -592,8 +592,9 @@ function genesis(__options = {}) {
 					cmd.Cmd = "GetModule";
 					cmd.Name = modnam;
 					cmd.Passport = {
-						"Disp": "Query"
-					}
+						Disp: "Query",
+						Pid: genPid()
+					};
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
