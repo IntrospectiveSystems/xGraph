@@ -656,7 +656,11 @@ function genesis(__options = {}) {
 						let response = Fifo.shift();
 						let err = null;
 						if (Array.isArray(response)) [err, response] = response;
-						fun(err, Buffer.from(response.Module, 'base64'));
+						if (err) {
+							fun(err);
+						} else {
+							fun(err, Buffer.from(response.Module, 'base64'));
+						}
 						sock.end();
 						sock.destroy();
 					}
