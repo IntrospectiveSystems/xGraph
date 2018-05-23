@@ -443,11 +443,11 @@ Examples:
 			};
 		})();
 
-		let returnVal = argIterator.next();
+		let argumentObject = argIterator.next();
 
-		while ('value' in returnVal) {
-			let argument = returnVal.value;
-			let i = returnVal.index;
+		while ('value' in argumentObject) {
+			let argument = argumentObject.value;
+			let i = argumentObject.index;
 
 			if (typeof argument == 'undefined') {
 				console.error('error parsing Switches');
@@ -458,37 +458,43 @@ Examples:
 				applySwitch(key, i);
 			}
 
-			returnVal = argIterator.next();
+			argumentObject = argIterator.next();
 		}
 
-		//sanitize and default cwd
+		// sanitize and default cwd
 		if ('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
 			pathOverrides['cwd'] = path.normalize(pathOverrides['cwd']);
 		} else {
 			pathOverrides['cwd'] = path.normalize(process.cwd());
 		}
 
-		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
+		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
+		if(!fs.existsSync(pathOverrides.cwd)){
+			console.error('--cwd '+ pathOverrides.cwd +' does not exist.');
+			process.exit(1);
+		}
+
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
 
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
 
-		pathOverrides.cwd = path.resolve(pathOverrides.cwd || process.cwd());
 
 		if (!path.isAbsolute(pathOverrides.cache)) {
 			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
 		}
 
-		function applySwitch(str, i) {
-			let remainingArgs = args.length - i - 1;
+		function applySwitch(argumentString, i) {
+			let numRemainingArgs = args.length - i - 1;
 
-			if (remainingArgs >= 1) { // switch has another argument
-				if (!args[i + 1].startsWith('--')) {
+			if (numRemainingArgs >= 1) { // switch has another argument
+				let nextArg = args[i + 1];
+				if (!nextArg.startsWith('--')) {
 					//if its just some more plain text, not another switch
 					//we add it to path overrides
-					pathOverrides[str.toLowerCase()] = args[i + 1];
+					pathOverrides[argumentString.toLowerCase()] = args[i + 1];
 					argIterator.delete(2);
 				} else {
 					//otherwise, we add it to flags
