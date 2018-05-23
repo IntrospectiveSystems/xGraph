@@ -420,12 +420,16 @@ Examples:
 	}
 
 	function processSwitches() {
-		let argLoop = (() => {
+		let argIterator = (() => {
 			let nextIndex = 0;
 			return {
 				next: () => {
 					if (nextIndex < args.length) {
-						let obj = { value: args[nextIndex], idx: (nextIndex), done: false };
+						let obj = {
+							value: args[nextIndex],
+							index: (nextIndex),
+							done: false
+						};
 						nextIndex++;
 						return obj;
 					} else {
@@ -439,22 +443,22 @@ Examples:
 			};
 		})();
 
-		let returnVal = argLoop.next();
+		let returnVal = argIterator.next();
 
 		while ('value' in returnVal) {
-			let str = returnVal.value;
-			let i = returnVal.idx;
+			let argument = returnVal.value;
+			let i = returnVal.index;
 
-			if (typeof str == 'undefined') {
+			if (typeof argument == 'undefined') {
 				console.error('error parsing Switches');
 				process.exit(1);
 			}
-			if (str.startsWith('--')) {
+			if (argument.startsWith('--')) {
 				let key = args[i].slice(2);
 				applySwitch(key, i);
 			}
 
-			returnVal = argLoop.next();
+			returnVal = argIterator.next();
 		}
 
 		//sanitize and default cwd
@@ -479,17 +483,13 @@ Examples:
 
 		function applySwitch(str, i) {
 			let remainingArgs = args.length - i - 1;
-			// if (str == "debug") {
-			// 	console.log("Doing the debug thing");
-			// 	argLoop.delete(1);
-			// 	return;
-			// }
+
 			if (remainingArgs >= 1) { // switch has another argument
 				if (!args[i + 1].startsWith('--')) {
-					//if its justt some more plain text, not another switch
+					//if its just some more plain text, not another switch
 					//we add it to path overrides
 					pathOverrides[str.toLowerCase()] = args[i + 1];
-					argLoop.delete(2);
+					argIterator.delete(2);
 				} else {
 					//otherwise, we add it to flags
 					flags[str.toLowerCase()] = true;
