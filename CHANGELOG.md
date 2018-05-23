@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compilation now recognises Bower components required by modules in `@system`
 
 ### Changed
+- Updated xgraph generate <system|module> to accept a 
 - Compilation split into 3 phases:
   1. `@system` directives
   2. Other `@` directives

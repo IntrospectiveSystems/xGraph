@@ -560,8 +560,8 @@ Examples:
 			console.log("Generating system in directory: ", systemPath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
-				thisDirectory = makeDirectories[i];
-				if (thisDirectory && thisDirectory != "") {
+				if (makeDirectories[i] && makeDirectories[i] != "") {
+					thisDirectory = makeDirectories[i];
 					makePath += path.sep+thisDirectory;
 					makeDirectory(makePath);
 				}
@@ -617,8 +617,9 @@ Examples:
 			console.log("Generating module in directory: ", modulePath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
-				thisDirectory = makeDirectories[i];
-				if (thisDirectory && thisDirectory != "") {
+
+				if (makeDirectories[i] && makeDirectories[i] != "") {
+					thisDirectory = makeDirectories[i];
 					makePath += path.sep+thisDirectory;
 					makeDirectory(makePath);
 				}
