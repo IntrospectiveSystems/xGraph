@@ -127,6 +127,7 @@ function genesis(__options = {}) {
 			}
 			process.on('unhandledRejection', (reason, p) => {
 				log.e('------- [Unhandled Promise Rejection] -------');
+				log.e(reason.message);
 				log.e(reason.stack);
 				log.e('------- [/Unhandled Promise Rejection] ------');
 				process.exit(1);
@@ -1301,6 +1302,9 @@ function genesis(__options = {}) {
 					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
+
+							if('Sources' in Config); else
+								return rej(new Error('ERR_NO_SOURCES'));
 
 							let modrequest = {
 								"Module": folder,
