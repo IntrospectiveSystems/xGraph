@@ -420,12 +420,16 @@ Examples:
 	}
 
 	function processSwitches() {
-		let argLoop = (() => {
+		let argIterator = (() => {
 			let nextIndex = 0;
 			return {
 				next: () => {
 					if (nextIndex < args.length) {
-						let obj = { value: args[nextIndex], idx: (nextIndex), done: false };
+						let obj = {
+							value: args[nextIndex],
+							index: (nextIndex),
+							done: false
+						};
 						nextIndex++;
 						return obj;
 					} else {
@@ -439,57 +443,59 @@ Examples:
 			};
 		})();
 
-		let returnVal = argLoop.next();
+		let argumentObject = argIterator.next();
 
-		while ('value' in returnVal) {
-			let str = returnVal.value;
-			let i = returnVal.idx;
+		while ('value' in argumentObject) {
+			let argument = argumentObject.value;
+			let i = argumentObject.index;
 
-			if (typeof str == 'undefined') {
+			if (typeof argument == 'undefined') {
 				console.error('error parsing Switches');
 				process.exit(1);
 			}
-			if (str.startsWith('--')) {
+			if (argument.startsWith('--')) {
 				let key = args[i].slice(2);
 				applySwitch(key, i);
 			}
 
-			returnVal = argLoop.next();
+			argumentObject = argIterator.next();
 		}
 
-		//sanitize and default cwd
+		// sanitize and default cwd
 		if ('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
 			pathOverrides['cwd'] = path.normalize(pathOverrides['cwd']);
 		} else {
 			pathOverrides['cwd'] = path.normalize(process.cwd());
 		}
 
-		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
+		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
+		if(!fs.existsSync(pathOverrides.cwd)){
+			console.error('--cwd '+ pathOverrides.cwd +' does not exist.');
+			process.exit(1);
+		}
+
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
 
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
 
-		pathOverrides.cwd = path.resolve(pathOverrides.cwd || process.cwd());
 
 		if (!path.isAbsolute(pathOverrides.cache)) {
 			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
 		}
 
-		function applySwitch(str, i) {
-			let remainingArgs = args.length - i - 1;
-			// if (str == "debug") {
-			// 	console.log("Doing the debug thing");
-			// 	argLoop.delete(1);
-			// 	return;
-			// }
-			if (remainingArgs >= 1) { // switch has another argument
-				if (!args[i + 1].startsWith('--')) {
-					//if its justt some more plain text, not another switch
+		function applySwitch(argumentString, i) {
+			let numRemainingArgs = args.length - i - 1;
+
+			if (numRemainingArgs >= 1) { // switch has another argument
+				let nextArg = args[i + 1];
+				if (!nextArg.startsWith('--')) {
+					//if its just some more plain text, not another switch
 					//we add it to path overrides
-					pathOverrides[str.toLowerCase()] = args[i + 1];
-					argLoop.delete(2);
+					pathOverrides[argumentString.toLowerCase()] = args[i + 1];
+					argIterator.delete(2);
 				} else {
 					//otherwise, we add it to flags
 					flags[str.toLowerCase()] = true;
