@@ -1303,8 +1303,15 @@ function genesis(__options = {}) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
 
-							if('Sources' in Config); else
+							if(!('Sources' in Config)) {
+								log.e('No Sources object present in config!');
 								return rej(new Error('ERR_NO_SOURCES'));
+							}
+
+							if(!(Modules[folder] in Config.Sources)) {
+								log.e(`${Modules[folder]} not in Sources!`);
+								return rej(new Error('ERR_NOT_IN_SOURCES'));
+							}
 
 							let modrequest = {
 								"Module": folder,
