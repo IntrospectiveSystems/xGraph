@@ -36,7 +36,6 @@ let cli = function (argv) {
 	let subcommand = '';
 	let flags = {};
 
-
 	let windows, mac, linux, unix, system;
 
 	switch (process.platform) {
@@ -292,7 +291,7 @@ Examples:
 				setTimeout(_ => {
 					// process.chdir(originalCwd);
 					cli(originalArgv);
-				}, 1000);
+				}, 5000);
 			}
 		});
 

@@ -360,7 +360,6 @@
 
 							// -------------------------- Pid interchange
 							if(com.PidInterchange) {
-								// log.d(`read pid interchange for command`, com);
 								com = await recurse(com);
 
 								async function recurse(obj) {

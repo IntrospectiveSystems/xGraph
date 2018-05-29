@@ -1,5 +1,6 @@
 module.exports = genesis;
 function genesis(__options = {}) {
+	
 
 	function checkFlag(flag) {
 		// console.dir(__options);
@@ -29,7 +30,7 @@ function genesis(__options = {}) {
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
 		const proc = require('child_process');
-		let jszip = null;
+		const jszip = require("jszip");
 
 		let log;
 		let Uuid;
@@ -124,11 +125,11 @@ function genesis(__options = {}) {
 				console.timers[_] = undefined;
 				log.i(`${_}: ${elapsed}ms`);
 			}
-			process.on('unhandledRejection', event => {
-				log.e('------------------ [Stack] ------------------');
-				log.e(`line ${event.lineNumber}, ${event}`);
-				log.e(event.stack);
-				log.e('------------------ [/Stack] -----------------');
+			process.on('unhandledRejection', (reason, p) => {
+				log.e('------- [Unhandled Promise Rejection] -------');
+				log.e(reason.message);
+				log.e(reason.stack);
+				log.e('------- [/Unhandled Promise Rejection] ------');
 				process.exit(1);
 			});
 		}
@@ -418,10 +419,12 @@ function genesis(__options = {}) {
 				// Write cache to CacheDir
 				let npmDependenciesArray = [];
 				for (let folder in ModCache) {
-					let dir = CacheDir + '/' + folder;
-					try { fs.mkdirSync(dir); } catch (e) { }
+					let entdir = Path.join(CacheDir, "System", folder);
+					let libdir = Path.join(CacheDir, "Lib", folder);
+					try { fs.mkdirSync(entdir); } catch (e) { }
+					try { fs.mkdirSync(libdir); } catch (e) { }
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
-					let path = dir + '/Module.zip';
+					let path = Path.join(entdir, 'Module.zip');
 					fs.writeFileSync(path, ModCache[folder]);
 
 					const zipmod = new jszip();
@@ -435,12 +438,12 @@ function genesis(__options = {}) {
 									log.v(packageString);
 
 									//write the compiled package.json to disk
-									fs.writeFileSync(Path.join(dir, 'package.json'), packageString);
+									fs.writeFileSync(Path.join(libdir, 'package.json'), packageString);
 									//call npm install on a childprocess of node
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
 
-									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(dir) });
-
+									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(libdir) });
+									
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
 									npmInstallProcess.stderr.on('data', process.stderr.write);
@@ -463,7 +466,7 @@ function genesis(__options = {}) {
 											process.exit(1);
 											reject();
 										}
-										fs.unlinkSync(Path.join(dir, 'package.json'));
+										fs.unlinkSync(Path.join(libdir, 'package.json'));
 										resolve();
 									});
 								});
@@ -509,10 +512,10 @@ function genesis(__options = {}) {
 					folder = inst.Module;
 					// The following is for backword compatibility only
 					var folder = folder.replace(/[\/\:]/g, '.');
-					var dirinst = CacheDir + '/' + folder + '/' + pidinst;
+					var dirinst = Path.join(CacheDir, 'System', folder, pidinst);
 					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
-						let path = dirinst + '/' + ent.Pid + '.json';
+						let path = Path.join(dirinst, `${ent.Pid}.json`);
 						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
 					});
 				}
@@ -590,8 +593,9 @@ function genesis(__options = {}) {
 					cmd.Cmd = "GetModule";
 					cmd.Name = modnam;
 					cmd.Passport = {
-						"Disp": "Query"
-					}
+						Disp: "Query",
+						Pid: genPid()
+					};
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
@@ -653,7 +657,11 @@ function genesis(__options = {}) {
 						let response = Fifo.shift();
 						let err = null;
 						if (Array.isArray(response)) [err, response] = response;
-						fun(err, Buffer.from(response.Module, 'base64'));
+						if (err) {
+							fun(err);
+						} else {
+							fun(err, Buffer.from(response.Module, 'base64'));
+						}
 						sock.end();
 						sock.destroy();
 					}
@@ -1075,21 +1083,27 @@ function genesis(__options = {}) {
 				if (!packagejson.dependencies) packagejson.dependencies = {};
 
 				//include Genesis/Nexus required npm modules
-				packagejson.dependencies["uuid"] = "3.1.0";
-				packagejson.dependencies["jszip"] = "3.1.3";
+				// packagejson.dependencies["uuid"] = "3.1.0";
+				// packagejson.dependencies["jszip"] = "3.1.3";
 
 
 				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				try { fs.mkdirSync(CacheDir); } catch (e) { }
+				try { fs.mkdirSync(CacheDir); } catch (e) {}
+				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'System')); } catch (e) {}
+				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'Lib')); } catch (e) {}
+
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
+				fs.writeFileSync(Path.join(Path.resolve(CacheDir), '.cache'), JSON.stringify({
+					version: '1.3.0'
+				}, '\t', 1));
 
 				//call npm install on a childprocess of node
 
 				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
 				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
-				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+				// module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 
 				ps.stdout.on('data', _ => {
 					// process.stdout.write(_) 
@@ -1113,7 +1127,6 @@ function genesis(__options = {}) {
 						reject();
 					}
 					fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
-					jszip = require("jszip");
 					resolve();
 				});
 			});
@@ -1163,7 +1176,7 @@ function genesis(__options = {}) {
 		 */
 		function genPid() {
 			if (!Uuid) {
-				module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+				// module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 				Uuid = require('uuid/v4');
 			}
 			var str = Uuid();
@@ -1177,6 +1190,7 @@ function genesis(__options = {}) {
 		 * @param {string} path the directory to be recursively removed
 		 */
 		function remDir(path) {
+			
 			var files = [];
 			if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);
@@ -1288,6 +1302,16 @@ function genesis(__options = {}) {
 					for (let ifolder = 0; ifolder < moduleKeys.length; ifolder++) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
+
+							if(!('Sources' in Config)) {
+								log.e('No Sources object present in config!');
+								return rej(new Error('ERR_NO_SOURCES'));
+							}
+
+							if(!(Modules[folder] in Config.Sources)) {
+								log.e(`${Modules[folder]} not in Sources!`);
+								return rej(new Error('ERR_NOT_IN_SOURCES'));
+							}
 
 							let modrequest = {
 								"Module": folder,

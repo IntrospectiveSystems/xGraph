@@ -12,7 +12,6 @@
 		 */
 		async GenModule(com, fun) {
 			this.genModule(this.Par.ModuleDefinition, async (err, apx) => {
-				// log.d(`Gen Module Surrogate recieved entity [${apx}]`);
 				com.Pid = pidInterchange(apx);
 				com.PidInterchange = true;
 				fun(null, com);
