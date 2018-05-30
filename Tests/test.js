@@ -4,6 +4,8 @@ const { spawn, execSync } = require('child_process');
 const which = require('which');
 const fs = require('fs');
 const rimraf = require('rmdir-recursive').sync
+const fast = process.argv.indexOf('--fast') > -1;
+const full = !fast;
 
 function exec(cmd, checkLength = false) {
 	return new Promise(async (resolve) => {
@@ -115,8 +117,8 @@ switch(process.platform) {
 		
 		//build standalone version
 		{
-			await exec('npm run build');
-			await exec(`${nativePath} -v`, true);
+			if(full) await exec('npm run build');
+			if(full) await exec(`${nativePath} -v`, true);
 			// await exec('npm run build');
 		}
 
@@ -144,7 +146,7 @@ switch(process.platform) {
 		}
 		
 		// run tests on standalone version
-		{
+		if (full) {
 			await exec(`${nativePath} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 			await exec(`${nativePath} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 			await exec(`${nativePath} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
@@ -155,12 +157,12 @@ switch(process.platform) {
 		
 		// run tests on npm version
 		{
-			await exec('xgraph c --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			await exec('xgraph d --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
+			if(full) await exec('xgraph c --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
+			if(full) await exec('xgraph d --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
 			await exec('xgraph r --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			rimraf('ValidationSystem/cache');
-			await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
+			if(full) await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
+			if(full) rimraf('ValidationSystem/cache');
+			if(full) await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
 		}
 
 		console.log('\u001b[42;30mAll Tests passed Successfully!\nCongratulations, you\'re ready to merge!\u001b[0m');
