@@ -209,10 +209,7 @@ module.exports = function xGraph(__options={}) {
 
 			function indirectEvalImp(entString) {
 				//sanitize entString!
-				log.d(entString);
 				entString = stripComments(entString).trim();
-				log.d('STRIPPING')
-				log.d(entString);
 
 				let imp = (1, eval)(entString);
 				if(typeof imp != 'undefined') {
