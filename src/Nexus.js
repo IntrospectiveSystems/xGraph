@@ -35,9 +35,11 @@ module.exports = function xGraph(__options={}) {
 
 			const fs = require('fs');
 			const Path = require('path');
-			const jszip = require("jszip");
 			const endOfLine = require('os').EOL;
+
+			const jszip = require("jszip");
 			const Uuid = require('uuid/v4');
+			const stripComments = require('strip-comments');
 
 			var consoleNotification = false;
 			let cacheInterface;
@@ -206,6 +208,12 @@ module.exports = function xGraph(__options={}) {
 			}
 
 			function indirectEvalImp(entString) {
+				//sanitize entString!
+				log.d(entString);
+				entString = stripComments(entString).trim();
+				log.d('STRIPPING')
+				log.d(entString);
+
 				let imp = (1, eval)(entString);
 				if(typeof imp != 'undefined') {
 					if(!('dispatch' in imp)) {

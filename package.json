@@ -31,6 +31,7 @@
     "npm": "5.8.0",
     "osx-pkg": "1.0.0",
     "rimraf": "2.6.2",
+    "strip-comments": "^1.0.2",
     "targz": "1.0.1",
     "typescript": "2.5.3"
   }
