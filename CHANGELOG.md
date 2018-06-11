@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.3.0] [Unreleased]
 ### Added
 - Compilation now recognises Bower components required by modules in `@system`
+- Entity fiels can now be written as a class, with methods mirroring the
+  messages the entity accepts
 
 ### Changed
-- Updated xgraph generate <system|module> to accept a 
 - Compilation split into 3 phases:
   1. `@system` directives
   2. Other `@` directives
