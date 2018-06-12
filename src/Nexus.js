@@ -685,11 +685,12 @@ module.exports = function xGraph(__options={}) {
 			/**
 			 * Create an Entity from the given par in the module defined by apx
 			 * The entity is then stored in EntCache (the location of all "in Memory" entities)
-			 * @param {string} apx 		the Pid of the module Apex in which this entity will be generated
-			 * @param {object} par 		the Par of the entity that will be created
-			 * @param {string} par.Entity The entity type that will be generated
-			 * @param {string=} par.Pid	the pid to define as the pid of the entity
-			 * @callback fun 			the callback to return the pid of the generated entity to
+			 * @param {string} apx 			the Pid of the module Apex in which this entity will be generated
+			 * @param {object} par 			the Par of the entity that will be created
+			 * @param {string} par.Entity 	The entity type that will be generated
+			 * @param {string=} par.Pid		the pid to define as the pid of the entity
+			 * @return {pid} par.Pid		the pid of the generated entity
+			 * @callback fun
 			 */
 			async function genEntity(apx, par, fun = _ => log.e(_)) {
 				if (!("Entity" in par)) {
