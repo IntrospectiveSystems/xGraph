@@ -76,14 +76,19 @@
 		}
 
 		GenEntityTest(com, fun) {
-			this.genEntity({
+			let entity = {
 				"Entity": "Suite.js",
 				"$Setup": "SetupCommand",
 				"$Start": "StartCommand"
-			}, (err, apx) => {
+			};
+
+			let callback = ((err, apx) => {
 				this.Vlt.gennedEntity = com.Pid = apx;
 				fun(null, com);
 			});
+
+			this.genEntity(entity, callback);
+
 		}
 
 		TestGennedModule(com, fun) {

@@ -683,7 +683,7 @@ module.exports = function xGraph(__options={}) {
 			}
 
 			/**
-			 * Create an Entity from the given par in the module defined by apx
+			 * Creates an Entity in the module, which is defined by the apx, from the given entity definition
 			 * The entity is then stored in EntCache (the location of all "in Memory" entities)
 			 * @param {string} apx 			the Pid of the module Apex in which this entity will be generated
 			 * @param {object} par 			the Par of the entity that will be created
@@ -723,13 +723,13 @@ module.exports = function xGraph(__options={}) {
 			}
 
 			/**
-			 * Delete an entity file. If the entity is an Apex of a Module,
+			 * Delete an entity from the module's memory.  If the entity is an Apex of a Module,
 			 * then delete all the entities found in that module as well.
 			 * @param {string} apx 		the pid of the entities apex
 			 * @param {string} pid 		the pid of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function deleteEntity(apx, pid, fun = _ => _) {
+			function deleteEntity(apx, pid, fun) {
 				let apxpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}/${apx}/`;
 
 				let rmList = [];
@@ -754,7 +754,8 @@ module.exports = function xGraph(__options={}) {
 						delete EntCache[subpid];
 					}
 				}
-				fun(null, pid);
+				if(fun)
+					fun(null, pid);
 			}
 
 			/**
