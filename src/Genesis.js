@@ -421,8 +421,12 @@ function genesis(__options = {}) {
 				for (let folder in ModCache) {
 					let entdir = Path.join(CacheDir, "System", folder);
 					let libdir = Path.join(CacheDir, "Lib", folder);
-					try { fs.mkdirSync(entdir); } catch (e) { }
-					try { fs.mkdirSync(libdir); } catch (e) { }
+					try { fs.mkdirSync(entdir); } catch (e) {
+						debugger;
+					}
+					try { fs.mkdirSync(libdir); } catch (e) {
+						debugger;
+					}
 					log.v(`Writing Module ${folder} to ${CacheDir}`);
 					let path = Path.join(entdir, 'Module.zip');
 					fs.writeFileSync(path, ModCache[folder]);
@@ -512,11 +516,18 @@ function genesis(__options = {}) {
 					folder = inst.Module;
 					// The following is for backword compatibility only
 					var folder = folder.replace(/[\/\:]/g, '.');
+
 					var dirinst = Path.join(CacheDir, 'System', folder, pidinst);
-					try { fs.mkdirSync(dirinst); } catch (e) { }
+					try { fs.mkdirSync(dirinst); } catch (e) {
+						debugger;
+					}
 					ents.forEach(function (ent) {
 						let path = Path.join(dirinst, `${ent.Pid}.json`);
-						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
+						try{
+							fs.writeFileSync(path, JSON.stringify(ent, null, 2));
+						} catch (e) {
+							debugger;
+						}
 					});
 				}
 

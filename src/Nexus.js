@@ -101,6 +101,10 @@ module.exports = function xGraph(__options={}) {
 				// The logging function for writing to xgraph.log to the current working directory
 				const xgraphlog = (...str) => {
 					xgraphlog.buffer.lock((val) => val + `${log.parse(str)}${endOfLine}`);
+					if(!xgraphlog.busy) {
+						xgraphlog.busy = true;
+						xgraphlog.updateInterval();
+					}
 				};
 				xgraphlog.buffer = new Volatile("");
 				xgraphlog.updateInterval = async () => {
@@ -110,10 +114,16 @@ module.exports = function xGraph(__options={}) {
 						return "";
 					});
 					fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
-						process.nextTick(xgraphlog.updateInterval);
+						xgraphlog.buffer.lock(val => {
+							if(val !== '') {
+								// we have more in out buffer, keep calling out to the thing
+								process.nextTick(xgraphlog.updateInterval);
+							}else {
+								xgraphlog.busy = false;
+							}
+						});
 					});
 				}
-				xgraphlog.updateInterval();
 
 
 				// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
