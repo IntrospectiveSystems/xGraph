@@ -291,8 +291,8 @@ Examples:
 			if (_.exitCode == 72) {
 				setTimeout(_ => {
 					// process.chdir(originalCwd);
-					delete system;
-					delete cacheDir;
+					system = null
+					cacheDir = null;
 					cli(originalArgv);
 				}, 0);
 			}
