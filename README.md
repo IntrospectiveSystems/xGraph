@@ -16,7 +16,7 @@ Introspective Systems, LLC.
 
 The xGraph package comes with two main features: the xGraph core and the xGraph 
 Command Line Interface (CLI). The xGraph core architecture handles compiling, 
-instantiating and communication between xGraph systems. The xGraph CLI makes it 
+starting and communicating between xGraph systems. The xGraph CLI makes it 
 easy to interact with xGraph systems. You can easily install xGraph using the 
 npm package installer.
 
@@ -42,9 +42,9 @@ you can install xGraph locally using system-specific installation files, or comp
 native executables using npm build.  
 
 ##### Install using system-specific installation files
-You will installation files for the major operating systems (Windows, MacOS and Linux) 
-in the `./bin/` directory. To install the xGraph CLI, follow the instructions for your 
-operating system found below.
+You will find installation files for the major operating systems (Windows, MacOS and Linux) 
+in the `./bin/` directory. To install the xGraph CLI using system-specific installation files, 
+follow the instructions for your operating system found below.
 
 ##### For Windows:
 You can use the `xgraph.msi` file to install the xgraph CLI. Simply double
@@ -73,7 +73,6 @@ of unsigned packages in the security control panel.
 ##### For Linux:
 Simply unpack the installation file (.tar or .gz) and restart your terminal
 session.
-
 
 ##### Compile native executables
 In your command line tool, navigate to the root of your xGraph core repository. 
@@ -136,7 +135,7 @@ Command:
     execute     x|run                   : Run a system from it's cache, or
                                             it's system structure file if
                                             the cache does not exist.
-    generate <module|system>    g <m|s> : Generate a new module or system
+    generate < module|system>  g < m|s> : Generate a new module or system
                                             from a template with the given
                                             name.
 

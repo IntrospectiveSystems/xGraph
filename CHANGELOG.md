@@ -8,14 +8,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.3.0] [Unreleased]
 ### Added
 - Compilation now recognises Bower components required by modules in `@system`
-- Entity fiels can now be written as a class, with methods mirroring the
-  messages the entity accepts
+- Entity files can now be written as a simple class without the wrapping JavaScript function
 
 ### Changed
 - Compilation split into 3 phases:
   1. `@system` directives
   2. Other `@` directives
   3. Write cache to disk
+- xGraph CLI xgraph generate <module|system> now accepts either a path or a string and creates a system or module 
+  in the directory provided
 
 ## [1.2.1]
 ### Changed
