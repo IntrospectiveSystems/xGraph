@@ -1,11 +1,11 @@
-(function Asleep() {
-	class Asleep {
+/**
+ * This is a comment to test that comments will not bereak
+ * class-only entities.
+ */
+class Asleep {
 
-		Ping(com, fun) {
-			fun(null, com);
-		}
-
+	Ping(com, fun) {
+		fun(null, com);
 	}
 
-	return {dispatch: Asleep.prototype};
-})()
+}

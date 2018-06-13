@@ -287,11 +287,14 @@ Examples:
 		let system = new nexus(Object.assign(flags, pathOverrides));
 		system.on('exit', _ => {
 			// HACK: to restart systems
+			// HACK: to restart systems
 			if (_.exitCode == 72) {
 				setTimeout(_ => {
 					// process.chdir(originalCwd);
+					system = null
+					cacheDir = null;
 					cli(originalArgv);
-				}, 5000);
+				}, 0);
 			}
 		});
 

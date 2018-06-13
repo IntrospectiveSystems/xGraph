@@ -35,9 +35,11 @@ module.exports = function xGraph(__options={}) {
 
 			const fs = require('fs');
 			const Path = require('path');
-			const jszip = require("jszip");
 			const endOfLine = require('os').EOL;
+
+			const jszip = require("jszip");
 			const Uuid = require('uuid/v4');
+			const stripComments = require('strip-comments');
 
 			var consoleNotification = false;
 			let cacheInterface;
@@ -99,6 +101,10 @@ module.exports = function xGraph(__options={}) {
 				// The logging function for writing to xgraph.log to the current working directory
 				const xgraphlog = (...str) => {
 					xgraphlog.buffer.lock((val) => val + `${log.parse(str)}${endOfLine}`);
+					if(!xgraphlog.busy) {
+						xgraphlog.busy = true;
+						xgraphlog.updateInterval();
+					}
 				};
 				xgraphlog.buffer = new Volatile("");
 				xgraphlog.updateInterval = async () => {
@@ -108,10 +114,16 @@ module.exports = function xGraph(__options={}) {
 						return "";
 					});
 					fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
-						process.nextTick(xgraphlog.updateInterval);
+						xgraphlog.buffer.lock(val => {
+							if(val !== '') {
+								// we have more in out buffer, keep calling out to the thing
+								process.nextTick(xgraphlog.updateInterval);
+							}else {
+								xgraphlog.busy = false;
+							}
+						});
 					});
 				}
-				xgraphlog.updateInterval();
 
 
 				// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
@@ -206,6 +218,9 @@ module.exports = function xGraph(__options={}) {
 			}
 
 			function indirectEvalImp(entString) {
+				//sanitize entString!
+				entString = stripComments(entString).trim();
+
 				let imp = (1, eval)(entString);
 				if(typeof imp != 'undefined') {
 					if(!('dispatch' in imp)) {

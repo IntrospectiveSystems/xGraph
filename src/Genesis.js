@@ -121,9 +121,9 @@ function genesis(__options = {}) {
 			console.timeEnd = _ => {
 				if (!(_ in (console.timers || {})))
 					return;
-				let elapsed = console.microtime() - console.timers[_];
+				let elapsed = (console.microtime() - console.timers[_]) / 1000;
 				console.timers[_] = undefined;
-				log.i(`${_}: ${elapsed}ms`);
+				log.i(`${_}: ${elapsed.toFixed(2)}ms`);
 			}
 			process.on('unhandledRejection', (reason, p) => {
 				log.e('------- [Unhandled Promise Rejection] -------');
@@ -512,11 +512,14 @@ function genesis(__options = {}) {
 					folder = inst.Module;
 					// The following is for backword compatibility only
 					var folder = folder.replace(/[\/\:]/g, '.');
+
 					var dirinst = Path.join(CacheDir, 'System', folder, pidinst);
 					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
 						let path = Path.join(dirinst, `${ent.Pid}.json`);
-						fs.writeFileSync(path, JSON.stringify(ent, null, 2));
+						try{
+							fs.writeFileSync(path, JSON.stringify(ent, null, 2));
+						} catch (e) { }
 					});
 				}
 
@@ -535,6 +538,32 @@ function genesis(__options = {}) {
 		//
 		//
 
+		async function buildDir(path) {
+			let dirObj = {};
+			if (fs.existsSync(path)) {
+				files = fs.readdirSync(path);
+				let itemPromises = [];
+				for(let file of files) {
+					itemPromises.push(new Promise(async (resolve) => {
+						var curPath = path + "/" + file;
+						if (fs.lstatSync(curPath).isDirectory()) {
+							// recurse
+							dirObj[file] = await buildDir(curPath);
+							resolve();
+						} else {
+							fs.readFile(curPath, function(err, data) {
+								// log.v(curPath.length > 80 ? curPath.substr(0, 35) + ' ... ' + curPath.substr(-40, 40) : curPath);
+								dirObj[file] = data.toString()
+								resolve();
+							});
+							// dirObj[file] = fs.readFileSync(curPath).toString(encoding);
+						}
+					}));
+				}
+				await Promise.all(itemPromises);
+				return dirObj;
+			}
+		}
 
 		/**
 		 * For loading modules
@@ -1034,24 +1063,10 @@ function genesis(__options = {}) {
 									dir = val;
 								else
 									dir = Path.join(Path.resolve(systemPath), val);
-								return buildDir(dir);
-
-								function buildDir(path) {
-									let dirObj = {};
-									if (fs.existsSync(path)) {
-										files = fs.readdirSync(path);
-										files.forEach(function (file, index) {
-											var curPath = path + "/" + file;
-											if (fs.lstatSync(curPath).isDirectory()) {
-												// recurse
-												dirObj[file] = buildDir(curPath);
-											} else {
-												dirObj[file] = fs.readFileSync(curPath).toString(encoding);
-											}
-										});
-										return dirObj;
-									}
-								}
+								console.time('buildDir');
+								let _return = await buildDir(dir);
+								console.timeEnd('buildDir');
+								return _return;
 							} catch (err) {
 								log.e("Error reading directory ", path);
 								log.w(`Module ${modnam} may not operate as expected.`);
@@ -1100,35 +1115,35 @@ function genesis(__options = {}) {
 
 				//call npm install on a childprocess of node
 
-				var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-				var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
+				// var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
+				// var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
 
-				// module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
+				// // module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
 
-				ps.stdout.on('data', _ => {
-					// process.stdout.write(_) 
-				});
-				ps.stderr.on('data', _ => {
-					//process.stderr.write(_)
-				});
+				// ps.stdout.on('data', _ => {
+				// 	// process.stdout.write(_) 
+				// });
+				// ps.stderr.on('data', _ => {
+				// 	//process.stderr.write(_)
+				// });
 
 
-				ps.on('err', function (err) {
-					log.e('Failed to start child process.');
-					log.e('err:' + err);
-				});
+				// ps.on('err', function (err) {
+				// 	log.e('Failed to start child process.');
+				// 	log.e('err:' + err);
+				// });
 
-				ps.on('exit', async function (code) {
-					if (code == 0)
-						log.i('dependencies installed correctly');
-					else {
-						log.e('npm process exited with code:' + code);
-						process.exit(1);
-						reject();
-					}
-					fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
-					resolve();
-				});
+				// ps.on('exit', async function (code) {
+				// 	if (code == 0)
+				// 		log.i('dependencies installed correctly');
+				// 	else {
+				// 		log.e('npm process exited with code:' + code);
+				// 		process.exit(1);
+				// 		reject();
+				// 	}
+				// 	fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
+				// });
+				resolve();
 			});
 		}
 
@@ -1460,24 +1475,10 @@ function genesis(__options = {}) {
 										dir = val;
 									else
 										dir = Path.join(Path.resolve(systemPath), val);
-									return buildDir(dir);
-
-									function buildDir(path) {
-										let dirObj = {};
-										if (fs.existsSync(path)) {
-											files = fs.readdirSync(path);
-											files.forEach(function (file, index) {
-												var curPath = path + "/" + file;
-												if (fs.lstatSync(curPath).isDirectory()) {
-													// recurse
-													dirObj[file] = buildDir(curPath);
-												} else {
-													dirObj[file] = fs.readFileSync(curPath).toString(encoding);
-												}
-											});
-											return dirObj;
-										}
-									}
+									console.time('buildDir');
+									let _result = await buildDir(dir);
+									console.timeEnd('buildDir');
+									return _result;
 								} catch (err) {
 									log.e("Error reading directory ", path);
 									log.w(`Module ${modnam} may not operate as expected.`);
