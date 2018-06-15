@@ -3,7 +3,6 @@
 		async Start(com, fun) { this.save(_ => fun(null, com)); }
 
 		async GetHostAndPort(com, fun) {
-			log.d('GetHostAndPort Called')
 			this.Par.Port++;
 
 			let pid = com.Pid || com.Passport.From;

@@ -25,6 +25,18 @@
 			})
 		}
 
+		SendEntitySleeping(com, fun) {
+			this.send({Cmd: 'Ping'}, this.Par.C, (err, cmd) => {
+				fun(err, com);
+			})
+		}
+
+		SendModuleSleeping(com, fun) {
+			this.send({Cmd: 'Ping'}, this.Par.Asleep, (err, cmd) => {
+				fun(err, com);
+			})
+		}
+
 		Ping(com, fun) {
 			fun(null, com);
 		}
@@ -64,14 +76,19 @@
 		}
 
 		GenEntityTest(com, fun) {
-			this.genEntity({
+			let entity = {
 				"Entity": "Suite.js",
 				"$Setup": "SetupCommand",
 				"$Start": "StartCommand"
-			}, (err, apx) => {
+			};
+
+			let callback = ((err, apx) => {
 				this.Vlt.gennedEntity = com.Pid = apx;
 				fun(null, com);
 			});
+
+			this.genEntity(entity, callback);
+
 		}
 
 		TestGennedModule(com, fun) {
