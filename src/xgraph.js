@@ -598,23 +598,10 @@ let cli = function (argv) {
 				}
 			};
 
-			let jsTemplate =
-				`		
-			class ${name} {
-			\tSetup(com, fun) {
-			\t\t//this function is typically used to allow the entity/module to handle any internal setup
-			\t\t//procedures prior to being connected to by other entities/modules
+			let entityPath = path.join(__dirname, 'entity.js');
 
-			\t\tfun(null, com);
-			\t}
+			let jsTemplate = fs.readFileSync(entityPath);
 
-			\tStart(com, fun){
-			\t\t//this function is typically used to allow the entity/module to handle any external setup
-			\t\t//procedures
-
-			\t\tfun(null, com);
-			\t}
-			};`;
 
 			let moduleJson = {
 				"name": `${name}`,
