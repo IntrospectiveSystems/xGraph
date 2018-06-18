@@ -21,7 +21,7 @@ easy to interact with xGraph systems. You can easily install xGraph using the
 npm package installer.
 
 #### Getting Started with npm
-To install xGraph directly form npm, you will need the [npm package manager](https://www.npmjs.com/). 
+To install xGraph directly form npm, you will need the [node package manager](https://www.npmjs.com/). 
 Once you have installed npm, you can install xGraph using the package manager.
 
 In your command line tool, use the following command to install xGraph core 
