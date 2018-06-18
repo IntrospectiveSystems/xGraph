@@ -4,10 +4,11 @@ const fs = require('fs');
 const jszip = require('jszip');
 const ver130 = new SemVer('1.3');
 
+//This node module provides all the interface capabilities to an xgraph cache directory.
+
 module.exports = class CacheInterface {
 	constructor(__options) {
 		this.__options = __options;
-		// this.loadCache();
 	}
 
 	get ApexIndex() {
@@ -17,7 +18,8 @@ module.exports = class CacheInterface {
 	set ApexIndex(val) {
 		this._apexIndex = val;
 	}
-
+	
+	//retrieve a module from the cache
 	getModule(moduleType, fun = _ => _) {
 		let __options = this.__options;
 		let that = this;
@@ -59,6 +61,7 @@ module.exports = class CacheInterface {
 		});
 	}
 	
+	//return the json of pars related to a single entity based on it's pid 
 	getEntityPar(pid, fun = _ => _) {
 
 		let apx = this._entIndex[pid];
@@ -77,6 +80,7 @@ module.exports = class CacheInterface {
 		fs.readFile(path, fun);
 	}
 
+	//load in a cache directory and return the Apex Index, Start, Setup and Stop dictionaries.
 	async loadCache() {
 		let __options = this.__options;
 		let that = this;
@@ -100,8 +104,6 @@ module.exports = class CacheInterface {
 			modulesDirectory = Path.join(__options.path, 'System');
 		}
 
-		// await new Promise(res => fs.readFile(Path.__options``)
-		// let modulesFolder = Path.join(__options.path, '');
 		var folders = fs.readdirSync(modulesDirectory);
 
 
