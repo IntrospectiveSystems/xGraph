@@ -1,6 +1,6 @@
 # Nexus
 
-v1.1.1
+[![npm](https://img.shields.io/npm/v/xgraph.svg?style=for-the-badge)](https://www.npmjs.com/package/xgraph)
 
 Introspective Systems, LLC.
 
