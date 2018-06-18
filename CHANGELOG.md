@@ -5,13 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [1.3.0] [Unreleased]
+## [1.3.0] 
 ### Added
 - Compilation now recognises Bower components required by modules in `@system`
 - Entity files can now be written as a simple class without the wrapping JavaScript function
 - `npm run qa` will run one iteration of `npm test`, to check for most common errors. It runs considerably
   faster than `npm test` and is preferred for local testing.
 - Module Broker can now defined in sources by a URI, `"Example": "mb://domain:port"`
+- $Stop as a supported command for module deconstruction. 
 
 ### Changed
 - Compilation split into 3 phases:
