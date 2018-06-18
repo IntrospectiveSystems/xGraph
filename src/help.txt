@@ -1,3 +1,5 @@
+xGraph ${version}
+Introspective Systems LLC
 
 Compile and Run xGraph systems with a few simple commands.
 

@@ -170,16 +170,22 @@ let cli = function (argv) {
 
 	function help() {
 
-		let directory = path.join(__dirname, 'help.txt');
+		let helpFile = path.join(__dirname, 'help.txt');
 
-		let intro = `Graph ${version}\n`;
-		intro += `Introspective Systems LLC`;
-		let helpMessage = fs.readFileSync(directory);
+		let helpFileText = fs.readFileSync(helpFile);
 
-		console.log(intro);
-		console.log(helpMessage.toString());
+		let helpText = `
+		(function(){
+			console.log(version);
+			let text = \`${helpFileText}\`; 
+			return text;
 
+		})();
+		`;
 
+		let help = eval(helpText);
+
+		console.log(help);
 	}
 
 	async function reset() {
@@ -598,10 +604,16 @@ let cli = function (argv) {
 				}
 			};
 
-			let entityPath = path.join(__dirname, 'entity.js');
+			let entityFile = path.join(__dirname, 'entity.js');
 
-			let jsTemplate = fs.readFileSync(entityPath);
+			let entityFileText = fs.readFileSync(entityFile);
 
+			let entityText = `(function(){
+				let text = \`${entityFileText}\`;
+				return text;
+			})();`;
+
+			let jsTemplate = eval(entityText);
 
 			let moduleJson = {
 				"name": `${name}`,
