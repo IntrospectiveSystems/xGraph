@@ -1,6 +1,7 @@
 {
 	"Sources": {
-		"local": "{local}"
+		"local": "{local}",
+		"Core": "mb://modulebroker.xgraphdev.com"
 	},
 	"Modules": {
 		"Validator": {
@@ -24,6 +25,13 @@
 			"Module": "Asleep",
 			"Source": "local",
 			"Par": {}
+		},
+		"Hello World": {
+			"Module": "HelloWorld",
+			"Source": "Core",
+			"Par": {
+				"SomePar": "Hello!"
+			}
 		}
 	}
 }

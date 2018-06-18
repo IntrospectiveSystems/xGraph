@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node ./build.js",
     "test": "cd Tests && npm install && cd .. && node Tests/test.js && echo Test Suite Finished with exit code 0!",
-    "idk": "cd Tests && npm install && cd .. && node Tests/test.js --fast && echo Test Suite Finished with exit code 0!"
+    "qa": "cd Tests && npm install && cd .. && node Tests/test.js --fast && echo Test Suite Finished with exit code 0!"
   },
   "repository": {
     "type": "git",

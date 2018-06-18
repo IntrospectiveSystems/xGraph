@@ -581,10 +581,43 @@ function genesis(__options = {}) {
 			if (modnam in ModCache) { log.v(`${modnam} returned from ModCache`); return fun(null, ModCache[modnam]); }
 
 			//get the module from the defined broker
-			if (typeof source == "object") return loadModuleFromBroker();
+			if (typeof source == "object") {
+				let port = source.Port || source.port;
+				let host = source.Host || source.host;
+				return loadModuleFromBroker(host, port);
+			}
 
-			//get the module from file system
-			loadModuleFromDisk()
+			if (typeof source == "string") {
+				let protocol = source.split(/:\/\//)[0];
+				let domain = source.split(/:\/\//)[1];
+
+				if(protocol.length > 1) {
+					// not a drive letter
+					switch(protocol) {
+						case 'mb': { // regular proxy
+							let str = source.replace(/mb:\/\//, ''); // "exmaple.com:23897"
+							let parts = str.split(/:/);
+							let host = parts[0];
+							let port = parts[1] || 27000;
+							return loadModuleFromBroker(host, port);
+							break;
+						}
+						case 'wsmb': {
+							log.e('wsmb protocol not supported yet');
+							process.exit(1);
+							break;
+						}
+						default: {
+							//get the module from file system
+							return loadModuleFromDisk();
+							break;
+						}
+					}
+				}
+				
+
+			}
+
 
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
@@ -596,11 +629,9 @@ function genesis(__options = {}) {
 			/**
 			 * open up a socket to the defined broker and access the module
 			 */
-			function loadModuleFromBroker() {
+			function loadModuleFromBroker(host, port) {
 				const { Socket } = require('net');
 				const sock = new Socket();
-				const port = source.Port || source.port;
-				const host = source.Host || source.host;
 				var Buf = "";
 				var State = 0;
 				var tmp = new Buffer(2);
@@ -632,10 +663,12 @@ function genesis(__options = {}) {
 
 				sock.on('error', (err) => {
 					log.w(err);
+					process.exit(1);
 				});
 
 				sock.on('disconnect', (err) => {
 					log.v(err);
+					process.exit(1);
 				});
 
 				sock.on('data', function (data) {

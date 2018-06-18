@@ -9,14 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Compilation now recognises Bower components required by modules in `@system`
 - Entity files can now be written as a simple class without the wrapping JavaScript function
+- `npm run qa` will run one iteration of `npm test`, to check for most common errors. It runs considerably
+  faster than `npm test` and is preferred for local testing.
+- Module Broker can now defined in sources by a URI, `"Example": "mb://domain:port"`
 
 ### Changed
 - Compilation split into 3 phases:
   1. `@system` directives
   2. Other `@` directives
   3. Write cache to disk
-- xGraph CLI xgraph generate <module|system> now accepts either a path or a string and creates a system or module 
-  in the directory provided
+- xGraph CLI xgraph generate <module|system> now accepts either a path or a
+  string and creates a system or module in the directory provided
 
 ## [1.2.1]
 ### Changed

@@ -8,7 +8,7 @@ module.exports = function xGraph(__options={}) {
 		exit: [],
 		setup: [],
 		start: [],
-		run: [],
+		run: []
 	};
 
 	let dispatchEvent = this.dispatchEvent = function dispatchEvent(eventName, options) {
