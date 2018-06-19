@@ -145,16 +145,6 @@ switch(process.platform) {
 			await exec('xgraph -v', true);
 		}
 		
-		// run tests on standalone version
-		if (full) {
-			await exec(`${nativePath} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${nativePath} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${nativePath} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			rimraf('ValidationSystem/cache');
-			await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-		}
-		
 		// run tests on npm version
 		{
 			if(full) await exec('xgraph c --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
@@ -163,6 +153,16 @@ switch(process.platform) {
 			if(full) await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
 			if(full) rimraf('ValidationSystem/cache');
 			if(full) await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
+		}
+		
+		// run tests on standalone version
+		if (full) {
+			await exec(`${nativePath} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			await exec(`${nativePath} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			await exec(`${nativePath} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			rimraf('ValidationSystem/cache');
+			await exec(`${nativePath} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 		}
 
 		console.log('\u001b[42;30mAll Tests passed Successfully!\nCongratulations, you\'re ready to merge!\u001b[0m');
