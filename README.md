@@ -90,11 +90,16 @@ sudo npm run build
 
 ### Testing using the npm package tester
 xGraph core is verified using a number of tests. These tests can easily be run using 
-the npm test command. 
+the `npm test` command for a comprehensive test, or the `npm run qc` command for a faster test 
+that tests common xgraph functionality. 
 
 In your command line tool, navigate to the root of your xGraph core repository. 
-Here, you can enter the following command to run the xGraph core tests using the npm 
-package tester.
+Use the following command to run the common tests.
+```
+npm run qc
+```
+
+Or you can enter the either of the following command to run the comprehensive xGraph core tests.
 ```
 npm test
 ```
@@ -125,40 +130,45 @@ xGraph
 Usage: xgraph [command] [options] [--source directory ...]
 
 Command:
-    help        h                       : Displays this help screen.
+  help         h                    : Displays this help screen.
 
-    compile     c                       : Generates a cache from a system
-                                            structure file.
-    deploy      d                       : Run a system from it's cache.
-    reset       r                       : Run a system from system structure
-                                            file, resetting the system's cache.
-    execute     x|run                   : Run a system from it's cache, or
-                                            it's system structure file if
-                                            the cache does not exist.
-    generate < module|system>  g < m|s> : Generate a new module or system
-                                            from a template with the given
-                                            name.
+  compile      c                    : Generates a cache from a system
+                                    structure file.
+
+  deploy       d                    : Run a system from the cache.
+
+  reset        r                    : Run a system from system structure
+                                      file, resetting the system's cache.
+
+  generate <module|system>  g <m|s> : Generate a new module or system
+                                      from a template with the given
+                                      name.
+
+  execute      x                    : Run a system from the cache, or
+                                      the system's module references, or
+                                      compiling the system structure file
+                                      if the cache does not exist.
 
 Options:
-    --cwd                               : Sets the current working directory
-                                            for the command.
-    --config                            : Specifies a system's structure file.
-    --cache                             : Specifies a system's cache directory.
-    --allow-add-module                  : Enable a module to add new modules
-                                            in memory to the Module cache.
+  --cwd                             : Sets the current working directory
+                                      for the command.
+  --config                          : Specifies a system's structure file.
+  --cache                           : Specifies a system's cache directory.
+  --allow-add-module                : Enable a module to add new modules
+                                      in memory to the Module cache.
 
 Examples:
-    Compile the system in the current directory.
-        xgraph compile
+  Compile the system in the current directory.
+      xgraph compile
 
-    Deploy a module from a system structure file.
-        xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
+  Deploy a module from a system structure file.
+      xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
 
-    Reset a system in a different working directory with an external source.
-        xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph --xGraphTemplates ../../xGraphTemplates
+  Reset a system in a different working directory with an external source.
+      xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
 
-    Generate a new module called MyFirstModule.
-        xgraph generate module MyFirstModule
+  Generate a new module called MyFirstModule.
+      graph generate module MyFirstModule
 ```
 
 

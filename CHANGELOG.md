@@ -14,13 +14,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Module Broker can now defined in sources by a URI, `"Example": "mb://domain:port"`
 - $Stop as a supported command for module deconstruction. 
 
+### Removed
+- Modules have been removed from the core repository and now live in the xGraph module broker.
+
 ### Changed
 - Compilation split into 3 phases:
   1. `@system` directives
   2. Other `@` directives
   3. Write cache to disk
-- xGraph CLI xgraph generate <module|system> now accepts either a path or a
-  string and creates a system or module in the directory provided
+- xGraph CLI xgraph generate <module|system> now accepts either a path or a string and creates a 
+system or module in the directory provided.
 
 ## [1.2.1]
 ### Changed
