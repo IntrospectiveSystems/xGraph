@@ -176,10 +176,8 @@ let cli = function (argv) {
 
 		let helpText = `
 		(function(){
-			console.log(version);
 			let text = \`${helpFileText}\`; 
 			return text;
-
 		})();
 		`;
 
