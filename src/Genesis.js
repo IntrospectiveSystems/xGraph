@@ -656,9 +656,13 @@ function genesis(__options = {}) {
 						Disp: "Query",
 						Pid: genPid()
 					};
+					if('Version' in modRequest) {
+						cmd.Version = modRequest.Version;
+					}
+					modRequest.Version = 'latest';
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
-					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
+					log.v(`Requested Module ${modnam}@${modRequest.Version} from Broker ${JSON.stringify(source, null, 2)}`);
 				});
 
 				sock.on('error', (err) => {
