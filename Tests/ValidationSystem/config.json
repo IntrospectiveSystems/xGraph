@@ -27,7 +27,7 @@
 			"Par": {}
 		},
 		"Hello World": {
-			"Module": "HelloWorld",
+			"Module": "xGraph.HelloWorld",
 			"Source": "Core",
 			"Par": {
 				"SomePar": "Hello!"
