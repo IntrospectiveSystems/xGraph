@@ -114,7 +114,7 @@ switch(process.platform) {
 		let extension = '';
 		if(windows) extension = '.exe';
 		let nativePath = path.join(__dirname, '..', 'bin', binfolder, 'bin', `xgraph${extension}`);
-		
+		let npmxgraph = path.resolve("./Tests/node_modules/.bin/xgraph");
 		//build standalone version
 		{
 			if(full) await exec('npm run build');
@@ -142,17 +142,18 @@ switch(process.platform) {
 				}
 			}
 			// await exec('which xgraph');
-			await exec('xgraph -v', true);
+			// process.exit(1);
+			await exec(`${npmxgraph} -v`, true);
 		}
 		
 		// run tests on npm version
 		{
-			if(full) await exec('xgraph c --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			if(full) await exec('xgraph d --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			await exec('xgraph r --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			if(full) await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
-			if(full) rimraf('ValidationSystem/cache');
-			if(full) await exec('xgraph x --CWD ValidationSystem --local ./ValidationSystem/Modules', true);
+			if(full) await exec(`${npmxgraph} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			await exec(`${npmxgraph} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) rimraf(`ValidationSystem/cache`);
+			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 		}
 		
 		// run tests on standalone version
