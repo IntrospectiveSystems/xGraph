@@ -1,0 +1,11 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "Tests/ValidationSystem/Modules/Suite/package.json",
+        "Tests/ValidationSystem/Modules/Validate/package.json",
+        "package.json"
+      ]
+    }
+  }
+}
