@@ -1,15 +1,16 @@
-[![Travis branch](https://img.shields.io/travis/IntrospectiveSystems/xGraph/release.svg?style=for-the-badge)](https://travis-ci.org/IntrospectiveSystems/xGraph)
-[![npm](https://img.shields.io/npm/v/xgraph.svg?style=for-the-badge)](https://www.npmjs.com/package/xgraph)
-[![npm](https://img.shields.io/npm/l/xgraph.svg?style=for-the-badge)](https://github.com/IntrospectiveSystems/xGraph/blob/release/LICENSE.txt)
+
 
 
 
 # xGraph
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/IntrospectiveSystems/xGraph.svg)](https://greenkeeper.io/)
+[![Travis branch](https://img.shields.io/travis/IntrospectiveSystems/xGraph/release.svg?style=for-the-badge)](https://travis-ci.org/IntrospectiveSystems/xGraph)
+[![Greenkeeper badge](https://img.shields.io/badge/Greenkeeper-Enabled-brightgreen.svg?style=for-the-badge)](https://greenkeeper.io/)
+[![npm](https://img.shields.io/npm/v/xgraph.svg?style=for-the-badge)](https://www.npmjs.com/package/xgraph)
+[![npm](https://img.shields.io/npm/l/xgraph.svg?style=for-the-badge)](https://github.com/IntrospectiveSystems/xGraph/blob/release/LICENSE.txt)
 
 <p align="center">
-  <img src="http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png" alt="Sublime's custom image"/>
+  <img src="http://www.introspectivesystems.com/wp-content/uploads/2017/12/post-xGraph-medium-570x350.png"/>
 </p>
 
 Introspective Systems, LLC.
