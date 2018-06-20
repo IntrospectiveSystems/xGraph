@@ -1,6 +1,7 @@
 {
 	"Sources": {
-		"local": "{local}"
+		"local": "{local}",
+		"Core": "mb://modulebroker.xgraphdev.com"
 	},
 	"Modules": {
 		"Validator": {
@@ -10,7 +11,8 @@
 				"TestModule": "Suite",
 				"TestJson": "@file: ./Modules/Suite/test.json",
 				"Links": {
-					"Pong": "$Pong"
+					"Pong": "$Pong",
+					"Asleep": "$Asleep"
 				}
 			}
 		},
@@ -19,11 +21,17 @@
 			"Source": "local",
 			"Par": {}
 		},
-		"Deferred": [
-			{
-				"Module": "Suite",
-				"Source": "local"
+		"Asleep": {
+			"Module": "Asleep",
+			"Source": "local",
+			"Par": {}
+		},
+		"Hello World": {
+			"Module": "xGraph.HelloWorld",
+			"Source": "Core",
+			"Par": {
+				"SomePar": "Hello!"
 			}
-		]
+		}
 	}
 }

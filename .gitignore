@@ -95,6 +95,7 @@ bin/**/*
 bin/*.*
 !bin/*.md
 src/gen/**/*.*
+bin
 
 #travis breaks if you commit package lock
 package-lock.json

@@ -21,7 +21,6 @@
 	}
 
 	function Subscribe(com, fun){
-		log.d('scrub scribble');
 		if (!this.Par.Table)
 			this.Par.Table = []
 

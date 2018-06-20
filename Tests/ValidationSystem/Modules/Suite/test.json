@@ -1,6 +1,7 @@
 {
 	"State": {
-		"PingLink": "$Pong"
+		"PingLink": "$Pong",
+		"Asleep": "$Asleep"
 	},
 	"Cases": [
 		{
@@ -17,6 +18,22 @@
 			},
 			"Response": {
 				"Cmd": "SendModule"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SendEntitySleeping"
+			},
+			"Response": {
+				"Cmd": "SendEntitySleeping"
+			}
+		},
+		{
+			"Command": {
+				"Cmd": "SendModuleSleeping"
+			},
+			"Response": {
+				"Cmd": "SendModuleSleeping"
 			}
 		},
 		{

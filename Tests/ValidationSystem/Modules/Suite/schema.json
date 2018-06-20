@@ -3,11 +3,15 @@
 		"Entity": "Suite.js",
 		"$Setup": "SetupCommand",
 		"$Start": "StartCommand",
-		"B": "#B"
+		"B": "#B",
+		"C": "#C"
 	},
 	"B": {
 		"Entity": "Suite.js",
 		"$Setup": "SetupCommand",
 		"$Start": "StartCommand"
+	},
+	"C": {
+		"Entity": "Suite.js"
 	}
 }

@@ -41,7 +41,6 @@
 
 		DataUpdate(com, fun) {
 
-			log.d("got here.!!!!!");
 			this.postUpdate();
 			fun(null, com);
 		}
@@ -58,11 +57,9 @@
 			log.i('get set data');
 			switch(com.Type || 'Data') {
 				case 'Items': {
-					// log.d('doing items');
 					break;
 				}
 				case 'Data': {
-					// log.d('doing data');
 					com.Data = [];
 					for(let i = 0; i < this.Par.List.length; i++) {
 						com.Data.push(await new Promise(async (resolve) => {
@@ -74,7 +71,6 @@
 
 								// if anyone needs a pid interchange, we signal that
 								com.PidInterchange = com.PidInterchange || cmd.PidInterchange;
-								// log.d('piderino: ', cmd.Pid);
 								cmd.Passport = undefined;
 								cmd.Cmd = undefined;
 
@@ -83,13 +79,9 @@
 						}));
 
 					}
-					// log.d('------------');
-					// log.d(com.Data)
 					break;
 				}
 			}
-			// log.d('GetData from Set');
-			// log.d(com);
 			fun(null, com);
 		}
 	}
