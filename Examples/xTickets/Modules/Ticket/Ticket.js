@@ -101,14 +101,12 @@
 
 			//reassign the ticket to the author for closing.
 			this.Par.AssignedTo = this.Par.AuthorEmail;
-			log.d(`set assignedto to ${this.Par.AssignedTo}`);
 			this.Par.AssignedToDisplayName = (await new Promise(res => {
 				this.send({
 					Cmd: 'GetUserDetails',
 					Email: this.Par.AssignedTo
 				}, this.Par.AuthServer, (err, cmd) => res(cmd));
 			})).Name;
-			log.d(`set assignedtodisplayname to ${this.Par.AssignedToDisplayName}`);
 			
 			this.Par.Status = "Resolved";
 
@@ -153,7 +151,6 @@
 			log.i('Setting Ticket Data');
 			if (!('Authentication' in com.Passport)) return (log.w('Must be logged in to Set Ticket Data'), fun(null, com));
 			if (com.Passport.Authentication.Valid != true) return (log.w('Invalid credentials'), fun(null, com));
-			// log.d(`CreatedOn = ${this.Par.CreatedOn}`);
 
 			await new Promise((resolve, reject) => {
 				this.send({
@@ -282,16 +279,12 @@
 				changes.Author = author;
 				changes.Timestamp = timestamp;
 				this.Par.Changes.push(changes);
-				// log.d(timestamp + ': ' + author);
 			}
 
 			this.save(_ => fun(null, com));
 		}
 
 		async Evoke(com, fun) {
-			log.d(`[${this.Par.Pid.substr(0, 8)}] Ticket Evoke, "${this.Par.Summary || ""}"`);
-			log.d(com);
-			// log.d(this.Par.SetupComplete + ' ' + com.Type);
 			if(!this.Par.SetupComplete || com.Type == 'Edit') {
 				com.View = "Views.TicketEditView";
 			} else if (com.Type == 'History') {

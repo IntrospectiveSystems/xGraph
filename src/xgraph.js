@@ -2,14 +2,14 @@
 // anything above this line is removed on npm run build.
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
-let cli = function(argv) {
+let cli = function (argv) {
 	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	let originalCwd = process.cwd();
 
-	if(argv[0].indexOf('node')) {
+	if (argv[0].indexOf('node')) {
 		argv = argv.slice(1);
-	}else {
+	} else {
 		console.log('REAL COMMAND LINE ARGUMENTS DETECTED. ABORT. REPEAT,\r\n\t\tAB0RT\r\n\t\t\t\tM IS5  I ON.');
 		console.log('---------------------------------------------------');
 		console.log(argv.join('\n'));
@@ -34,11 +34,11 @@ let cli = function(argv) {
 	const genesis = require('./Genesis.js');
 	const nexus = require('./Nexus.js');
 	let subcommand = '';
-
+	let flags = {};
 
 	let windows, mac, linux, unix, system;
 
-	switch(process.platform) {
+	switch (process.platform) {
 		case 'win32': {
 			system = 'windows';
 			windows = true;
@@ -141,91 +141,58 @@ let cli = function(argv) {
 			case 'system':
 			case 's': {
 				let names = args.slice(1);
-				console.log(`Create xGraph ${names.length > 1 ? 'Systems' : 'System'} with ${names.length > 1 ?
-					'names' : 'name'}: ${args.slice(1)}`);
-				initSystem(names);
+				if (names.length > 0) {
+					console.log(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${names.length > 1 ?
+						'names' : 'name'}: ${args.slice(1)}`);
+					initSystem(names);
+				} else {
+					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+				}
 				break;
 			}
 			case 'module':
 			case 'm': {
 				let names = args.slice(1);
-				console.log(`Create xGraph ${names.length > 1 ? 'Modules' : 'Module'} with ${names.length > 1 ?
-					'names' : 'name'}: ${args.slice(1)}`);
-				initModule(names);
+				if (names.length > 0) {
+					console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
+						'names' : 'name'}: ${args.slice(1)}`);
+					initModule(names);
+				} else {
+					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+				}
 				break;
+			}
+			default: {
+				console.log(`Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system".`);
 			}
 		}
 	}
 
 	function help() {
-	console.log(`
-\x20\x20\x20\x20xGraph ${version}
-Introspective Systems LLC
 
-Compile and Run xGraph systems with a few simple commands.
+		let helpFile = path.join(__dirname, 'help.txt');
 
-Unless otherwise specified, commands will look in the current working
-directory for a config.json file or cache directory, depending on the
-command.
+		let helpFileText = fs.readFileSync(helpFile);
 
-If the system includes local module sources, these must be listed after
-the command and options, [--source directory ...].
+		let helpText = `
+		(function(){
+			let text = \`${helpFileText}\`; 
+			return text;
+		})();
+		`;
 
-xGraph
+		let help = eval(helpText);
 
-Usage: xgraph [command] [options] [--source directory ...]
-
-Command:
-\x20\x20help         h                    : Displays this help screen.
-\n
-\x20\x20compile      c                    : Generates a cache from a system
-\x20\x20                                    structure file.
-\n
-\x20\x20deploy       d                    : Run a system from the cache.
-\n
-\x20\x20reset        r                    : Run a system from system structure
-\x20\x20                                    file, resetting the system's cache.
-\n
-\x20\x20generate <module|system>  g <m|s> : Generate a new module or system
-\x20\x20                                    from a template with the given
-\x20\x20                                    name.
-\n
-\x20\x20execute      x                    : Run a system from the cache, or
-\x20\x20                                    the system's module references, or
-\x20\x20                                    compiling the system structure file
-\x20\x20                                    if the cache does not exist.
-\n
-Options:
-\x20\x20--cwd                             : Sets the current working directory
-\x20\x20                                    for the command.
-\x20\x20--config                          : Specifies a system's structure file.
-\x20\x20--cache                           : Specifies a system's cache directory.
-\x20\x20--allow-add-module                : Enable a module to add new modules
-																						in memory to the Module cache.
-
-Examples:
-\x20\x20Compile the system in the current directory.
-\x20\x20\x20\x20\x20\x20xgraph compile
-\n
-\x20\x20Deploy a module from a system structure file.
-\x20\x20\x20\x20\x20\x20xgraph deploy --config ./ExampleSystems/HelloWorld/config.json
-\n
-\x20\x20Reset a system in a different working directory with an external source.
-\x20\x20\x20\x20\x20\x20xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
-\n
-\x20\x20Generate a new module called MyFirstModule.
-\x20\x20\x20\x20\x20\x20xgraph generate module MyFirstModule
-`);
+		console.log(help);
 	}
 
 	async function reset() {
-		console.log('doing a heckin\' reset');
 		try {
 			await ensureNode();
 			state = 'production';
-			await genesis({state, pathOverrides});
+			await genesis(Object.assign({ state }, pathOverrides));
 			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
-			process.chdir(processPath);
+			// process.chdir(processPath);
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -233,7 +200,6 @@ Examples:
 	}
 
 	async function deploy() {
-		console.log('doing a heckin\' deploy');
 		try {
 			await ensureNode();
 			startNexusProcess();
@@ -244,11 +210,10 @@ Examples:
 	}
 
 	async function execute() {
-		console.log('doing a heckin\' execute');
 		try {
 			await ensureNode();
 			state = 'development';
-			await genesis({state, pathOverrides});
+			await genesis(Object.assign({ state }, pathOverrides));
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -256,45 +221,51 @@ Examples:
 	}
 
 	async function compile() {
-		console.log('doing a heckin\' compile');
 		try {
 			await ensureNode();
 			state = 'production';
-			await genesis({state, pathOverrides});
+			// console.dir(pathOverrides);
+			await genesis(Object.assign({ state }, pathOverrides));
 		} catch (e) {
 			console.error(e);
 		}
 	}
 
 
-	function startNexusProcess() {
-		const { spawn } = require('child_process');
-
+	async function startNexusProcess() {
+		//get the cache dir
 		let cacheDir = pathOverrides["cache"];
 		console.log(`Starting from ${cacheDir}`);
-		
+
+		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
 		process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
 
-		params = ['node.exe', 'nexus.js', ...argv, JSON.stringify(pathOverrides)];
-
-		let system = new nexus();
-		console.dir(system);
-
+		//combine flags and path overrides to create the options object for nexus
+		let system = new nexus(Object.assign(flags, pathOverrides));
 		system.on('exit', _ => {
-			if(_.exitCode == 72) {
+			// HACK: to restart systems
+			// HACK: to restart systems
+			if (_.exitCode == 72) {
 				setTimeout(_ => {
-					process.chdir(originalCwd);
+					// process.chdir(originalCwd);
+					system = null
+					cacheDir = null;
 					cli(originalArgv);
-				}, 1000);
+				}, 0);
 			}
 		});
 
-		system.boot(params);
+		try {
+			await system.boot();
+		} catch (e) {
+			console.error(e);
+			process.exit(1);
+		}
 
 	}
 
 	async function ensureNode() {
-		if(linux) {
+		if (linux) {
 			let node = (execSync('which node').toString());
 
 			if (node != '') {
@@ -314,7 +285,7 @@ Examples:
 				await install();
 			}
 		} else {
-			console.warn(`[WARN] Automated Version Validation for ${system} is not yet supported.\r\nYou will need to install Node v${nodeVersion} manually, if you have not already.`);
+			console.warn(`\u001b[33m[WARN] Automated Version Validation for ${system} is not yet supported.\r\nYou will need to install Node v${nodeVersion} manually, if you have not already.\u001b[39m`);
 		}
 	}
 
@@ -322,7 +293,7 @@ Examples:
 		// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
 		return new Promise((resolve) => {
 			let installAttempted = false;
-			if(linux) {
+			if (linux) {
 				require('https').get({
 					host: 'nodejs.org',
 					path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-linux-x64.tar.gz'
@@ -357,7 +328,7 @@ Examples:
 				});
 			}
 
-			if(mac) {
+			if (mac) {
 				// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
 				require('https').get({
 					host: 'nodejs.org',
@@ -396,8 +367,8 @@ Examples:
 					});
 				});
 			}
-			
-			if(windows) {
+
+			if (windows) {
 				console.error(`${system} is not yet supported.`);
 			}
 
@@ -408,15 +379,19 @@ Examples:
 	}
 
 	function processSwitches() {
-		let argLoop = (() => {
+		let argIterator = (() => {
 			let nextIndex = 0;
 			return {
 				next: () => {
-					if(nextIndex < args.length) {
-						let obj = { value: args[nextIndex], idx: (nextIndex), done: false };
-						nextIndex ++;
+					if (nextIndex < args.length) {
+						let obj = {
+							value: args[nextIndex],
+							index: (nextIndex),
+							done: false
+						};
+						nextIndex++;
 						return obj;
-					}else {
+					} else {
 						return { done: true };
 					}
 				},
@@ -427,46 +402,63 @@ Examples:
 			};
 		})();
 
-		let returnVal = argLoop.next();
+		let argumentObject = argIterator.next();
 
-		while ('value' in returnVal) {
-			let str = returnVal.value;
-			let i = returnVal.idx;
-			// console.log(i);
-			if(typeof str == 'undefined') {
+		while ('value' in argumentObject) {
+			let argument = argumentObject.value;
+			let i = argumentObject.index;
+
+			if (typeof argument == 'undefined') {
 				console.error('error parsing Switches');
 				process.exit(1);
 			}
-			if (str.startsWith('--')) {
+			if (argument.startsWith('--')) {
 				let key = args[i].slice(2);
 				applySwitch(key, i);
 			}
-			// console.log(i);
-			returnVal = argLoop.next();
+
+			argumentObject = argIterator.next();
 		}
 
-		pathOverrides["cache"] = pathOverrides["cache"] || "./cache";
+		// sanitize and default cwd
+		if ('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
+			pathOverrides['cwd'] = path.normalize(pathOverrides['cwd']);
+		} else {
+			pathOverrides['cwd'] = path.normalize(process.cwd());
+		}
+
+		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
+		if(!fs.existsSync(pathOverrides.cwd)){
+			console.error('--cwd '+ pathOverrides.cwd +' does not exist.');
+			process.exit(1);
+		}
+
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
 
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
 
+
 		if (!path.isAbsolute(pathOverrides.cache)) {
-			pathOverrides.cache = path.resolve(path.resolve(pathOverrides.cwd || process.cwd()), pathOverrides.cache);
+			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
 		}
 
-		function applySwitch(str, i) {
-			console.log(`applySwitch ${str}, ${i}`)
-			let remainingArgs = args.length - i - 1;
-			if (str == "debug") {
-				console.log("Doing the debug thing");
-				argLoop.delete(1);
-				return;
-			}
-			if (remainingArgs >= 1) { // switch has a value
-				pathOverrides[str.toLowerCase()] = args[i + 1];
-				argLoop.delete(2);
+		function applySwitch(argumentString, i) {
+			let numRemainingArgs = args.length - i - 1;
+
+			if (numRemainingArgs >= 1) { // switch has another argument
+				let nextArg = args[i + 1];
+				if (!nextArg.startsWith('--')) {
+					//if its just some more plain text, not another switch
+					//we add it to path overrides
+					pathOverrides[argumentString.toLowerCase()] = args[i + 1];
+					argIterator.delete(2);
+				} else {
+					//otherwise, we add it to flags
+					flags[str.toLowerCase()] = true;
+				}
 			}
 		}
 	}
@@ -505,96 +497,121 @@ Examples:
 	};
 
 	function initSystem(names) {
-		let systemPath;
-		const ConfigTemplate = {
-			"Sources": {},
-			"Modules": {
-				"Deferred": []
-			}
-		};
 
 		for (let index = 0; index < names.length; index++) {
+			let systemPath;
 			let name = names[index];
+			createDirectories(name);
+			createSystem();
+		}
+
+		function createDirectories(name) {
+			let regEx = new RegExp("(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/");
+			let makeDirectories = name.split(regEx);
+			let makePath = "";
+			let thisDirectory = "";
 
 			if (path.isAbsolute(name)) {
+				if (name.charAt(0) != path.sep) {
+					makePath = makeDirectories.shift();
+				} 
 				systemPath = name;
 			} else {
-				let systemDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Systems');
-				systemPath = path.join(systemDir, name);
-				console.log("System dir is ", systemDir);
+				let sysDir = pathOverrides['cwd'] || path.resolve('./');
+				makePath = sysDir;
+				systemPath = path.join(sysDir, name);
+			}
 
-				//ensure that the encapsulating directory exists
-				try {
-					fs.mkdirSync(systemDir);
-				} catch (e) {
-					console.log(`${systemDir} directory already exists`);
+			console.log("Generating system in directory: ", systemPath);
+
+			for (let i = 0; i < makeDirectories.length; i++) {
+				if (makeDirectories[i] && makeDirectories[i] != "") {
+					thisDirectory = makeDirectories[i];
+					makePath += path.sep+thisDirectory;
+					makeDirectory(makePath);
 				}
 			}
+		}
 
-			try {
-				fs.mkdirSync(systemPath);
-			} catch (e) {
-				console.log(`The system already exists: ${systemPath}`);
+		function createSystem() {
+			const ConfigTemplate =
+				{
+					"Sources": {},
+					"Modules": {
+						"Deferred": []
+					}
+				};
+
+			if (!fs.existsSync(path.join(systemPath, 'config.json'))) {
+				try {
+					fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
+					console.log("System generated at: " + systemPath);
+				} catch (e) {
+				}
+			} else {
+				console.log(`No system generated. The system already exists: ${systemPath}`);
 			}
-
-			fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
 		}
 	}
 
 	function initModule(names) {
-		let modulePath;
-		let Schema = {
-			"Apex": {
-				"$Setup": "Setup",
-				"$Start": "Start"
-			}
-		};
+
 		for (let index = 0; index < names.length; index++) {
+			let modulePath;
 			let name = names[index];
+			let module = createDirectories(name);
+			createModule(module);
+		}
 
-			if (path.isAbsolute(name))
+		function createDirectories(name) {
+			let regEx = new RegExp("(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/");
+			let makeDirectories = name.split(regEx);
+			let makePath = "";
+			let thisDirectory = "";
+
+			if (path.isAbsolute(name)) {
+				if (name.charAt(0) != path.sep) {
+					makePath = makeDirectories.shift();
+				}
 				modulePath = name;
-			else {
-				let moduleDir = pathOverrides['cwd'] || path.join(path.resolve('./'), 'Modules');
+			} else {
+				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
+				makePath = moduleDir;
 				modulePath = path.join(moduleDir, name);
-				console.log("Module dir is ", moduleDir);
+			}
+			console.log("Generating module in directory: ", modulePath);
 
-				try {
-					fs.mkdirSync(moduleDir);
-				} catch (e) {
-					console.log(`${moduleDir} directory already exists`);
+			for (let i = 0; i < makeDirectories.length; i++) {
+
+				if (makeDirectories[i] && makeDirectories[i] != "") {
+					thisDirectory = makeDirectories[i];
+					makePath += path.sep+thisDirectory;
+					makeDirectory(makePath);
 				}
 			}
 
-			try {
-				fs.mkdirSync(modulePath);
-			} catch (e) {
-				console.error(e);
-				console.log(`The module already exists: ${modulePath}`);
-			}
+			return thisDirectory;
+		}
 
-			let jsTemplate =
-				`//# sourceURL=${name}.js
-			(function ${name}() {
-			\tclass ${name} {
-			\t\tSetup(com, fun) {
-			\t\t\t//this function is typically used to allow the entity/module to handle any internal setup
-			\t\t\t//procedures prior to being connected to by other entities/modules
+		function createModule(name) {
+			let Schema = {
+				"Apex": {
+					"$Setup": "Setup",
+					"$Start": "Start",
+					"Entity": `${name}.js`
+				}
+			};
 
-			\t\t\tfun(null, com);
-			\t\t}
+			let entityFile = path.join(__dirname, 'entity.js');
 
-			\t\tStart(com, fun){
-			\t\t\t//this function is typically used to allow the entity/module to handle any external setup
-			\t\t\t//procedures
+			let entityFileText = fs.readFileSync(entityFile);
 
-			\t\t\tfun(null, com);
-			\t\t}
-			\t}
-			\treturn {dispatch:${name}.prototype}
+			let entityText = `(function(){
+				let text = \`${entityFileText}\`;
+				return text;
 			})();`;
 
-			Schema.Apex.Entity = `${name}.js`
+			let jsTemplate = eval(entityText);
 
 			let moduleJson = {
 				"name": `${name}`,
@@ -651,15 +668,38 @@ Examples:
 				}
 			};
 
-			fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
-			fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
-			fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
+			let testJson = {
+				"State": {},
+				"Cases": []
+			};
+
+			if (!fs.existsSync(path.join(modulePath, `${name}.js`))) {
+				try {
+					fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
+					fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
+					fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
+					fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
+					console.log("Module generated at: " + modulePath);
+				} catch (e) {
+				}
+			} else {
+				console.log("No module generated. Module already exists: " + modulePath);
+			}
 		}
 	}
 
-	function initView() {
-
+	function makeDirectory(dir) {
+		try {
+			fs.mkdirSync(dir);
+		} catch (e) {
+		}
 	}
-}
 
-cli(process.argv);
+};
+
+if (require.main === module || !('id' in module)) {
+	cli(process.argv);
+} else module.exports = {
+	Nexus: require('./Nexus.js'),
+	Genesis: require('./Genesis.js')
+};
