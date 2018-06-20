@@ -19,21 +19,20 @@ Command:
   help         h                    : Displays this help screen.
 
   compile      c                    : Generates a cache from a system
-                                    structure file.
+                                      structure file (config.json).
 
   deploy       d                    : Run a system from the cache.
 
   reset        r                    : Run a system from system structure
                                       file, resetting the system's cache.
 
-  generate <module|system>  g <m|s> : Generate a new module or system
+  execute      x                    : Run a system from the cache or compile
+                                      and run the system if the cache does
+                                      not exist.
+
+  generate <module|system>, g <m|s> : Generate a new module or system
                                       from a template with the given
                                       name.
-
-  execute      x                    : Run a system from the cache, or
-                                      the system's module references, or
-                                      compiling the system structure file
-                                      if the cache does not exist.
 
 Options:
   --cwd                             : Sets the current working directory
