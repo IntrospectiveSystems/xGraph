@@ -1,4 +1,4 @@
-# Nexus
+# Genesis
 
 [![npm](https://img.shields.io/npm/v/xgraph.svg?style=for-the-badge)](https://www.npmjs.com/package/xgraph)
 
