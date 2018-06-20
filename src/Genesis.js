@@ -360,8 +360,11 @@ function genesis(__options = {}) {
 							return;
 						}
 
-						let source = mod.Source;
-
+						let source = {
+							Source: mod.Source,
+							Version: mod.Version
+						};
+						
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
@@ -390,7 +393,8 @@ function genesis(__options = {}) {
 
 						let modrequest = {
 							"Module": folder,
-							"Source": Config.Sources[Modules[folder]]
+							"Source": Config.Sources[Modules[folder].Source],
+							"Version": Modules[folder].Version
 						};
 
 						log.v(`Requesting ${modrequest.Module} from ${(typeof modrequest.Source == "object") ?
@@ -656,9 +660,15 @@ function genesis(__options = {}) {
 						Disp: "Query",
 						Pid: genPid()
 					};
+					if('Version' in modRequest) {
+						cmd.Version = modRequest.Version;
+					}
+					modRequest.Version = 'latest';
+					log.d(modRequest);
+					log.d(cmd);
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
-					log.v(`Requested Module ${modnam} from Broker ${JSON.stringify(source, null, 2)}`);
+					log.v(`Requested Module ${modnam}@${modRequest.Version} from Broker ${JSON.stringify(source, null, 2)}`);
 				});
 
 				sock.on('error', (err) => {
