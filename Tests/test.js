@@ -119,7 +119,6 @@ switch(process.platform) {
 		{
 			if(full) await exec('npm run build');
 			if(full) await exec(`${nativePath} -v`, true);
-			// await exec('npm run build');
 		}
 
 		// move in to the test directory
@@ -141,8 +140,7 @@ switch(process.platform) {
 					process.exit(1);
 				}
 			}
-			// await exec('which xgraph');
-			// process.exit(1);
+
 			await exec(`${npmxgraph} -v`, true);
 		}
 		
