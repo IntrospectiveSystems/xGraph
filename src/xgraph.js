@@ -114,6 +114,7 @@ let cli = function (argv) {
 			help();
 			break;
 		}
+
 		case 'g':
 		case '-g':
 		case 'generate':
@@ -190,7 +191,7 @@ let cli = function (argv) {
 		try {
 			await ensureNode();
 			state = 'production';
-			await genesis(Object.assign({ state }, pathOverrides));
+			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
 			// process.chdir(processPath);
 			startNexusProcess();
@@ -213,7 +214,7 @@ let cli = function (argv) {
 		try {
 			await ensureNode();
 			state = 'development';
-			await genesis(Object.assign({ state }, pathOverrides));
+			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -225,7 +226,7 @@ let cli = function (argv) {
 			await ensureNode();
 			state = 'production';
 			// console.dir(pathOverrides);
-			await genesis(Object.assign({ state }, pathOverrides));
+			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 		} catch (e) {
 			console.error(e);
 		}
@@ -428,18 +429,16 @@ let cli = function (argv) {
 		}
 
 		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
-		if(!fs.existsSync(pathOverrides.cwd)){
-			console.error('--cwd '+ pathOverrides.cwd +' does not exist.');
+		if (!fs.existsSync(pathOverrides.cwd)) {
+			console.error('--cwd ' + pathOverrides.cwd + ' does not exist.');
 			process.exit(1);
 		}
-
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
 
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
-
 
 		if (!path.isAbsolute(pathOverrides.cache)) {
 			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
@@ -457,8 +456,13 @@ let cli = function (argv) {
 					argIterator.delete(2);
 				} else {
 					//otherwise, we add it to flags
-					flags[str.toLowerCase()] = true;
+					flags[argumentString.toLowerCase()] = true;
+					argIterator.delete(1);
 				}
+			} else {
+				//otherwise, we add it to flags
+				flags[argumentString.toLowerCase()] = true;
+				argIterator.delete(1);
 			}
 		}
 	}
@@ -514,7 +518,7 @@ let cli = function (argv) {
 			if (path.isAbsolute(name)) {
 				if (name.charAt(0) != path.sep) {
 					makePath = makeDirectories.shift();
-				} 
+				}
 				systemPath = name;
 			} else {
 				let sysDir = pathOverrides['cwd'] || path.resolve('./');
@@ -527,7 +531,7 @@ let cli = function (argv) {
 			for (let i = 0; i < makeDirectories.length; i++) {
 				if (makeDirectories[i] && makeDirectories[i] != "") {
 					thisDirectory = makeDirectories[i];
-					makePath += path.sep+thisDirectory;
+					makePath += path.sep + thisDirectory;
 					makeDirectory(makePath);
 				}
 			}
@@ -585,7 +589,7 @@ let cli = function (argv) {
 
 				if (makeDirectories[i] && makeDirectories[i] != "") {
 					thisDirectory = makeDirectories[i];
-					makePath += path.sep+thisDirectory;
+					makePath += path.sep + thisDirectory;
 					makeDirectory(makePath);
 				}
 			}

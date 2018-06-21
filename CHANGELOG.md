@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.2]
+### Changed
+- Updated npm dependencies
+- Fixed flag catching in CLI
+
+### Added 
+- Default logging levels set as flags ex. `--silent` (all levels print to xgraph.log)
+  0. Defaults to:
+    0. e - on
+    1. w - on
+    3. d - off
+    4. i - on 
+    5. v - off
+  1. `loglevelsilent` or `silent` - turns off all logging
+  2. `logleveldebug` - turns on all logging
+  3. `loglevelverbose` or `verbose` - turns on verbose
+
 ## [1.3.1]
 ### Changed
 - Updated npm dependencies
