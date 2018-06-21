@@ -113,7 +113,7 @@ switch(process.platform) {
 		if(windows) binfolder = 'windows';
 		let extension = '';
 		if(windows) extension = '.exe';
-		let nativePath = path.join(__dirname, '..', 'bin', binfolder, 'bin', `xgraph${extension}`);
+		let nativePath = path.join(__dirname, '..', 'build', 'bin', binfolder, 'bin', `xgraph${extension}`);
 		let npmxgraph = path.resolve("./node_modules/.bin/xgraph" + (windows ? '.cmd' : ''));
 		//build standalone version
 		{
