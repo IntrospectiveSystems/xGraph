@@ -143,12 +143,12 @@ switch(process.platform) {
 		
 		// run tests on npm version
 		{
-			if(full) await exec(`${npmxgraph} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) await exec(`${npmxgraph} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${npmxgraph} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} c --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} d --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			await exec(`${npmxgraph} r --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} x --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 			if(full) rimraf(`ValidationSystem/cache`);
-			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} x --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 		}
 		
 		// run tests on standalone version

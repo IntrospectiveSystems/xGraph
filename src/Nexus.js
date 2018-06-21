@@ -2,8 +2,8 @@ global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid',
 
 const CacheInterface = require('./CacheInterface.js');
 
-module.exports = function xGraph(__options={}) {
-	this.__options=__options;
+module.exports = function xGraph(__options = {}) {
+	this.__options = __options;
 	let eventListeners = {
 		exit: [],
 		setup: [],
@@ -101,7 +101,7 @@ module.exports = function xGraph(__options={}) {
 				// The logging function for writing to xgraph.log to the current working directory
 				const xgraphlog = (...str) => {
 					xgraphlog.buffer.lock((val) => val + `${log.parse(str)}${endOfLine}`);
-					if(!xgraphlog.busy) {
+					if (!xgraphlog.busy) {
 						xgraphlog.busy = true;
 						xgraphlog.updateInterval();
 					}
@@ -115,10 +115,10 @@ module.exports = function xGraph(__options={}) {
 					});
 					fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
 						xgraphlog.buffer.lock(val => {
-							if(val !== '') {
+							if (val !== '') {
 								// we have more in out buffer, keep calling out to the thing
 								process.nextTick(xgraphlog.updateInterval);
-							}else {
+							} else {
 								xgraphlog.busy = false;
 							}
 						});
@@ -133,25 +133,49 @@ module.exports = function xGraph(__options={}) {
 				// i : info			General info presented to the end user
 				// w : warn			Failures that dont result in a system exit
 				// e : error 		Critical failure should always follow with a system exit
-				const log = global.log = {
+
+				// Set the default logging profile
+				let v = false;
+				let d = false;
+				let i = true;
+				let w = true;
+				let e = true;
+
+				if (checkFlag("silent") || checkFlag("loglevelsilent")) {
+					console.log("\n\n\nSilent");
+					i = w = e = false;
+				}
+	
+				if (checkFlag("logleveldebug")) {
+					console.log("\n\n\ndebug");
+	
+					v = d = true;
+				}
+	
+				if (checkFlag("verbose") || checkFlag("loglevelverbose")) {
+					console.log("\n\n\nverbose");
+					v = true;
+				}
+
+				log = {
 					v: (...str) => {
-						process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
+						if (v) process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 						xgraphlog(new Date().toString(), ...str);
 					},
 					d: (...str) => {
-						process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
+						if (d) process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 						xgraphlog(new Date().toString(), ...str);
 					},
 					i: (...str) => {
-						process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
+						if (i) process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 						xgraphlog(new Date().toString(), ...str);
 					},
 					w: (...str) => {
-						process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
+						if (w) process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 						xgraphlog(new Date().toString(), ...str);
 					},
 					e: (...str) => {
-						process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
+						if (e) process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 						xgraphlog(new Date().toString(), ...str);
 					},
 					parse: (str) => {
@@ -222,8 +246,8 @@ module.exports = function xGraph(__options={}) {
 				entString = stripComments(entString).trim();
 
 				let imp = (1, eval)(entString);
-				if(typeof imp != 'undefined') {
-					if(!('dispatch' in imp)) {
+				if (typeof imp != 'undefined') {
+					if (!('dispatch' in imp)) {
 						log.e('Entity does not return a dispatch Table');
 						throw new Error('E_NO_DISPATCH_TABLE');
 					}
@@ -231,8 +255,8 @@ module.exports = function xGraph(__options={}) {
 				}
 				else {
 					imp = { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
-					if(typeof imp != 'undefined') {
-						if(!('dispatch' in imp)) {
+					if (typeof imp != 'undefined') {
+						if (!('dispatch' in imp)) {
 							log.e('Entity does not return a dispatch Table');
 							throw new Error('E_NO_DISPATCH_TABLE');
 						}
@@ -578,7 +602,7 @@ module.exports = function xGraph(__options={}) {
 						}
 						log.e('Nada Cmd:' + com.Cmd);
 						fun('Nada', com);
-					} catch(e) {
+					} catch (e) {
 						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
 						log.e(e.toString());
 
@@ -769,7 +793,7 @@ module.exports = function xGraph(__options={}) {
 						delete EntCache[subpid];
 					}
 				}
-				if(fun)
+				if (fun)
 					fun(null, pid);
 			}
 
@@ -899,7 +923,6 @@ module.exports = function xGraph(__options={}) {
 			 * @param {string} str 			the string of the module to require
 			 */
 			function loadDependency(apx, pid, str) {
-
 				let moduleType = cacheInterface.ApexIndex[apx];
 				return cacheInterface.loadDependency(moduleType, str)
 			}
@@ -1204,7 +1227,7 @@ module.exports = function xGraph(__options={}) {
 								mod.file(par.Entity).async("string").then((string) => res(string))
 							});
 							ImpCache[impkey] = indirectEvalImp(entString);
-							
+
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 					})());
@@ -1247,7 +1270,7 @@ module.exports = function xGraph(__options={}) {
 				ModName = ModName.replace(/\:\//g, '.');
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
 				else cacheInterface.getModule(ModName, (err, moduleZip) => {
-					if(err) return fun(err);
+					if (err) return fun(err);
 					ModCache[ModName] = moduleZip;
 					return fun(null, ModCache[ModName]);
 				});
