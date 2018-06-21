@@ -13,6 +13,8 @@
 	const platform = process.platform;
 	const rmrf = require('rimraf');
 
+	process.chdir('..');
+
 	//helper functions
 	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
