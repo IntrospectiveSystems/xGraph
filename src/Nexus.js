@@ -923,7 +923,6 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {string} str 			the string of the module to require
 			 */
 			function loadDependency(apx, pid, str) {
-
 				let moduleType = cacheInterface.ApexIndex[apx];
 				return cacheInterface.loadDependency(moduleType, str)
 			}
