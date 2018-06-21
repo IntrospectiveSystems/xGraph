@@ -99,7 +99,7 @@
 
 		let config = {
 			input: 'temp/xgraph.js',
-			output: 'bin/linux/bin/xgraph',
+			output: '../bin/linux/bin/xgraph',
 			target: 'linux-x64-8.4.0',
 			bundle: true,
 			fakeArgv: true,
@@ -115,7 +115,7 @@
 		console.timeEnd('Linux');
 
 		config.target = 'windows-x64-8.4.0';
-		config.output = 'bin/windows/bin/xgraph';
+		config.output = '../bin/windows/bin/xgraph';
 
 
 		console.log('> Calling Nexe with\n');
@@ -127,7 +127,7 @@
 		console.timeEnd('Windows');
 
 		config.target = 'mac-x64-8.4.0';
-		config.output = 'bin/mac/bin/xgraph';
+		config.output = '../bin/mac/bin/xgraph';
 
 		console.log('> Calling Nexe with\n');
 		console.dir(config);
