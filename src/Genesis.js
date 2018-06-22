@@ -688,8 +688,6 @@ function genesis(__options = {}) {
 						cmd.Version = modRequest.Version;
 					}
 					modRequest.Version = 'latest';
-					log.d(modRequest);
-					log.d(cmd);
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam}@${modRequest.Version} from Broker ${JSON.stringify(source, null, 2)}`);
