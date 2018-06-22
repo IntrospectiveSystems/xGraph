@@ -18,10 +18,8 @@ let cli = function (argv) {
 	}
 
 	const { execSync } = require('child_process');
-	const tar = require('targz');
 	const fs = require('fs');
 	const path = require('path');
-	const mergedirs = require('merge-dirs').default;
 	let state = 'production';
 	if (argv.length == 1) argv[1] = 'help';
 	let args = argv.slice(1);
@@ -114,6 +112,7 @@ let cli = function (argv) {
 			help();
 			break;
 		}
+
 		case 'g':
 		case '-g':
 		case 'generate':
@@ -188,9 +187,8 @@ let cli = function (argv) {
 
 	async function reset() {
 		try {
-			await ensureNode();
 			state = 'production';
-			await genesis(Object.assign({ state }, pathOverrides));
+			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
 			// process.chdir(processPath);
 			startNexusProcess();
@@ -201,7 +199,6 @@ let cli = function (argv) {
 
 	async function deploy() {
 		try {
-			await ensureNode();
 			startNexusProcess();
 
 		} catch (e) {
@@ -211,9 +208,8 @@ let cli = function (argv) {
 
 	async function execute() {
 		try {
-			await ensureNode();
 			state = 'development';
-			await genesis(Object.assign({ state }, pathOverrides));
+			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -222,10 +218,9 @@ let cli = function (argv) {
 
 	async function compile() {
 		try {
-			await ensureNode();
 			state = 'production';
 			// console.dir(pathOverrides);
-			await genesis(Object.assign({ state }, pathOverrides));
+			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 		} catch (e) {
 			console.error(e);
 		}
@@ -262,120 +257,6 @@ let cli = function (argv) {
 			process.exit(1);
 		}
 
-	}
-
-	async function ensureNode() {
-		if (linux) {
-			let node = (execSync('which node').toString());
-
-			if (node != '') {
-				console.log(`Node appears to be installed.  If you have problems we recommend you have Node v${nodeVersion} installed.`);
-
-				return;
-			} else {
-				await install();
-			}
-		} else if (mac) {
-			let node = (execSync('which node').toString());
-
-			if (node != '') {
-				console.log(`Node appears to be installed.  If you have problems we recommend you have Node v${nodeVersion} installed.`);
-				return;
-			} else {
-				await install();
-			}
-		} else {
-			console.warn(`\u001b[33m[WARN] Automated Version Validation for ${system} is not yet supported.\r\nYou will need to install Node v${nodeVersion} manually, if you have not already.\u001b[39m`);
-		}
-	}
-
-	function install() {
-		// this should be updated to take into account chipsets (i.e. ARM) and architectures (32-bit and 64-bit)  -slm 11/15/2017
-		return new Promise((resolve) => {
-			let installAttempted = false;
-			if (linux) {
-				require('https').get({
-					host: 'nodejs.org',
-					path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-linux-x64.tar.gz'
-				}, (response) => {
-					let body = '';
-					response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
-					response.on('end', function () {
-						// console.log('extraction time!');
-						tar.decompress({
-							src: bindir + '/node.tar.gz',
-							dest: bindir
-						}, function () {
-							// console.log(mergedirs);
-							installAttempted = true;
-							try {
-								mergedirs('node-v' + nodeVersion + '-linux-x64/bin', '/usr/bin', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-linux-x64/include', '/usr/include', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-linux-x64/lib', '/usr/lib', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-linux-x64/share', '/usr/share', 'overwrite');
-								//TODO RIMRAF THE ZIP AND EXTRACTED FILES
-								// console.log('dun');
-								resolve();
-							} catch (e) {
-								console.log('Could not install node, try running the command again with sudo\n');
-								console.log("If the problem persists, email support@introspectivesystems.com");
-								console.log('with this ' + e.toString());
-								process.exit(1);
-								resolve();
-							}
-						});
-					});
-				});
-			}
-
-			if (mac) {
-				// maybe this should be altered to pull the .pkg file but this works for now -slm 11/16/2017
-				require('https').get({
-					host: 'nodejs.org',
-					path: '/dist/v' + nodeVersion + '/node-v' + nodeVersion + '-darwin-x64.tar.gz'
-				}, (response) => {
-					let body = '';
-					response.pipe(fs.createWriteStream(bindir + '/node.tar.gz'));
-					response.on('end', function () {
-						tar.decompress({
-							src: bindir + '/node.tar.gz',
-							dest: bindir
-						}, function () {
-							installAttempted = true;
-							try {
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/local/bin', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/local/include', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/local/lib', 'overwrite');
-								mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/local/share', 'overwrite');
-								resolve();
-							} catch (e) {
-								try {
-									mergedirs('node-v' + nodeVersion + '-darwin-x64/bin', '/usr/bin', 'overwrite');
-									mergedirs('node-v' + nodeVersion + '-darwin-x64/include', '/usr/include', 'overwrite');
-									mergedirs('node-v' + nodeVersion + '-darwin-x64/lib', '/usr/lib', 'overwrite');
-									mergedirs('node-v' + nodeVersion + '-darwin-x64/share', '/usr/share', 'overwrite');
-									resolve();
-								} catch (e) {
-									console.log('Could not install node, try running the command again with sudo\n');
-									console.log("If the problem persists, email support@introspectivesystems.com");
-									console.log('with this ' + e.toString());
-									process.exit(1);
-									resolve();
-								}
-							}
-						});
-					});
-				});
-			}
-
-			if (windows) {
-				console.error(`${system} is not yet supported.`);
-			}
-
-			if (!installAttempted) {
-				console.error(`Node installation was skipped.  Please verify Node v${nodeVersion} is installed.`);
-			}
-		});
 	}
 
 	function processSwitches() {
@@ -428,18 +309,16 @@ let cli = function (argv) {
 		}
 
 		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
-		if(!fs.existsSync(pathOverrides.cwd)){
-			console.error('--cwd '+ pathOverrides.cwd +' does not exist.');
+		if (!fs.existsSync(pathOverrides.cwd)) {
+			console.error('--cwd ' + pathOverrides.cwd + ' does not exist.');
 			process.exit(1);
 		}
-
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
 		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
 
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
-
 
 		if (!path.isAbsolute(pathOverrides.cache)) {
 			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
@@ -457,8 +336,13 @@ let cli = function (argv) {
 					argIterator.delete(2);
 				} else {
 					//otherwise, we add it to flags
-					flags[str.toLowerCase()] = true;
+					flags[argumentString.toLowerCase()] = true;
+					argIterator.delete(1);
 				}
+			} else {
+				//otherwise, we add it to flags
+				flags[argumentString.toLowerCase()] = true;
+				argIterator.delete(1);
 			}
 		}
 	}
@@ -514,7 +398,7 @@ let cli = function (argv) {
 			if (path.isAbsolute(name)) {
 				if (name.charAt(0) != path.sep) {
 					makePath = makeDirectories.shift();
-				} 
+				}
 				systemPath = name;
 			} else {
 				let sysDir = pathOverrides['cwd'] || path.resolve('./');
@@ -527,7 +411,7 @@ let cli = function (argv) {
 			for (let i = 0; i < makeDirectories.length; i++) {
 				if (makeDirectories[i] && makeDirectories[i] != "") {
 					thisDirectory = makeDirectories[i];
-					makePath += path.sep+thisDirectory;
+					makePath += path.sep + thisDirectory;
 					makeDirectory(makePath);
 				}
 			}
@@ -585,7 +469,7 @@ let cli = function (argv) {
 
 				if (makeDirectories[i] && makeDirectories[i] != "") {
 					thisDirectory = makeDirectories[i];
-					makePath += path.sep+thisDirectory;
+					makePath += path.sep + thisDirectory;
 					makeDirectory(makePath);
 				}
 			}

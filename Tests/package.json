@@ -4,13 +4,13 @@
   "description": "",
   "main": "test.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "cd .. && npm run build"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "rmdir-recursive": "0.0.1",
     "which": "1.3.0",
-    "xgraph": "file:./.."
+    "xgraph": "file:.."
   }
 }

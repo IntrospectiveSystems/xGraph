@@ -65,7 +65,7 @@ module.exports = class CacheInterface {
 	getEntityPar(pid, fun = _ => _) {
 
 		let apx = this._entIndex[pid];
-		let moduleType = this._apexIndex[pid];
+		let moduleType = this._apexIndex[apx];
 
 		let __options = this.__options;
 		let that = this;

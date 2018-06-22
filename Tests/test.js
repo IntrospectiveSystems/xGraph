@@ -113,24 +113,21 @@ switch(process.platform) {
 		if(windows) binfolder = 'windows';
 		let extension = '';
 		if(windows) extension = '.exe';
-		let nativePath = path.join(__dirname, '..', 'bin', binfolder, 'bin', `xgraph${extension}`);
-		let npmxgraph = path.resolve("./Tests/node_modules/.bin/xgraph");
+		let nativePath = path.join(__dirname, '..', 'build', 'bin', binfolder, 'bin', `xgraph${extension}`);
+		let npmxgraph = path.resolve("./node_modules/.bin/xgraph" + (windows ? '.cmd' : ''));
 		//build standalone version
 		{
 			if(full) await exec('npm run build');
 			if(full) await exec(`${nativePath} -v`, true);
 		}
 
-		// move in to the test directory
-		process.chdir('Tests');
-
 		// build npm version
 		{
-			try {await exec('npm install');}
+			try {await exec('npm install --verbose');}
 			catch(e){
 				if(unix) {
 					try {
-						await exec('sudo npm install');
+						await exec('sudo npm install --verbose');
 					}catch(e) {
 						console.error(e);
 						process.exit(1);
@@ -146,12 +143,12 @@ switch(process.platform) {
 		
 		// run tests on npm version
 		{
-			if(full) await exec(`${npmxgraph} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) await exec(`${npmxgraph} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${npmxgraph} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} c --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} d --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			await exec(`${npmxgraph} r --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} x --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 			if(full) rimraf(`ValidationSystem/cache`);
-			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} x --logleveldebug --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
 		}
 		
 		// run tests on standalone version

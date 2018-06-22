@@ -1,6 +1,6 @@
 module.exports = genesis;
 function genesis(__options = {}) {
-	
+
 
 	function checkFlag(flag) {
 		// console.dir(__options);
@@ -62,25 +62,49 @@ function genesis(__options = {}) {
 			// i : info			General info presented to the end user
 			// w : warn			Failures that dont result in a system exit
 			// e : error 		Critical failure should always follow with a system exit
+
+			// Set the default logging profile
+			let v = false;
+			let d = false;
+			let i = true;
+			let w = true;
+			let e = true;
+
+			if (checkFlag("silent") || checkFlag("loglevelsilent")) {
+				console.log("\n\n\nSilent");
+				i = w = e = false;
+			}
+
+			if (checkFlag("logleveldebug")) {
+				console.log("\n\n\ndebug");
+
+				v = d = true;
+			}
+
+			if (checkFlag("verbose") || checkFlag("loglevelverbose")) {
+				console.log("\n\n\nverbose");
+				v = true;
+			}
+
 			log = {
 				v: (...str) => {
-					process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
+					if (v) process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				d: (...str) => {
-					process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
+					if (d) process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				i: (...str) => {
-					process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
+					if (i) process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				w: (...str) => {
-					process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
+					if (w) process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				e: (...str) => {
-					process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
+					if (e) process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
 					xgraphlog(new Date().toString(), ...str);
 				},
 				parse: (str) => {
@@ -364,7 +388,7 @@ function genesis(__options = {}) {
 							Source: mod.Source,
 							Version: mod.Version
 						};
-						
+
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
@@ -447,7 +471,7 @@ function genesis(__options = {}) {
 									let npmCommand = (process.platform === "win32" ? "npm.cmd" : "npm");
 
 									let npmInstallProcess = proc.spawn(npmCommand, ['install'], { cwd: Path.resolve(libdir) });
-									
+
 
 									npmInstallProcess.stdout.on('data', process.stdout.write);
 									npmInstallProcess.stderr.on('data', process.stderr.write);
@@ -521,7 +545,7 @@ function genesis(__options = {}) {
 					try { fs.mkdirSync(dirinst); } catch (e) { }
 					ents.forEach(function (ent) {
 						let path = Path.join(dirinst, `${ent.Pid}.json`);
-						try{
+						try {
 							fs.writeFileSync(path, JSON.stringify(ent, null, 2));
 						} catch (e) { }
 					});
@@ -547,7 +571,7 @@ function genesis(__options = {}) {
 			if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);
 				let itemPromises = [];
-				for(let file of files) {
+				for (let file of files) {
 					itemPromises.push(new Promise(async (resolve) => {
 						var curPath = path + "/" + file;
 						if (fs.lstatSync(curPath).isDirectory()) {
@@ -555,7 +579,7 @@ function genesis(__options = {}) {
 							dirObj[file] = await buildDir(curPath);
 							resolve();
 						} else {
-							fs.readFile(curPath, function(err, data) {
+							fs.readFile(curPath, function (err, data) {
 								// log.v(curPath.length > 80 ? curPath.substr(0, 35) + ' ... ' + curPath.substr(-40, 40) : curPath);
 								dirObj[file] = data.toString()
 								resolve();
@@ -595,9 +619,9 @@ function genesis(__options = {}) {
 				let protocol = source.split(/:\/\//)[0];
 				let domain = source.split(/:\/\//)[1];
 
-				if(protocol.length > 1) {
+				if (protocol.length > 1) {
 					// not a drive letter
-					switch(protocol) {
+					switch (protocol) {
 						case 'mb': { // regular proxy
 							let str = source.replace(/mb:\/\//, ''); // "exmaple.com:23897"
 							let parts = str.split(/:/);
@@ -618,7 +642,7 @@ function genesis(__options = {}) {
 						}
 					}
 				}
-				
+
 
 			}
 
@@ -660,7 +684,7 @@ function genesis(__options = {}) {
 						Disp: "Query",
 						Pid: genPid()
 					};
-					if('Version' in modRequest) {
+					if ('Version' in modRequest) {
 						cmd.Version = modRequest.Version;
 					}
 					modRequest.Version = 'latest';
@@ -1147,9 +1171,9 @@ function genesis(__options = {}) {
 
 				var packageString = JSON.stringify(packagejson, null, 2);
 				//write the compiled package.json to disk
-				try { fs.mkdirSync(CacheDir); } catch (e) {}
-				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'System')); } catch (e) {}
-				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'Lib')); } catch (e) {}
+				try { fs.mkdirSync(CacheDir); } catch (e) { }
+				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'System')); } catch (e) { }
+				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'Lib')); } catch (e) { }
 
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), '.cache'), JSON.stringify({
@@ -1248,7 +1272,7 @@ function genesis(__options = {}) {
 		 * @param {string} path the directory to be recursively removed
 		 */
 		function remDir(path) {
-			
+
 			var files = [];
 			if (fs.existsSync(path)) {
 				files = fs.readdirSync(path);
@@ -1361,12 +1385,12 @@ function genesis(__options = {}) {
 						modArray.push(new Promise((res, rej) => {
 							let folder = moduleKeys[ifolder];
 
-							if(!('Sources' in Config)) {
+							if (!('Sources' in Config)) {
 								log.e('No Sources object present in config!');
 								return rej(new Error('ERR_NO_SOURCES'));
 							}
 
-							if(!(Modules[folder] in Config.Sources)) {
+							if (!(Modules[folder] in Config.Sources)) {
 								log.e(`${Modules[folder]} not in Sources!`);
 								return rej(new Error('ERR_NOT_IN_SOURCES'));
 							}

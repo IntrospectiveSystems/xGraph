@@ -1,9 +1,10 @@
-#! /usr/bin/env node
+#!/usr/bin/env node
 
 (async _ => {
 
 	// imports
 	const fs = require('fs');
+	const path = require('path');
 	const tar = require('targz');
 	const { compile } = require('nexe');
 	const createPackage = require('osx-pkg');
@@ -13,12 +14,74 @@
 	const platform = process.platform;
 	const rmrf = require('rimraf');
 
+	// process.chdir('..');
+
 	//helper functions
+		
+	function exec(cmd, checkLength = false) {
+		return new Promise(async (resolve) => {
+			console.log(`\n> ${cmd}\n`);
+
+			// if we dont need to check anything, just do a simple exec
+			// with inherit to give isTTY: true
+			if(!checkLength) {
+				execSync(cmd, {stdio: 'inherit'});
+				resolve();
+				return;
+			}
+
+			//elsewise, lets parse this command out
+			let command = cmd.split(' ')[0]
+			let args = cmd.split(' ').slice(1);
+			let hasOutput = false;
+
+			// normalizing the command to a path
+			command = await new Promise((resolve) => {
+				try {
+					//if its a file, roll with it
+					fs.lstatSync(command).isFile();
+					resolve(command);
+				} catch (e) {
+					//it probably wasnt a file though, so we'll call which on it
+					which(command, (err, path) => {
+						if(err) resolve(command);
+						// and resolve to the path is returns.
+						else resolve(path)
+					});
+				}
+			});
+
+			// spawn a process with all streams piped to events.
+			const proc = spawn(command, args);
+
+			// pipe streams back to our own streams
+			proc.stdout.on('data', (data) => {
+				if(data.toString().trim() !== '' && !hasOutput) {
+					// if we get anything of substance back, remember that!
+					hasOutput = true;
+				}
+				process.stdout.write(data.toString())
+			});
+			proc.stderr.on('data', (data) => process.stderr.write(data.toString()));
+
+			// when it exits, validate its a zero, and we've had output...
+			// then resolve this exec call.
+			proc.on('close', (code) => {
+				if(code != 0) process.exit(code);
+				if(!hasOutput) process.exit(1);
+				resolve();
+			});
+		});
+		// if(output.trim() == '') {
+		// 	console.log('Command machine broke.');
+		// 	system.exit(1);
+		// }
+	}
 	function ensureDir(dir) { try { fs.mkdirSync(dir); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function copy(src, dst) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function rmdir(dir) { try { fs.writeFileSync(dst, fs.readFileSync(src)); } catch (e) { if ((e.errno != -17) && (e.errno != -4075)) console.log(e); } }
 	function include(file) {
-		copy(`src/${file}`, `temp/${file}`)
+		copy(`../src/${file}`, `temp/src/${file}`)
 	}
 	function createMacTarball() {
 		console.log("Alternative Mac tar.gz being created since package capability is not available.")
@@ -73,6 +136,7 @@
 		ensureDir('bin');
 
 		ensureDir('temp');
+		ensureDir('temp/src');
 
 		ensureDir('bin/linux');
 		ensureDir('bin/linux/bin');
@@ -85,23 +149,30 @@
 
 		// take src/xgraph and shape it for nexe by cutting off the hashbang declaration
 		// save the result to temp/xgraph
-		let xgraphFile = fs.readFileSync('src/xgraph.js');
+		let xgraphFile = fs.readFileSync('../src/xgraph.js');
 		xgraphFile = xgraphFile.toString();
 		xgraphFile = xgraphFile.split('// -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-')[1]
-		fs.writeFileSync('temp/xgraph.js', xgraphFile);
+		fs.writeFileSync('temp/src/xgraph.js', xgraphFile);
 		
 		include('Nexus.js');
 		include('Genesis.js');
 		include('CacheInterface.js');
 		include('SemVer.js');
 
+		copy('../package.json', 'temp/package.json');
+
+		process.chdir('temp');
+		exec('npm install');
+		process.chdir('..');
+
 		let config = {
-			input: 'temp/xgraph.js',
-			output: 'bin/linux/bin/xgraph',
+			cwd: 'temp',
+			input: 'src/xgraph.js',
+			output: '../bin/linux/bin/xgraph',
 			target: 'linux-x64-8.4.0',
 			bundle: true,
 			fakeArgv: true,
-			temp: 'NexeBin'
+			temp: '../NexeBin'
 		};
 
 		console.log('> Calling Nexe with\n');
@@ -113,7 +184,7 @@
 		console.timeEnd('Linux');
 
 		config.target = 'windows-x64-8.4.0';
-		config.output = 'bin/windows/bin/xgraph';
+		config.output = '../bin/windows/bin/xgraph';
 
 
 		console.log('> Calling Nexe with\n');
@@ -125,7 +196,7 @@
 		console.timeEnd('Windows');
 
 		config.target = 'mac-x64-8.4.0';
-		config.output = 'bin/mac/bin/xgraph';
+		config.output = '../bin/mac/bin/xgraph';
 
 		console.log('> Calling Nexe with\n');
 		console.dir(config);
