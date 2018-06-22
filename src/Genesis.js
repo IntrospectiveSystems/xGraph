@@ -1001,7 +1001,7 @@ function genesis(__options = {}) {
 
 								let systemObject = await GenTemplate(config);
 
-								try { fs.mkdir('Static') } catch (e) { }
+								try { fs.mkdirSync('Static') } catch (e) { }
 
 								await new Promise(resolve => {
 									let zip = new jszip();
