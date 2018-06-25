@@ -85,6 +85,13 @@ Options:
   --cache                           : Specifies a system's cache directory.
   --allow-add-module                : Enable a module to add new modules
                                       in memory to the Module cache.
+  --loglevelsilent      --silent    : Block all logs from appearing in the
+                                      console window. Logs will still be
+                                      printed to the log file.
+  --loglevelverbose     --verbose   : Allows verbose logs to be printed to
+                                      the console window.
+  --logleveldebug                   : Allows the verbose logs and the debug
+                                      logs to be printed to the console window.
 
 Examples:
   Compile the system in the current directory.
