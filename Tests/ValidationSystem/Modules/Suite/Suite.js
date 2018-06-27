@@ -1,18 +1,5 @@
 (function Suite() {
-
-	class EntityContext {
-		/**
-		 * 
-		 * @param {object} definition 
-		 * @param {string} definition.Module
-		 * @param {string=} definition.Source
-		 * @param {object=} definition.Par
-		 * @param {function (any, string) => void} callback 
-		 */
-		genModule(definition, callback){}
-	}
-
-	class Suite extends EntityContext {
+	class Suite{
 		SendEntity(com, fun) {
 			this.send({Cmd: 'Ping'}, this.Par.B, (err, cmd) => {
 				fun(err, com);
@@ -48,7 +35,11 @@
 			log.i('Information log');
 			log.w('Warning log');
 			log.e('Error log');
-			fun(null, com);
+
+			if (this.Par.Pid == this.Par.Apex)
+				this.send(com, this.Par.B, fun);
+			else 
+				fun(null, com);
 		}
 
 		SetupCommand(com, fun) {

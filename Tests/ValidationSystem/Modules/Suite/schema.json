@@ -7,9 +7,7 @@
 		"C": "#C"
 	},
 	"B": {
-		"Entity": "Suite.js",
-		"$Setup": "SetupCommand",
-		"$Start": "StartCommand"
+		"Entity": "Suite.js"
 	},
 	"C": {
 		"Entity": "Suite.js"
