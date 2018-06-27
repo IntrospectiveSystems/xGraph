@@ -392,8 +392,8 @@ function genesis(__options = {}) {
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
-							if (Modules[folder] != source) {
-								log.e(`Broker Mismatch Exception: ${Modules[folder]} - ${source}`);
+							if (Modules[folder].Source != source.Source ||(Modules[folder].Version != source.Version)) {
+								log.e(`Broker Mismatch Exception: ${key}\n${JSON.stringify(Modules[folder], null, 2)} - \n${JSON.stringify(source,null, 2)}`);
 								process.exit(2);
 								reject();
 							}
@@ -1356,7 +1356,7 @@ function genesis(__options = {}) {
 								Modules[folder] = source;
 							} else {
 								if (Modules[folder] != source) {
-									log.e(`Broker Mismatch Exception: ${Modules[folder]} - ${source}`);
+									log.e(`Broker Mismatch Exception: ${JSON.stringify(Modules[folder])} - ${JSON.stringify(source)}`);
 									process.exit(2);
 									reject();
 								}
