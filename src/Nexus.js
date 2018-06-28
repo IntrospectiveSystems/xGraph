@@ -145,13 +145,13 @@ module.exports = function xGraph(__options = {}) {
 					console.log("\n\n\nSilent");
 					i = w = e = false;
 				}
-	
+
 				if (checkFlag("logleveldebug")) {
 					console.log("\n\n\ndebug");
-	
+
 					v = d = true;
 				}
-	
+
 				if (checkFlag("verbose") || checkFlag("loglevelverbose")) {
 					console.log("\n\n\nverbose");
 					v = true;
@@ -711,13 +711,13 @@ module.exports = function xGraph(__options = {}) {
 				}
 
 				/**
-				 * Save this entity, including it's current Par and Vlt, to the cache.
+				 * Save this entity, including it's current Par, to the cache.
 				 * If this entity is not an Apex, send the save message to Apex of this entity's module.
 				 * If it is an Apex we save the entity's information, as well as all other relevant information
 				 * @callback fun
 				 */
 				function save(fun) {
-					nxs.saveEntity(Par.Apex, Par.Pid, fun);
+					nxs.saveEntity(Par, fun);
 				}
 			}
 
@@ -764,116 +764,66 @@ module.exports = function xGraph(__options = {}) {
 			/**
 			 * Delete an entity from the module's memory.  If the entity is an Apex of a Module,
 			 * then delete all the entities found in that module as well.
-			 * @param {string} apx 		the pid of the entities apex
 			 * @param {string} pid 		the pid of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function deleteEntity(apx, pid, fun) {
-				let apxpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}/${apx}/`;
-
-				let rmList = [];
-				//we first check to see if it's an apex
-				//if so we will read the directory that is the instance of
-				//the module and then delete all of the entity files found therein.
-				if (apx == pid) {
-					files = fs.readdirSync(apxpath);
-					for (let i = 0; i < files.length; i++) {
-						rmList.push(files[i].split('.')[0]);
-					}
-					remDir(apxpath);
-				} else {
-					rmList.push(pid);
-					log.v('Deleting file:' + apxpath + '/' + pid + '.json');
-					fs.unlinkSync(apxpath + '/' + pid + '.json');
-				}
-
-				for (let i = 0; i < rmList.length; i++) {
-					let subpid = rmList[i];
-					if (subpid in EntCache) {
-						delete EntCache[subpid];
-					}
-				}
-				if (fun)
-					fun(null, pid);
+			function deleteEntity(pid, fun = (err, pid) => { if (err) log.e(err) }) {
+				cacheInterface.deleteEntity(pid, fun);
 			}
 
 			/**
 			 * Save an entity file. Make sure that all nested files exist in the
 			 * cache prior to saving said file
-			 * @param {string} apx 		the pid of the entities apex
-			 * @param {string} pid 		the pid of the entity
+			 * @param {object} par 		the par of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function saveEntity(apx, pid, fun = (err, pid) => { if (err) log.e(err) }) {
-				let modpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}`;
-				let apxpath = `${modpath}/${apx}`;
-				let entpath = `${apxpath}/${pid}.json`;
-
-				//	this function checks to make sure the entities Module.zip
-				// 	file pre-exists or writes it if the entity is the module apex.
-				let checkModule = (() => {
-					fs.lstat(modpath, function (err, stat) {
-						if (stat) {
-							checkApex();
-						} else {
-							//the following code is deprecated since including deferred modules all module zip files
-							//must exist in the cache prior to starting the system
-
-							fun(`No Directory for the requested module: ${cacheInterface.ApexIndex[apx]}`);
-						}
-					})
-				});
-
-				//this function checks to make sure the entities Apex directory
-				//pre-exists or writes it if the entity is the module apex.
-				let checkApex = (() => {
-					fs.lstat(apxpath, async function (err, stat) {
-						if (stat) {
-							checkEntity();
-						} else {
-							if (pid == apx) {
-								fs.mkdirSync(apxpath);
-								log.v("Made directory " + apxpath);
-								checkEntity();
-							} else {
-								var schema = await new Promise(async (res, rej) => {
-									if ('schema.json' in ModCache[cacheInterface.ApexIndex[apx]]) {
-										ModCache[cacheInterface.ApexIndex[apx]].file('schema.json').async('string').then(function (schemaString) {
-											res(JSON.parse(schemaString));
-										});
-									} else {
-										log.e('Module <' + cacheInterface.ApexIndex[apx] + '> schema not in ModCache');
-										res();
-										return;
-									}
-								});
-
-								if (!("Save" in schema)) {
-									fun("Apex has not been saved", apx);
-									return;
-								}
-								let com = {};
-								com.Cmd = schema["Save"];
-								com.Passport = {};
-								com.Passport.To = pidapx;
-								com.Passport.Pid = genPid();
-								sendMessage(com, checkEntity);
-							}
-						}
+			function saveEntity(par, fun = (err, path) => { if (err) log.e(err, "saving to ", path) }) {
+				log.d("in save entity");
+				let saveEntity = (() => {
+					cacheInterface.saveEntityPar(par, (err, path) => {
+						log.v("Saved 'ent'.json at " + path);
+						fun(err, path);
 					});
 				});
+				
+				//this function checks to make sure the entities Apex directory
+				//pre-exists or writes it if the entity is the module apex.
+				if (par.Pid != par.Apex) {
+					cacheInterface.getEntityPar(par.Apex, async (err) => {
+						if (err) {
+							let tempApexPar = {
+								Pid: par.Apex,
+								Apex: par.Apex
+							}
 
-				let checkEntity = (() => {
-					if (!(pid in EntCache)) {
-						fun('pid has not been loaded to EntCache...' + pid);
-						return;
-					}
-					ent = EntCache[pid];
-					fs.writeFileSync(entpath, JSON.stringify(ent.Par, null, 2));
-					log.v("Saved 'ent'.json at " + entpath);
-					fun(null);
-				});
-				checkModule();
+							let schema;
+							try {
+								schema = await new Promise(async (res, rej) => {
+									if ('schema.json' in ModCache[cacheInterface.ApexIndex[par.Apex]].files) {
+										ModCache[cacheInterface.ApexIndex[par.Apex]].file('schema.json').async('string').then(function (schemaString) {
+											res(JSON.parse(schemaString).Apex);
+										});
+									} else {
+										log.e('Module <' + cacheInterface.ApexIndex[par.Apex] + '> schema not in ModCache');
+										rej(e);
+									}
+								});
+							} catch (e) {
+								return fun(e);
+							}
+							log.v("Saving the mock Apex");
+							cacheInterface.saveEntityPar(Object.assign(schema, tempApexPar), (err, path) => {
+								log.v("Apex saved 'ent'.json at " + path);
+								saveEntity();
+							});
+						} else {
+							log.v("Apex already in cache");
+							saveEntity();
+						}
+					});
+				} else {
+					saveEntity();
+				}
 			}
 
 			/**
@@ -884,17 +834,15 @@ module.exports = function xGraph(__options = {}) {
 			 */
 			async function addModule(modName, modZip, fun) {
 				//modZip is the uint8array that can be written directly to the cache directory
-				if (__options.indexOf('--allow-add-module') > -1) {
-					ModCache[modName] = await new Promise(async (res, rej) => {
-						let zip = new jszip();
-						zip.loadAsync(modZip).then((mod) => res(mod));
+				if (checkFlag('allow-add-module')) {
+					cacheInterface.addModule(modName, modZip, (err, path) => {
+						fun(err, path);
 					});
-					fun(null, modName)
-					return;
+				} else {
+					let err = `addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
+					log.w(err);
+					fun(err);
 				}
-				let err = `addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
-				log.w(err);
-				fun(err);
 			}
 
 			/**
@@ -1227,9 +1175,9 @@ module.exports = function xGraph(__options = {}) {
 								mod.file(par.Entity).async("string").then((string) => res(string))
 							});
 							ImpCache[impkey] = indirectEvalImp(entString);
-
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+						cacheInterface.EntIndex[par.Pid]=par.Apex;
 					})());
 				}
 				await Promise.all(entsPromise);
