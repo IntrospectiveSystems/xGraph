@@ -787,6 +787,7 @@ module.exports = function xGraph(__options = {}) {
 					fs.unlinkSync(apxpath + '/' + pid + '.json');
 				}
 
+				//remove ent from EntCache (in RAM)
 				for (let i = 0; i < rmList.length; i++) {
 					let subpid = rmList[i];
 					if (subpid in EntCache) {

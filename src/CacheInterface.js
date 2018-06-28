@@ -80,6 +80,24 @@ module.exports = class CacheInterface {
 		fs.readFile(path, fun);
 	}
 
+	//save an entity by providing the pars json
+	saveEntityPar(pars, fun = _=> _) {
+		let apx = this._entIndex[par.Pid];
+		let moduleType = this._apexIndex[apx];
+
+		let __options = this.__options;
+		let that = this;
+		let path;
+
+		if(this._version < ver130) {
+			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
+		}else {
+			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
+		}
+
+		fs.readFile(path, fun);
+	}
+
 	//load in a cache directory and return the Apex Index, Start, Setup and Stop dictionaries.
 	async loadCache() {
 		let __options = this.__options;
