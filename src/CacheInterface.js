@@ -18,18 +18,23 @@ module.exports = class CacheInterface {
 	set ApexIndex(val) {
 		this._apexIndex = val;
 	}
-	
+
+	get EntIndex() {
+		return this._entIndex;
+	}
+
+	set EntIndex(val) {
+		this._entIndex = val;
+	}
+
 	//retrieve a module from the cache
 	getModule(moduleType, fun = _ => _) {
 		let __options = this.__options;
-		let that = this;
-
-		//get the module from cache
 		let cachedMod;
-		
-		if(this._version < ver130) {
+
+		if (this._version < ver130) {
 			cachedMod = Path.join(__options.path, moduleType, 'Module.zip');
-		}else {
+		} else {
 			cachedMod = Path.join(__options.path, 'System', moduleType, 'Module.zip');
 		}
 
@@ -60,7 +65,27 @@ module.exports = class CacheInterface {
 			}
 		});
 	}
-	
+
+	//adds a module to the cache
+	addModule(moduleType, moduleZip, fun = _ => _) {
+		let __options = this.__options;
+		let cachedMod;
+
+		if (this._version < ver130) {
+			cachedMod = Path.join(__options.path, moduleType);
+		} else {
+			cachedMod = Path.join(__options.path, 'System', moduleType);
+		}
+
+		try { fs.mkdirSync(cachedMod) } catch (e) { log.v(`${cachedMod} path already exists`); }
+
+		cachedMod = Path.join(cachedMod, 'Module.zip');
+
+		fs.writeFile(cachedMod, moduleZip, (err) => {
+			fun(err, cachedMod);
+		});
+	}
+
 	//return the json of pars related to a single entity based on it's pid 
 	getEntityPar(pid, fun = _ => _) {
 
@@ -68,34 +93,73 @@ module.exports = class CacheInterface {
 		let moduleType = this._apexIndex[apx];
 
 		let __options = this.__options;
-		let that = this;
 		let path;
 
-		if(this._version < ver130) {
+		if (this._version < ver130) {
 			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
-		}else {
+		} else {
 			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
 		}
 
 		fs.readFile(path, fun);
 	}
 
-	//save an entity by providing the pars json
-	saveEntityPar(pars, fun = _=> _) {
-		let apx = this._entIndex[par.Pid];
-		let moduleType = this._apexIndex[apx];
+	//delete an entity from the cache
+	deleteEntity(pid, fun = _ => _) {
+		let apxpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}/${apx}/`;
 
-		let __options = this.__options;
-		let that = this;
-		let path;
-
-		if(this._version < ver130) {
-			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
-		}else {
-			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
+		let rmList = [];
+		//we first check to see if it's an apex
+		//if so we will read the directory that is the instance of
+		//the module and then delete all of the entity files found therein.
+		if (apx == pid) {
+			files = fs.readdirSync(apxpath);
+			for (let i = 0; i < files.length; i++) {
+				rmList.push(files[i].split('.')[0]);
+			}
+			remDir(apxpath);
+		} else {
+			rmList.push(pid);
+			log.v('Deleting file:' + apxpath + '/' + pid + '.json');
+			fs.unlinkSync(apxpath + '/' + pid + '.json');
 		}
 
-		fs.readFile(path, fun);
+		//remove ent from EntCache (in RAM)
+		for (let i = 0; i < rmList.length; i++) {
+			let subpid = rmList[i];
+			if (subpid in EntCache) {
+				delete EntCache[subpid];
+			}
+		}
+		if (fun)
+			fun(null, pid);
+	}
+
+	//save an entity by providing the pars json
+	saveEntityPar(parObject, fun = _ => _) {
+
+		let moduleType = this._apexIndex[parObject.Apex];
+		let __options = this.__options;
+		let path;
+
+		log.d(moduleType, parObject.Apex);
+		if (this._version < ver130) {
+			path = Path.join(__options.path, moduleType, parObject.Apex);
+		} else {
+			path = Path.join(__options.path, 'System', moduleType, parObject.Apex);
+		}
+
+		log.w(path);
+
+		try { fs.mkdirSync(path) } catch (e) { log.v(`${path} path already exists`); }
+
+		path = Path.join(path, `${parObject.Pid}.json`);
+
+		log.i(path);
+		fs.writeFile(path, JSON.stringify(parObject, null, 2), (err) => {
+			this._entIndex[parObject.Pid] = parObject.Apex;
+			fun(err, path)
+		});
 	}
 
 	//load in a cache directory and return the Apex Index, Start, Setup and Stop dictionaries.
@@ -106,19 +170,19 @@ module.exports = class CacheInterface {
 		let setup = {}, start = {}, stop = {}, apexIndex = {}, entIndex = {};
 		let manifest = await new Promise(resolve => {
 			fs.lstat(manifestPath, (err, stat) => {
-				if(!err && stat.isFile()) {
+				if (!err && stat.isFile()) {
 					resolve(JSON.parse(fs.readFileSync(manifestPath)));
 				} else {
-					resolve({version: '1.2.1'});
+					resolve({ version: '1.2.1' });
 				}
 			});
 		});
 		let version = this._version = new SemVer(manifest.version);
 
 		let modulesDirectory;
-		if(version < new SemVer('1.3')) {
+		if (version < new SemVer('1.3')) {
 			modulesDirectory = Path.join(__options.path, '');
-		}else {
+		} else {
 			modulesDirectory = Path.join(__options.path, 'System');
 		}
 
@@ -147,7 +211,7 @@ module.exports = class CacheInterface {
 						apexIndex[file] = folder;
 						let instJson = JSON.parse(fs.readFileSync(Path.join(path, `${file}.json`)));
 
-						for(let filename of fs.readdirSync(path)) {
+						for (let filename of fs.readdirSync(path)) {
 							entIndex[Path.parse(filename).name] = file;
 						}
 
@@ -172,16 +236,16 @@ module.exports = class CacheInterface {
 		this._entIndex = entIndex;
 		this._apexIndex = apexIndex;
 
-		return {apexIndex, setup, start, stop};
+		return { apexIndex, setup, start, stop };
 	}
 
 	loadDependency(moduleType, moduleName) {
 		let __options = this.__options;
 		let version = this._version;
 		let that = this, nodeModulesPath;
-		if(version < new SemVer('1.3')) {
+		if (version < new SemVer('1.3')) {
 			nodeModulesPath = Path.join(__options.path, moduleType, 'node_modules');
-		}else {
+		} else {
 			nodeModulesPath = Path.join(__options.path, 'Lib', moduleType, 'node_modules');
 		}
 
