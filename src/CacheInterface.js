@@ -105,61 +105,96 @@ module.exports = class CacheInterface {
 	}
 
 	//delete an entity from the cache
-	deleteEntity(pid, fun = _ => _) {
-		return fun(null, pid); 
-		let apxpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}/${apx}/`;
+	async deleteEntity(pid, fun = _ => _) {
+		let apx = this._entIndex[pid];
+		let moduleType = this._apexIndex[apx];
+		let __options = this.__options;
+		let apxpath;
+
+		if (this._version < ver130) {
+			apxpath = Path.join(__options.path, moduleType, apx);
+		} else {
+			apxpath = Path.join(__options.path, 'System', moduleType, apx);
+		}
 
 		let rmList = [];
 		//we first check to see if it's an apex
 		//if so we will read the directory that is the instance of
 		//the module and then delete all of the entity files found therein.
 		if (apx == pid) {
-			files = fs.readdirSync(apxpath);
+			let files;
+			try { files = fs.readdirSync(apxpath); } catch (e) {
+				log.w(e);
+				return fun(null, [pid])
+			}
 			for (let i = 0; i < files.length; i++) {
 				rmList.push(files[i].split('.')[0]);
 			}
-			remDir(apxpath);
+			await remDir(apxpath);
 		} else {
 			rmList.push(pid);
-			log.v('Deleting file:' + apxpath + '/' + pid + '.json');
-			fs.unlinkSync(apxpath + '/' + pid + '.json');
+			let path = apxpath + '/' + pid + '.json';
+			fs.unlinkSync(path);
 		}
+		return fun(null, rmList);
 
-		//remove ent from EntCache (in RAM)
-		for (let i = 0; i < rmList.length; i++) {
-			let subpid = rmList[i];
-			if (subpid in EntCache) {
-				delete EntCache[subpid];
-			}
+		/**
+		 * Recursive directory deletion
+ 		* @param {string} path the directory to be recursively removed
+		 */
+		function remDir(path) {
+			return (new Promise(async (resolve, reject) => {
+				if (fs.existsSync(path)) {
+					let files = fs.readdirSync(path);
+					let promiseArray = [];
+
+					for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+						promiseArray.push(new Promise(async (resolve2, reject2) => {
+							let curPath = path + "/" + files[fileIndex];
+							if (fs.lstatSync(curPath).isDirectory()) {
+								// recurse
+								await remDir(curPath);
+								resove2();
+							} else {
+								// delete file
+								log.v("Removing Entity ", files[fileIndex].split(".")[0]);
+								fs.unlinkSync(curPath);
+								resolve2();
+							}
+						}));
+					}
+					//make sure all the sub files and directories have been removed;
+					await Promise.all(promiseArray);
+					log.v("Removing Module Directory ", path);
+					fs.rmdirSync(path);
+					resolve()
+				} else {
+					log.v("trying to remove nonexistant path ", path);
+					resolve();
+				}
+			}));
 		}
-		if (fun)
-			fun(null, pid);
 	}
 
 	//save an entity by providing the pars json
 	saveEntityPar(parObject, fun = _ => _) {
-
 		let moduleType = this._apexIndex[parObject.Apex];
 		let __options = this.__options;
 		let path;
 
-		log.d(moduleType, parObject.Apex);
 		if (this._version < ver130) {
 			path = Path.join(__options.path, moduleType, parObject.Apex);
 		} else {
 			path = Path.join(__options.path, 'System', moduleType, parObject.Apex);
 		}
 
-		log.w(path);
-
-		try { fs.mkdirSync(path) } catch (e) { log.v(`${path} path already exists`); }
+		try { fs.mkdirSync(path) } catch (e) {}
 
 		path = Path.join(path, `${parObject.Pid}.json`);
 
-		log.i(path);
 		fs.writeFile(path, JSON.stringify(parObject, null, 2), (err) => {
 			this._entIndex[parObject.Pid] = parObject.Apex;
-			fun(err, path)
+			fun(err, parObject.Pid);
 		});
 	}
 
