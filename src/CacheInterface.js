@@ -106,6 +106,7 @@ module.exports = class CacheInterface {
 
 	//delete an entity from the cache
 	deleteEntity(pid, fun = _ => _) {
+		return fun(null, pid); 
 		let apxpath = `${__options.cache}/${cacheInterface.ApexIndex[apx]}/${apx}/`;
 
 		let rmList = [];

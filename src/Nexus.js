@@ -667,7 +667,7 @@ module.exports = function xGraph(__options = {}) {
 				 */
 				function deleteEntity(fun) {
 					log.v(`Deleting Entity ${Par.Pid}`);
-					nxs.deleteEntity(Par.Apex, Par.Pid, fun);
+					nxs.deleteEntity(Par.Pid, fun);
 				}
 
 				/**
