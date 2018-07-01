@@ -788,7 +788,7 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {object} par 		the par of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			async function saveEntity(par, fun) {
+			async function saveEntity(par, fun = (err, pid) => { if (err) log.e(err) }) {
 				let saveEntity = (async (par) => {
 					await new Promise((res, rej)=>{
 						cacheInterface.saveEntityPar(par, (err, pid) => {
