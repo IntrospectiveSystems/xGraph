@@ -600,7 +600,7 @@ module.exports = function xGraph(__options = {}) {
 							disp['*'].call(this, com, fun);
 							return;
 						}
-						log.e('Nada Cmd:' + com.Cmd);
+						log.w(`${com.Cmd} not found in Entity ${this.Par.Module}`);
 						fun('Nada', com);
 					} catch (e) {
 						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
@@ -666,8 +666,7 @@ module.exports = function xGraph(__options = {}) {
 				 * @callback fun
 				 */
 				function deleteEntity(fun) {
-					log.v(`Deleting Entity ${Par.Pid}`);
-					nxs.deleteEntity(Par.Apex, Par.Pid, fun);
+					nxs.deleteEntity(Par.Pid, fun);
 				}
 
 				/**
@@ -768,7 +767,19 @@ module.exports = function xGraph(__options = {}) {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function deleteEntity(pid, fun = (err, pid) => { if (err) log.e(err) }) {
-				cacheInterface.deleteEntity(pid, fun);
+				cacheInterface.deleteEntity(pid, (err, removedPidArray) => {
+
+					//remove ent from EntCache (in RAM)
+					for (let i = 0; i < removedPidArray.length; i++) {
+						let entPid = removedPidArray[i];
+						if (entPid in EntCache) {
+							delete EntCache[entPid];
+						}
+					}
+					log.v(`Removed ${(removedPidArray.length == 1) ? "Entity" : "Entities"
+						} ${removedPidArray.join(" ")}`);
+					fun(err, pid);
+				});
 			}
 
 			/**
@@ -777,52 +788,42 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {object} par 		the par of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function saveEntity(par, fun = (err, path) => { if (err) log.e(err, "saving to ", path) }) {
-				log.d("in save entity");
-				let saveEntity = (() => {
-					cacheInterface.saveEntityPar(par, (err, path) => {
-						log.v("Saved 'ent'.json at " + path);
-						fun(err, path);
-					});
+			async function saveEntity(par, fun = (err, pid) => { if (err) log.e(err) }) {
+				let saveEntity = (async (par) => {
+					await new Promise((res, rej)=>{
+						cacheInterface.saveEntityPar(par, (err, pid) => {
+							if (err){
+								log.e(err, "saving ", pid); 
+								reject(err)
+							}
+							log.v(`Saved entity ${par.Pid}`);
+							res()
+						});
+					})
 				});
-				
-				//this function checks to make sure the entities Apex directory
-				//pre-exists or writes it if the entity is the module apex.
+
+				//check if the entity is the modules Apex
 				if (par.Pid != par.Apex) {
+					//check if the Apex exists in the cache
 					cacheInterface.getEntityPar(par.Apex, async (err) => {
 						if (err) {
-							let tempApexPar = {
-								Pid: par.Apex,
-								Apex: par.Apex
-							}
 
-							let schema;
-							try {
-								schema = await new Promise(async (res, rej) => {
-									if ('schema.json' in ModCache[cacheInterface.ApexIndex[par.Apex]].files) {
-										ModCache[cacheInterface.ApexIndex[par.Apex]].file('schema.json').async('string').then(function (schemaString) {
-											res(JSON.parse(schemaString).Apex);
-										});
-									} else {
-										log.e('Module <' + cacheInterface.ApexIndex[par.Apex] + '> schema not in ModCache');
-										rej(e);
-									}
-								});
-							} catch (e) {
-								return fun(e);
-							}
-							log.v("Saving the mock Apex");
-							cacheInterface.saveEntityPar(Object.assign(schema, tempApexPar), (err, path) => {
-								log.v("Apex saved 'ent'.json at " + path);
-								saveEntity();
-							});
+							//get the Apex's par from the EntCache
+							let apexPar = EntCache[par.Apex].Par;
+
+							log.v("Must first save the Apex -- Saving...");
+							await saveEntity(apexPar);
+							await saveEntity(par);
+							fun(null, par.Pid);
 						} else {
-							log.v("Apex already in cache");
-							saveEntity();
+							//this entity is not the apex and the apex is alread in the cache
+							await saveEntity(par);
+							fun(null, par.Pid);
 						}
 					});
 				} else {
-					saveEntity();
+					await saveEntity(par);
+					fun(null, par.Pid);
 				}
 			}
 
@@ -1177,7 +1178,7 @@ module.exports = function xGraph(__options = {}) {
 							ImpCache[impkey] = indirectEvalImp(entString);
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
-						cacheInterface.EntIndex[par.Pid]=par.Apex;
+						cacheInterface.EntIndex[par.Pid] = par.Apex;
 					})());
 				}
 				await Promise.all(entsPromise);
