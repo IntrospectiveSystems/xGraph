@@ -600,7 +600,7 @@ module.exports = function xGraph(__options = {}) {
 							disp['*'].call(this, com, fun);
 							return;
 						}
-						log.e('Nada Cmd:' + com.Cmd);
+						log.w(`${com.Cmd} not found in Entity ${this.Par.Module}`);
 						fun('Nada', com);
 					} catch (e) {
 						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
