@@ -1350,12 +1350,15 @@ function genesis(__options = {}) {
 								return;
 							}
 
-							let source = mod.Source;
+							let source = {
+								Source: mod.Source,
+								Version: mod.Version
+							};
 
 							if (!(folder in Modules)) {
 								Modules[folder] = source;
 							} else {
-								if (Modules[folder] != source) {
+								if (Modules[folder].Source != source.Source || Modules[folder].Version != source.Version) {
 									log.e(`Broker Mismatch Exception: ${JSON.stringify(Modules[folder])} - ${JSON.stringify(source)}`);
 									process.exit(2);
 									reject();
@@ -1388,14 +1391,15 @@ function genesis(__options = {}) {
 								return rej(new Error('ERR_NO_SOURCES'));
 							}
 
-							if (!(Modules[folder] in Config.Sources)) {
+							if (!(Modules[folder].Source in Config.Sources)) {
 								log.e(`${Modules[folder]} not in Sources!`);
 								return rej(new Error('ERR_NOT_IN_SOURCES'));
 							}
 
 							let modrequest = {
 								"Module": folder,
-								"Source": Config.Sources[Modules[folder]]
+								"Source": Config.Sources[Modules[folder].Source],
+								"Version": Modules[folder].Version
 							};
 
 							log.v(`Requesting Module:${modrequest.Module} from Source:${modrequest.Source}`);
