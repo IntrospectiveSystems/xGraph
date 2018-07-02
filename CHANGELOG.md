@@ -4,9 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.3.7]
+### Changed
+- update deleteEntity to use CacheInterface
+- saving a non-apex entity before it's apex will automatically save the apex
+- logger now limited to 80 characters
+- better error reporting for errored connections to module brokers
+
 ## [1.3.5]
 ### Changed
-- update save and add module to cacheInterface
+- update save and add module to CacheInterface
 
 ## [1.3.4]
 ### Changed

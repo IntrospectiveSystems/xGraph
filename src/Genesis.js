@@ -24,139 +24,42 @@ function genesis(__options = {}) {
 	// }
 	return new Promise(async (resolve, reject) => {
 
+
+		process.on('unhandledRejection', (reason, p) => {
+			let logger;
+			try {
+				logger = log.e;
+			} catch(e) {
+				logger = console.error;
+			}
+			logger('\u001b[31m' + '------- [Unhandled Promise Rejection] -------' + '\u001b[39m');
+			logger('\u001b[31m' + reason.message + '\u001b[39m');
+			logger('\u001b[31m' + reason.stack + '\u001b[39m');
+			logger('\u001b[31m' + '------- [/Unhandled Promise Rejection] ------' + '\u001b[39m');
+			process.exit(1);
+		});
+
 		process.stdout.write(`Initializing the Compile Engine in ${__options.state} Mode \r\n`);
 
+		// imports
 		const fs = require('fs');
 		const Path = require('path');
 		const endOfLine = require('os').EOL;
 		const proc = require('child_process');
 		const jszip = require("jszip");
+		const log = createLogger();
 
-		let log;
-		let Uuid;
-		let CacheDir;						// The location of where the Cache will be stored
-		let Config = {};					// The parsed system configuration in JSON format
-		let Apex = {};						// {<Name>: <pid of Apex>}
-		let Modules = {};					// {<Name>: <mod desc>} - only in Genesis
-		let ModCache = {};					// {<folder>: <module>}
-		let args = process.argv;			// The input arguments --under consideration for deprication
-		let Params = {};					// The set of Macros for defining paths
-		let CWD = '';						// The current working directory
+		// Genesis globals
+		let Uuid; //Uuid npm package (v4.js)
+		let CacheDir; // The location of where the Cache will be stored
+		let Config = {}; // The parsed system configuration in JSON format
+		let Apex = {}; // {<Name>: <pid of Apex>}
+		let Modules = {}; // {<Name>: <mod desc>} - only in Genesis
+		let ModCache = {}; // {<folder>: <module>}
+		let args = process.argv; // The input arguments --under consideration for deprication
+		let Params = {}; // The set of Macros for defining paths
+		let CWD = ''; // The current working directory
 
-		//
-		// Logging Functionality
-		//
-		{
-			// The logging function for writing to xgraph.log to the current working directory
-			const xgraphlog = (...str) => {
-				fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
-					if (err) {
-						console.error(err); process.exit(1); reject();
-					}
-				});
-			};
-			// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
-			// Levels include:
-			// v : verbose		Give too much information
-			// d : debug		For debugging purposes not in production level releases
-			// i : info			General info presented to the end user
-			// w : warn			Failures that dont result in a system exit
-			// e : error 		Critical failure should always follow with a system exit
-
-			// Set the default logging profile
-			let v = false;
-			let d = false;
-			let i = true;
-			let w = true;
-			let e = true;
-
-			if (checkFlag("silent") || checkFlag("loglevelsilent")) {
-				console.log("\n\n\nSilent");
-				i = w = e = false;
-			}
-
-			if (checkFlag("logleveldebug")) {
-				console.log("\n\n\ndebug");
-
-				v = d = true;
-			}
-
-			if (checkFlag("verbose") || checkFlag("loglevelverbose")) {
-				console.log("\n\n\nverbose");
-				v = true;
-			}
-
-			log = {
-				v: (...str) => {
-					if (v) process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(), ...str);
-				},
-				d: (...str) => {
-					if (d) process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(), ...str);
-				},
-				i: (...str) => {
-					if (i) process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(), ...str);
-				},
-				w: (...str) => {
-					if (w) process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(), ...str);
-				},
-				e: (...str) => {
-					if (e) process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
-					xgraphlog(new Date().toString(), ...str);
-				},
-				parse: (str) => {
-					try {
-						let arr = [];
-						for (let obj of str) {
-							if (typeof obj == 'object') {
-								if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
-								else {
-									try {
-										arr.push(JSON.stringify(obj, null, 2));
-									} catch (e) {
-										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
-									}
-								}
-							} else if (typeof obj == 'undefined') {
-								arr.push('undefined');
-							} else {
-								arr.push(obj.toString());
-							}
-						}
-						return arr.join(' ');
-					} catch (ex) {
-						process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
-						process.stdout.write(ex.toString() + '\u001b[39m');
-					}
-
-				}
-			};
-			console.microtime = _ => {
-				let hrTime = process.hrtime();
-				return (hrTime[0] * 1000000 + hrTime[1] / 1000);
-			}
-			console.time = _ => {
-				console.timers = console.timers || {};
-				console.timers[_] = console.microtime();
-			}
-			console.timeEnd = _ => {
-				if (!(_ in (console.timers || {})))
-					return;
-				let elapsed = (console.microtime() - console.timers[_]) / 1000;
-				console.timers[_] = undefined;
-				log.i(`${_}: ${elapsed.toFixed(2)}ms`);
-			}
-			process.on('unhandledRejection', (reason, p) => {
-				log.e('------- [Unhandled Promise Rejection] -------');
-				log.e(reason.message);
-				log.e(reason.stack);
-				log.e('------- [/Unhandled Promise Rejection] ------');
-				process.exit(1);
-			});
-		}
 
 		try {
 			setup();
@@ -392,8 +295,8 @@ function genesis(__options = {}) {
 						if (!(folder in Modules)) {
 							Modules[folder] = source;
 						} else {
-							if (Modules[folder].Source != source.Source ||(Modules[folder].Version != source.Version)) {
-								log.e(`Broker Mismatch Exception: ${key}\n${JSON.stringify(Modules[folder], null, 2)} - \n${JSON.stringify(source,null, 2)}`);
+							if (Modules[folder].Source != source.Source || (Modules[folder].Version != source.Version)) {
+								log.e(`Broker Mismatch Exception: ${key}\n${JSON.stringify(Modules[folder], null, 2)} - \n${JSON.stringify(source, null, 2)}`);
 								process.exit(2);
 								reject();
 							}
@@ -515,9 +418,7 @@ function genesis(__options = {}) {
 
 
 				if (__options.state == 'updateOnly') {
-					log.i(`Genesis Update Stop: ${new Date().toString()}`);
-					log.i(`=================================================${endOfLine}`);
-					resolve();
+					Stop();
 					return;
 				}
 
@@ -551,9 +452,9 @@ function genesis(__options = {}) {
 					});
 				}
 
-				log.i(`Genesis Compile Stop: ${new Date().toString()}`);
-				log.i(`=================================================${endOfLine}`);
-				resolve();
+
+
+				Stop();
 			}
 		}
 
@@ -565,6 +466,151 @@ function genesis(__options = {}) {
 		// Only Helper Functions Beyond This Point
 		//
 		//
+
+		/**
+		 * Creates the log object and returns it.
+		 * The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
+		 * Levels include:
+		 * v : verbose		Give too much information
+		 * d : debug		For debugging purposes not in production level releases
+		 * i : info			General info presented to the end user
+		 * w : warn			Failures that dont result in a system exit
+		 * e : error 		Critical failure should always follow with a system exit
+		 */
+		function createLogger() {
+
+			// The logging function for writing to xgraph.log to the current working directory
+			const xgraphlog = (...str) => {
+				fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(" ")}${endOfLine}`, (err) => {
+					if (err) {
+						console.error(err); process.exit(1); reject();
+					}
+				});
+			};
+
+			// Set the default logging profile
+			let printVerbose = false;
+			let printDebug = false;
+			let printInfo = true;
+			let printWarn = true;
+			let printError = true;
+
+			if (checkFlag("silent") || checkFlag("loglevelsilent")) {
+				printInfo = false;
+				printWarn = false;
+				printError = false;
+			}
+
+			if (checkFlag("logleveldebug")) {
+				printVerbose = true;
+				printDebug = true;
+			}
+
+			if (checkFlag("verbose") || checkFlag("loglevelverbose")) {
+				printVerbose = true;
+			}
+
+			let log = {
+				v: (...str) => {
+					xgraphlog(new Date().toString(), ...str);
+					if (!printVerbose) return;
+					process.stdout.write(log.parse(log.tag.verbose, str));
+				},
+				d: (...str) => {
+					xgraphlog(new Date().toString(), ...str);
+					if (!printDebug) return;
+					process.stdout.write(log.parse(log.tag.debug, str));
+				},
+				i: (...str) => {
+					xgraphlog(new Date().toString(), ...str);
+					if (!printInfo) return;
+					process.stdout.write(log.parse(log.tag.info, str));
+				},
+				w: (...str) => {
+					xgraphlog(new Date().toString(), ...str);
+					if (!printWarn) return;
+					process.stdout.write(log.parse(log.tag.warn, str));
+				},
+				e: (...str) => {
+					xgraphlog(new Date().toString(), ...str);
+					if (!printError) return;
+					process.stdout.write(log.parse(log.tag.error, str));
+				},
+				parse: (tag, outputs) => {
+					try {
+						let arr = [];
+						for (let obj of outputs) {
+							if (typeof obj == 'object') {
+								// if the object has defined a way to be seen, use it
+								if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+								else {
+									try {
+										//otherwise try to stringify it
+										arr.push(JSON.stringify(obj, null, 2));
+									} catch (e) {
+										// if we fail (ex, cyclic objects), just dump the keys
+										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+									}
+								}
+							} else if (typeof obj == 'undefined') {
+								arr.push('undefined');
+							} else {
+								arr.push(obj.toString());
+							}
+						}
+						let lines = arr.join(' ').split(/[\r]{0,1}[\n]/);
+						let output = "";
+						for (let line of lines) {
+							if (line.length > 80) {
+								line = line.substr(0, 34)
+									+ ' ... ' + line.substr(-34, 34);
+							}
+							output += `${tag} ${line}${log.eol}`;
+						}
+						return output;
+					} catch (ex) {
+						process.stdout.write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
+						process.stdout.write('\u001b[31m[ERRR] ============================================\n');
+						process.stdout.write(ex.toString() + '\n');
+						process.stdout.write('\u001b[31m[ERRR] ============================================\n');
+					}
+
+				}
+			};
+
+			log.tag = {};
+			log.tag.verbose = '\u001b[90m[VRBS]';
+			log.tag.debug = '\u001b[35m[DBUG]';
+			log.tag.info = '\u001b[36m[INFO]';
+			log.tag.warn = '\u001b[33m[WARN]';
+			log.tag.error = '\u001b[31m[ERRR]';
+			log.eol = '\u001b[39m\r\n';
+
+			console.microtime = _ => {
+				let hrTime = process.hrtime();
+				return (hrTime[0] * 1000000 + hrTime[1] / 1000);
+			}
+			console.time = _ => {
+				console.timers = console.timers || {};
+				console.timers[_] = console.microtime();
+			}
+			console.timeEnd = _ => {
+				if (!(_ in (console.timers || {})))
+					return;
+				let elapsed = (console.microtime() - console.timers[_]) / 1000;
+				console.timers[_] = undefined;
+				log.i(`${_}: ${elapsed.toFixed(2)}ms`);
+			}
+
+			return log;
+
+		}
+
+		async function Stop() {
+			log.i(`Genesis Compile Stop: ${new Date().toString()}`);
+			log.i(`=================================================${endOfLine}`);
+			resolve();
+		}
 
 		async function buildDir(path) {
 			let dirObj = {};
@@ -674,27 +720,29 @@ function genesis(__options = {}) {
 					STX: str.charAt(0),
 					ETX: str.charAt(1)
 				};
+				let cmd = {};
+				cmd.Cmd = "GetModule";
+				cmd.Name = modnam;
+				cmd.Passport = {
+					Disp: "Query",
+					Pid: genPid()
+				};
+				if ('Version' in modRequest) {
+					cmd.Version = modRequest.Version;
+				}
+				modRequest.Version = 'latest';
 
 				sock.connect(port, host, function () { log.v("trying to connect") });
 				sock.on('connect', function () {
-					let cmd = {};
-					cmd.Cmd = "GetModule";
-					cmd.Name = modnam;
-					cmd.Passport = {
-						Disp: "Query",
-						Pid: genPid()
-					};
-					if ('Version' in modRequest) {
-						cmd.Version = modRequest.Version;
-					}
-					modRequest.Version = 'latest';
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
 					log.v(`Requested Module ${modnam}@${modRequest.Version} from Broker ${JSON.stringify(source, null, 2)}`);
 				});
 
 				sock.on('error', (err) => {
-					log.w(err);
+					log.e(`Fatal Error retrieving module ${modnam}@${modRequest.Version}`);
+					log.e(`Connection failed: ${JSON.stringify(source, null, 2)}`);
+					log.v(err); // dump the error
 					process.exit(1);
 				});
 
