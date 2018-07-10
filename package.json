@@ -6,7 +6,8 @@
   "scripts": {
     "build": "cd build && npm run build",
     "test": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js && cd .. && echo Test Suite Finished with exit code 0!",
-    "qa": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js --fast && cd .. && echo Test Suite Finished with exit code 0!"
+    "qa": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js --fast && cd .. && echo Test Suite Finished with exit code 0!",
+    "lint": "eslint src/*.js"
   },
   "repository": {
     "type": "git",
@@ -25,5 +26,8 @@
     "jszip": "3.1.5",
     "strip-comments": "1.0.2",
     "uuid": "3.2.1"
+  },
+  "devDependencies": {
+    "eslint": "5.1.0"
   }
 }

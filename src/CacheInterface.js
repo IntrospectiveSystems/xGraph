@@ -58,7 +58,7 @@ module.exports = class CacheInterface {
 					});
 				}
 			} else {
-				err = `Module ${cachedMod} does not exist in the cache`
+				err = `Module ${cachedMod} does not exist in the cache`;
 				log.e(err);
 				fun(err);
 				return;
@@ -77,7 +77,7 @@ module.exports = class CacheInterface {
 			cachedMod = Path.join(__options.path, 'System', moduleType);
 		}
 
-		try { fs.mkdirSync(cachedMod) } catch (e) { log.v(`${cachedMod} path already exists`); }
+		try { fs.mkdirSync(cachedMod); } catch (e) { log.v(`${cachedMod} path already exists`); }
 
 		cachedMod = Path.join(cachedMod, 'Module.zip');
 
@@ -125,7 +125,7 @@ module.exports = class CacheInterface {
 			let files;
 			try { files = fs.readdirSync(apxpath); } catch (e) {
 				log.w(e);
-				return fun(null, [pid])
+				return fun(null, [pid]);
 			}
 			for (let i = 0; i < files.length; i++) {
 				rmList.push(files[i].split('.')[0]);
@@ -150,14 +150,14 @@ module.exports = class CacheInterface {
 
 					for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
 						promiseArray.push(new Promise(async (resolve2, reject2) => {
-							let curPath = path + "/" + files[fileIndex];
+							let curPath = path + '/' + files[fileIndex];
 							if (fs.lstatSync(curPath).isDirectory()) {
 								// recurse
 								await remDir(curPath);
 								resove2();
 							} else {
 								// delete file
-								log.v("Removing Entity ", files[fileIndex].split(".")[0]);
+								log.v('Removing Entity ', files[fileIndex].split('.')[0]);
 								fs.unlinkSync(curPath);
 								resolve2();
 							}
@@ -165,11 +165,11 @@ module.exports = class CacheInterface {
 					}
 					//make sure all the sub files and directories have been removed;
 					await Promise.all(promiseArray);
-					log.v("Removing Module Directory ", path);
+					log.v('Removing Module Directory ', path);
 					fs.rmdirSync(path);
-					resolve()
+					resolve();
 				} else {
-					log.v("trying to remove nonexistant path ", path);
+					log.v('trying to remove nonexistant path ', path);
 					resolve();
 				}
 			}));
@@ -188,7 +188,7 @@ module.exports = class CacheInterface {
 			path = Path.join(__options.path, 'System', moduleType, parObject.Apex);
 		}
 
-		try { fs.mkdirSync(path) } catch (e) {}
+		try { fs.mkdirSync(path); } catch (e) {}
 
 		path = Path.join(path, `${parObject.Pid}.json`);
 
@@ -231,7 +231,7 @@ module.exports = class CacheInterface {
 			if (!fs.existsSync(path))
 				continue;
 
-			parseMod(folder)
+			parseMod(folder);
 
 			function parseMod(folder) {
 				let dir = Path.join(modulesDirectory, folder);
@@ -298,4 +298,4 @@ module.exports = class CacheInterface {
 		}
 	}
 
-}
+};

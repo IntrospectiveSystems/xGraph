@@ -24,7 +24,7 @@ let cli = function (argv) {
 	if (argv.length == 1) argv[1] = 'help';
 	let args = argv.slice(1);
 	let pathOverrides = {};
-	let nodeVersion = "8.9.1";
+	let nodeVersion = '8.9.1';
 	let cwd = (process.cwd());
 	let bindir = argv[0].substr(0, argv[0].lastIndexOf(path.sep));
 	let CacheDir;
@@ -123,10 +123,10 @@ let cli = function (argv) {
 		}
 
 		case '--version':
-		case "-v": {
+		case '-v': {
 			subcommand = 'version';
 			console.log(version);
-			break
+			break;
 		}
 		default: {
 			console.log(`Unknown command <${argv[1]}>`);
@@ -162,7 +162,7 @@ let cli = function (argv) {
 				break;
 			}
 			default: {
-				console.log(`Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system".`);
+				console.log('Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system".');
 			}
 		}
 	}
@@ -189,7 +189,7 @@ let cli = function (argv) {
 		try {
 			state = 'production';
 			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
-			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
+			let processPath = pathOverrides['cwd'] || path.resolve(`.${path.sep}`);
 			// process.chdir(processPath);
 			startNexusProcess();
 		} catch (e) {
@@ -229,11 +229,11 @@ let cli = function (argv) {
 
 	async function startNexusProcess() {
 		//get the cache dir
-		let cacheDir = pathOverrides["cache"];
+		let cacheDir = pathOverrides['cache'];
 		console.log(`Starting from ${cacheDir}`);
 
 		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
-		process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
+		process.env.NODE_PATH = path.join(path.dirname(cacheDir), 'node_modules');
 
 		//combine flags and path overrides to create the options object for nexus
 		let system = new nexus(Object.assign(flags, pathOverrides));
@@ -243,7 +243,7 @@ let cli = function (argv) {
 			if (_.exitCode == 72) {
 				setTimeout(_ => {
 					// process.chdir(originalCwd);
-					system = null
+					system = null;
 					cacheDir = null;
 					cli(originalArgv);
 				}, 0);
@@ -315,7 +315,7 @@ let cli = function (argv) {
 		}
 
 		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
+		pathOverrides['cache'] = pathOverrides['cache'] || path.resolve(pathOverrides.cwd, 'cache');
 
 		if (!('cache' in pathOverrides))
 			pathOverrides.cache = 'cache';
@@ -361,23 +361,23 @@ let cli = function (argv) {
 	// -------------------------------------------------------------
 
 	let launchConfigBase = {
-		version: "0.2.0",
+		version: '0.2.0',
 		configurations: []
 	};
 
 	let config = (repo, system) => {
 		return {
 			name: system,
-			type: "node",
-			request: "launch",
+			type: 'node',
+			request: 'launch',
 			cwd: `\${workspaceRoot}/Systems/${system}`,
 			program: '${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js',
 			args: [
-				"xGraph=${workspaceRoot}/../xGraph",
+				'xGraph=${workspaceRoot}/../xGraph',
 				`${repo}=\${workspaceRoot}`,
-				"development=true"
+				'development=true'
 			]
-		}
+		};
 	};
 
 	function initSystem(names) {
@@ -390,10 +390,10 @@ let cli = function (argv) {
 		}
 
 		function createDirectories(name) {
-			let regEx = new RegExp("(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/");
+			let regEx = new RegExp('(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/');
 			let makeDirectories = name.split(regEx);
-			let makePath = "";
-			let thisDirectory = "";
+			let makePath = '';
+			let thisDirectory = '';
 
 			if (path.isAbsolute(name)) {
 				if (name.charAt(0) != path.sep) {
@@ -406,10 +406,10 @@ let cli = function (argv) {
 				systemPath = path.join(sysDir, name);
 			}
 
-			console.log("Generating system in directory: ", systemPath);
+			console.log('Generating system in directory: ', systemPath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
-				if (makeDirectories[i] && makeDirectories[i] != "") {
+				if (makeDirectories[i] && makeDirectories[i] != '') {
 					thisDirectory = makeDirectories[i];
 					makePath += path.sep + thisDirectory;
 					makeDirectory(makePath);
@@ -420,16 +420,16 @@ let cli = function (argv) {
 		function createSystem() {
 			const ConfigTemplate =
 				{
-					"Sources": {},
-					"Modules": {
-						"Deferred": []
+					'Sources': {},
+					'Modules': {
+						'Deferred': []
 					}
 				};
 
 			if (!fs.existsSync(path.join(systemPath, 'config.json'))) {
 				try {
 					fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
-					console.log("System generated at: " + systemPath);
+					console.log('System generated at: ' + systemPath);
 				} catch (e) {
 				}
 			} else {
@@ -448,10 +448,10 @@ let cli = function (argv) {
 		}
 
 		function createDirectories(name) {
-			let regEx = new RegExp("(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/");
+			let regEx = new RegExp('(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/');
 			let makeDirectories = name.split(regEx);
-			let makePath = "";
-			let thisDirectory = "";
+			let makePath = '';
+			let thisDirectory = '';
 
 			if (path.isAbsolute(name)) {
 				if (name.charAt(0) != path.sep) {
@@ -463,11 +463,11 @@ let cli = function (argv) {
 				makePath = moduleDir;
 				modulePath = path.join(moduleDir, name);
 			}
-			console.log("Generating module in directory: ", modulePath);
+			console.log('Generating module in directory: ', modulePath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
 
-				if (makeDirectories[i] && makeDirectories[i] != "") {
+				if (makeDirectories[i] && makeDirectories[i] != '') {
 					thisDirectory = makeDirectories[i];
 					makePath += path.sep + thisDirectory;
 					makeDirectory(makePath);
@@ -479,14 +479,14 @@ let cli = function (argv) {
 
 		function createModule(name) {
 			let Schema = {
-				"Apex": {
-					"$Setup": "Setup",
-					"$Start": "Start",
-					"Entity": `${name}.js`
+				'Apex': {
+					'$Setup': 'Setup',
+					'$Start': 'Start',
+					'Entity': `${name}.js`
 				}
 			};
 
-			let entityFile = path.join(__dirname, 'entity.js');
+			let entityFile = path.join(__dirname, 'entity.js.template');
 
 			let entityFileText = fs.readFileSync(entityFile);
 
@@ -498,63 +498,63 @@ let cli = function (argv) {
 			let jsTemplate = eval(entityText);
 
 			let moduleJson = {
-				"name": `${name}`,
-				"version": "0.0.1",
-				"info": {
-					"author": ""
+				'name': `${name}`,
+				'version': '0.0.1',
+				'info': {
+					'author': ''
 				},
-				"doc": "README.md",
-				"input": {
-					"required": [
+				'doc': 'README.md',
+				'input': {
+					'required': [
 						{
-							"Cmd": "",
-							"required": {
+							'Cmd': '',
+							'required': {
 							},
-							"optional": {
+							'optional': {
 							}
 						}
 					],
-					"optional": [
+					'optional': [
 						{
-							"Cmd": "",
-							"required": {
+							'Cmd': '',
+							'required': {
 							},
-							"optional": {
+							'optional': {
 							}
 						}
 					]
 				},
-				"output": {
-					"required": [
+				'output': {
+					'required': [
 						{
-							"par": "",
-							"Cmd": "",
-							"required": {
+							'par': '',
+							'Cmd': '',
+							'required': {
 							},
-							"optional": {
+							'optional': {
 							}
 						}
 					],
-					"optional": [
+					'optional': [
 						{
-							"par": "",
-							"Cmd": "",
-							"required": {
+							'par': '',
+							'Cmd': '',
+							'required': {
 							},
-							"optional": {
+							'optional': {
 							}
 						}
 					]
 				},
-				"par": {
-					"required": {},
-					"optional": {}
+				'par': {
+					'required': {},
+					'optional': {}
 				}
 			};
 
 			let testJson = {
-				"State": {},
-				"Cases": []
+				'State': {},
+				'Cases': []
 			};
 
 			if (!fs.existsSync(path.join(modulePath, `${name}.js`))) {
@@ -563,11 +563,11 @@ let cli = function (argv) {
 					fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
 					fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
 					fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
-					console.log("Module generated at: " + modulePath);
+					console.log('Module generated at: ' + modulePath);
 				} catch (e) {
 				}
 			} else {
-				console.log("No module generated. Module already exists: " + modulePath);
+				console.log('No module generated. Module already exists: ' + modulePath);
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value } } };
+global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value; } }; };
 
 const CacheInterface = require('./CacheInterface.js');
 
@@ -15,11 +15,11 @@ module.exports = function xGraph(__options = {}) {
 		for (let callback of eventListeners[eventName]) {
 			callback(options);
 		}
-	}
+	};
 
 	this.on = function on(eventName, listener) {
 		eventListeners[eventName].push(listener);
-	}
+	};
 
 	this.boot = function boot() {
 		return (async function (__options) {
@@ -31,13 +31,13 @@ module.exports = function xGraph(__options = {}) {
 
 			// module.paths.push(process.cwd() + '/cache/node_modules');
 
-			console.log(`\nInitializing the Run Engine`);
+			console.log('\nInitializing the Run Engine');
 
 			const fs = require('fs');
 			const Path = require('path');
 			const endOfLine = require('os').EOL;
 
-			const jszip = require("jszip");
+			const jszip = require('jszip');
 			const Uuid = require('uuid/v4');
 			const stripComments = require('strip-comments');
 
@@ -94,9 +94,9 @@ module.exports = function xGraph(__options = {}) {
 						});
 					}
 					toString() {
-						return this.obj.toString() || "no toString defined";
+						return this.obj.toString() || 'no toString defined';
 					}
-				}
+				};
 
 				// The logging function for writing to xgraph.log to the current working directory
 				const xgraphlog = (...str) => {
@@ -106,12 +106,12 @@ module.exports = function xGraph(__options = {}) {
 						xgraphlog.updateInterval();
 					}
 				};
-				xgraphlog.buffer = new Volatile("");
+				xgraphlog.buffer = new Volatile('');
 				xgraphlog.updateInterval = async () => {
 					let str;
 					await xgraphlog.buffer.lock(val => {
 						str = val;
-						return "";
+						return '';
 					});
 					fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
 						xgraphlog.buffer.lock(val => {
@@ -123,7 +123,7 @@ module.exports = function xGraph(__options = {}) {
 							}
 						});
 					});
-				}
+				};
 
 
 				// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
@@ -141,19 +141,19 @@ module.exports = function xGraph(__options = {}) {
 				let w = true;
 				let e = true;
 
-				if (checkFlag("silent") || checkFlag("loglevelsilent")) {
-					console.log("\n\n\nSilent");
+				if (checkFlag('silent') || checkFlag('loglevelsilent')) {
+					console.log('\n\n\nSilent');
 					i = w = e = false;
 				}
 
-				if (checkFlag("logleveldebug")) {
-					console.log("\n\n\ndebug");
+				if (checkFlag('logleveldebug')) {
+					console.log('\n\n\ndebug');
 
 					v = d = true;
 				}
 
-				if (checkFlag("verbose") || checkFlag("loglevelverbose")) {
-					console.log("\n\n\nverbose");
+				if (checkFlag('verbose') || checkFlag('loglevelverbose')) {
+					console.log('\n\n\nverbose');
 					v = true;
 				}
 
@@ -184,7 +184,7 @@ module.exports = function xGraph(__options = {}) {
 							for (let obj of str) {
 								if (typeof obj == 'object') {
 									if (obj == null) arr.push('NULL');
-									else if (obj.hasOwnProperty('toString')) arr.push(obj.toString())
+									else if (obj.hasOwnProperty('toString')) arr.push(obj.toString());
 									else {
 										try {
 											arr.push(JSON.stringify(obj, null, 2));
@@ -212,25 +212,25 @@ module.exports = function xGraph(__options = {}) {
 					} else {
 						consoleNotification = true;
 						log.w('console.log does not write to xgraph.log consider using log levels\n'
-							+ `       - log.i(), log.v(), log.d(), log.e(), or log.w()`);
+							+ '       - log.i(), log.v(), log.d(), log.e(), or log.w()');
 						process.stdout.write(`${str.join(' ')}${endOfLine}`);
 					}
-				}
+				};
 				console.microtime = _ => {
 					let hrTime = process.hrtime();
 					return (hrTime[0] * 1000000 + hrTime[1] / 1000);
-				}
+				};
 				console.time = _ => {
 					console.timers = console.timers || {};
 					console.timers[_] = console.microtime();
-				}
+				};
 				console.timeEnd = _ => {
 					if (!(_ in (console.timers || {})))
 						return;
 					let elapsed = console.microtime() - console.timers[_];
 					console.timers[_] = undefined;
 					log.i(`${_}: ${elapsed}ms`);
-				}
+				};
 				// process.on('unhandledRejection', event => {
 				// 	log.e('------------------ [Stack] ------------------');
 				// 	log.e(`line ${event.lineNumber}, ${event}`);
@@ -267,7 +267,7 @@ module.exports = function xGraph(__options = {}) {
 
 
 			log.i('=================================================');
-			log.i(`Nexus Warming Up:`);
+			log.i('Nexus Warming Up:');
 
 			//set CWD
 			__options.cwd = __options.cwd ? Path.resolve(__options.cwd) : Path.resolve('.');
@@ -295,7 +295,7 @@ module.exports = function xGraph(__options = {}) {
 			 *  The main process of starting an xGraph System.
 			 */
 			async function initiate() {
-				log.i(`--Nexus/Initiate`);
+				log.i('--Nexus/Initiate');
 				let Setup = {};
 				let Start = {};
 				cacheInterface = new CacheInterface({
@@ -325,7 +325,7 @@ module.exports = function xGraph(__options = {}) {
 				 * Call setup on the required Module Apexes
 				 */
 				async function setup() {
-					log.i(`--Nexus/Setup`);
+					log.i('--Nexus/Setup');
 					//build the setup promise array
 					let setupArray = [];
 
@@ -341,7 +341,7 @@ module.exports = function xGraph(__options = {}) {
 					}
 
 					await Promise.all(setupArray);
-					log.v(`--Nexus: All Setups Complete`);
+					log.v('--Nexus: All Setups Complete');
 
 				}
 
@@ -349,7 +349,7 @@ module.exports = function xGraph(__options = {}) {
 				 * Call Start on the required Module Apexes
 				 */
 				async function start() {
-					log.i(`--Nexus/Start`);
+					log.i('--Nexus/Start');
 					//build the setup promise array
 					let startArray = [];
 
@@ -365,14 +365,14 @@ module.exports = function xGraph(__options = {}) {
 					}
 
 					await Promise.all(startArray);
-					log.v(`--Nexus: All Starts Complete`);
+					log.v('--Nexus: All Starts Complete');
 				}
 
 				/**
 				 * Send Finished command if the process was generated
 				 */
 				function run() {
-					log.i(`--Nexus/Run`);
+					log.i('--Nexus/Run');
 					if ('send' in process) {
 						process.send('{"Cmd":"Finished"}');
 					}
@@ -392,7 +392,7 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {number} [code=0] the code to exit with
 			 */
 			async function exit(code = 0) {
-				log.i(`--Nexus/Stop`);
+				log.i('--Nexus/Stop');
 				//build the Stop promise array
 				let stopTasks = [];
 
@@ -411,7 +411,7 @@ module.exports = function xGraph(__options = {}) {
 				}
 				console.log = originalConsoleLog;
 				await Promise.all(stopTasks);
-				log.v(`--Nexus: All Stops Complete`);
+				log.v('--Nexus: All Stops Complete');
 
 				dispatchEvent('exit', { exitCode: code });
 			}
@@ -603,7 +603,7 @@ module.exports = function xGraph(__options = {}) {
 						log.w(`${com.Cmd} not found in Entity ${this.Par.Module}`);
 						fun('Nada', com);
 					} catch (e) {
-						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`)
+						log.e(`Error in ${this.Par.Entity} Command ${com.Cmd}`);
 						log.e(e.toString());
 
 						process.exit(2);
@@ -704,7 +704,7 @@ module.exports = function xGraph(__options = {}) {
 						com.Passport.Apex = Par.Apex;
 					if (fun)
 						com.Passport.From = Par.Pid;
-					if (!("Pid" in com.Passport))
+					if (!('Pid' in com.Passport))
 						com.Passport.Pid = genPid();
 					nxs.sendMessage(com, fun);
 				}
@@ -731,8 +731,8 @@ module.exports = function xGraph(__options = {}) {
 			 * @callback fun
 			 */
 			async function genEntity(apx, par, fun = _ => log.e(_)) {
-				if (!("Entity" in par)) {
-					fun("No Entity defined in Par");
+				if (!('Entity' in par)) {
+					fun('No Entity defined in Par');
 					return;
 				}
 
@@ -747,7 +747,7 @@ module.exports = function xGraph(__options = {}) {
 
 				if (!(impkey in ImpCache)) {
 					let entString = await new Promise(async (res, rej) => {
-						mod.file(par.Entity).async("string").then((string) => res(string))
+						mod.file(par.Entity).async('string').then((string) => res(string));
 					});
 					ImpCache[impkey] = indirectEvalImp(entString);
 				}
@@ -766,7 +766,7 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {string} pid 		the pid of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function deleteEntity(pid, fun = (err, pid) => { if (err) log.e(err) }) {
+			function deleteEntity(pid, fun = (err, pid) => { if (err) log.e(err); }) {
 				cacheInterface.deleteEntity(pid, (err, removedPidArray) => {
 
 					//remove ent from EntCache (in RAM)
@@ -776,8 +776,8 @@ module.exports = function xGraph(__options = {}) {
 							delete EntCache[entPid];
 						}
 					}
-					log.v(`Removed ${(removedPidArray.length == 1) ? "Entity" : "Entities"
-						} ${removedPidArray.join(" ")}`);
+					log.v(`Removed ${(removedPidArray.length == 1) ? 'Entity' : 'Entities'
+					} ${removedPidArray.join(' ')}`);
 					fun(err, pid);
 				});
 			}
@@ -788,18 +788,18 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {object} par 		the par of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			async function saveEntity(par, fun = (err, pid) => { if (err) log.e(err) }) {
+			async function saveEntity(par, fun = (err, pid) => { if (err) log.e(err); }) {
 				let saveEntity = (async (par) => {
 					await new Promise((res, rej)=>{
 						cacheInterface.saveEntityPar(par, (err, pid) => {
 							if (err){
-								log.e(err, "saving ", pid); 
-								reject(err)
+								log.e(err, 'saving ', pid); 
+								reject(err);
 							}
 							log.v(`Saved entity ${par.Pid}`);
-							res()
+							res();
 						});
-					})
+					});
 				});
 
 				//check if the entity is the modules Apex
@@ -811,7 +811,7 @@ module.exports = function xGraph(__options = {}) {
 							//get the Apex's par from the EntCache
 							let apexPar = EntCache[par.Apex].Par;
 
-							log.v("Must first save the Apex -- Saving...");
+							log.v('Must first save the Apex -- Saving...');
 							await saveEntity(apexPar);
 							await saveEntity(par);
 							fun(null, par.Pid);
@@ -840,7 +840,7 @@ module.exports = function xGraph(__options = {}) {
 						fun(err, path);
 					});
 				} else {
-					let err = `addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable`;
+					let err = 'addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable';
 					log.w(err);
 					fun(err);
 				}
@@ -855,9 +855,9 @@ module.exports = function xGraph(__options = {}) {
 			function getFile(module, filename, fun = _ => _) {
 				let mod = ModCache[module];
 				if (filename in mod.files) {
-					mod.file(filename).async("string").then((dat) => {
-						fun(null, dat)
-					})
+					mod.file(filename).async('string').then((dat) => {
+						fun(null, dat);
+					});
 					return;
 				}
 				let err = `Error: File ${filename} does not exist in module ${module}`;
@@ -873,7 +873,7 @@ module.exports = function xGraph(__options = {}) {
 			 */
 			function loadDependency(apx, pid, str) {
 				let moduleType = cacheInterface.ApexIndex[apx];
-				return cacheInterface.loadDependency(moduleType, str)
+				return cacheInterface.loadDependency(moduleType, str);
 			}
 
 			/**
@@ -917,7 +917,7 @@ module.exports = function xGraph(__options = {}) {
 						}
 
 						let entString = await new Promise(async (res, rej) => {
-							mod.file(par.Entity).async("string").then((string) => res(string))
+							mod.file(par.Entity).async('string').then((string) => res(string));
 						});
 
 						log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
@@ -944,8 +944,8 @@ module.exports = function xGraph(__options = {}) {
 			async function genModule(moduleDefinition, fun = _ => _) {
 				moduleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
 				let moduleDefinitions = moduleDefinition;
-				if ("Module" in moduleDefinition && (typeof moduleDefinition.Module == "string")) {
-					moduleDefinitions = { "Top": moduleDefinition };
+				if ('Module' in moduleDefinition && (typeof moduleDefinition.Module == 'string')) {
+					moduleDefinitions = { 'Top': moduleDefinition };
 				}
 
 				let Setup = {};
@@ -984,12 +984,12 @@ module.exports = function xGraph(__options = {}) {
 											inst.Par[key] = symbols[symbol];
 										} else {
 											log.w(`${symbol} not in Module key list`);
-											log.v(`${Object.keys(symbols)}`)
+											log.v(`${Object.keys(symbols)}`);
 										}
 									}
 
 									if (val.startsWith('\\')) {
-										let escaping = val.charAt(1)
+										let escaping = val.charAt(1);
 										if (escaping == '$' || escaping == '\\') {
 											//these are valid escape character
 											inst.Par[key] = val.substr(1);
@@ -1012,15 +1012,15 @@ module.exports = function xGraph(__options = {}) {
 									});
 								} else {
 									log.e('Module <' + inst.Module + '> schema not in ModCache');
-									res()
+									res();
 									return;
 								}
 							});
 
-							if ("$Setup" in schema.Apex)
-								Setup[pidapx] = schema.Apex["$Setup"];
-							if ("$Start" in schema.Apex)
-								Start[pidapx] = schema.Apex["$Start"];
+							if ('$Setup' in schema.Apex)
+								Setup[pidapx] = schema.Apex['$Setup'];
+							if ('$Start' in schema.Apex)
+								Start[pidapx] = schema.Apex['$Start'];
 							res();
 						});
 					}));
@@ -1036,7 +1036,7 @@ module.exports = function xGraph(__options = {}) {
 
 				await start();
 
-				fun(null, ("Top" in symbols) ? symbols["Top"] : null, symbols);
+				fun(null, ('Top' in symbols) ? symbols['Top'] : null, symbols);
 
 
 				/**
@@ -1095,7 +1095,7 @@ module.exports = function xGraph(__options = {}) {
 			async function compileInstance(pidapx, inst, saveRoot = false) {
 				log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
 				var Local = {};
-				var modnam = (typeof inst.Module == "object") ? inst.Module.Module : inst.Module;
+				var modnam = (typeof inst.Module == 'object') ? inst.Module.Module : inst.Module;
 				var mod;
 				var ents = [];
 				var modnam = modnam.replace(/\:\//g, '.');
@@ -1157,9 +1157,9 @@ module.exports = function xGraph(__options = {}) {
 					for (ipar = 0; ipar < pars.length; ipar++) {
 						var par = pars[ipar];
 						var val = ent[par];
-						if (entkey == "Apex" && saveRoot) {
-							if (par == "$Setup") { Setup[ent.Pid] = val; }
-							if (par == "$Start") { Start[ent.Pid] = val; }
+						if (entkey == 'Apex' && saveRoot) {
+							if (par == '$Setup') { Setup[ent.Pid] = val; }
+							if (par == '$Start') { Start[ent.Pid] = val; }
 						}
 						ent[par] = await symbol(val);
 					}
@@ -1173,7 +1173,7 @@ module.exports = function xGraph(__options = {}) {
 						let impkey = modnam + par.Entity;
 						if (!(impkey in ImpCache)) {
 							let entString = await new Promise(async (res, rej) => {
-								mod.file(par.Entity).async("string").then((string) => res(string))
+								mod.file(par.Entity).async('string').then((string) => res(string));
 							});
 							ImpCache[impkey] = indirectEvalImp(entString);
 						}
@@ -1225,7 +1225,7 @@ module.exports = function xGraph(__options = {}) {
 				});
 			}
 		})(this.__options);
-	}
-}
+	};
+};
 
 if (!module.parent) module.exports(process.argv);

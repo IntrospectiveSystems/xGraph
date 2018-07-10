@@ -2,7 +2,7 @@
 
 /// check if ?debug is in the URL. if so, turn on debug mode.
 /// this will enable more complex logging
-let debug = ((new URL(location.href)).searchParams.get('debug')) != null
+let debug = ((new URL(location.href)).searchParams.get('debug')) != null;
 if (debug) console.warn('Debug is turned on!!');
 
 // minified md5 implemetation
@@ -17,8 +17,8 @@ window.md5 = function () {
 			a = h; j = 0; for (; j < 64;) a = [d = a[3], ((b = a[1] | 0) + ((d = ((a[0] +
 				[b & (c = a[2]) | ~b & d, d & b | ~d & c, b ^ c ^ d, c ^ (b | ~d)][a = j >> 4])
 				+ (k[j] + (x[[j, 5 * j + 1, 3 * j + 5, 7 * j][a] % 16 + i] | 0)))) << (a = [
-					7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
-				]) | d >>> 32 - a)), b, c]; for (j = 4; j;) h[--j] = h[j] + a[j];
+				7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][4 * a + j++ % 4
+			]) | d >>> 32 - a)), b, c]; for (j = 4; j;) h[--j] = h[j] + a[j];
 		} str = '';
 		for (; j < 32;) str += ((h[j >> 3] >> ((1 ^ j++ & 7) * 4)) & 15).toString(16);
 		return str;
@@ -97,8 +97,8 @@ $.fn.extend({
 		let color = com.Vlt.div.css('--text').trim().replace('#', '');
 		// color = 'C0FFEE';
 		if (color.length == 3) color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
-		color = color.split("").reverse().join("");
-		let valueTable = "0123456789ABCDEF"
+		color = color.split('').reverse().join('');
+		let valueTable = '0123456789ABCDEF';
 		let result = 0;
 		for (let i = 0, digitValue = 1; i < color.length; i++ , digitValue *= 16) {
 			let onesValue = valueTable.indexOf(color[i]); // find the hex digits decimal value, using the above string.
@@ -163,7 +163,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		Setup(com, fun) {
 			let vlt = this.Vlt;
 			vlt.type = this.Par.Module.split(/[\.:\/]/g).pop();
-			vlt.rootID = '#' + this.Par.Pid.substr(24) + "-Root";
+			vlt.rootID = '#' + this.Par.Pid.substr(24) + '-Root';
 			vlt.views = [];
 			vlt.viewDivs = [];
 			vlt.root = DIV(vlt.rootID);
@@ -175,8 +175,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.root.css('box-sizing', 'border-box');
 			vlt.root.css('overflow', 'hidden');
 
-			vlt.div = $(`<div class="${version >= new SemVer("3.1") ? vlt.type : ''}"
-				id="${('ID' in this.Par && version >= new SemVer("3.1") ? this.Par.ID : `XGRAPH-${this.Par.Pid}`)}"
+			vlt.div = $(`<div class="${version >= new SemVer('3.1') ? vlt.type : ''}"
+				id="${('ID' in this.Par && version >= new SemVer('3.1') ? this.Par.ID : `XGRAPH-${this.Par.Pid}`)}"
 				style="
 				height: 100%;
 				display: block;
@@ -185,7 +185,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				overflow: hidden;
 			"></div>`);
 
-			vlt.name = com.Name || this.Par.Name || "Untitled View";
+			vlt.name = com.Name || this.Par.Name || 'Untitled View';
 			vlt.root.append(vlt.styletag);
 			vlt.root.append(vlt.div);
 
@@ -241,18 +241,18 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		Style(com, fun) {
 			let that = this;
-			let vlt = this.Vlt
+			let vlt = this.Vlt;
 			let selector = com.Selector;
 			if (selector.indexOf(':root') > -1) { // if we have :root in our thing, just replace it with the id thing.
 				selector = selector.replace(/:root/g, '');
-			} else if (selector == "" || selector == ":root") {
+			} else if (selector == '' || selector == ':root') {
 				selector = '#' + this.Vlt.div.attr('id');
 			} else {
-				selector = '#' + this.Vlt.div.attr('id') + " " + selector;
+				selector = '#' + this.Vlt.div.attr('id') + ' ' + selector;
 			}
 			if ('Rules' in com) {
 				let rules = com.Rules;
-				append(selector + " {\r\n");
+				append(selector + ' {\r\n');
 				for (let key in rules) {
 					append('\t' + key + ': ' + rules[key] + ';\r\n');
 				}
@@ -260,7 +260,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			} else if ('Rule' in com && 'Value' in com) {
 				let rule = com.Rule;
 				let value = com.Value;
-				append(selector + " { " + rule + ": " + value + "; } \r\n");
+				append(selector + ' { ' + rule + ': ' + value + '; } \r\n');
 			} else {
 				fun('invalid com', com);
 				return;
@@ -358,7 +358,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			vlt.views.push(com.View);
 			this.send({ Cmd: 'GetViewRoot' }, com.View, (err, cmd) => {
 				vlt.viewDivs.push(cmd.Div);
-				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com) });
+				this.dispatch({ Cmd: 'Render' }, (err, cmd) => { fun(null, com); });
 				this.send({ Cmd: 'RegisterDestroyListener' }, com.View, _ => _);
 			});
 		}
@@ -560,7 +560,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			let root = com.To || (console.log('com.To: <Native HTMLElement> is required!'));
 			if (!com.To) return fun('com.To: <Native HTMLElement> is required!', com);
 			let data = com.Data || {};
-			let datatype = com.Datatype || "HTMLElement";
+			let datatype = com.Datatype || 'HTMLElement';
 			// debugger;
 			$(root).attr('draggable', 'true');
 			let createDragDom;
@@ -612,13 +612,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 
 					let dropArea = elem;
 
-					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+					while (elem.attr('viewpid') == null && elem[0].nodeName != 'BODY') {
 						elem = elem.parent();
 					}
 					if (elem.attr('viewpid') == undefined) return;
 					let viewpid = elem.attr('viewpid');
 					that.send({
-						Cmd: "Drop",
+						Cmd: 'Drop',
 						Data: data,
 						Datatype: datatype,
 						PageX: evt.pageX,
@@ -629,13 +629,13 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 					}, viewpid, () => { });
 
 				} else {
-					while (elem.attr('viewpid') == null && elem[0].nodeName != "BODY") {
+					while (elem.attr('viewpid') == null && elem[0].nodeName != 'BODY') {
 						elem = elem.parent();
 					}
 					if (elem.attr('viewpid') == undefined) return;
 					let viewpid = elem.attr('viewpid');
 					that.send({
-						Cmd: "Drop",
+						Cmd: 'Drop',
 						Data: data,
 						Datatype: datatype,
 						PageX: evt.pageX,
@@ -682,7 +682,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		 */
 		Cleanup(com, fun) {
 			// debugger;
-			console.log("SUPER CLEANUP");
+			console.log('SUPER CLEANUP');
 			if ('DestroyListeners' in this.Par && version >= new SemVer('3.3'))
 				for (let pid of this.Par.DestroyListeners)
 					this.send({ Cmd: 'ChildDestroyed', Pid: this.Par.Pid }, pid, _ => _);
@@ -710,7 +710,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 	function injections() {
 		let that = this;
 
-		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + "\"");
+		this.emoji = (char) => eval('\"\\u' + (0b1101100000000000 + (char - 0x10000 >>> 10)).toString(16) + '\\u' + (0b1101110000000000 + (char & 0b1111111111)).toString(16) + '"');
 
 		if (version >= new SemVer('3.0')) {
 			this.super = function (com, fun) {
@@ -742,7 +742,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 			this.asuper = function (com) {
 				return new Promise((resolve, reject) => {
 					this.super(com, (err, cmd) => {
-						if (err) reject([err, cmd])
+						if (err) reject([err, cmd]);
 						else resolve(cmd);
 					});
 				});
@@ -778,7 +778,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		if (version >= new SemVer('3.5')) {
 			this.authenticate = async (cmd) => {
 				return (await this.ascend('Authenticate', { Command: cmd }, window.CommandAuthenticator)).Command;
-			}
+			};
 
 			this.evoke = async (pid, options) => {
 				this.send(Object.assign({
@@ -818,7 +818,7 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		if (debug) {
 			timeTag = (this.Vlt.type || this.Par.Module.substr(this.Par.Module.lastIndexOf('/') + 1));
 			color = md5(timeTag).substr(0, 6);
-			id = ("000000" + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
+			id = ('000000' + (new Date().getTime() % 100000)).substr(-5, 5) + ' ' + timeTag + ' ' + com.Cmd;
 		}
 
 
@@ -839,8 +839,8 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 				if (debug) console.groupEnd(id);
 				fun(null, com);
 			});
-		} else if ("*" in child) {
-			child["*"].call(this, com, () => {
+		} else if ('*' in child) {
+			child['*'].call(this, com, () => {
 				if (debug) console.groupEnd(id);
 				fun(null, com);
 			});
@@ -855,5 +855,5 @@ if (!window.Viewify) window.Viewify = function Viewify(_class, versionString) {
 		dispatch: {
 			'*': Command
 		}
-	}
+	};
 };

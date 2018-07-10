@@ -6,7 +6,7 @@ class ${name} {
 		fun(null, com);
 	}
 
-	Start(com, fun){
+	Start(com, fun) {
 		//this function is typically used to allow the entity/module to handle any external setup
 		//procedures
 
