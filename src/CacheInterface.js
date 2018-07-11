@@ -3,12 +3,13 @@ const SemVer = require('./SemVer.js');
 const fs = require('fs');
 const jszip = require('jszip');
 const ver130 = new SemVer('1.3');
-
+let log;
 //This node module provides all the interface capabilities to an xgraph cache directory.
 
 module.exports = class CacheInterface {
 	constructor(__options) {
 		this.__options = __options;
+		log = __options.log;
 	}
 
 	get ApexIndex() {
@@ -50,7 +51,7 @@ module.exports = class CacheInterface {
 							fun(err);
 							return;
 						}
-						fun(null, await new Promise(async (res, rej) => {
+						fun(null, await new Promise(async (res, _rej) => {
 							let zip = new jszip();
 							zip.loadAsync(data).then((mod) => res(mod));
 						}));
@@ -101,7 +102,10 @@ module.exports = class CacheInterface {
 			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
 		}
 
-		fs.readFile(path, fun);
+		fs.readFile(path, (err, data) => {
+			if(err) return fun(err, {moduleType});
+			else return fun(err, data);
+		});
 	}
 
 	//delete an entity from the cache
@@ -143,18 +147,18 @@ module.exports = class CacheInterface {
  		* @param {string} path the directory to be recursively removed
 		 */
 		function remDir(path) {
-			return (new Promise(async (resolve, reject) => {
+			return (new Promise(async (resolve, _reject) => {
 				if (fs.existsSync(path)) {
 					let files = fs.readdirSync(path);
 					let promiseArray = [];
 
 					for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
-						promiseArray.push(new Promise(async (resolve2, reject2) => {
+						promiseArray.push(new Promise(async (resolve2, _reject2) => {
 							let curPath = path + '/' + files[fileIndex];
 							if (fs.lstatSync(curPath).isDirectory()) {
 								// recurse
 								await remDir(curPath);
-								resove2();
+								resolve2();
 							} else {
 								// delete file
 								log.v('Removing Entity ', files[fileIndex].split('.')[0]);
@@ -188,7 +192,9 @@ module.exports = class CacheInterface {
 			path = Path.join(__options.path, 'System', moduleType, parObject.Apex);
 		}
 
-		try { fs.mkdirSync(path); } catch (e) {}
+		try { fs.mkdirSync(path); } catch (e) {
+			log.v(e);
+		}
 
 		path = Path.join(path, `${parObject.Pid}.json`);
 
@@ -201,7 +207,6 @@ module.exports = class CacheInterface {
 	//load in a cache directory and return the Apex Index, Start, Setup and Stop dictionaries.
 	async loadCache() {
 		let __options = this.__options;
-		let that = this;
 		let manifestPath = Path.join(__options.path, '.cache');
 		let setup = {}, start = {}, stop = {}, apexIndex = {}, entIndex = {};
 		let manifest = await new Promise(resolve => {
@@ -222,10 +227,10 @@ module.exports = class CacheInterface {
 			modulesDirectory = Path.join(__options.path, 'System');
 		}
 
-		var folders = fs.readdirSync(modulesDirectory);
+		let folders = fs.readdirSync(modulesDirectory);
 
 
-		for (var ifold = 0; ifold < folders.length; ifold++) {
+		for (let ifold = 0; ifold < folders.length; ifold++) {
 			let folder = folders[ifold];
 			let path = Path.join(modulesDirectory, folder, 'Module.zip');
 			if (!fs.existsSync(path))
@@ -233,32 +238,32 @@ module.exports = class CacheInterface {
 
 			parseMod(folder);
 
-			function parseMod(folder) {
-				let dir = Path.join(modulesDirectory, folder);
-				var instancefiles = fs.readdirSync(dir);
-				for (var ifile = 0; ifile < instancefiles.length; ifile++) {
-					var file = instancefiles[ifile];
-					//check that it's an instance of the module
-					if (file.length !== 32)
-						continue;
+		}
+		function parseMod(folder) {
+			let dir = Path.join(modulesDirectory, folder);
+			let instancefiles = fs.readdirSync(dir);
+			for (let ifile = 0; ifile < instancefiles.length; ifile++) {
+				let file = instancefiles[ifile];
+				//check that it's an instance of the module
+				if (file.length !== 32)
+					continue;
 
-					var path = Path.join(dir, file);
-					if (fs.lstatSync(path).isDirectory()) {
-						apexIndex[file] = folder;
-						let instJson = JSON.parse(fs.readFileSync(Path.join(path, `${file}.json`)));
+				let path = Path.join(dir, file);
+				if (fs.lstatSync(path).isDirectory()) {
+					apexIndex[file] = folder;
+					let instJson = JSON.parse(fs.readFileSync(Path.join(path, `${file}.json`)));
 
-						for (let filename of fs.readdirSync(path)) {
-							entIndex[Path.parse(filename).name] = file;
-						}
-
-						if ('$Setup' in instJson)
-							setup[file] = instJson.$Setup;
-						if ('$Start' in instJson)
-							start[file] = instJson.$Start;
-						if ('$Stop' in instJson)
-							stop[file] = instJson.$Stop;
-
+					for (let filename of fs.readdirSync(path)) {
+						entIndex[Path.parse(filename).name] = file;
 					}
+
+					if ('$Setup' in instJson)
+						setup[file] = instJson.$Setup;
+					if ('$Start' in instJson)
+						start[file] = instJson.$Start;
+					if ('$Stop' in instJson)
+						stop[file] = instJson.$Stop;
+
 				}
 			}
 		}
@@ -278,7 +283,7 @@ module.exports = class CacheInterface {
 	loadDependency(moduleType, moduleName) {
 		let __options = this.__options;
 		let version = this._version;
-		let that = this, nodeModulesPath;
+		let nodeModulesPath;
 		if (version < new SemVer('1.3')) {
 			nodeModulesPath = Path.join(__options.path, moduleType, 'node_modules');
 		} else {

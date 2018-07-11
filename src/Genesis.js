@@ -25,19 +25,6 @@ function genesis(__options = {}) {
 	return new Promise(async (resolve, reject) => {
 
 
-		process.on('unhandledRejection', (reason, _promise) => {
-			let logger;
-			try {
-				logger = log.e;
-			} catch(e) {
-				logger = process.stderr.write;
-			}
-			logger('\u001b[31m' + '------- [Unhandled Promise Rejection] -------' + '\u001b[39m');
-			logger('\u001b[31m' + reason.message + '\u001b[39m');
-			logger('\u001b[31m' + reason.stack + '\u001b[39m');
-			logger('\u001b[31m' + '------- [/Unhandled Promise Rejection] ------' + '\u001b[39m');
-			process.exit(1);
-		});
 
 		process.stdout.write(`Initializing the Compile Engine in ${__options.state} Mode \r\n`);
 
@@ -48,6 +35,9 @@ function genesis(__options = {}) {
 		const proc = require('child_process');
 		const jszip = require('jszip');
 		const log = createLogger();
+
+		log.v('this works');
+		log.d('this dont works');
 
 		// Genesis globals
 		let Uuid; //Uuid npm package (v4.js)
@@ -65,8 +55,6 @@ function genesis(__options = {}) {
 			setup();
 			await genesis();
 		} catch (e) {
-			log.e(e.toString());
-			log.e((new Error().stack));
 			reject(e);
 		}
 		////////////////////////////////////////////////////////////////////////////////////////////////
@@ -457,9 +445,9 @@ function genesis(__options = {}) {
 					log.v(instname, JSON.stringify(inst, null, 2));
 					let pidinst = Apex[instname];
 					let ents = await compileInstance(pidinst, inst);
-					folder = inst.Module;
+					let folder = inst.Module;
 					// The following is for backword compatibility only
-					let folder = folder.replace(/[/:]/g, '.');
+					folder = folder.replace(/[/:]/g, '.');
 
 					let dirinst = Path.join(CacheDir, 'System', folder, pidinst);
 					try { fs.mkdirSync(dirinst); } catch (e) {
@@ -501,13 +489,64 @@ function genesis(__options = {}) {
 		 * e : error 		Critical failure should always follow with a system exit
 		 */
 		function createLogger() {
+			class Volatile {
+				constructor(obj) {
+					this.obj = obj;
+				}
+				lock(actionFunction) {
+					return new Promise(unlock => {
+						let inst = this;
+						if (this.queue instanceof Promise) {
+							this.queue = this.queue.then(async function () {
+								let ret = actionFunction(inst.obj);
+								if (ret instanceof Promise) ret = await ret;
+								inst.obj = ret;
+								unlock();
+							});
+						} else {
+							this.queue = new Promise(async (resolve) => {
+								let ret = actionFunction(this.obj);
+								if (ret instanceof Promise) ret = await ret;
+								this.obj = ret;
+								unlock();
+								resolve();
+							});
+						}
+					});
+				}
+				toString() {
+					return this.obj.toString() || 'no toString defined';
+				}
+			}
 
 			// The logging function for writing to xgraph.log to the current working directory
 			const xgraphlog = (...str) => {
-				fs.appendFile(`${process.cwd()}/xgraph.log`, `${str.join(' ')}${endOfLine}`, (err) => {
-					if (err) {
-						process.stderr.writeLine(err); process.exit(1); reject();
-					}
+				xgraphlog.buffer.lock((val) => {
+					// console.log('previous', val);
+					// console.log('adding', `${log.logFileParse(str)}${endOfLine}`);
+					return val + `${log.logFileParse(str)}${endOfLine}`;
+				});
+				if (!xgraphlog.busy) {
+					xgraphlog.busy = true;
+					xgraphlog.updateInterval();
+				}
+			};
+			xgraphlog.buffer = new Volatile('');
+			xgraphlog.updateInterval = async () => {
+				let str;
+				await xgraphlog.buffer.lock(val => {
+					str = val;
+					return '';
+				});
+				fs.appendFile(`${process.cwd()}/xgraph.log`, str, (_err) => {
+					xgraphlog.buffer.lock(val => {
+						if (val !== '') {
+							// we have more in out buffer, keep calling out to the thing
+							process.nextTick(xgraphlog.updateInterval);
+						} else {
+							xgraphlog.busy = false;
+						}
+					});
 				});
 			};
 
@@ -540,21 +579,25 @@ function genesis(__options = {}) {
 					process.stdout.write(log.parse(log.tag.verbose, str));
 				},
 				d: (...str) => {
+					// xgraphlog(log.tag.debug, [new Date().toString(), ...str]);
 					xgraphlog(new Date().toString(), ...str);
 					if (!printDebug) return;
 					process.stdout.write(log.parse(log.tag.debug, str));
 				},
 				i: (...str) => {
+					// xgraphlog(log.tag.info, [new Date().toString(), ...str]);
 					xgraphlog(new Date().toString(), ...str);
 					if (!printInfo) return;
 					process.stdout.write(log.parse(log.tag.info, str));
 				},
 				w: (...str) => {
+					// xgraphlog(log.tag.warn, [new Date().toString(), ...str]);
 					xgraphlog(new Date().toString(), ...str);
 					if (!printWarn) return;
 					process.stdout.write(log.parse(log.tag.warn, str));
 				},
 				e: (...str) => {
+					// xgraphlog(log.tag.error, [new Date().toString(), ...str]);
 					xgraphlog(new Date().toString(), ...str);
 					if (!printError) return;
 					process.stdout.write(log.parse(log.tag.error, str));
@@ -592,12 +635,46 @@ function genesis(__options = {}) {
 						}
 						return output;
 					} catch (ex) {
-						process.stdout.write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
-						process.stdout.write('\u001b[31m[ERRR] ============================================\n');
-						process.stdout.write(ex.toString() + '\n');
-						process.stdout.write('\u001b[31m[ERRR] ============================================\n');
+						let write = process.stdout.write;
+						write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
+						write('\u001b[31m[ERRR] ============================================\n');
+						write(ex.toString() + '\n');
+						write('\u001b[31m[ERRR] ============================================\n');
 					}
 
+				},
+				logFileParse: (outputs) => {
+					try {
+						let arr = [];
+						for (let obj of outputs) {
+							if (typeof obj == 'object') {
+								// if the object has defined a way to be seen, use it
+								if (obj.hasOwnProperty('toString')) {
+									arr.push(obj.toString());
+								}
+								else {
+									try {
+										//otherwise try to stringify it
+										arr.push(JSON.stringify(obj, null, 2));
+									} catch (e) {
+										// if we fail (ex, cyclic objects), just dump the keys
+										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
+									}
+								}
+							} else if (typeof obj == 'undefined') {
+								arr.push('undefined');
+							} else {
+								arr.push(obj.toString());
+							}
+						}
+						return arr.join(' ');
+					} catch (ex) {
+						let write = process.stdout.write;
+						write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
+						write('\u001b[31m[ERRR] ============================================\n');
+						write(ex.toString() + '\n');
+						write('\u001b[31m[ERRR] ============================================\n');
+					}
 				}
 			};
 
@@ -676,7 +753,9 @@ function genesis(__options = {}) {
 			let source = modRequest.Source;
 
 			//get the module from memory (ModCache) if it has already been retrieved
-			if (modnam in ModCache) { log.v(`${modnam} returned from ModCache`); return fun(null, ModCache[modnam]); }
+			if (modnam in ModCache) {
+				log.v(`${modnam} returned from ModCache`); return fun(null, ModCache[modnam]);
+			}
 
 			//get the module from the defined broker
 			if (typeof source == 'object') {
@@ -687,7 +766,7 @@ function genesis(__options = {}) {
 
 			if (typeof source == 'string') {
 				let protocol = source.split(/:\/\//)[0];
-				let domain = source.split(/:\/\//)[1];
+				let _domain = source.split(/:\/\//)[1];
 
 				if (protocol.length > 1) {
 					// not a drive letter
@@ -758,7 +837,8 @@ function genesis(__options = {}) {
 				sock.on('connect', function () {
 					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
 					sock.write(msg);
-					log.v(`Requested Module ${modnam}@${modRequest.Version} from Broker ${JSON.stringify(source, null, 2)}`);
+					log.v(`Requested Module ${modnam}@${modRequest.Version} `
+						+`from Broker ${JSON.stringify(source, null, 2)}`);
 				});
 
 				sock.on('error', (err) => {
@@ -935,7 +1015,8 @@ function genesis(__options = {}) {
 			let zipmod = new jszip();
 
 			if (modnam in ModCache) {
-				mod = await new Promise(async (res, rej) => {
+				//TODO Dont use then, use es8 async/await
+				mod = await new Promise(async (res, _rej) => {
 					zipmod.loadAsync(ModCache[modnam]).then((zip) => {
 						res(zip);
 					});
@@ -1050,7 +1131,7 @@ function genesis(__options = {}) {
 					let encoding = undefined;
 					if (key.split(',').length == 2) {
 						key = key.split(',')[0].trim();
-						let encoding = key.split(',')[1].trim();
+						let _encoding = key.split(',')[1].trim();
 					}
 					val = val.slice(1).join(':').trim();
 					switch (key) {
@@ -1075,50 +1156,41 @@ function genesis(__options = {}) {
 
 								await new Promise(resolve => {
 									let zip = new jszip();
-									zip.loadAsync(Buffer.from(systemObject.Cache, 'base64')).then(async (a) => {
+									let cacheBuffer = Buffer.from(systemObject.Cache, 'base64');
+									zip.loadAsync(cacheBuffer).then(async (a) => {
 										// console.dir(a);
 										for (let key in a.files) {
 											if (key === 'manifest.json') continue;
 											let modZip = new jszip();
-											let moduleZipBinary = await new Promise((res) => zip.file(key).async('base64').then(a => res(a)));
+											let moduleZipBinary = await zip.file(key).async('base64');
 											modZip = await new Promise((res) => {
 												// log.i('HERE', key);
-												modZip.loadAsync(Buffer.from(moduleZipBinary, 'base64')).then(zip => {
+												let modZipBuffer = Buffer.from(moduleZipBinary, 'base64');
+												modZip.loadAsync(modZipBuffer).then(zip => {
 													// log.i('HERE', key);
 													res(zip);
 												});
 											});
-											if ('bower.json' in modZip.files) {
-												let bowerjson = await new Promise((res) => modZip.file('bower.json').async('string').then(a => res(a)));
-												let dependencies = JSON.parse(bowerjson).dependencies;
-												let packageArray = [];
-												for (let bowerModuleName in dependencies) {
-													if (dependencies[bowerModuleName].indexOf('/') > 0)
-														packageArray.push(`${dependencies[bowerModuleName]}`);
-													else
-														packageArray.push(`${bowerModuleName}#${dependencies[bowerModuleName]}`);
+											if (!('bower.json' in modZip.files)) continue;
+											
+											let bowerjson = await modZip.file('bower.json').async('string');
+											let dependencies = JSON.parse(bowerjson).dependencies;
+											let packageArray = [];
+											for (let bowerModuleName in dependencies) {
+												if (dependencies[bowerModuleName].indexOf('/') > 0) {
+													packageArray.push(`${dependencies[bowerModuleName]}`);
 												}
-												// packageArray = ['PolymerVis/monaco-editor#1.0.0', 'jquery#^3.0.0']
-												await new Promise(res => {
-													proc.execSync(`bower install "--config.directory=${Path.join(__options.cwd, 'Static', 'bower_components')}" "${packageArray.join('" "')}"`);
-													log.i(`[BOWER] Installed ${packageArray.join(', ')}`);
-													res();
-
-													// if we can even do programmatic bower, this.
-													// bower.commands.install(packageArray, {}, {directory: 'Static'}).on('end', installed => {
-													// 	let pkgs = [];
-													// 	for(let _package in installed) {
-													// 		let pkg = installed[_package].pkgMeta
-													// 		pkgs.push(pkg.name + "#" + pkg.version);
-													// 	}
-													// 	if(pkgs.length == 0)
-													// 		log.i('[BOWER] Nothing to install')
-													// 	else
-													// 		log.i(`[BOWER] Installed ${pkgs.join(', ')}`);
-													// 	res();
-													// });
-												});
+												else {
+													packageArray.push(`${bowerModuleName}#`
+														+`${dependencies[bowerModuleName]}`);
+												}
 											}
+											let bowerComponentsDir = Path.join(__options.cwd, 'Static',
+												'bower_components');
+											proc.execSync('bower install "--config.directory='
+												+`${bowerComponentsDir}" "${packageArray.join('" "')}"`);
+											log.i(`[BOWER] Installed ${packageArray.join(', ')}`);
+											
 										}
 										resolve();
 									});
@@ -1228,7 +1300,7 @@ function genesis(__options = {}) {
 		 * @callback func what to do next
 		 */
 		function refreshSystem() {
-			return new Promise((resolve, reject) => {
+			return new Promise((resolve, _reject) => {
 				log.i(`--refreshSystems: Installing xgraph dependencies${endOfLine}`);
 				let packagejson = {};
 

@@ -1,7 +1,7 @@
 class SemVer {
 	constructor(str, defaultVersion) {
 		if (!str) {
-			console.warn(`Version not specified, assuming ${defaultVersion} for compatibility.`);
+			// console.warn(`Version not specified, assuming ${defaultVersion} for compatibility.`);
 			str = defaultVersion;
 		}
 		let parts = str.split('.');

@@ -1,6 +1,9 @@
-global.pidInterchange = (pid) => { return { Value: pid, Format: 'is.xgraph.pid', toString: function () { return this.Value; } }; };
-
 const CacheInterface = require('./CacheInterface.js');
+const fs = require('fs');
+const Path = require('path');
+const endOfLine = require('os').EOL;
+const Uuid = require('uuid/v4');
+const stripComments = require('strip-comments');
 
 module.exports = function xGraph(__options = {}) {
 	this.__options = __options;
@@ -23,34 +26,16 @@ module.exports = function xGraph(__options = {}) {
 
 	this.boot = function boot() {
 		return (async function (__options) {
-
-			function checkFlag(flag) {
-				// console.dir(__options);
-				return flag in __options && __options[flag];
-			}
-
-			// module.paths.push(process.cwd() + '/cache/node_modules');
-
-			console.log('\nInitializing the Run Engine');
-
-			const fs = require('fs');
-			const Path = require('path');
-			const endOfLine = require('os').EOL;
-
-			const jszip = require('jszip');
-			const Uuid = require('uuid/v4');
-			const stripComments = require('strip-comments');
-
-			var consoleNotification = false;
+			let log = createLogger();
+			global.log = log; // TODO HACK REMOVE
+			let consoleNotification = false;
 			let cacheInterface;
-			var Config = {};					// The read config.json
-			var ModCache = {};					// {<folder>: <module>}
-			var Stop = {};						// {<Apex pid>:<function>}
-			var EntCache = {};					// {<Entity pid>:<Entity>
-			var ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
-			var packagejson = {};				// The compiled package.json, built from Modules
-			var originalConsoleLog = console.log;
-			var Nxs = {
+			let Config = {};					// The read config.json
+			let ModCache = {};					// {<folder>: <module>}
+			let Stop = {};						// {<Apex pid>:<function>}
+			let EntCache = {};					// {<Entity pid>:<Entity>
+			let ImpCache = {};					// {<Implementation path>: <Implementation(e.g. disp)>}
+			let Nxs = {
 				genPid,
 				genModule,
 				addModule,
@@ -64,182 +49,11 @@ module.exports = function xGraph(__options = {}) {
 				exit,
 			};
 
-			//
-			// Logging Functionality
-			//
-			{
-				global.Volatile = class Volatile {
-					constructor(obj) {
-						this.obj = obj;
-					}
-					lock(actionFunction) {
-						return new Promise(unlock => {
-							let inst = this;
-							if (this.queue instanceof Promise) {
-								this.queue = this.queue.then(async function () {
-									let ret = actionFunction(inst.obj);
-									if (ret instanceof Promise) ret = await ret;
-									inst.obj = ret;
-									unlock();
-								});
-							} else {
-								this.queue = new Promise(async (resolve) => {
-									let ret = actionFunction(this.obj);
-									if (ret instanceof Promise) ret = await ret;
-									this.obj = ret;
-									unlock();
-									resolve();
-								});
-							}
-						});
-					}
-					toString() {
-						return this.obj.toString() || 'no toString defined';
-					}
-				};
-
-				// The logging function for writing to xgraph.log to the current working directory
-				const xgraphlog = (...str) => {
-					xgraphlog.buffer.lock((val) => val + `${log.parse(str)}${endOfLine}`);
-					if (!xgraphlog.busy) {
-						xgraphlog.busy = true;
-						xgraphlog.updateInterval();
-					}
-				};
-				xgraphlog.buffer = new Volatile('');
-				xgraphlog.updateInterval = async () => {
-					let str;
-					await xgraphlog.buffer.lock(val => {
-						str = val;
-						return '';
-					});
-					fs.appendFile(`${process.cwd()}/xgraph.log`, str, (err) => {
-						xgraphlog.buffer.lock(val => {
-							if (val !== '') {
-								// we have more in out buffer, keep calling out to the thing
-								process.nextTick(xgraphlog.updateInterval);
-							} else {
-								xgraphlog.busy = false;
-							}
-						});
-					});
-				};
-
-
-				// The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
-				// Levels include:
-				// v : verbose		Give too much information
-				// d : debug		For debugging purposes not in production level releases
-				// i : info			General info presented to the end user
-				// w : warn			Failures that dont result in a system exit
-				// e : error 		Critical failure should always follow with a system exit
-
-				// Set the default logging profile
-				let v = false;
-				let d = false;
-				let i = true;
-				let w = true;
-				let e = true;
-
-				if (checkFlag('silent') || checkFlag('loglevelsilent')) {
-					console.log('\n\n\nSilent');
-					i = w = e = false;
-				}
-
-				if (checkFlag('logleveldebug')) {
-					console.log('\n\n\ndebug');
-
-					v = d = true;
-				}
-
-				if (checkFlag('verbose') || checkFlag('loglevelverbose')) {
-					console.log('\n\n\nverbose');
-					v = true;
-				}
-
-				log = {
-					v: (...str) => {
-						if (v) process.stdout.write(`\u001b[90m[VRBS] ${log.parse(str)} \u001b[39m${endOfLine}`);
-						xgraphlog(new Date().toString(), ...str);
-					},
-					d: (...str) => {
-						if (d) process.stdout.write(`\u001b[35m[DBUG] ${log.parse(str)} \u001b[39m${endOfLine}`);
-						xgraphlog(new Date().toString(), ...str);
-					},
-					i: (...str) => {
-						if (i) process.stdout.write(`\u001b[36m[INFO] ${log.parse(str)} \u001b[39m${endOfLine}`);
-						xgraphlog(new Date().toString(), ...str);
-					},
-					w: (...str) => {
-						if (w) process.stdout.write(`\u001b[33m[WARN] ${log.parse(str)} \u001b[39m${endOfLine}`);
-						xgraphlog(new Date().toString(), ...str);
-					},
-					e: (...str) => {
-						if (e) process.stdout.write(`\u001b[31m[ERRR] ${log.parse(str)} \u001b[39m${endOfLine}`);
-						xgraphlog(new Date().toString(), ...str);
-					},
-					parse: (str) => {
-						try {
-							let arr = [];
-							for (let obj of str) {
-								if (typeof obj == 'object') {
-									if (obj == null) arr.push('NULL');
-									else if (obj.hasOwnProperty('toString')) arr.push(obj.toString());
-									else {
-										try {
-											arr.push(JSON.stringify(obj, null, 2));
-										} catch (e) {
-											arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
-										}
-									}
-								} else if (typeof obj == 'undefined') {
-									arr.push('undefined');
-								} else {
-									arr.push(obj.toString());
-								}
-							}
-							return arr.join(' ');
-						} catch (ex) {
-							process.stdout.write('\n\n\n\u001b[31m[ERRR] An error has occurred trying to parse a log.\n\n');
-							process.stdout.write(ex.toString() + '\u001b[39m');
-						}
-
-					}
-				};
-				console.log = function (...str) {
-					if (consoleNotification) {
-						process.stdout.write(`${str.join(' ')}${endOfLine}`);
-					} else {
-						consoleNotification = true;
-						log.w('console.log does not write to xgraph.log consider using log levels\n'
-							+ '       - log.i(), log.v(), log.d(), log.e(), or log.w()');
-						process.stdout.write(`${str.join(' ')}${endOfLine}`);
-					}
-				};
-				console.microtime = _ => {
-					let hrTime = process.hrtime();
-					return (hrTime[0] * 1000000 + hrTime[1] / 1000);
-				};
-				console.time = _ => {
-					console.timers = console.timers || {};
-					console.timers[_] = console.microtime();
-				};
-				console.timeEnd = _ => {
-					if (!(_ in (console.timers || {})))
-						return;
-					let elapsed = console.microtime() - console.timers[_];
-					console.timers[_] = undefined;
-					log.i(`${_}: ${elapsed}ms`);
-				};
-				// process.on('unhandledRejection', event => {
-				// 	log.e('------------------ [Stack] ------------------');
-				// 	log.e(`line ${event.lineNumber}, ${event}`);
-				// 	log.e(event.stack);
-				// 	log.e('------------------ [/Stack] -----------------');
-				// 	process.exit(1);
-				// });
-
+			function checkFlag(flag) {
+				// console.dir(__options);
+				return flag in __options && __options[flag];
 			}
+
 
 			function indirectEvalImp(entString) {
 				//sanitize entString!
@@ -290,6 +104,235 @@ module.exports = function xGraph(__options = {}) {
 			//
 			//
 
+			/**
+			 * Creates the log object and returns it.
+			 * The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
+			 * Levels include:
+			 * v : verbose		Give too much information
+			 * d : debug		For debugging purposes not in production level releases
+			 * i : info			General info presented to the end user
+			 * w : warn			Failures that dont result in a system exit
+			 * e : error 		Critical failure should always follow with a system exit
+			 */
+			function createLogger() {
+				class Volatile {
+					constructor(obj) {
+						this.obj = obj;
+					}
+					lock(actionFunction) {
+						return new Promise(unlock => {
+							let inst = this;
+							if (this.queue instanceof Promise) {
+								this.queue = this.queue.then(async function () {
+									let ret = actionFunction(inst.obj);
+									if (ret instanceof Promise) ret = await ret;
+									inst.obj = ret;
+									unlock();
+								});
+							} else {
+								this.queue = new Promise(async (resolve) => {
+									let ret = actionFunction(this.obj);
+									if (ret instanceof Promise) ret = await ret;
+									this.obj = ret;
+									unlock();
+									resolve();
+								});
+							}
+						});
+					}
+					toString() {
+						return this.obj.toString() || 'no toString defined';
+					}
+				}
+
+				// The logging function for writing to xgraph.log to the current working directory
+				const xgraphlog = (...str) => {
+					xgraphlog.buffer.lock((val) => {
+						// console.log('previous', val);
+						// console.log('adding', `${log.logFileParse(str)}${endOfLine}`);
+						return val + `${log.logFileParse(str)}${endOfLine}`;
+					});
+					if (!xgraphlog.busy) {
+						xgraphlog.busy = true;
+						xgraphlog.updateInterval();
+					}
+				};
+				xgraphlog.buffer = new Volatile('');
+				xgraphlog.updateInterval = async () => {
+					let str;
+					await xgraphlog.buffer.lock(val => {
+						str = val;
+						return '';
+					});
+					fs.appendFile(`${process.cwd()}/xgraph.log`, str, (_err) => {
+						xgraphlog.buffer.lock(val => {
+							if (val !== '') {
+								// we have more in out buffer, keep calling out to the thing
+								process.nextTick(xgraphlog.updateInterval);
+							} else {
+								xgraphlog.busy = false;
+							}
+						});
+					});
+				};
+
+				// Set the default logging profile
+				let printVerbose = false;
+				let printDebug = false;
+				let printInfo = true;
+				let printWarn = true;
+				let printError = true;
+
+				if (checkFlag('silent') || checkFlag('loglevelsilent')) {
+					printInfo = false;
+					printWarn = false;
+					printError = false;
+				}
+
+				if (checkFlag('logleveldebug')) {
+					printVerbose = true;
+					printDebug = true;
+				}
+
+				if (checkFlag('verbose') || checkFlag('loglevelverbose')) {
+					printVerbose = true;
+				}
+
+				let log = {
+					v: (...str) => {
+						xgraphlog(new Date().toString(), ...str);
+						if (!printVerbose) return;
+						process.stdout.write(log.parse(log.tag.verbose, str));
+					},
+					d: (...str) => {
+						// xgraphlog(log.tag.debug, [new Date().toString(), ...str]);
+						xgraphlog(new Date().toString(), ...str);
+						if (!printDebug) return;
+						process.stdout.write(log.parse(log.tag.debug, str));
+					},
+					i: (...str) => {
+						// xgraphlog(log.tag.info, [new Date().toString(), ...str]);
+						xgraphlog(new Date().toString(), ...str);
+						if (!printInfo) return;
+						process.stdout.write(log.parse(log.tag.info, str));
+					},
+					w: (...str) => {
+						// xgraphlog(log.tag.warn, [new Date().toString(), ...str]);
+						xgraphlog(new Date().toString(), ...str);
+						if (!printWarn) return;
+						process.stdout.write(log.parse(log.tag.warn, str));
+					},
+					e: (...str) => {
+						// xgraphlog(log.tag.error, [new Date().toString(), ...str]);
+						xgraphlog(new Date().toString(), ...str);
+						if (!printError) return;
+						process.stdout.write(log.parse(log.tag.error, str));
+					},
+					parse: (tag, outputs) => {
+						try {
+							let arr = [];
+							for (let obj of outputs) {
+								if (typeof obj == 'object') {
+									// if the object has defined a way to be seen, use it
+									if (obj.hasOwnProperty('toString')) arr.push(obj.toString());
+									else {
+										try {
+											//otherwise try to stringify it
+											arr.push(JSON.stringify(obj, null, 2));
+										} catch (e) {
+											// if we fail (ex, cyclic objects), just dump the keys
+											arr.push('Object keys: ' 
+												+ JSON.stringify(Object.keys(obj), null, 2));
+										}
+									}
+								} else if (typeof obj == 'undefined') {
+									arr.push('undefined');
+								} else {
+									arr.push(obj.toString());
+								}
+							}
+							let lines = arr.join(' ').split(/[\r]{0,1}[\n]/);
+							let output = '';
+							for (let line of lines) {
+								if (line.length > 80) {
+									line = line.substr(0, 34)
+										+ ' ... ' + line.substr(-34, 34);
+								}
+								output += `${tag} ${line}${log.eol}`;
+							}
+							return output;
+						} catch (ex) {
+							let write = process.stdout.write;
+							write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
+							write('\u001b[31m[ERRR] ============================================\n');
+							write(ex.toString() + '\n');
+							write('\u001b[31m[ERRR] ============================================\n');
+						}
+
+					},
+					logFileParse: (outputs) => {
+						try {
+							let arr = [];
+							for (let obj of outputs) {
+								if (typeof obj == 'object') {
+									// if the object has defined a way to be seen, use it
+									if (obj.hasOwnProperty('toString')) {
+										arr.push(obj.toString());
+									}
+									else {
+										try {
+											//otherwise try to stringify it
+											arr.push(JSON.stringify(obj, null, 2));
+										} catch (e) {
+											// if we fail (ex, cyclic objects), just dump the keys
+											arr.push('Object keys: '
+												+ JSON.stringify(Object.keys(obj), null, 2));
+										}
+									}
+								} else if (typeof obj == 'undefined') {
+									arr.push('undefined');
+								} else {
+									arr.push(obj.toString());
+								}
+							}
+							return arr.join(' ');
+						} catch (ex) {
+							let write = process.stdout.write;
+							write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
+							write('\u001b[31m[ERRR] ============================================\n');
+							write(ex.toString() + '\n');
+							write('\u001b[31m[ERRR] ============================================\n');
+						}
+					}
+				};
+
+				log.tag = {};
+				log.tag.verbose = '\u001b[90m[VRBS]';
+				log.tag.debug = '\u001b[35m[DBUG]';
+				log.tag.info = '\u001b[36m[INFO]';
+				log.tag.warn = '\u001b[33m[WARN]';
+				log.tag.error = '\u001b[31m[ERRR]';
+				log.eol = '\u001b[39m\r\n';
+
+				log.microtime = _ => {
+					let hrTime = process.hrtime();
+					return (hrTime[0] * 1000000 + hrTime[1] / 1000);
+				};
+				log.time = _ => {
+					log.timers = log.timers || {};
+					log.timers[_] = log.microtime();
+				};
+				log.timeEnd = _ => {
+					if (!(_ in (log.timers || {})))
+						return;
+					let elapsed = (log.microtime() - log.timers[_]) / 1000;
+					log.timers[_] = undefined;
+					log.i(`${_}: ${elapsed.toFixed(2)}ms`);
+				};
+
+				return log;
+
+			}
 
 			/**
 			 *  The main process of starting an xGraph System.
@@ -299,7 +342,8 @@ module.exports = function xGraph(__options = {}) {
 				let Setup = {};
 				let Start = {};
 				cacheInterface = new CacheInterface({
-					path: __options.cache
+					path: __options.cache,
+					log
 				});
 
 
@@ -314,7 +358,7 @@ module.exports = function xGraph(__options = {}) {
 
 				run();
 
-				////////////////////////////////////////////////////////////////////////////////////////////////
+				/////////////////////////////////////////////////////////////////////////////////////////
 				//
 				// Only Helper Functions Beyond This Point
 				//
@@ -330,8 +374,8 @@ module.exports = function xGraph(__options = {}) {
 					let setupArray = [];
 
 					for (let pid in Setup) {
-						setupArray.push(new Promise((resolve, reject) => {
-							var com = {};
+						setupArray.push(new Promise((resolve, _reject) => {
+							let com = {};
 							com.Cmd = Setup[pid];
 							com.Passport = {};
 							com.Passport.To = pid;
@@ -354,8 +398,8 @@ module.exports = function xGraph(__options = {}) {
 					let startArray = [];
 
 					for (let pid in Start) {
-						startArray.push(new Promise((resolve, reject) => {
-							var com = {};
+						startArray.push(new Promise((resolve, _reject) => {
+							let com = {};
 							com.Cmd = Start[pid];
 							com.Passport = {};
 							com.Passport.To = pid;
@@ -400,8 +444,8 @@ module.exports = function xGraph(__options = {}) {
 				log.v(Object.keys(require.cache).join('\n'));
 
 				for (let pid in Stop) {
-					stopTasks.push(new Promise((resolve, reject) => {
-						var com = {};
+					stopTasks.push(new Promise((resolve, _reject) => {
+						let com = {};
 						com.Cmd = Stop[pid];
 						com.Passport = {};
 						com.Passport.To = pid;
@@ -409,7 +453,6 @@ module.exports = function xGraph(__options = {}) {
 						sendMessage(com, resolve);
 					}));
 				}
-				console.log = originalConsoleLog;
 				await Promise.all(stopTasks);
 				log.v('--Nexus: All Stops Complete');
 
@@ -459,8 +502,8 @@ module.exports = function xGraph(__options = {}) {
 			 * generate a 32 character hex pid
 			 */
 			function genPid() {
-				var str = Uuid();
-				var pid = str.replace(/-/g, '').toUpperCase();
+				let str = Uuid();
+				let pid = str.replace(/-/g, '').toUpperCase();
 				return pid;
 			}
 
@@ -485,7 +528,6 @@ module.exports = function xGraph(__options = {}) {
 				if (!('To' in com.Passport) || !com.Passport.To) {
 					log.w('Message has no destination entity, ignored');
 					log.w('    ' + JSON.stringify(com));
-					console.trace();
 					fun('No recipient in message', com);
 					return;
 				}
@@ -540,9 +582,9 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {object} par	the par of the entity
 			 */
 			function Entity(nxs, imp, par) {
-				var Par = par;
-				var Imp = imp;
-				var Vlt = {};
+				let Par = par;
+				let Imp = imp;
+				let Vlt = {};
 
 				return {
 					Par,
@@ -591,7 +633,7 @@ module.exports = function xGraph(__options = {}) {
 				 */
 				function dispatch(com, fun = _ => _) {
 					try {
-						var disp = Imp.dispatch;
+						let disp = Imp.dispatch;
 						if (com.Cmd in disp) {
 							disp[com.Cmd].call(this, com, fun);
 							return;
@@ -620,7 +662,8 @@ module.exports = function xGraph(__options = {}) {
 				 * module definition. If more then one module needs to be generated, moduleObject has a
 				 * key for each module definition, such as in a system structure object.
 				 *
-				 * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+				 * When this.genModule is called from an entity, the moduleObject 
+				 * and fun parameters are passed
 				 * along to nxs.genModule, which starts the module and adds it to the system.
 				 * @param {object} moduleObject		Either a single module definition, or an object containing
 				 * 										multiple module definitions.
@@ -650,7 +693,8 @@ module.exports = function xGraph(__options = {}) {
 				 * module definition. If more then one module needs to be generated, moduleObject has a
 				 * key for each module definition, such as in a system structure object.
 				 *
-				 * When this.genModule is called from an entity, the moduleObject and fun parameters are passed
+				 * When this.genModule is called from an entity, 
+				 * the moduleObject and fun parameters are passed
 				 * along to nxs.genModule, which starts the module and adds it to the system.
 				 * @param {object} moduleObject		Either a single module definition, or an object containing
 				 * 										multiple module definitions.
@@ -688,7 +732,8 @@ module.exports = function xGraph(__options = {}) {
 				}
 
 				/**
-				 * Sends the command object and the callback function to the xGraph part (entity or module, depending
+				 * Sends the command object and the callback function to
+				 * the xGraph part (entity or module, depending
 				 * on the fractal layer) specified in the Pid.
 				 * @param {object} com  	The message object to send.
 				 * @param {string} com.Cmd	The function to send the message to in the destination entity.
@@ -712,7 +757,8 @@ module.exports = function xGraph(__options = {}) {
 				/**
 				 * Save this entity, including it's current Par, to the cache.
 				 * If this entity is not an Apex, send the save message to Apex of this entity's module.
-				 * If it is an Apex we save the entity's information, as well as all other relevant information
+				 * If it is an Apex we save the entity's information,
+				 * as well as all other relevant information
 				 * @callback fun
 				 */
 				function save(fun) {
@@ -736,8 +782,8 @@ module.exports = function xGraph(__options = {}) {
 					return;
 				}
 
-				var impkey = Path.join(cacheInterface.ApexIndex[apx], par.Entity);
-				var mod = ModCache[cacheInterface.ApexIndex[apx]];
+				let impkey = Path.join(cacheInterface.ApexIndex[apx], par.Entity);
+				let mod = ModCache[cacheInterface.ApexIndex[apx]];
 
 				if (!(par.Entity in mod.files)) {
 					log.e('<' + par.Entity + '> not in module <' + cacheInterface.ApexIndex[apx] + '>');
@@ -746,7 +792,7 @@ module.exports = function xGraph(__options = {}) {
 				}
 
 				if (!(impkey in ImpCache)) {
-					let entString = await new Promise(async (res, rej) => {
+					let entString = await new Promise(async (res, _rej) => {
 						mod.file(par.Entity).async('string').then((string) => res(string));
 					});
 					ImpCache[impkey] = indirectEvalImp(entString);
@@ -766,7 +812,7 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {string} pid 		the pid of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function deleteEntity(pid, fun = (err, pid) => { if (err) log.e(err); }) {
+			function deleteEntity(pid, fun = (err, _pid) => { if (err) log.e(err); }) {
 				cacheInterface.deleteEntity(pid, (err, removedPidArray) => {
 
 					//remove ent from EntCache (in RAM)
@@ -788,13 +834,13 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {object} par 		the par of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			async function saveEntity(par, fun = (err, pid) => { if (err) log.e(err); }) {
+			async function saveEntity(par, fun = (err, _pid) => { if (err) log.e(err); }) {
 				let saveEntity = (async (par) => {
 					await new Promise((res, rej)=>{
 						cacheInterface.saveEntityPar(par, (err, pid) => {
 							if (err){
 								log.e(err, 'saving ', pid); 
-								reject(err);
+								rej(err);
 							}
 							log.v(`Saved entity ${par.Pid}`);
 							res();
@@ -840,7 +886,8 @@ module.exports = function xGraph(__options = {}) {
 						fun(err, path);
 					});
 				} else {
-					let err = 'addModule not permitted in current xGraph process \nrun xgraph with --allow-add-module to enable';
+					let err = 'addModule not permitted in current xGraph process\n'
+						+'run xgraph with --allow-add-module to enable';
 					log.w(err);
 					fun(err);
 				}
@@ -884,20 +931,16 @@ module.exports = function xGraph(__options = {}) {
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
 			function getEntityContext(pid, fun = _ => _) {
-				let imp;
-				let par;
-				let ent;
-
+				// TODO issue #23, check entcache here to see if we dont have to load from cache.
 				cacheInterface.getEntityPar(pid, (err, data) => {
 					if (err) {
-						log.e(`Error retrieving a ${moduleType} from cache. Pid: ${pid}`);
+						log.e(`Error retrieving a ${data.moduleType} from cache. Pid: ${pid}`);
 						log.e(err);
 						fun('Unavailable');
 						return;
 					}
 					let par = JSON.parse(data.toString());
 					let impkey = par.Module + '/' + par.Entity;
-					let imp;
 					if (impkey in ImpCache) {
 						BuildEnt();
 						return;
@@ -916,7 +959,7 @@ module.exports = function xGraph(__options = {}) {
 							return;
 						}
 
-						let entString = await new Promise(async (res, rej) => {
+						let entString = await new Promise(async (res, _rej) => {
 							mod.file(par.Entity).async('string').then((string) => res(string));
 						});
 
@@ -936,7 +979,8 @@ module.exports = function xGraph(__options = {}) {
 			/**
 			 * Starts an instance of a module that exists in the cache.
 			 * After generating, the instance Apex receives a setup and start command synchronously
-			 * @param {Object} inst 		Definition of the instance to be spun up or an object of multiple definitions
+			 * @param {Object} inst 		Definition of the instance to be
+			 * spun up or an object of multiple definitions
 			 * @param {string?} inst.Module 	The name of the module to spin up
 			 * @param {Object=} inst.Par	The par of the to be encorporated with the Module Apex Par
 			 * @callback fun 				(err, pid of module apex)
@@ -962,7 +1006,7 @@ module.exports = function xGraph(__options = {}) {
 				//compile each module
 				for (let moduleKey in moduleDefinitions) {
 					//do a GetModule and compile instance for each 
-					PromiseArray.push(new Promise((res, rej) => {
+					PromiseArray.push(new Promise((res, _rej) => {
 						let inst = moduleDefinitions[moduleKey];
 						GetModule(inst.Module, async function (err, mod) {
 							if (err) {
@@ -1005,7 +1049,7 @@ module.exports = function xGraph(__options = {}) {
 
 							await compileInstance(pidapx, inst);
 
-							var schema = await new Promise(async (res, rej) => {
+							let schema = await new Promise(async (res, _rej) => {
 								if ('schema.json' in mod.files) {
 									mod.file('schema.json').async('string').then(function (schemaString) {
 										res(JSON.parse(schemaString));
@@ -1047,8 +1091,8 @@ module.exports = function xGraph(__options = {}) {
 					let setupArray = [];
 
 					for (let pid in Setup) {
-						setupArray.push(new Promise((resolve, reject) => {
-							var com = {};
+						setupArray.push(new Promise((resolve, _reject) => {
+							let com = {};
 							com.Cmd = Setup[pid];
 							com.Passport = {};
 							com.Passport.To = pid;
@@ -1068,8 +1112,8 @@ module.exports = function xGraph(__options = {}) {
 					let startArray = [];
 
 					for (let pid in Start) {
-						startArray.push(new Promise((resolve, reject) => {
-							var com = {};
+						startArray.push(new Promise((resolve, _reject) => {
+							let com = {};
 							com.Cmd = Start[pid];
 							com.Passport = {};
 							com.Passport.To = pid;
@@ -1090,15 +1134,16 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {object} inst
 			 * @param {string} inst.Module	The module definition in dot notation
 			 * @param {object} inst.Par		The par object that defines the par of the instance
-			 * @param {boolean} saveRoot	Add the setup and start functions of the apex to the Root.Setup and start
+			 * @param {boolean} saveRoot	Add the setup and start functions of the
+			 * apex to the Root.Setup and start
 			 */
 			async function compileInstance(pidapx, inst, saveRoot = false) {
 				log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
-				var Local = {};
-				var modnam = (typeof inst.Module == 'object') ? inst.Module.Module : inst.Module;
-				var mod;
-				var ents = [];
-				var modnam = modnam.replace(/\:\//g, '.');
+				let Local = {};
+				let modnam = (typeof inst.Module == 'object') ? inst.Module.Module : inst.Module;
+				let mod;
+				let ents = [];
+				modnam = modnam.replace(/:\//g, '.');
 
 				if (modnam in ModCache) {
 					mod = ModCache[modnam];
@@ -1108,7 +1153,7 @@ module.exports = function xGraph(__options = {}) {
 					return;
 				}
 
-				var schema = await new Promise(async (res, rej) => {
+				let schema = await new Promise(async (res, rej) => {
 					if ('schema.json' in mod.files) {
 						mod.file('schema.json').async('string').then(function (schemaString) {
 							res(JSON.parse(schemaString));
@@ -1117,15 +1162,14 @@ module.exports = function xGraph(__options = {}) {
 						log.e('Module <' + modnam + '> schema not in ModCache');
 						process.exit(1);
 						rej();
-						reject();
 						return;
 					}
 				});
 
-				var entkeys = Object.keys(schema);
+				let entkeys = Object.keys(schema);
 
 				//set Pids for each entity in the schema
-				for (j = 0; j < entkeys.length; j++) {
+				for (let j = 0; j < entkeys.length; j++) {
 					let entkey = entkeys[j];
 					if (entkey === 'Apex') {
 						Local[entkey] = pidapx;
@@ -1135,7 +1179,7 @@ module.exports = function xGraph(__options = {}) {
 				}
 
 				//unpack the par of each ent
-				for (j = 0; j < entkeys.length; j++) {
+				for (let j = 0; j < entkeys.length; j++) {
 					let entkey = entkeys[j];
 					//start with the pars from the schema
 					let ent = schema[entkey];
@@ -1145,21 +1189,21 @@ module.exports = function xGraph(__options = {}) {
 
 					//unpack the config pars to the par of the apex of the instance
 					if (entkey == 'Apex' && 'Par' in inst) {
-						var pars = Object.keys(inst.Par);
-						for (var ipar = 0; ipar < pars.length; ipar++) {
-							var par = pars[ipar];
+						let pars = Object.keys(inst.Par);
+						for (let ipar = 0; ipar < pars.length; ipar++) {
+							let par = pars[ipar];
 							ent[par] = inst.Par[par];
 						}
 					}
 
 					//pars all values for symbols
-					var pars = Object.keys(ent);
-					for (ipar = 0; ipar < pars.length; ipar++) {
-						var par = pars[ipar];
-						var val = ent[par];
+					let pars = Object.keys(ent);
+					for (let ipar = 0; ipar < pars.length; ipar++) {
+						let par = pars[ipar];
+						let val = ent[par];
 						if (entkey == 'Apex' && saveRoot) {
-							if (par == '$Setup') { Setup[ent.Pid] = val; }
-							if (par == '$Start') { Start[ent.Pid] = val; }
+							// if (par == '$Setup') { Setup[ent.Pid] = val; }
+							// if (par == '$Start') { Start[ent.Pid] = val; }
 						}
 						ent[par] = await symbol(val);
 					}
@@ -1172,7 +1216,7 @@ module.exports = function xGraph(__options = {}) {
 					entsPromise.push((async function () {
 						let impkey = modnam + par.Entity;
 						if (!(impkey in ImpCache)) {
-							let entString = await new Promise(async (res, rej) => {
+							let entString = await new Promise(async (res, _rej) => {
 								mod.file(par.Entity).async('string').then((string) => res(string));
 							});
 							ImpCache[impkey] = indirectEvalImp(entString);
@@ -1197,7 +1241,7 @@ module.exports = function xGraph(__options = {}) {
 					}
 					if (typeof val !== 'string')
 						return val;
-					var sym = val.substr(1);
+					let sym = val.substr(1);
 					if (val.charAt(0) === '#' && sym in Local)
 						return Local[sym];
 					if (val.charAt(0) === '\\')
@@ -1208,7 +1252,8 @@ module.exports = function xGraph(__options = {}) {
 
 			/**
 			 * For retrieving modules
-			 * Modules come from the cache directory on the harddrive or the ModCache if its already been read to RAM.
+			 * Modules come from the cache directory on the harddrive or the
+			 * ModCache if its already been read to RAM.
 			 * @param {Object} modRequest
 			 * @param {String} modRequest.Module
 			 * @param {String=} modRequest.Source
@@ -1216,7 +1261,7 @@ module.exports = function xGraph(__options = {}) {
 			 * @returns mod
 			 */
 			function GetModule(ModName, fun = _ => _) {
-				ModName = ModName.replace(/\:\//g, '.');
+				ModName = ModName.replace(/:\//g, '.');
 				if (ModName in ModCache) return fun(null, ModCache[ModName]);
 				else cacheInterface.getModule(ModName, (err, moduleZip) => {
 					if (err) return fun(err);

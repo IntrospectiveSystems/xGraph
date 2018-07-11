@@ -2,7 +2,21 @@
 // anything above this line is removed on npm run build.
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
+
+process.on('unhandledRejection', (reason, _promise) => {
+	process.stderr.write('\u001b[31m' + '------- [Unhandled Promise Rejection] -------' + '\u001b[39m\n');
+	if('stack' in reason) process.stderr.write('\u001b[31m' + reason.stack + '\u001b[39m\n');
+	else if ('message' in reason) process.stderr.write('\u001b[31m' + reason.message + '\u001b[39m\n');
+	else process.stderr.write('\u001b[31m' + reason.toString() + '\u001b[39m\n');
+	process.stderr.write('\u001b[31m' + '------- [/Unhandled Promise Rejection] ------' + '\u001b[39m\n');
+	process.exit(1);
+});
+
+
 let cli = function (argv) {
+
+
+
 	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	let originalCwd = process.cwd();
