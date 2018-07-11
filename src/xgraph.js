@@ -12,22 +12,21 @@ process.on('unhandledRejection', (reason, _promise) => {
 	process.exit(1);
 });
 
-
 let cli = function (argv) {
-
-
 
 	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	let originalCwd = process.cwd();
+	let Logger = require('logger');
+	let log = new Logger();
 
 	if (argv[0].indexOf('node')) {
 		argv = argv.slice(1);
 	} else {
-		console.log('REAL COMMAND LINE ARGUMENTS DETECTED. ABORT. REPEAT,\r\n\t\tAB0RT\r\n\t\t\t\tM IS5  I ON.');
-		console.log('---------------------------------------------------');
-		console.log(argv.join('\n'));
-		console.log('---------------------------------------------------');
+		log.i('REAL COMMAND LINE ARGUMENTS DETECTED. ABORT. REPEAT,\r\n\t\tAB0RT\r\n\t\t\t\tM IS5  I ON.');
+		log.i('---------------------------------------------------');
+		log.i(argv.join('\n'));
+		log.i('---------------------------------------------------');
 		process.exit(1);
 	}
 
@@ -39,44 +38,11 @@ let cli = function (argv) {
 	let args = argv.slice(1);
 	let pathOverrides = {};
 	let nodeVersion = '8.9.1';
-	let cwd = (process.cwd());
-	let bindir = argv[0].substr(0, argv[0].lastIndexOf(path.sep));
 	let CacheDir;
 	const version = require('../package.json').version;
 	const genesis = require('./Genesis.js');
 	const nexus = require('./Nexus.js');
-	let subcommand = '';
 	let flags = {};
-
-	let windows, mac, linux, unix, system;
-
-	switch (process.platform) {
-		case 'win32': {
-			system = 'windows';
-			windows = true;
-			unix = linux = mac = false;
-			break;
-		}
-		case 'darwin': {
-			system = 'macOS';
-			windows = linux = false;
-			unix = mac = true;
-			break;
-		}
-		case 'linux': {
-			system = 'linux';
-			linux = unix = true;
-			mac = windows = false;
-			break;
-		}
-		default: {
-			// arbitrary unix system
-			system = 'unix';
-			unix = true;
-			linux = mac = windows = false;
-			break;
-		}
-	}
 
 	processSwitches();
 
@@ -86,7 +52,6 @@ let cli = function (argv) {
 		case 'run':
 		case '--execute':
 		case 'execute': {
-			subcommand = 'execute';
 			execute();
 			break;
 		}
@@ -95,7 +60,6 @@ let cli = function (argv) {
 		case '-r':
 		case '--reset':
 		case 'reset': {
-			subcommand = 'reset';
 			reset();
 			break;
 		}
@@ -104,7 +68,6 @@ let cli = function (argv) {
 		case '-c':
 		case '--compile':
 		case 'compile': {
-			subcommand = 'compile';
 			compile();
 			break;
 		}
@@ -113,7 +76,6 @@ let cli = function (argv) {
 		case '-d':
 		case '--deploy':
 		case 'deploy': {
-			subcommand = 'deploy';
 			deploy();
 			break;
 		}
@@ -122,7 +84,6 @@ let cli = function (argv) {
 		case 'h':
 		case '-h':
 		case '--help': {
-			subcommand = 'help';
 			help();
 			break;
 		}
@@ -131,19 +92,17 @@ let cli = function (argv) {
 		case '-g':
 		case 'generate':
 		case 'init': {
-			subcommand = 'generate';
 			generate(args.slice(1));
 			break;
 		}
 
 		case '--version':
 		case '-v': {
-			subcommand = 'version';
-			console.log(version);
+			log.i(version);
 			break;
 		}
 		default: {
-			console.log(`Unknown command <${argv[1]}>`);
+			log.i(`Unknown command <${argv[1]}>`);
 			help();
 			break;
 		}
@@ -155,11 +114,12 @@ let cli = function (argv) {
 			case 's': {
 				let names = args.slice(1);
 				if (names.length > 0) {
-					console.log(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${names.length > 1 ?
-						'names' : 'name'}: ${args.slice(1)}`);
+					log.i(`Generate new xGraph ${names.length > 1 ? 'systems' : 'system'} with ${
+						names.length > 1 ? 'names' : 'name'}: ${args.slice(1)}`);
 					initSystem(names);
 				} else {
-					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+					log.e('No system name provided. \n'+
+					'Cannot generate system without a system name: "xgraph generate system_name".');
 				}
 				break;
 			}
@@ -167,16 +127,18 @@ let cli = function (argv) {
 			case 'm': {
 				let names = args.slice(1);
 				if (names.length > 0) {
-					console.log(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${names.length > 1 ?
-						'names' : 'name'}: ${args.slice(1)}`);
+					log.i(`Generate new xGraph ${names.length > 1 ? 'modules' : 'module'} with ${
+						names.length > 1 ? 'names' : 'name'}: ${args.slice(1)}`);
 					initModule(names);
 				} else {
-					console.log('No system name provided. Cannot generate system without a system name: "xgraph generate system name".');
+					log.e('No module name provided.  \n'+
+					'Cannot generate module without a module name: "xgraph generate module_name".');
 				}
 				break;
 			}
 			default: {
-				console.log('Invalid option for the generate command. Try "xgraph generate module" or "xgraph generate system".');
+				log.e('Invalid option for the generate command.  \n'+
+				'Try "xgraph generate module" or "xgraph generate system".');
 			}
 		}
 	}
@@ -196,7 +158,7 @@ let cli = function (argv) {
 
 		let help = eval(helpText);
 
-		console.log(help);
+		log.i(help);
 	}
 
 	async function reset() {
@@ -207,7 +169,7 @@ let cli = function (argv) {
 			// process.chdir(processPath);
 			startNexusProcess();
 		} catch (e) {
-			console.error(e);
+			log.e(e);
 		}
 	}
 
@@ -216,7 +178,7 @@ let cli = function (argv) {
 			startNexusProcess();
 
 		} catch (e) {
-			console.error(e);
+			log.e(e);
 		}
 	}
 
@@ -226,7 +188,7 @@ let cli = function (argv) {
 			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 			startNexusProcess();
 		} catch (e) {
-			console.error(e);
+			log.e(e);
 		}
 	}
 
@@ -236,7 +198,7 @@ let cli = function (argv) {
 			// console.dir(pathOverrides);
 			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
 		} catch (e) {
-			console.error(e);
+			log.e(e);
 		}
 	}
 
@@ -244,7 +206,7 @@ let cli = function (argv) {
 	async function startNexusProcess() {
 		//get the cache dir
 		let cacheDir = pathOverrides['cache'];
-		console.log(`Starting from ${cacheDir}`);
+		log.i(`Starting from ${cacheDir}`);
 
 		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
 		process.env.NODE_PATH = path.join(path.dirname(cacheDir), 'node_modules');
@@ -267,7 +229,7 @@ let cli = function (argv) {
 		try {
 			await system.boot();
 		} catch (e) {
-			console.error(e);
+			log.e(e);
 			process.exit(1);
 		}
 
@@ -304,7 +266,7 @@ let cli = function (argv) {
 			let i = argumentObject.index;
 
 			if (typeof argument == 'undefined') {
-				console.error('error parsing Switches');
+				log.e('error parsing Switches');
 				process.exit(1);
 			}
 			if (argument.startsWith('--')) {
@@ -324,7 +286,7 @@ let cli = function (argv) {
 
 		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
 		if (!fs.existsSync(pathOverrides.cwd)) {
-			console.error('--cwd ' + pathOverrides.cwd + ' does not exist.');
+			log.e('--cwd ' + pathOverrides.cwd + ' does not exist.');
 			process.exit(1);
 		}
 
@@ -374,33 +336,12 @@ let cli = function (argv) {
 	//                       templating stuff
 	// -------------------------------------------------------------
 
-	let launchConfigBase = {
-		version: '0.2.0',
-		configurations: []
-	};
-
-	let config = (repo, system) => {
-		return {
-			name: system,
-			type: 'node',
-			request: 'launch',
-			cwd: `\${workspaceRoot}/Systems/${system}`,
-			program: '${workspaceRoot}/../xGraph/Nexus/Nexus/Nexus.js',
-			args: [
-				'xGraph=${workspaceRoot}/../xGraph',
-				`${repo}=\${workspaceRoot}`,
-				'development=true'
-			]
-		};
-	};
-
 	function initSystem(names) {
 
 		for (let index = 0; index < names.length; index++) {
-			let systemPath;
 			let name = names[index];
-			createDirectories(name);
-			createSystem();
+			let systemPath = createDirectories(name);
+			createSystem(systemPath);
 		}
 
 		function createDirectories(name) {
@@ -408,6 +349,7 @@ let cli = function (argv) {
 			let makeDirectories = name.split(regEx);
 			let makePath = '';
 			let thisDirectory = '';
+			let systemPath;
 
 			if (path.isAbsolute(name)) {
 				if (name.charAt(0) != path.sep) {
@@ -420,7 +362,7 @@ let cli = function (argv) {
 				systemPath = path.join(sysDir, name);
 			}
 
-			console.log('Generating system in directory: ', systemPath);
+			log.i('Generating system in directory: ', systemPath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
 				if (makeDirectories[i] && makeDirectories[i] != '') {
@@ -429,9 +371,10 @@ let cli = function (argv) {
 					makeDirectory(makePath);
 				}
 			}
+			return systemPath;
 		}
 
-		function createSystem() {
+		function createSystem(systemPath) {
 			const ConfigTemplate =
 				{
 					'Sources': {},
@@ -442,12 +385,14 @@ let cli = function (argv) {
 
 			if (!fs.existsSync(path.join(systemPath, 'config.json'))) {
 				try {
-					fs.writeFileSync(path.join(systemPath, 'config.json'), JSON.stringify(ConfigTemplate, null, '\t'));
-					console.log('System generated at: ' + systemPath);
+					fs.writeFileSync(path.join(systemPath, 'config.json'), 
+						JSON.stringify(ConfigTemplate, null, '\t'));
+					log.i('System generated at: ' + systemPath);
 				} catch (e) {
+					log.e(e);
 				}
 			} else {
-				console.log(`No system generated. The system already exists: ${systemPath}`);
+				log.i(`No system generated. The system already exists: ${systemPath}`);
 			}
 		}
 	}
@@ -455,14 +400,14 @@ let cli = function (argv) {
 	function initModule(names) {
 
 		for (let index = 0; index < names.length; index++) {
-			let modulePath;
 			let name = names[index];
-			let module = createDirectories(name);
-			createModule(module);
+			let [module, modulePath] = createDirectories(name);
+			createModule(module, modulePath);
 		}
-
+		
 		function createDirectories(name) {
 			let regEx = new RegExp('(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/');
+			let modulePath;
 			let makeDirectories = name.split(regEx);
 			let makePath = '';
 			let thisDirectory = '';
@@ -477,7 +422,7 @@ let cli = function (argv) {
 				makePath = moduleDir;
 				modulePath = path.join(moduleDir, name);
 			}
-			console.log('Generating module in directory: ', modulePath);
+			log.i('Generating module in directory: ', modulePath);
 
 			for (let i = 0; i < makeDirectories.length; i++) {
 
@@ -488,10 +433,10 @@ let cli = function (argv) {
 				}
 			}
 
-			return thisDirectory;
+			return [thisDirectory, modulePath];
 		}
 
-		function createModule(name) {
+		function createModule(name, modulePath) {
 			let Schema = {
 				'Apex': {
 					'$Setup': 'Setup',
@@ -573,15 +518,19 @@ let cli = function (argv) {
 
 			if (!fs.existsSync(path.join(modulePath, `${name}.js`))) {
 				try {
-					fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
+					fs.writeFileSync(path.join(modulePath, 'schema.json'), 
+						JSON.stringify(Schema, null, '\t'));
 					fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
-					fs.writeFileSync(path.join(modulePath, 'module.json'), JSON.stringify(moduleJson, null, '\t'));
-					fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
-					console.log('Module generated at: ' + modulePath);
+					fs.writeFileSync(path.join(modulePath, 'module.json'), 
+						JSON.stringify(moduleJson, null, '\t'));
+					fs.writeFileSync(path.join(modulePath, 'test.json'), 
+						JSON.stringify(testJson, null, '\t'));
+					log.i('Module generated at: ' + modulePath);
 				} catch (e) {
+					log.w(e);
 				}
 			} else {
-				console.log('No module generated. Module already exists: ' + modulePath);
+				log.i('No module generated. Module already exists: ' + modulePath);
 			}
 		}
 	}
@@ -590,6 +539,7 @@ let cli = function (argv) {
 		try {
 			fs.mkdirSync(dir);
 		} catch (e) {
+			log.w(e);
 		}
 	}
 
@@ -601,3 +551,4 @@ if (require.main === module || !('id' in module)) {
 	Nexus: require('./Nexus.js'),
 	Genesis: require('./Genesis.js')
 };
+
