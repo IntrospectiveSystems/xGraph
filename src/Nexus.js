@@ -40,6 +40,7 @@ module.exports = function xGraph(__options = {}) {
 			const jszip = require("jszip");
 			const Uuid = require('uuid/v4');
 			const stripComments = require('strip-comments');
+			const Volatile = require("volatile");
 
 			var consoleNotification = false;
 			let cacheInterface;
@@ -498,7 +499,6 @@ module.exports = function xGraph(__options = {}) {
 
 				let pid = com.Passport.To;
 				let apx = com.Passport.Apex || pid;
-
 				if (pid in EntCache) {
 					done(null, EntCache[pid]);
 					return;
@@ -507,7 +507,14 @@ module.exports = function xGraph(__options = {}) {
 					getEntityContext(pid, done);
 				}
 
-				function done(err, entContext) {
+				async function done(err, entContextVolatile) {
+					let entApex = await new Promise(res =>
+						entContextVolatile.lock((val) => {
+							res(val.Par.Apex);
+							return val;
+						})
+					);
+
 					if (err) {
 						log.w(err);
 						log.w(JSON.stringify(com, null, 2));
@@ -515,7 +522,10 @@ module.exports = function xGraph(__options = {}) {
 						return;
 					}
 
-					if ((pid in cacheInterface.ApexIndex) || (entContext.Par.Apex == apx)) {
+					if ((pid in cacheInterface.ApexIndex) || (entApex == apx)) {
+						let entContext = await new Promise(res => entContextVolatile.lock((context) => {
+							res(context); return context;
+						}));
 						entContext.dispatch(com, reply);
 					} else {
 						let err = 'Trying to send a message to a non-Apex'
@@ -696,7 +706,6 @@ module.exports = function xGraph(__options = {}) {
 				 * @callback fun
 				 */
 				function send(com, pid, fun) {
-					// log.v(com, pid);
 					if (!('Passport' in com))
 						com.Passport = {};
 					com.Passport.To = pid;
@@ -756,7 +765,7 @@ module.exports = function xGraph(__options = {}) {
 				par.Module = cacheInterface.ApexIndex[apx];
 				par.Apex = apx;
 
-				EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+				EntCache[par.Pid] = new Volatile(new Entity(Nxs, ImpCache[impkey], par));
 				fun(null, par.Pid);
 			}
 
@@ -790,10 +799,10 @@ module.exports = function xGraph(__options = {}) {
 			 */
 			async function saveEntity(par, fun = (err, pid) => { if (err) log.e(err) }) {
 				let saveEntity = (async (par) => {
-					await new Promise((res, rej)=>{
+					await new Promise((res, rej) => {
 						cacheInterface.saveEntityPar(par, (err, pid) => {
-							if (err){
-								log.e(err, "saving ", pid); 
+							if (err) {
+								log.e(err, "saving ", pid);
 								reject(err)
 							}
 							log.v(`Saved entity ${par.Pid}`);
@@ -809,7 +818,9 @@ module.exports = function xGraph(__options = {}) {
 						if (err) {
 
 							//get the Apex's par from the EntCache
-							let apexPar = EntCache[par.Apex].Par;
+							let apexPar = await new Promise((res, rej) => {
+								EntCache[par.Apex].lock((entityContext) => { res(entityContext.Par); return entityContext; });
+							});
 
 							log.v("Must first save the Apex -- Saving...");
 							await saveEntity(apexPar);
@@ -883,54 +894,61 @@ module.exports = function xGraph(__options = {}) {
 			 * @param {string} pid 		the pid of the entity
 			 * @callback fun  			the callback to return the pid of the generated entity to
 			 */
-			function getEntityContext(pid, fun = _ => _) {
-				let imp;
-				let par;
-				let ent;
+			async function getEntityContext(pid, fun = _ => _) {
+				EntCache[pid] = new Volatile({});
+				await EntCache[pid].lock((entityContext) => {
+					return new Promise((res, rej) => {
 
-				cacheInterface.getEntityPar(pid, (err, data) => {
-					if (err) {
-						log.e(`Error retrieving a ${moduleType} from cache. Pid: ${pid}`);
-						log.e(err);
-						fun('Unavailable');
-						return;
-					}
-					let par = JSON.parse(data.toString());
-					let impkey = par.Module + '/' + par.Entity;
-					let imp;
-					if (impkey in ImpCache) {
-						BuildEnt();
-						return;
-					}
+						let imp;
+						let par;
+						let ent;
 
-					GetModule(par.Module, async function (err, mod) {
-						if (err) {
-							log.e('Module <' + par.Module + '> not available');
-							fun('Module not available');
-							return;
-						}
+						cacheInterface.getEntityPar(pid, (err, data) => {
+							if (err) {
+								log.e(`Error retrieving a ${moduleType} from cache. Pid: ${pid}`);
+								log.e(err);
+								fun('Unavailable');
+								return;
+							}
+							let par = JSON.parse(data.toString());
+							let impkey = par.Module + '/' + par.Entity;
+							let imp;
+							if (impkey in ImpCache) {
+								BuildEnt();
+								return;
+							}
 
-						if (!(par.Entity in mod.files)) {
-							log.e('<' + par.Entity + '> not in module <' + par.Module + '>');
-							fun('Null entity');
-							return;
-						}
+							GetModule(par.Module, async function (err, mod) {
+								if (err) {
+									log.e('Module <' + par.Module + '> not available');
+									fun('Module not available');
+									return;
+								}
 
-						let entString = await new Promise(async (res, rej) => {
-							mod.file(par.Entity).async("string").then((string) => res(string))
+								if (!(par.Entity in mod.files)) {
+									log.e('<' + par.Entity + '> not in module <' + par.Module + '>');
+									fun('Null entity');
+									return;
+								}
+
+								let entString = await new Promise(async (res, rej) => {
+									mod.file(par.Entity).async("string").then((string) => res(string))
+								});
+
+								log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
+								ImpCache[impkey] = indirectEvalImp(entString);
+								BuildEnt();
+							});
+
+							function BuildEnt() {
+								// TODO: rethink the whole process of having to call out a setup and start
+								res(new Entity(Nxs, ImpCache[impkey], par));
+
+							}
 						});
-
-						log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
-						ImpCache[impkey] = indirectEvalImp(entString);
-						BuildEnt();
-					});
-
-					function BuildEnt() {
-						// TODO: rethink the whole process of having to call out a setup and start
-						EntCache[pid] = new Entity(Nxs, ImpCache[impkey], par);
-						fun(null, EntCache[pid]);
-					}
+					})
 				});
+				fun(null, EntCache[pid]);
 			}
 
 			/**
@@ -1177,7 +1195,7 @@ module.exports = function xGraph(__options = {}) {
 							});
 							ImpCache[impkey] = indirectEvalImp(entString);
 						}
-						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+						EntCache[par.Pid] = new Volatile(new Entity(Nxs, ImpCache[impkey], par));
 						cacheInterface.EntIndex[par.Pid] = par.Apex;
 					})());
 				}

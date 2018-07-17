@@ -24,6 +24,7 @@
   "dependencies": {
     "jszip": "3.1.5",
     "strip-comments": "1.0.2",
-    "uuid": "3.2.1"
+    "uuid": "3.2.1",
+    "volatile": "7.0.1"
   }
 }
