@@ -54,27 +54,41 @@ module.exports = function xGraph(__options = {}) {
 				return flag in __options && __options[flag];
 			}
 
+			function createRequireFromContext(context) {
+				cacheInterface.loadDependency.bind(process, cacheInterface.ApexIndex[context.Par.Apex]);
+			}
 
-			function indirectEvalImp(entString) {
+			function createRequireFromModuleType(modtype) {
+				cacheInterface.loadDependency.bind(process, modtype);
+			}
+
+			function indirectEvalImp(entString, ...injections) {
+				let _eval = (1,eval);
+
 				//sanitize entString!
 				entString = stripComments(entString).trim();
 
-				let imp = (1, eval)(entString);
+				let container = `(function(log, require) {
+					return ${entString}
+				})`;
+				let imp = _eval(container);
+				imp = imp(...injections);
+
+				if (typeof imp === 'undefined') {
+					let _class = _eval(`(function(log, require){ return ${entString} })`)(...injections);
+					imp = { dispatch: _class.prototype };
+				}
+				
 				if (typeof imp != 'undefined') {
 					if (!('dispatch' in imp)) {
 						log.e('Entity does not return a dispatch Table');
 						throw new Error('E_NO_DISPATCH_TABLE');
 					}
 					return imp;
-				}
-				else {
-					imp = { dispatch: ((1, eval)(`(function(){ return ${entString} })()`)).prototype };
-					if (typeof imp != 'undefined') {
-						if (!('dispatch' in imp)) {
-							log.e('Entity does not return a dispatch Table');
-							throw new Error('E_NO_DISPATCH_TABLE');
-						}
-						return imp;
+				} else {
+					if (!('dispatch' in imp)) {
+						log.e('Invalid Entity File');
+						throw new Error('E_INVALID_ENTITY');
 					}
 				}
 			}
@@ -565,7 +579,7 @@ module.exports = function xGraph(__options = {}) {
 					let entString = await new Promise(async (res, _rej) => {
 						mod.file(par.Entity).async('string').then((string) => res(string));
 					});
-					ImpCache[impkey] = indirectEvalImp(entString);
+					ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromContext(this));
 				}
 
 				par.Pid = par.Pid || genPid();
@@ -702,6 +716,7 @@ module.exports = function xGraph(__options = {}) {
 			 */
 			function getEntityContext(pid, fun = _ => _) {
 				// TODO issue #23, check entcache here to see if we dont have to load from cache.
+				let that = this;
 				cacheInterface.getEntityPar(pid, (err, data) => {
 					if (err) {
 						log.e(`Error retrieving a ${data.moduleType} from cache. Pid: ${pid}`);
@@ -734,7 +749,7 @@ module.exports = function xGraph(__options = {}) {
 						});
 
 						log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
-						ImpCache[impkey] = indirectEvalImp(entString);
+						ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromContext(that));
 						BuildEnt();
 					});
 
@@ -989,7 +1004,7 @@ module.exports = function xGraph(__options = {}) {
 							let entString = await new Promise(async (res, _rej) => {
 								mod.file(par.Entity).async('string').then((string) => res(string));
 							});
-							ImpCache[impkey] = indirectEvalImp(entString);
+							ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromModuleType(modnam));
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 						cacheInterface.EntIndex[par.Pid] = par.Apex;

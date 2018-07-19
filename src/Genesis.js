@@ -602,25 +602,15 @@ function genesis(__options = {}) {
 
 				if (protocol.length > 1) {
 					try {
-						// not a drive letter
 						let argumentString = source.replace(/[a-zA-Z]*:\/\//, ''); // "exmaple.com:23897"
 						let argsArr = argumentString.split(/:/);
-						// log.i(1);
-
-						// get the protocol module
 						let protocolObj = await getProtocolModule(protocol);
-						// log.i(2);
-						log.w(protocolObj.Module)
 						let zip = Buffer.from(protocolObj.Module, 'base64');
-						// log.i(3);
 						let parString = JSON.stringify(protocolObj.Par);
-						// log.i(4);
 						
-						//inject args
 						for(let i = 0; i < argsArr.length; i ++) {
 							parString = parString.replace(`%${i}`, argsArr[i]);
 						}
-						// log.i(5);
 
 						return loadModuleFromBroker(argsArr[0], argsArr[1]||27000, cmd);
 
