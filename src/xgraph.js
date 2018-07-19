@@ -12,13 +12,12 @@ process.on('unhandledRejection', (reason, _promise) => {
 	process.exit(1);
 });
 
+
 let cli = function (argv) {
 
 	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	let originalCwd = process.cwd();
-	let Logger = require('logger');
-	let log = new Logger();
 
 	if (argv[0].indexOf('node')) {
 		argv = argv.slice(1);
@@ -42,9 +41,11 @@ let cli = function (argv) {
 	const version = require('../package.json').version;
 	const genesis = require('./Genesis.js');
 	const nexus = require('./Nexus.js');
+	const createLogger = require('./Logger.js');
 	let flags = {};
 
 	processSwitches();
+	const log = createLogger(Object.assign({verbose: true}));
 
 	switch (args[0]) {
 		case 'x':

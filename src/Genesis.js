@@ -1,6 +1,17 @@
 module.exports = genesis;
 function genesis(__options = {}) {
-
+	// imports
+	const fs = require('fs');
+	const Path = require('path');
+	const endOfLine = require('os').EOL;
+	const proc = require('child_process');
+	const jszip = require('jszip');
+	const createLogger = require('./Logger.js');
+	const log = createLogger(__options);
+	const appdata = Path.join((process.env.APPDATA || (process.env.HOME +
+		(process.platform == 'darwin' ? 'Library/Preferences' : ''))), '.xgraph');
+	try {fs.mkdirSync(appdata); } catch (e) {'';}
+	let https = require('https');
 
 	function checkFlag(flag) {
 		// console.dir(__options);
@@ -28,16 +39,6 @@ function genesis(__options = {}) {
 
 		process.stdout.write(`Initializing the Compile Engine in ${__options.state} Mode \r\n`);
 
-		// imports
-		const fs = require('fs');
-		const Path = require('path');
-		const endOfLine = require('os').EOL;
-		const proc = require('child_process');
-		const jszip = require('jszip');
-		const log = createLogger();
-
-		log.v('this works');
-		log.d('this dont works');
 
 		// Genesis globals
 		let Uuid; //Uuid npm package (v4.js)
@@ -478,234 +479,6 @@ function genesis(__options = {}) {
 		//
 		//
 
-		/**
-		 * Creates the log object and returns it.
-		 * The defined log levels for outputting to the std.out() (ex. log. v(), log. d() ...)
-		 * Levels include:
-		 * v : verbose		Give too much information
-		 * d : debug		For debugging purposes not in production level releases
-		 * i : info			General info presented to the end user
-		 * w : warn			Failures that dont result in a system exit
-		 * e : error 		Critical failure should always follow with a system exit
-		 */
-		function createLogger() {
-			class Volatile {
-				constructor(obj) {
-					this.obj = obj;
-				}
-				lock(actionFunction) {
-					return new Promise(unlock => {
-						let inst = this;
-						if (this.queue instanceof Promise) {
-							this.queue = this.queue.then(async function () {
-								let ret = actionFunction(inst.obj);
-								if (ret instanceof Promise) ret = await ret;
-								inst.obj = ret;
-								unlock();
-							});
-						} else {
-							this.queue = new Promise(async (resolve) => {
-								let ret = actionFunction(this.obj);
-								if (ret instanceof Promise) ret = await ret;
-								this.obj = ret;
-								unlock();
-								resolve();
-							});
-						}
-					});
-				}
-				toString() {
-					return this.obj.toString() || 'no toString defined';
-				}
-			}
-
-			// The logging function for writing to xgraph.log to the current working directory
-			const xgraphlog = (...str) => {
-				xgraphlog.buffer.lock((val) => {
-					// console.log('previous', val);
-					// console.log('adding', `${log.logFileParse(str)}${endOfLine}`);
-					return val + `${log.logFileParse(str)}${endOfLine}`;
-				});
-				if (!xgraphlog.busy) {
-					xgraphlog.busy = true;
-					xgraphlog.updateInterval();
-				}
-			};
-			xgraphlog.buffer = new Volatile('');
-			xgraphlog.updateInterval = async () => {
-				let str;
-				await xgraphlog.buffer.lock(val => {
-					str = val;
-					return '';
-				});
-				fs.appendFile(`${process.cwd()}/xgraph.log`, str, (_err) => {
-					xgraphlog.buffer.lock(val => {
-						if (val !== '') {
-							// we have more in out buffer, keep calling out to the thing
-							process.nextTick(xgraphlog.updateInterval);
-						} else {
-							xgraphlog.busy = false;
-						}
-					});
-				});
-			};
-
-			// Set the default logging profile
-			let printVerbose = false;
-			let printDebug = false;
-			let printInfo = true;
-			let printWarn = true;
-			let printError = true;
-
-			if (checkFlag('silent') || checkFlag('loglevelsilent')) {
-				printInfo = false;
-				printWarn = false;
-				printError = false;
-			}
-
-			if (checkFlag('logleveldebug')) {
-				printVerbose = true;
-				printDebug = true;
-			}
-
-			if (checkFlag('verbose') || checkFlag('loglevelverbose')) {
-				printVerbose = true;
-			}
-
-			let log = {
-				v: (...str) => {
-					xgraphlog(new Date().toString(), ...str);
-					if (!printVerbose) return;
-					process.stdout.write(log.parse(log.tag.verbose, str));
-				},
-				d: (...str) => {
-					// xgraphlog(log.tag.debug, [new Date().toString(), ...str]);
-					xgraphlog(new Date().toString(), ...str);
-					if (!printDebug) return;
-					process.stdout.write(log.parse(log.tag.debug, str));
-				},
-				i: (...str) => {
-					// xgraphlog(log.tag.info, [new Date().toString(), ...str]);
-					xgraphlog(new Date().toString(), ...str);
-					if (!printInfo) return;
-					process.stdout.write(log.parse(log.tag.info, str));
-				},
-				w: (...str) => {
-					// xgraphlog(log.tag.warn, [new Date().toString(), ...str]);
-					xgraphlog(new Date().toString(), ...str);
-					if (!printWarn) return;
-					process.stdout.write(log.parse(log.tag.warn, str));
-				},
-				e: (...str) => {
-					// xgraphlog(log.tag.error, [new Date().toString(), ...str]);
-					xgraphlog(new Date().toString(), ...str);
-					if (!printError) return;
-					process.stdout.write(log.parse(log.tag.error, str));
-				},
-				parse: (tag, outputs) => {
-					try {
-						let arr = [];
-						for (let obj of outputs) {
-							if (typeof obj == 'object') {
-								// if the object has defined a way to be seen, use it
-								if (obj.hasOwnProperty('toString')) arr.push(obj.toString());
-								else {
-									try {
-										//otherwise try to stringify it
-										arr.push(JSON.stringify(obj, null, 2));
-									} catch (e) {
-										// if we fail (ex, cyclic objects), just dump the keys
-										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
-									}
-								}
-							} else if (typeof obj == 'undefined') {
-								arr.push('undefined');
-							} else {
-								arr.push(obj.toString());
-							}
-						}
-						let lines = arr.join(' ').split(/[\r]{0,1}[\n]/);
-						let output = '';
-						for (let line of lines) {
-							if (line.length > 80) {
-								line = line.substr(0, 34)
-									+ ' ... ' + line.substr(-34, 34);
-							}
-							output += `${tag} ${line}${log.eol}`;
-						}
-						return output;
-					} catch (ex) {
-						let write = process.stdout.write;
-						write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
-						write('\u001b[31m[ERRR] ============================================\n');
-						write(ex.toString() + '\n');
-						write('\u001b[31m[ERRR] ============================================\n');
-					}
-
-				},
-				logFileParse: (outputs) => {
-					try {
-						let arr = [];
-						for (let obj of outputs) {
-							if (typeof obj == 'object') {
-								// if the object has defined a way to be seen, use it
-								if (obj.hasOwnProperty('toString')) {
-									arr.push(obj.toString());
-								}
-								else {
-									try {
-										//otherwise try to stringify it
-										arr.push(JSON.stringify(obj, null, 2));
-									} catch (e) {
-										// if we fail (ex, cyclic objects), just dump the keys
-										arr.push('Object keys: ' + JSON.stringify(Object.keys(obj), null, 2));
-									}
-								}
-							} else if (typeof obj == 'undefined') {
-								arr.push('undefined');
-							} else {
-								arr.push(obj.toString());
-							}
-						}
-						return arr.join(' ');
-					} catch (ex) {
-						let write = process.stdout.write;
-						write('\u001b[31m[ERRR] An error has occurred trying to parse a log.\n');
-						write('\u001b[31m[ERRR] ============================================\n');
-						write(ex.toString() + '\n');
-						write('\u001b[31m[ERRR] ============================================\n');
-					}
-				}
-			};
-
-			log.tag = {};
-			log.tag.verbose = '\u001b[90m[VRBS]';
-			log.tag.debug = '\u001b[35m[DBUG]';
-			log.tag.info = '\u001b[36m[INFO]';
-			log.tag.warn = '\u001b[33m[WARN]';
-			log.tag.error = '\u001b[31m[ERRR]';
-			log.eol = '\u001b[39m\r\n';
-
-			log.microtime = _ => {
-				let hrTime = process.hrtime();
-				return (hrTime[0] * 1000000 + hrTime[1] / 1000);
-			};
-			log.time = _ => {
-				log.timers = log.timers || {};
-				log.timers[_] = log.microtime();
-			};
-			log.timeEnd = _ => {
-				if (!(_ in (log.timers || {})))
-					return;
-				let elapsed = (log.microtime() - log.timers[_]) / 1000;
-				log.timers[_] = undefined;
-				log.i(`${_}: ${elapsed.toFixed(2)}ms`);
-			};
-
-			return log;
-
-		}
-
 		async function Stop() {
 			log.i(`Genesis Compile Stop: ${new Date().toString()}`);
 			log.i(`=================================================${endOfLine}`);
@@ -740,6 +513,51 @@ function genesis(__options = {}) {
 			}
 		}
 
+		function getProtocolModule(protocol) {
+
+			return new Promise(function(resolve, reject) {
+				let cacheFilepath = Path.join(appdata, protocol);
+				if(fs.existsSync(cacheFilepath)) {
+					fs.readFile(cacheFilepath, (data) => {
+						resolve(JSON.parse(data));
+					});
+					return;
+				}
+
+				let options = {
+					host: 'localhost',
+					port: 3443,
+					path: '/' + protocol,
+					method: 'GET',
+					rejectUnauthorized: false,
+				};
+
+				let req = https.request(options, function(res) {
+					res.setEncoding('utf8');
+					let response = '';
+					res.on('data', function (chunk) {
+						response += chunk;
+					});
+					res.on('end', _ => {
+						try {
+							let obj = JSON.parse(response);
+							resolve(obj);
+						} catch (e) {
+							reject(e);
+						}
+					});
+				});
+
+				req.on('error', function(e) {
+					log.e('problem with request: ' + e.message);
+					process.exit(1);
+				});
+
+				// write data to request body
+				req.end();
+			});
+		}
+
 		/**
 		 * For loading modules
 		 * Modules come from a defined broker, or disk depending on the module definition
@@ -748,7 +566,7 @@ function genesis(__options = {}) {
 		 * @param {String} modRequest.Source the source Broker or path reference for the module
 		 * @param {Function} fun  the callback has form (error, module.json)
 		 */
-		function GetModule(modRequest, fun) {
+		async function GetModule(modRequest, fun) {
 			let modnam = modRequest.Module;
 			let source = modRequest.Source;
 
@@ -767,30 +585,54 @@ function genesis(__options = {}) {
 			if (typeof source == 'string') {
 				let protocol = source.split(/:\/\//)[0];
 				let _domain = source.split(/:\/\//)[1];
+				let cmd = {};
+				cmd.Cmd = 'GetModule';
+				cmd.Name = modnam;
+				cmd.Passport = {
+					Disp: 'Query',
+					Pid: genPid()
+				};
+				if ('Version' in modRequest) {
+					cmd.Version = modRequest.Version;
+				}
+				modRequest.Version = 'latest';
+
+
+
 
 				if (protocol.length > 1) {
-					// not a drive letter
-					switch (protocol) {
-						case 'mb': { // regular proxy
-							let str = source.replace(/mb:\/\//, ''); // "exmaple.com:23897"
-							let parts = str.split(/:/);
-							let host = parts[0];
-							let port = parts[1] || 27000;
-							return loadModuleFromBroker(host, port);
+					try {
+						// not a drive letter
+						let argumentString = source.replace(/[a-zA-Z]*:\/\//, ''); // "exmaple.com:23897"
+						let argsArr = argumentString.split(/:/);
+						// log.i(1);
+
+						// get the protocol module
+						let protocolObj = await getProtocolModule(protocol);
+						// log.i(2);
+						log.w(protocolObj.Module)
+						let zip = Buffer.from(protocolObj.Module, 'base64');
+						// log.i(3);
+						let parString = JSON.stringify(protocolObj.Par);
+						// log.i(4);
+						
+						//inject args
+						for(let i = 0; i < argsArr.length; i ++) {
+							parString = parString.replace(`%${i}`, argsArr[i]);
 						}
-						case 'wsmb': {
-							log.e('wsmb protocol not supported yet');
-							process.exit(1);
-							break;
-						}
-						default: {
-							//get the module from file system
-							return loadModuleFromDisk();
-						}
+						// log.i(5);
+
+						return loadModuleFromBroker(argsArr[0], argsArr[1]||27000, cmd);
+
+					} catch (e) {
+						return loadModuleFromDisk();
 					}
+
+					//send msg
+
+					// fun(err, Buffer.from(response.Module, 'base64'));
+
 				}
-
-
 			}
 
 
@@ -804,7 +646,8 @@ function genesis(__options = {}) {
 			/**
 			 * open up a socket to the defined broker and access the module
 			 */
-			function loadModuleFromBroker(host, port) {
+			function loadModuleFromBroker(host, port, cmd) {
+				// debugger;
 				const { Socket } = require('net');
 				const sock = new Socket();
 				let Buf = '';
@@ -821,17 +664,6 @@ function genesis(__options = {}) {
 					STX: str.charAt(0),
 					ETX: str.charAt(1)
 				};
-				let cmd = {};
-				cmd.Cmd = 'GetModule';
-				cmd.Name = modnam;
-				cmd.Passport = {
-					Disp: 'Query',
-					Pid: genPid()
-				};
-				if ('Version' in modRequest) {
-					cmd.Version = modRequest.Version;
-				}
-				modRequest.Version = 'latest';
 
 				sock.connect(port, host, function () { log.v('trying to connect'); });
 				sock.on('connect', function () {
@@ -1227,10 +1059,18 @@ function genesis(__options = {}) {
 				if (typeof val !== 'string')
 					return val;
 				let sym = val.substr(1);
-				if (val.charAt(0) === '$' && sym in Apex)
-					return Apex[sym];
-				if (val.charAt(0) === '#' && sym in Local)
-					return Local[sym];
+				if (val.charAt(0) === '$')
+					if(sym in Apex) return Apex[sym];
+					else {
+						log.e(`Symbol ${val} is not defined`);
+						process.exit(1);
+					}
+				if (val.charAt(0) === '#')
+					if(sym in Local) return Local[sym];
+					else {
+						log.e(`Local Symbol ${val} is not defined`);
+						process.exit(1);
+					}
 				if (val.charAt(0) === '\\')
 					return sym;
 				if (val.charAt(0) === '@') {
