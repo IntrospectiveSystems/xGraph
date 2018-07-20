@@ -716,7 +716,6 @@ module.exports = function xGraph(__options = {}) {
 			 */
 			function getEntityContext(pid, fun = _ => _) {
 				// TODO issue #23, check entcache here to see if we dont have to load from cache.
-				let that = this;
 				cacheInterface.getEntityPar(pid, (err, data) => {
 					if (err) {
 						log.e(`Error retrieving a ${data.moduleType} from cache. Pid: ${pid}`);
@@ -749,7 +748,8 @@ module.exports = function xGraph(__options = {}) {
 						});
 
 						log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
-						ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromContext(that));
+						ImpCache[impkey] = indirectEvalImp(entString, log, 
+							createRequireFromModuleType(data.moduleType));
 						BuildEnt();
 					});
 

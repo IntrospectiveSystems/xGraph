@@ -969,6 +969,9 @@ function genesis(__options = {}) {
 								}
 
 								config = fs.readFileSync(path).toString(encoding);
+								config = JSON.parse(config);
+								
+								//TODO parse out all $'s, replace with \\$
 
 								let systemObject = await GenTemplate(config);
 
@@ -1052,6 +1055,7 @@ function genesis(__options = {}) {
 				if (val.charAt(0) === '$')
 					if(sym in Apex) return Apex[sym];
 					else {
+						log.v(sym, Apex);
 						log.e(`Symbol ${val} is not defined`);
 						process.exit(1);
 					}
