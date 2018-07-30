@@ -114,7 +114,7 @@ switch(process.platform) {
 		let extension = '';
 		if(windows) extension = '.exe';
 		let nativePath = path.join(__dirname, '..', 'build', 'bin', binfolder, 'bin', `xgraph${extension}`);
-		let npmxgraph = path.resolve("./node_modules/.bin/xgraph" + (windows ? '.cmd' : ''));
+		let npmxgraph = path.resolve('./node_modules/.bin/xgraph' + (windows ? '.cmd' : ''));
 		//build standalone version
 		{
 			if(full) await exec('npm run build');
@@ -125,7 +125,7 @@ switch(process.platform) {
 		{
 			try {await exec('npm install --verbose');}
 			catch(e){
-				if(unix) {
+				if(unix) { 
 					try {
 						await exec('sudo npm install --verbose');
 					}catch(e) {
@@ -143,12 +143,12 @@ switch(process.platform) {
 		
 		// run tests on npm version
 		{
-			if(full) await exec(`${npmxgraph} c --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) await exec(`${npmxgraph} d --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			await exec(`${npmxgraph} r --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
-			if(full) rimraf(`ValidationSystem/cache`);
-			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} c --CWD ValidationSystem --local --verbose ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} d --CWD ValidationSystem --local --verbose ./ValidationSystem/Modules`, true);
+			await exec(`${npmxgraph} r --CWD ValidationSystem --local --verbose ./ValidationSystem/Modules`, true);
+			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local --verbose ./ValidationSystem/Modules`, true);
+			if(full) rimraf('ValidationSystem/cache');
+			if(full) await exec(`${npmxgraph} x --CWD ValidationSystem --local --verbose ./ValidationSystem/Modules`, true);
 		}
 		
 		// run tests on standalone version

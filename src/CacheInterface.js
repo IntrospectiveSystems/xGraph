@@ -3,13 +3,39 @@ const SemVer = require('./SemVer.js');
 const fs = require('fs');
 const jszip = require('jszip');
 const ver130 = new SemVer('1.3');
-let log;
+const dotCache = {version: '1.3.0'};
 //This node module provides all the interface capabilities to an xgraph cache directory.
 
 module.exports = class CacheInterface {
+	/**
+	 *Creates an instance of CacheInterface.
+	 * @param {object} __options
+	 * @param {string} __options.path the root of cache. this folder will be the one with a .cache inside it.
+	 * @param {string=} __options.log logger object, needs methods: d, v, i, w, and e
+	 */
 	constructor(__options) {
 		this.__options = __options;
-		log = __options.log;
+		let log = this.log = __options.log || {
+			d:_=>_,v:_=>_,i:_=>_,w:_=>_,e:_=>_
+		};
+
+		let packageString = JSON.stringify({dependencies:{}}, null, 2);
+		//write the compiled package.json to disk
+		try { fs.mkdirSync(__options.path); } catch (e) {
+			log.v(e);
+		}
+		try { fs.mkdirSync(Path.join(Path.resolve(__options.path), 'System')); } catch (e) {
+			log.v(e);
+		}
+		try { fs.mkdirSync(Path.join(Path.resolve(__options.path), 'Lib')); } catch (e) {
+			log.v(e);
+		}
+
+		fs.writeFileSync(Path.join(Path.resolve(__options.path), 'package.json'), packageString);
+		fs.writeFileSync(Path.join(Path.resolve(__options.path), '.cache'), JSON.stringify({
+			version: '1.3.0'
+		}, '\t', 1));
+
 	}
 
 	get ApexIndex() {

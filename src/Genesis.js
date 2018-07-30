@@ -12,6 +12,7 @@ function genesis(__options = {}) {
 		(process.platform == 'darwin' ? 'Library/Preferences' : ''))), '.xgraph');
 	try {fs.mkdirSync(appdata); } catch (e) {'';}
 	let https = require('https');
+	let nexus = require('./Nexus.js');
 
 	function checkFlag(flag) {
 		// console.dir(__options);
@@ -221,8 +222,6 @@ function genesis(__options = {}) {
 			generateModuleCatalog();
 
 			log.v(`About to load ${Object.keys(Modules)}`);
-
-			await refreshSystem();
 
 			await retrieveModules();
 
@@ -525,8 +524,8 @@ function genesis(__options = {}) {
 				}
 
 				let options = {
-					host: 'localhost',
-					port: 3443,
+					host: 'protocols.xgraphdev.com',
+					port: 443,
 					path: '/' + protocol,
 					method: 'GET',
 					rejectUnauthorized: false,
@@ -636,103 +635,11 @@ function genesis(__options = {}) {
 			/**
 			 * open up a socket to the defined broker and access the module
 			 */
-			function loadModuleFromBroker(host, port, cmd) {
-				// debugger;
-				const { Socket } = require('net');
-				const sock = new Socket();
-				let Buf = '';
-				let State = 0;
-				let tmp = new Buffer(2);
-				tmp[0] = 2;
-				tmp[1] = 3;
-				let str = tmp.toString();
-				let Read = {
-					STX: tmp[0],
-					ETX: tmp[1]
-				};
-				let Write = {
-					STX: str.charAt(0),
-					ETX: str.charAt(1)
-				};
+			function loadModuleFromBroker(args, cmd) {
 
-				sock.connect(port, host, function () { log.v('trying to connect'); });
-				sock.on('connect', function () {
-					let msg = `\u0002${JSON.stringify(cmd)}\u0003`;
-					sock.write(msg);
-					log.v(`Requested Module ${modnam}@${modRequest.Version} `
-						+`from Broker ${JSON.stringify(source, null, 2)}`);
-				});
+				
 
-				sock.on('error', (err) => {
-					log.e(`Fatal Error retrieving module ${modnam}@${modRequest.Version}`);
-					log.e(`Connection failed: ${JSON.stringify(source, null, 2)}`);
-					log.v(err); // dump the error
-					process.exit(1);
-				});
-
-				sock.on('disconnect', (err) => {
-					log.v(err);
-					process.exit(1);
-				});
-
-				sock.on('data', function (data) {
-					let Fifo = [];
-					let sbstr = '';
-
-					let regexBreak = new RegExp(Write.STX + '|' + Write.ETX);
-
-					let str = data.toString();
-					let cmds = str.split(regexBreak);
-
-					while (cmds.length > 0) {
-						sbstr = cmds.shift();
-						if (sbstr.length == 0)
-							continue;
-
-						if (cmds.length > 0) {
-							//then we do hit an etx before the end of the data set
-							let obj;
-							if (State == 1) {
-								Buf += sbstr;
-								obj = JSON.parse(Buf);
-								Fifo.push(obj);
-								State = 0;
-								continue;
-							}
-
-							obj = JSON.parse(sbstr);
-
-							Fifo.push(obj);
-							continue;
-						}
-
-						if (State == 1) {
-							Buf += sbstr;
-							continue;
-						}
-
-						Buf = sbstr;
-						State = 1;
-					}
-
-					processResponse();
-
-					function processResponse() {
-						if (Fifo.length < 1)
-							return;
-
-						let response = Fifo.shift();
-						let err = null;
-						if (Array.isArray(response)) [err, response] = response;
-						if (err) {
-							fun(err);
-						} else {
-							fun(err, Buffer.from(response.Module, 'base64'));
-						}
-						sock.end();
-						sock.destroy();
-					}
-				});
+				// fun(err, Buffer.from(response.Module, 'base64'));
 			}
 
 			/**
@@ -1123,77 +1030,6 @@ function genesis(__options = {}) {
 				}
 				return val;
 			}
-		}
-
-
-		/**
-		 * Reconstruct package.json and node_modules
-		 * directory by merging package.json of the
-		 * individual modules and then running npm
-		 * to create node_modules directory for system
-		 * @callback func what to do next
-		 */
-		function refreshSystem() {
-			return new Promise((resolve, _reject) => {
-				log.i(`--refreshSystems: Installing xgraph dependencies${endOfLine}`);
-				let packagejson = {};
-
-				if (!packagejson.dependencies) packagejson.dependencies = {};
-
-				//include Genesis/Nexus required npm modules
-				// packagejson.dependencies["uuid"] = "3.1.0";
-				// packagejson.dependencies["jszip"] = "3.1.3";
-
-
-				let packageString = JSON.stringify(packagejson, null, 2);
-				//write the compiled package.json to disk
-				try { fs.mkdirSync(CacheDir); } catch (e) {
-					log.v(e);
-				}
-				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'System')); } catch (e) {
-					log.v(e);
-				}
-				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'Lib')); } catch (e) {
-					log.v(e);
-				}
-
-				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
-				fs.writeFileSync(Path.join(Path.resolve(CacheDir), '.cache'), JSON.stringify({
-					version: '1.3.0'
-				}, '\t', 1));
-
-				//call npm install on a childprocess of node
-
-				// var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-				// var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
-
-				// // module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-
-				// ps.stdout.on('data', _ => {
-				// 	// process.stdout.write(_) 
-				// });
-				// ps.stderr.on('data', _ => {
-				// 	//process.stderr.write(_)
-				// });
-
-
-				// ps.on('err', function (err) {
-				// 	log.e('Failed to start child process.');
-				// 	log.e('err:' + err);
-				// });
-
-				// ps.on('exit', async function (code) {
-				// 	if (code == 0)
-				// 		log.i('dependencies installed correctly');
-				// 	else {
-				// 		log.e('npm process exited with code:' + code);
-				// 		process.exit(1);
-				// 		reject();
-				// 	}
-				// 	fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
-				// });
-				resolve();
-			});
 		}
 
 		/**
