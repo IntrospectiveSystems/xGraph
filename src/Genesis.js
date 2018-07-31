@@ -7,15 +7,7 @@ function genesis(__options = {}) {
 		return flag in __options && __options[flag];
 	}
 
-	if (!('state' in __options)) {
-		__options.state = process.env.XGRAPH_ENV || "production";
 
-		// console.error("[ERRR] No state was given to Genesis\r\n[ERRR] Exitting with code 1");
-		// process.exit(1);
-	}
-	if (checkFlag("development") || checkFlag("debug")) {
-		__options.state = 'development';
-	}
 
 
 	// if(!('pathOverrides' in options)) {
