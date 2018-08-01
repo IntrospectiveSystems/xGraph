@@ -18,6 +18,9 @@ let cli = function (argv) {
 	const nexus = require('./Nexus.js');
 	let options = require('minimist')(argv.slice(1));
 
+	//clean the options and make sure that lowercase versions of all keys are available
+	for (let key in options) options[key.toLowerCase()] = options[key];
+
 	let windows, mac, linux, unix, system;
 	switch (process.platform) {
 		case 'win32': {
@@ -49,11 +52,13 @@ let cli = function (argv) {
 
 	// format cwd
 	if ('cwd' in options && (typeof options.cwd === 'string')) {
-		options['cwd'] = path.normalize(options['cwd']);
+		options.cwd = path.normalize(options.cwd);
+		if (!path.isAbsolute(options.cwd)) {
+			options.cwd = path.resolve('./', options.cwd);
+		}
 	} else {
-		options['cwd'] = path.normalize('./');
+		options.cwd = path.resolve('./');
 	}
-	options.cwd = path.resolve(options.cwd);
 
 	//check if cwd exists
 	if (!fs.existsSync(options.cwd)) {
@@ -61,9 +66,9 @@ let cli = function (argv) {
 		process.exit(1);
 	}
 
-	// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
+	// Directory is passed in Params.Cache or defaults to "cache" in the cwd.
 	if ('cache' in options && (typeof options.cache === 'string')) {
-		options["cache"] = path.normalize(options["cache"]);
+		options.cache = path.normalize(options.cache);
 		if (!path.isAbsolute(options.cache)) {
 			options.cache = path.resolve(options.cwd, options.cache);
 		}
