@@ -172,7 +172,7 @@ let cli = function (argv) {
 
 	function help() {
 
-		let helpFile = path.join(__dirname, 'help.txt');
+		let helpFile = path.join(__dirname, 'xgraphHelp.txt');
 
 		let helpFileText = fs.readFileSync(helpFile);
 

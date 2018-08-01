@@ -1,27 +1,20 @@
 
-xGraph ${version}
+Broker ${version}
 Introspective Systems LLC
 
-Compile and Run xGraph systems with a few simple commands.
+Setup and manage xGraph Brokers with a few simple commands.
 
-Unless otherwise specified, commands will look in the current working
-directory for a config.json file or cache directory, depending on the
-command.
+Broker
 
-If the system includes local module sources, these must be listed after
-the command and options, [--source directory ...].
-
-xGraph
-
-Usage: xgraph [command] [options] [--source directory ...]
+Usage: broker [command] [options] [--source directory ...]
 
 Command:
   help         h                    : Displays this help screen.
 
-  compile      c                    : Generates a cache from a system
-                                      structure file (config.json).
+  serve        s                    : Starts an existing Broker TCP server or 
+                                      generates and starts a new one. 
 
-  deploy       d                    : Run a system from the cache.
+  add          a                    : Adds modules to the broker.
 
   reset        r                    : Run a system from system structure
                                       file, resetting the system's cache.
