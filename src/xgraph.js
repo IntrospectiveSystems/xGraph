@@ -70,7 +70,7 @@ let cli = function (argv) {
 	if ('cache' in options && (typeof options.cache === 'string')) {
 		options.cache = path.normalize(options.cache);
 		if (!path.isAbsolute(options.cache)) {
-			options.cache = path.resolve(options.cwd, options.cache);
+			options.cache = path.resolve('./', options.cache);
 		}
 	}
 	else {
@@ -213,7 +213,6 @@ let cli = function (argv) {
 	async function execute() {
 		try {
 			state = 'development';
-			debugger;
 			await genesis(Object.assign({ state }, options));
 			startNexusProcess();
 		} catch (e) {
