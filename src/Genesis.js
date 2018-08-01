@@ -7,15 +7,7 @@ function genesis(__options = {}) {
 		return flag in __options && __options[flag];
 	}
 
-	if (!('state' in __options)) {
-		__options.state = process.env.XGRAPH_ENV || "production";
 
-		// console.error("[ERRR] No state was given to Genesis\r\n[ERRR] Exitting with code 1");
-		// process.exit(1);
-	}
-	if (checkFlag("development") || checkFlag("debug")) {
-		__options.state = 'development';
-	}
 
 
 	// if(!('pathOverrides' in options)) {
@@ -29,7 +21,7 @@ function genesis(__options = {}) {
 			let logger;
 			try {
 				logger = log.e;
-			} catch(e) {
+			} catch (e) {
 				logger = console.error;
 			}
 			logger('\u001b[31m' + '------- [Unhandled Promise Rejection] -------' + '\u001b[39m');
@@ -51,15 +43,13 @@ function genesis(__options = {}) {
 
 		// Genesis globals
 		let Uuid; //Uuid npm package (v4.js)
-		let CacheDir; // The location of where the Cache will be stored
 		let Config = {}; // The parsed system configuration in JSON format
 		let Apex = {}; // {<Name>: <pid of Apex>}
 		let Modules = {}; // {<Name>: <mod desc>} - only in Genesis
 		let ModCache = {}; // {<folder>: <module>}
-		let args = process.argv; // The input arguments --under consideration for deprication
-		let Params = {}; // The set of Macros for defining paths
-		let CWD = ''; // The current working directory
-
+		let Params = __options; // The set of Macros for defining paths
+		let CWD = __options.cwd; // The current working directory
+		let CacheDir = __options.cache; // The location of where the Cache will be stored
 
 		try {
 			setup();
@@ -69,12 +59,12 @@ function genesis(__options = {}) {
 			log.e((new Error().stack));
 			reject(e);
 		}
+
 		////////////////////////////////////////////////////////////////////////////////////////////////
 		//
 		// Only Function Definitions Beyond This Point
 		//
 		//
-
 
 		/**
 		 * The setup procedures for genesis.
@@ -85,8 +75,7 @@ function genesis(__options = {}) {
 		function setup() {
 			log.i(`=================================================`);
 			log.i(`Genesis Setup:`);
-
-			defineMacros();
+			log.v(`CWD set to ${CWD}`);
 
 			parseConfig();
 
@@ -97,40 +86,6 @@ function genesis(__options = {}) {
 			// Only Helper Functions Beyond This Point
 			//
 			//
-
-			/**
-			 * Read in macros and set parameters from process.argv
-			 * these are also set in the binary in pathOverrides
-			 * examples are  xGraph={path to xGraph}
-			 * in binary they look like --xGraph {path to xGraph}
-			 */
-			function defineMacros() {
-				// Process input arguments and define macro parameters
-				// All macros are stored case insensitive in the Params object
-
-				let arg, parts;
-				for (var iarg = 0; iarg < args.length; iarg++) {
-					arg = args[iarg];
-					log.v(arg);
-					parts = arg.split('=');
-					if (parts.length == 2) {
-						if (parts[1][0] != "/") parts[1] = Path.resolve(parts[1]);
-						Params[parts[0].toLowerCase()] = parts[1];
-					}
-				}
-				if (!(typeof __options == "undefined")) {
-					for (let key in __options) {
-						Params[key] = __options[key];
-					}
-				}
-
-				//set CWD
-				CWD = Params.cwd ? Path.resolve(Params.cwd) : Path.resolve('.');
-				log.v(`CWD set to ${CWD}`);
-
-				//set Cache location
-				CacheDir = Params.cache || Path.join(CWD, 'cache');
-			}
 
 			/**
 			 * Reads in the given config and fills in the Macros
@@ -263,7 +218,6 @@ function genesis(__options = {}) {
 							logModule(mod);
 						}
 					} else {
-						//log.v(`PreLoading ${Config.Modules[key].Module}`);
 						if (typeof Config.Modules[key].Module != 'string') {
 							log.e('Malformed Module Definition');
 							log.e(JSON.stringify(Config.Modules[key], null, 2));
@@ -415,7 +369,6 @@ function genesis(__options = {}) {
 					console.dir(e);
 					log.e(e.stack);
 				}
-
 
 				if (__options.state == 'updateOnly') {
 					Stop();
@@ -1079,20 +1032,6 @@ function genesis(__options = {}) {
 													proc.execSync(`bower install "--config.directory=${Path.join(__options.cwd, 'Static', 'bower_components')}" "${packageArray.join('" "')}"`);
 													log.i(`[BOWER] Installed ${packageArray.join(', ')}`);
 													res();
-
-													// if we can even do programmatic bower, this.
-													// bower.commands.install(packageArray, {}, {directory: 'Static'}).on('end', installed => {
-													// 	let pkgs = [];
-													// 	for(let _package in installed) {
-													// 		let pkg = installed[_package].pkgMeta
-													// 		pkgs.push(pkg.name + "#" + pkg.version);
-													// 	}
-													// 	if(pkgs.length == 0)
-													// 		log.i('[BOWER] Nothing to install')
-													// 	else
-													// 		log.i(`[BOWER] Installed ${pkgs.join(', ')}`);
-													// 	res();
-													// });
 												});
 											}
 										}
@@ -1205,57 +1144,14 @@ function genesis(__options = {}) {
 		 */
 		function refreshSystem() {
 			return new Promise((resolve, reject) => {
-				log.i(`--refreshSystems: Installing xgraph dependencies${endOfLine}`);
-				var packagejson = {};
-
-				if (!packagejson.dependencies) packagejson.dependencies = {};
-
-				//include Genesis/Nexus required npm modules
-				// packagejson.dependencies["uuid"] = "3.1.0";
-				// packagejson.dependencies["jszip"] = "3.1.3";
-
-
-				var packageString = JSON.stringify(packagejson, null, 2);
-				//write the compiled package.json to disk
 				try { fs.mkdirSync(CacheDir); } catch (e) { }
 				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'System')); } catch (e) { }
 				try { fs.mkdirSync(Path.join(Path.resolve(CacheDir), 'Lib')); } catch (e) { }
 
-				fs.writeFileSync(Path.join(Path.resolve(CacheDir), 'package.json'), packageString);
 				fs.writeFileSync(Path.join(Path.resolve(CacheDir), '.cache'), JSON.stringify({
 					version: '1.3.0'
 				}, '\t', 1));
 
-				//call npm install on a childprocess of node
-
-				// var npm = (process.platform === "win32" ? "npm.cmd" : "npm");
-				// var ps = proc.spawn(npm, ['install'], { cwd: Path.resolve(CacheDir) });
-
-				// // module.paths = [Path.join(Path.resolve(CacheDir), 'node_modules')];
-
-				// ps.stdout.on('data', _ => {
-				// 	// process.stdout.write(_) 
-				// });
-				// ps.stderr.on('data', _ => {
-				// 	//process.stderr.write(_)
-				// });
-
-
-				// ps.on('err', function (err) {
-				// 	log.e('Failed to start child process.');
-				// 	log.e('err:' + err);
-				// });
-
-				// ps.on('exit', async function (code) {
-				// 	if (code == 0)
-				// 		log.i('dependencies installed correctly');
-				// 	else {
-				// 		log.e('npm process exited with code:' + code);
-				// 		process.exit(1);
-				// 		reject();
-				// 	}
-				// 	fs.unlinkSync(Path.join(Path.resolve(CacheDir), 'package.json'));
-				// });
 				resolve();
 			});
 		}

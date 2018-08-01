@@ -5,37 +5,23 @@
 let cli = function (argv) {
 	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
-	let originalCwd = process.cwd();
+	argv = argv.slice(2);
+	if (argv.length == 0) argv[0] = 'help';
+	let subcommand = argv[0];
+	let cwd = (process.cwd());
+	let CacheDir;
 
-	if (argv[0].indexOf('node')) {
-		argv = argv.slice(1);
-	} else {
-		console.log('REAL COMMAND LINE ARGUMENTS DETECTED. ABORT. REPEAT,\r\n\t\tAB0RT\r\n\t\t\t\tM IS5  I ON.');
-		console.log('---------------------------------------------------');
-		console.log(argv.join('\n'));
-		console.log('---------------------------------------------------');
-		process.exit(1);
-	}
-
-	const { execSync } = require('child_process');
 	const fs = require('fs');
 	const path = require('path');
-	let state = 'production';
-	if (argv.length == 1) argv[1] = 'help';
-	let args = argv.slice(1);
-	let pathOverrides = {};
-	let nodeVersion = "8.9.1";
-	let cwd = (process.cwd());
-	let bindir = argv[0].substr(0, argv[0].lastIndexOf(path.sep));
-	let CacheDir;
 	const version = require('../package.json').version;
 	const genesis = require('./Genesis.js');
 	const nexus = require('./Nexus.js');
-	let subcommand = '';
-	let flags = {};
+	let options = require('minimist')(argv.slice(1));
+
+	//clean the options and make sure that lowercase versions of all keys are available
+	for (let key in options) options[key.toLowerCase()] = options[key];
 
 	let windows, mac, linux, unix, system;
-
 	switch (process.platform) {
 		case 'win32': {
 			system = 'windows';
@@ -64,15 +50,39 @@ let cli = function (argv) {
 		}
 	}
 
-	processSwitches();
+	// format cwd
+	if ('cwd' in options && (typeof options.cwd === 'string')) {
+		options.cwd = path.normalize(options.cwd);
+		if (!path.isAbsolute(options.cwd)) {
+			options.cwd = path.resolve('./', options.cwd);
+		}
+	} else {
+		options.cwd = path.resolve('./');
+	}
 
-	switch (args[0]) {
+	//check if cwd exists
+	if (!fs.existsSync(options.cwd)) {
+		console.error('--cwd ' + options.cwd + ' does not exist.');
+		process.exit(1);
+	}
+
+	// Directory is passed in Params.Cache or defaults to "cache" in the cwd.
+	if ('cache' in options && (typeof options.cache === 'string')) {
+		options.cache = path.normalize(options.cache);
+		if (!path.isAbsolute(options.cache)) {
+			options.cache = path.resolve('./', options.cache);
+		}
+	}
+	else {
+		options.cache = path.resolve(options.cwd, "cache");
+	}
+
+	switch (subcommand) {
 		case 'x':
 		case '-x':
 		case 'run':
 		case '--execute':
 		case 'execute': {
-			subcommand = 'execute';
 			execute();
 			break;
 		}
@@ -81,7 +91,6 @@ let cli = function (argv) {
 		case '-r':
 		case '--reset':
 		case 'reset': {
-			subcommand = 'reset';
 			reset();
 			break;
 		}
@@ -90,7 +99,6 @@ let cli = function (argv) {
 		case '-c':
 		case '--compile':
 		case 'compile': {
-			subcommand = 'compile';
 			compile();
 			break;
 		}
@@ -99,7 +107,6 @@ let cli = function (argv) {
 		case '-d':
 		case '--deploy':
 		case 'deploy': {
-			subcommand = 'deploy';
 			deploy();
 			break;
 		}
@@ -108,7 +115,6 @@ let cli = function (argv) {
 		case 'h':
 		case '-h':
 		case '--help': {
-			subcommand = 'help';
 			help();
 			break;
 		}
@@ -117,19 +123,17 @@ let cli = function (argv) {
 		case '-g':
 		case 'generate':
 		case 'init': {
-			subcommand = 'generate';
-			generate(args.slice(1));
+			generate(argv.slice(1));
 			break;
 		}
 
 		case '--version':
 		case "-v": {
-			subcommand = 'version';
 			console.log(version);
 			break
 		}
 		default: {
-			console.log(`Unknown command <${argv[1]}>`);
+			console.log(`Unknown command <${subcommand}>`);
 			help();
 			break;
 		}
@@ -188,8 +192,8 @@ let cli = function (argv) {
 	async function reset() {
 		try {
 			state = 'production';
-			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
-			let processPath = pathOverrides["cwd"] || path.resolve(`.${path.sep}`);
+			await genesis(Object.assign({ state }, options));
+			let processPath = options["cwd"] || path.resolve(`.${path.sep}`);
 			// process.chdir(processPath);
 			startNexusProcess();
 		} catch (e) {
@@ -209,7 +213,7 @@ let cli = function (argv) {
 	async function execute() {
 		try {
 			state = 'development';
-			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
+			await genesis(Object.assign({ state }, options));
 			startNexusProcess();
 		} catch (e) {
 			console.error(e);
@@ -219,8 +223,7 @@ let cli = function (argv) {
 	async function compile() {
 		try {
 			state = 'production';
-			// console.dir(pathOverrides);
-			await genesis(Object.assign(Object.assign({ state }, flags), pathOverrides));
+			await genesis(Object.assign({ state }, options));
 		} catch (e) {
 			console.error(e);
 		}
@@ -229,20 +232,19 @@ let cli = function (argv) {
 
 	async function startNexusProcess() {
 		//get the cache dir
-		let cacheDir = pathOverrides["cache"];
+		let cacheDir = options["cache"];
 		console.log(`Starting from ${cacheDir}`);
 
 		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
 		process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
 
 		//combine flags and path overrides to create the options object for nexus
-		let system = new nexus(Object.assign(flags, pathOverrides));
+		let system = new nexus(options);
 		system.on('exit', _ => {
 			// HACK: to restart systems
 			// HACK: to restart systems
 			if (_.exitCode == 72) {
 				setTimeout(_ => {
-					// process.chdir(originalCwd);
 					system = null
 					cacheDir = null;
 					cli(originalArgv);
@@ -259,93 +261,6 @@ let cli = function (argv) {
 
 	}
 
-	function processSwitches() {
-		let argIterator = (() => {
-			let nextIndex = 0;
-			return {
-				next: () => {
-					if (nextIndex < args.length) {
-						let obj = {
-							value: args[nextIndex],
-							index: (nextIndex),
-							done: false
-						};
-						nextIndex++;
-						return obj;
-					} else {
-						return { done: true };
-					}
-				},
-				delete: (count) => {
-					args.splice(nextIndex - 1, count);
-					nextIndex = nextIndex - count;
-				}
-			};
-		})();
-
-		let argumentObject = argIterator.next();
-
-		while ('value' in argumentObject) {
-			let argument = argumentObject.value;
-			let i = argumentObject.index;
-
-			if (typeof argument == 'undefined') {
-				console.error('error parsing Switches');
-				process.exit(1);
-			}
-			if (argument.startsWith('--')) {
-				let key = args[i].slice(2);
-				applySwitch(key, i);
-			}
-
-			argumentObject = argIterator.next();
-		}
-
-		// sanitize and default cwd
-		if ('cwd' in pathOverrides && typeof pathOverrides.cwd === 'string') {
-			pathOverrides['cwd'] = path.normalize(pathOverrides['cwd']);
-		} else {
-			pathOverrides['cwd'] = path.normalize(process.cwd());
-		}
-
-		pathOverrides.cwd = path.resolve(pathOverrides.cwd);
-		if (!fs.existsSync(pathOverrides.cwd)) {
-			console.error('--cwd ' + pathOverrides.cwd + ' does not exist.');
-			process.exit(1);
-		}
-
-		// Directory is passed in Params.Cache or defaults to "cache" in the current working directory.
-		pathOverrides["cache"] = pathOverrides["cache"] || path.resolve(pathOverrides.cwd, "cache");
-
-		if (!('cache' in pathOverrides))
-			pathOverrides.cache = 'cache';
-
-		if (!path.isAbsolute(pathOverrides.cache)) {
-			pathOverrides.cache = path.resolve(pathOverrides.cwd, pathOverrides.cache);
-		}
-
-		function applySwitch(argumentString, i) {
-			let numRemainingArgs = args.length - i - 1;
-
-			if (numRemainingArgs >= 1) { // switch has another argument
-				let nextArg = args[i + 1];
-				if (!nextArg.startsWith('--')) {
-					//if its just some more plain text, not another switch
-					//we add it to path overrides
-					pathOverrides[argumentString.toLowerCase()] = args[i + 1];
-					argIterator.delete(2);
-				} else {
-					//otherwise, we add it to flags
-					flags[argumentString.toLowerCase()] = true;
-					argIterator.delete(1);
-				}
-			} else {
-				//otherwise, we add it to flags
-				flags[argumentString.toLowerCase()] = true;
-				argIterator.delete(1);
-			}
-		}
-	}
 
 
 
@@ -401,7 +316,7 @@ let cli = function (argv) {
 				}
 				systemPath = name;
 			} else {
-				let sysDir = pathOverrides['cwd'] || path.resolve('./');
+				let sysDir = options['cwd'] || path.resolve('./');
 				makePath = sysDir;
 				systemPath = path.join(sysDir, name);
 			}
@@ -419,12 +334,12 @@ let cli = function (argv) {
 
 		function createSystem() {
 			const ConfigTemplate =
-				{
-					"Sources": {},
-					"Modules": {
-						"Deferred": []
-					}
-				};
+			{
+				"Sources": {},
+				"Modules": {
+					"Deferred": []
+				}
+			};
 
 			if (!fs.existsSync(path.join(systemPath, 'config.json'))) {
 				try {
@@ -459,7 +374,7 @@ let cli = function (argv) {
 				}
 				modulePath = name;
 			} else {
-				let moduleDir = pathOverrides['cwd'] || path.resolve('./');
+				let moduleDir = options['cwd'] || path.resolve('./');
 				makePath = moduleDir;
 				modulePath = path.join(moduleDir, name);
 			}
