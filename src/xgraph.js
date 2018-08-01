@@ -3,7 +3,6 @@
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
 let cli = function (argv) {
-	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	argv = argv.slice(2);
 	if (argv.length == 0) argv[0] = 'help';
