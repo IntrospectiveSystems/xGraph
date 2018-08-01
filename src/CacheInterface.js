@@ -31,8 +31,10 @@ module.exports = class CacheInterface {
 			log.v(e);
 		}
 
-		fs.writeFileSync(Path.join(Path.resolve(__options.path), 'package.json'), packageString);
-		fs.writeFileSync(Path.join(Path.resolve(__options.path), '.cache'), JSON.stringify({
+		let packagePath = Path.join(Path.resolve(__options.path), 'package.json');
+		if(!fs.existsSync(packagePath)) fs.writeFileSync(packagePath, packageString);
+		let cacheManifestPath = Path.join(Path.resolve(__options.path), '.cache');
+		if(!fs.existsSync(cacheManifestPath)) fs.writeFileSync(cacheManifestPath, JSON.stringify({
 			version: '1.3.0'
 		}, '\t', 1));
 
@@ -52,6 +54,39 @@ module.exports = class CacheInterface {
 
 	set EntIndex(val) {
 		this._entIndex = val;
+	}
+	
+	/**
+	 * Recursive directory deletion
+	 * Used for cache cleanup
+	 * @param {string} path the directory to be recursively removed
+	 */
+	remDir(path) {
+
+		let files = [];
+		if (fs.existsSync(path)) {
+			files = fs.readdirSync(path);
+			files.forEach(function (file, _index) {
+				let curPath = path + '/' + file;
+				if (fs.lstatSync(curPath).isDirectory()) {
+					// recurse
+					this.remDir(curPath);
+				} else {
+					// delete file
+					fs.unlinkSync(curPath);
+				}
+			});
+			fs.rmdirSync(path);
+		}
+	}
+
+	
+
+	clean() {
+		let __options = this.__options;
+		if (fs.existsSync(__options.path)) {
+			this.remDir(__options.path);
+		}
 	}
 
 	//retrieve a module from the cache

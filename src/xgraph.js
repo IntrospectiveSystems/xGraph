@@ -19,7 +19,7 @@ let cli = function (argv) {
 	let originalArgv = argv.slice(0);
 	let originalCwd = process.cwd();
 
-	if (argv[0].indexOf('node')) {
+	if (argv[0].indexOf('node') > -1) {
 		argv = argv.slice(1);
 	} else {
 		log.i('REAL COMMAND LINE ARGUMENTS DETECTED. ABORT. REPEAT,\r\n\t\tAB0RT\r\n\t\t\t\tM IS5  I ON.');

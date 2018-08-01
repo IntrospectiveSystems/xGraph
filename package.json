@@ -26,7 +26,8 @@
     "jszip": "3.1.5",
     "mkdirp": "^0.5.1",
     "strip-comments": "1.0.2",
-    "uuid": "3.2.1"
+    "uuid": "3.2.1",
+    "tmp": "0.0.33"
   },
   "devDependencies": {
     "eslint": "5.1.0"

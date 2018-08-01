@@ -12,7 +12,10 @@ function genesis(__options = {}) {
 		(process.platform == 'darwin' ? 'Library/Preferences' : ''))), '.xgraph');
 	try {fs.mkdirSync(appdata); } catch (e) {'';}
 	let https = require('https');
+	const tmp = require('tmp')
 	let nexus = require('./Nexus.js');
+	const CacheInterface = require('./CacheInterface.js');
+	let cacheInterface;
 
 	function checkFlag(flag) {
 		// console.dir(__options);
@@ -76,7 +79,12 @@ function genesis(__options = {}) {
 			log.i('=================================================');
 			log.i('Genesis Setup:');
 
+			// things arent available until after here, yikes
 			defineMacros();
+
+			cacheInterface = new CacheInterface({
+				path: CacheDir
+			});
 
 			parseConfig();
 
@@ -199,15 +207,11 @@ function genesis(__options = {}) {
 			 */
 			function cleanCache() {
 				// Remove the provided cache directory
-				if (fs.existsSync(CacheDir)) {
-					if (__options.state == 'development') {
-						__options.state = 'updateOnly';
-						return;
-					}
-					log.v(`About to remove the cacheDir: "${CacheDir}"`);
-					remDir(CacheDir);
-					log.v(`Removed cacheDir: "${CacheDir}"`);
+				if (__options.state == 'development') {
+					__options.state = 'updateOnly';
+					return;
 				}
+				cacheInterface.clean();
 			}
 		}
 
@@ -636,8 +640,19 @@ function genesis(__options = {}) {
 			 * open up a socket to the defined broker and access the module
 			 */
 			function loadModuleFromBroker(args, cmd) {
-
-				
+				tmp.dir((err, path, cleanupCallback) => {
+					if (err) throw err;
+					log.d('Dir: ', path);
+					log.d('Arg: ', args);
+					log.d('Cmd: ', cmd);
+					let cache = new CacheInterface({
+						log,
+						path
+					})
+					
+					// Manual cleanup
+					cleanupCallback();
+				});
 
 				// fun(err, Buffer.from(response.Module, 'base64'));
 			}
@@ -1082,30 +1097,6 @@ function genesis(__options = {}) {
 			let str = Uuid();
 			let pid = str.replace(/-/g, '').toUpperCase();
 			return pid;
-		}
-
-		/**
-		 * Recursive directory deletion
-		 * Used for cache cleanup
-		 * @param {string} path the directory to be recursively removed
-		 */
-		function remDir(path) {
-
-			let files = [];
-			if (fs.existsSync(path)) {
-				files = fs.readdirSync(path);
-				files.forEach(function (file, _index) {
-					let curPath = path + '/' + file;
-					if (fs.lstatSync(curPath).isDirectory()) {
-						// recurse
-						remDir(curPath);
-					} else {
-						// delete file
-						fs.unlinkSync(curPath);
-					}
-				});
-				fs.rmdirSync(path);
-			}
 		}
 
 		function GenTemplate(config) {
