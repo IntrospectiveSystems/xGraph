@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "test.js",
-  "scripts": {
-    "build": "cd .. && npm run build"
-  },
+  "scripts": {},
   "author": "",
   "license": "ISC",
   "dependencies": {

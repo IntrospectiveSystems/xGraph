@@ -1,9 +1,8 @@
 #! /usr/bin/env node
-// anything above this line is removed on npm run build.
+
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
 let cli = function (argv) {
-	//just do a quick dumb check to see if we have node as a first argument
 	let originalArgv = argv.slice(0);
 	argv = argv.slice(2);
 	if (argv.length == 0) argv[0] = 'help';
@@ -14,8 +13,8 @@ let cli = function (argv) {
 	const fs = require('fs');
 	const path = require('path');
 	const version = require('../package.json').version;
-	const genesis = require('./Genesis.js');
-	const nexus = require('./Nexus.js');
+	const genesis = require('../lib/Genesis.js');
+	const nexus = require('../lib/Nexus.js');
 	let options = require('minimist')(argv.slice(1));
 
 	//clean the options and make sure that lowercase versions of all keys are available
@@ -173,7 +172,7 @@ let cli = function (argv) {
 
 	function help() {
 
-		let helpFile = path.join(__dirname, 'help.txt');
+		let helpFile = path.join(__dirname, '../res/xgraphHelp.txt');
 
 		let helpFileText = fs.readFileSync(helpFile);
 
@@ -401,7 +400,7 @@ let cli = function (argv) {
 				}
 			};
 
-			let entityFile = path.join(__dirname, 'entity.js');
+			let entityFile = path.join(__dirname, '../res/entity.js');
 
 			let entityFileText = fs.readFileSync(entityFile);
 
@@ -493,12 +492,12 @@ let cli = function (argv) {
 		} catch (e) {
 		}
 	}
-
 };
 
 if (require.main === module || !('id' in module)) {
 	cli(process.argv);
 } else module.exports = {
-	Nexus: require('./Nexus.js'),
-	Genesis: require('./Genesis.js')
+	exec: cli,
+	Nexus: require('../lib/Nexus.js'),
+	Genesis: require('../lib/Genesis.js')
 };

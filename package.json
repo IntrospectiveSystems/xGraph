@@ -4,7 +4,6 @@
   "description": "An Executable Graph Database",
   "main": "./src/xgraph.js",
   "scripts": {
-    "build": "cd build && npm run build",
     "test": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js && cd .. && echo Test Suite Finished with exit code 0!",
     "qa": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js --fast && cd .. && echo Test Suite Finished with exit code 0!"
   },
@@ -17,7 +16,8 @@
     "url": "https://github.com/IntrospectiveSystems/xGraph/issues"
   },
   "bin": {
-    "xgraph": "./src/xgraph.js"
+    "xgraph": "./src/xgraph.js",
+    "broker": "./src/broker.js"
   },
   "homepage": "https://github.com/IntrospectiveSystems/xGraph#readme",
   "license": "AGPL-3.0",
