@@ -4,7 +4,6 @@
   "description": "An Executable Graph Database",
   "main": "./src/xgraph.js",
   "scripts": {
-    "build": "cd build && npm run build",
     "test": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js && cd .. && echo Test Suite Finished with exit code 0!",
     "qa": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js --fast && cd .. && echo Test Suite Finished with exit code 0!"
   },

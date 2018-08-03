@@ -1,5 +1,5 @@
 #! /usr/bin/env node
-// anything above this line is removed on npm run build.
+
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
 
 let cli = function (argv) {
