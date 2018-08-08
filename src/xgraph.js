@@ -232,10 +232,10 @@ let cli = function (argv) {
 	async function startNexusProcess() {
 		//get the cache dir
 		let cacheDir = options["cache"];
-		console.log(`Starting from ${cacheDir}`);
+		console.log(`Starting Run Engine from ${cacheDir}`);
 
-		// HACK: no idea whyt we're messing with this. remove it att some point and see what happens
-		process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
+		// // HACK: no idea whyt we're messing with this. remove it att some point and see what happens
+		// process.env.NODE_PATH = path.join(path.dirname(cacheDir), "node_modules");
 
 		//combine flags and path overrides to create the options object for nexus
 		let system = new nexus(options);

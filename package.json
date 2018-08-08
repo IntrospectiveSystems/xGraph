@@ -23,9 +23,10 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "jszip": "3.1.5",
+    "minimist": "1.2.0",
     "strip-comments": "1.0.2",
+    "tmp": "0.0.33",
     "uuid": "3.2.1",
-    "volatile": "7.0.1",
-    "minimist": "1.2.0"
+    "volatile": "7.0.1"
   }
 }
