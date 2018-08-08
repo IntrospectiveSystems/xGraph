@@ -12,9 +12,10 @@ function genesis(__options = {}) {
 		(process.platform == 'darwin' ? 'Library/Preferences' : ''))), '.xgraph');
 	try {fs.mkdirSync(appdata); } catch (e) {'';}
 	let https = require('https');
-	const tmp = require('tmp')
+	const tmp = require('tmp');
 	let nexus = require('./Nexus.js');
 	const CacheInterface = require('./CacheInterface.js');
+	const tree = require('tree-directory');
 	let cacheInterface;
 
 	function checkFlag(flag) {
@@ -41,7 +42,7 @@ function genesis(__options = {}) {
 
 
 
-		process.stdout.write(`Initializing the Compile Engine in ${__options.state} Mode \r\n`);
+		// process.stdout.write(`Initializing the Compile Engine in ${__options.state} Mode \r\n`);
 
 
 		// Genesis globals
@@ -83,7 +84,7 @@ function genesis(__options = {}) {
 			defineMacros();
 
 			cacheInterface = new CacheInterface({
-				path: CacheDir
+				path: CacheDir, log
 			});
 
 			parseConfig();
@@ -152,7 +153,6 @@ function genesis(__options = {}) {
 					if (typeof ini['Sources'] === 'undefined') {
 						log.w('You have not defined Config.Sources.');
 						log.w('this will likely break the compile process');
-						log.w('');
 					}
 					for (let key in ini) {
 						val = ini[key];
@@ -211,6 +211,9 @@ function genesis(__options = {}) {
 					__options.state = 'updateOnly';
 					return;
 				}
+				// log.i('here');
+				// log.i(cacheInterface);
+				
 				cacheInterface.clean();
 			}
 		}
@@ -336,6 +339,7 @@ function genesis(__options = {}) {
 								rej(err);
 								reject(err);
 							} else {
+								cacheInterface.addModule(folder, mod, _ => {});
 								log.v(`Successfully retrieved ${folder}`);
 								res(ModCache[folder] = mod);
 							}
@@ -343,6 +347,7 @@ function genesis(__options = {}) {
 					}));
 				}
 				await Promise.all(modArray);
+				
 			}
 
 			/**
@@ -351,81 +356,6 @@ function genesis(__options = {}) {
 			async function populate() {
 				log.v('--populate : Writing Cache to Disk');
 				// Write cache to CacheDir
-				let npmDependenciesArray = [];
-				for (let folder in ModCache) {
-					let entdir = Path.join(CacheDir, 'System', folder);
-					let libdir = Path.join(CacheDir, 'Lib', folder);
-					try { fs.mkdirSync(entdir); } catch (e) {
-						log.v(e);
-					}
-					try { fs.mkdirSync(libdir); } catch (e) {
-						log.v(e);
-					}
-					log.v(`Writing Module ${folder} to ${CacheDir}`);
-					let path = Path.join(entdir, 'Module.zip');
-					fs.writeFileSync(path, ModCache[folder]);
-
-					const zipmod = new jszip();
-
-					//install npm dependencies
-					npmDependenciesArray.push(new Promise((resolve, reject) => {
-						zipmod.loadAsync(ModCache[folder]).then(function (zip) {
-							if ('package.json' in zip.files) {
-								zip.file('package.json').async('string').then(function (packageString) {
-									log.i(`${folder}: Installing dependencies`);
-									log.v(packageString);
-
-									//write the compiled package.json to disk
-									fs.writeFileSync(Path.join(libdir, 'package.json'), packageString);
-									//call npm install on a childprocess of node
-									let npmCommand = (process.platform === 'win32' ? 'npm.cmd' : 'npm');
-
-									let npmInstallProcess = proc.spawn(npmCommand, [
-										'install'
-									], {
-										cwd: Path.resolve(libdir)
-									});
-
-
-									npmInstallProcess.stdout.on('data', process.stdout.write);
-									npmInstallProcess.stderr.on('data', process.stderr.write);
-
-									npmInstallProcess.stdout.on('error', e => log.v('stdout/err: ' + e));
-									npmInstallProcess.stderr.on('error', e => log.v('stderr/err: ' + e));
-
-									npmInstallProcess.on('err', function (err) {
-										log.e('Failed to start child process.');
-										log.e('err:' + err);
-										reject(err);
-									});
-
-									npmInstallProcess.on('exit', function (code) {
-										process.stderr.write('\r\n');
-										if (code == 0)
-											log.i(`${folder}: dependencies installed correctly`);
-										else {
-											log.e(`${folder}: npm process exited with code: ${code}`);
-											process.exit(1);
-											reject();
-										}
-										fs.unlinkSync(Path.join(libdir, 'package.json'));
-										resolve();
-									});
-								});
-							} else {
-								resolve();
-							}
-						});
-					}));
-				}
-
-
-				try {
-					await Promise.all(npmDependenciesArray);
-				} catch (e) {
-					log.e(e);
-					log.e(e.stack);
-				}
 
 
 				if (__options.state == 'updateOnly') {
@@ -460,7 +390,7 @@ function genesis(__options = {}) {
 					ents.forEach(function (ent) {
 						let path = Path.join(dirinst, `${ent.Pid}.json`);
 						try {
-							fs.writeFileSync(path, JSON.stringify(ent, null, 2));
+							// fs.writeFileSync(path, JSON.stringify(ent, null, 2));
 						} catch (e) {
 							log.v(e);
 						}
@@ -580,6 +510,8 @@ function genesis(__options = {}) {
 
 			//get the module from the defined broker
 			if (typeof source == 'object') {
+				// TODO THIS IS FOR DEFININF A
+				// BROKER DIRECTLY WITHIN A MODULE DEFINITION
 				let port = source.Port || source.port;
 				let host = source.Host || source.host;
 				return loadModuleFromBroker(host, port);
@@ -608,14 +540,8 @@ function genesis(__options = {}) {
 						let argumentString = source.replace(/[a-zA-Z]*:\/\//, ''); // "exmaple.com:23897"
 						let argsArr = argumentString.split(/:/);
 						let protocolObj = await getProtocolModule(protocol);
-						let zip = Buffer.from(protocolObj.Module, 'base64');
-						let parString = JSON.stringify(protocolObj.Par);
-						
-						for(let i = 0; i < argsArr.length; i ++) {
-							parString = parString.replace(`%${i}`, argsArr[i]);
-						}
 
-						return loadModuleFromBroker(argsArr[0], argsArr[1]||27000, cmd);
+						return loadModuleFromBroker(argsArr, protocolObj, cmd);
 
 					} catch (e) {
 						return loadModuleFromDisk();
@@ -639,22 +565,80 @@ function genesis(__options = {}) {
 			/**
 			 * open up a socket to the defined broker and access the module
 			 */
-			function loadModuleFromBroker(args, cmd) {
-				tmp.dir((err, path, cleanupCallback) => {
+			function loadModuleFromBroker(args, protocolObject, cmd) {
+				tmp.dir(async (err, path, cleanupCallback) => {
 					if (err) throw err;
-					log.d('Dir: ', path);
-					log.d('Arg: ', args);
-					log.d('Cmd: ', cmd);
-					let cache = new CacheInterface({
-						log,
-						path
-					})
+
+					// log.i(cmd);
+					let cachePath = Path.join(path, 'cache');
+					// log.w(protocolObject);
+					let zip = Buffer.from(protocolObject.Module, 'base64');
+					let parString = JSON.stringify(protocolObject.Par, null, 2);
 					
+					// TODO DO THIS PARSE WAY DIFFERENT AND ALLOW FOR DEFAULTS
+					for(let i = 0; i < Math.max(args.length, 2); i ++) {
+						parString = parString.replace(`%${i + 1}`, args[i] || 27000);
+					}
+
+					let par = JSON.parse(parString);
+					par.Module = 'BrokerProxy';
+
+					// create the cache on disk
+					let cache = new CacheInterface({
+						path: cachePath, log
+					});
+
+					// add the proxy to it
+					await new Promise(res => {
+						cache.addModule('BrokerProxy', zip, _ => res());
+					});
+
+					// create an instance of it, with a pid we can
+					// reference later
+					await new Promise(async (res) => {
+						await cache.createInstance({
+							Module: 'BrokerProxy',
+							Par: par
+						}, '0'.repeat(32));
+						res();
+					});
+					
+					// show its tree
+					// log.v(tree.sync(cachePath, '**/*'));
+
+					// 
+					let system = new nexus({
+						cache: cachePath,
+						silent: true
+					});
+
+					log.v('Booting Module Retrieval Subsystem');
+
+					let hooks = await system.boot();
+
+					let response = await new Promise(res => {
+						hooks.send(cmd, '0'.repeat(32), (err, cmd) => {
+							res({err, cmd});
+						});
+					});
+
+					if(response.err) {
+						log.e(`Error retrieving ${cmd.Module} from`);
+						log.e(args);
+						system.exit(1);
+					}
+
+					log.v('Module retrieved, shutting down Subsystem');
+
+					// otherwise, lets cleanup, our job here is DONE!
+					cache.delete();
 					// Manual cleanup
 					cleanupCallback();
+
+					// return the module from the command, in buffer form!
+					fun(null, Buffer.from(response.cmd.Module, 'base64'));
 				});
 
-				// fun(err, Buffer.from(response.Module, 'base64'));
 			}
 
 			/**
@@ -728,18 +712,7 @@ function genesis(__options = {}) {
 		//----------------------------------------------------CompileModule
 		//
 
-		/**
-		 * Generate array of entities from module
-		 * Module must be in cache
-		 *
-		 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
-		 * @param {object} inst
-		 * @param {string} inst.Module	The module definition in dot notation
-		 * @param {object} inst.Par		The par object that defines the par of the instance
-		 * @param {boolean} saveRoot	Add the setup and start functions to the Root.Setup and start
-		 */
-		async function compileInstance(pidapx, inst, _saveRoot = false) {
-			log.v('compileInstance', pidapx, JSON.stringify(inst, null, 2));
+		async function compileInstance(apx, inst) {
 
 			function parseMacros(obj) {
 				for (let key in obj) {
@@ -748,109 +721,16 @@ function genesis(__options = {}) {
 				}
 				return obj;
 			}
+
 			inst = parseMacros(inst);
-			log.v('parseMacros', pidapx, JSON.stringify(inst, null, 2));
+			inst.Par = await symbolPhase1(inst.Par);
+			inst.Par = await symbolPhase2(inst.Par);
 
-			let Local = {};
-			let modnam = inst.Module;
-			let mod;
-			let ents = [];
-			modnam = modnam.replace(/[/:]/g, '.');
-			let zipmod = new jszip();
+			// returns an array of entity par objects
+			return cacheInterface.createInstance(inst, apx);
 
-			if (modnam in ModCache) {
-				//TODO Dont use then, use es8 async/await
-				mod = await new Promise(async (res, _rej) => {
-					zipmod.loadAsync(ModCache[modnam]).then((zip) => {
-						res(zip);
-					});
-				});
-			} else {
-				log.e('Module <' + modnam + '> not in ModCache');
-				process.exit(1);
-				reject();
-				return;
-			}
-
-			let schema = await new Promise(async (res, rej) => {
-				if ('schema.json' in mod.files) {
-					mod.file('schema.json').async('string').then(function (schemaString) {
-						res(JSON.parse(schemaString));
-					});
-				} else {
-					log.e('Module <' + modnam + '> schema not in ModCache');
-					process.exit(1);
-					rej();
-					reject();
-					return;
-				}
-			});
-
-			let entkeys = Object.keys(schema);
-			if (!('Apex' in schema)) {
-				log.v('keys in schema.json');
-				log.v(Object.keys(schema).join('\r\n'));
-				throw new SyntaxError('Apex key not present in schema.json.');
-			}
-
-			//set Pids for each entity in the schema
-			for (let j = 0; j < entkeys.length; j++) {
-				let entkey = entkeys[j];
-				if (entkey === 'Apex')
-					Local[entkey] = pidapx;
-				else
-					Local[entkey] = genPid();
-			}
-
-
-			//unpack the par of each ent
-			log.v('Phase 1');
-			for (let j = 0; j < entkeys.length; j++) {
-				let entkey = entkeys[j];
-				//start with the pars from the schema
-				let ent = schema[entkey];
-				ent.Pid = Local[entkey];
-				ent.Module = modnam;
-				ent.Apex = pidapx;
-
-				//load the pars from the config
-				//these only apply to the Apex entity
-				//config takes precedence so we unpack it last
-				if (entkey == 'Apex' && 'Par' in inst) {
-					let pars = Object.keys(inst.Par);
-					for (let ipar = 0; ipar < pars.length; ipar++) {
-						let par = pars[ipar];
-						ent[par] = inst.Par[par];
-					}
-				}
-
-				//iterate over all the pars to pars out symbols
-				let pars = Object.keys(ent);
-				for (let ipar = 0; ipar < pars.length; ipar++) {
-					let par = pars[ipar];
-					let val = ent[par];
-					ent[par] = await symbolPhase1(val);
-				}
-				ents.push(ent);
-			}
-
-			log.v('Phase 2');
-			for (let j = 0; j < entkeys.length; j++) {
-				let entkey = entkeys[j];
-				//start with the pars from the schema
-				let ent = schema[entkey];
-				//iterate over all the pars to pars out symbols
-				let pars = Object.keys(ent);
-				for (let ipar = 0; ipar < pars.length; ipar++) {
-					let par = pars[ipar];
-					let val = ent[par];
-					ent[par] = await symbolPhase2(val);
-				}
-				ents.push(ent);
-			}
-
-			return ents;
-
+			// TODO these could be better, but lets just accept that
+			// the next 200 lines is encapsulated garbage
 			async function symbolPhase1(val) {
 				//recurse if needed
 				if (typeof val === 'object') {
@@ -959,7 +839,6 @@ function genesis(__options = {}) {
 				}
 				return val;
 			}
-
 			async function symbolPhase2(val) {
 				if (typeof val === 'object') {
 					if (Array.isArray(val)) {
@@ -1099,6 +978,7 @@ function genesis(__options = {}) {
 			return pid;
 		}
 
+		// TODO this whole... just. make it not this.
 		function GenTemplate(config) {
 			return new Promise(async (resolve, reject) => {
 

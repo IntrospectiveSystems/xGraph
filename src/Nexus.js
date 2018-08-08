@@ -110,7 +110,26 @@ module.exports = function xGraph(__options = {}) {
 				throw new Error(`No cache exists at ${__options.cache}. Try xgraph run`);
 			}
 
-			initiate();
+			await initiate();
+
+			let externalPid = genPid();
+			return {
+				send: function send(com, pid, fun) {
+					// log.v(com, pid);
+					if (!('Passport' in com))
+						com.Passport = {};
+					com.Passport.To = pid;
+					com.Passport.Apex = externalPid;
+					if (fun)
+						com.Passport.From = externalPid;
+					if (!('Pid' in com.Passport))
+						com.Passport.Pid = genPid();
+
+					sendMessage(com, fun);
+				},
+				Pid: externalPid,
+				Apex: externalPid
+			};
 
 			////////////////////////////////////////////////////////////////////////////////////////////////
 			//
@@ -454,7 +473,7 @@ module.exports = function xGraph(__options = {}) {
 				 * @callback fun
 				 */
 				function genModule(moduleObject, fun) {
-					//	log.v('--Entity/genModule');
+					// log.v('--Entity/genModule');
 					nxs.genModule(moduleObject, fun);
 				}
 
@@ -526,6 +545,7 @@ module.exports = function xGraph(__options = {}) {
 				 */
 				function send(com, pid, fun) {
 					// log.v(com, pid);
+					// TODO this code is duplicated when giving the npm API
 					if (!('Passport' in com))
 						com.Passport = {};
 					com.Passport.To = pid;
@@ -1054,6 +1074,8 @@ module.exports = function xGraph(__options = {}) {
 					return fun(null, ModCache[ModName]);
 				});
 			}
+
+
 		})(this.__options);
 	};
 };

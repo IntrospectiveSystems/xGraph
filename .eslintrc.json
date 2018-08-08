@@ -26,7 +26,7 @@
 			"warn"
 		],
 		"max-len": [
-			"warn",
+			"error",
 			{
 				"tabWidth": 4,
 				"code": 110
@@ -39,7 +39,7 @@
 			{"SwitchCase": 1}
 		],
 		"linebreak-style": [
-			"error",
+			"warn",
 			"unix"
 		],
 		"quotes": [

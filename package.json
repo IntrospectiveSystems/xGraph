@@ -5,8 +5,8 @@
   "main": "./src/xgraph.js",
   "scripts": {
     "build": "cd build && npm run build",
-    "test": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
-    "qa": "npm install --production --verbose && cd Tests && npm install --verbose && node test.js --fast && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
+    "test": "npm install && cd Tests && npm install && node test.js && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
+    "qa": "npm install && cd Tests && node test.js --fast && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
     "lint": "eslint src/*.js --fix"
   },
   "repository": {
@@ -27,7 +27,8 @@
     "mkdirp": "^0.5.1",
     "strip-comments": "1.0.2",
     "uuid": "3.2.1",
-    "tmp": "0.0.33"
+    "tmp": "0.0.33",
+    "tree-directory": "0.1.0"
   },
   "devDependencies": {
     "eslint": "5.1.0"

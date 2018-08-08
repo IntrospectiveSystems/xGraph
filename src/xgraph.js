@@ -5,6 +5,7 @@
 
 process.on('unhandledRejection', (reason, _promise) => {
 	process.stderr.write('\u001b[31m' + '------- [Unhandled Promise Rejection] -------' + '\u001b[39m\n');
+	process.stderr.write('\u001b[31m' + (typeof reason) + '\u001b[39m\n');
 	if('stack' in reason) process.stderr.write('\u001b[31m' + reason.stack + '\u001b[39m\n');
 	else if ('message' in reason) process.stderr.write('\u001b[31m' + reason.message + '\u001b[39m\n');
 	else process.stderr.write('\u001b[31m' + reason.toString() + '\u001b[39m\n');

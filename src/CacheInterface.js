@@ -4,6 +4,8 @@ const fs = require('fs');
 const jszip = require('jszip');
 const ver130 = new SemVer('1.3');
 const dotCache = {version: '1.3.0'};
+const Uuid = require('uuid/v4');
+const {spawn} = require('child_process');
 //This node module provides all the interface capabilities to an xgraph cache directory.
 
 module.exports = class CacheInterface {
@@ -15,28 +17,31 @@ module.exports = class CacheInterface {
 	 */
 	constructor(__options) {
 		this.__options = __options;
-		let log = this.log = __options.log || {
+		let backupLog = {
 			d:_=>_,v:_=>_,i:_=>_,w:_=>_,e:_=>_
 		};
-
-		let packageString = JSON.stringify({dependencies:{}}, null, 2);
-		//write the compiled package.json to disk
-		try { fs.mkdirSync(__options.path); } catch (e) {
-			log.v(e);
-		}
-		try { fs.mkdirSync(Path.join(Path.resolve(__options.path), 'System')); } catch (e) {
-			log.v(e);
-		}
-		try { fs.mkdirSync(Path.join(Path.resolve(__options.path), 'Lib')); } catch (e) {
-			log.v(e);
-		}
-
-		let packagePath = Path.join(Path.resolve(__options.path), 'package.json');
-		if(!fs.existsSync(packagePath)) fs.writeFileSync(packagePath, packageString);
-		let cacheManifestPath = Path.join(Path.resolve(__options.path), '.cache');
-		if(!fs.existsSync(cacheManifestPath)) fs.writeFileSync(cacheManifestPath, JSON.stringify({
-			version: '1.3.0'
-		}, '\t', 1));
+		let log = this.log = {
+			v: (..._) => {
+				(__options.log || backupLog).v('[CACHE]', ..._);
+			},
+			d: (..._) => {
+				(__options.log || backupLog).d('[CACHE]', ..._);
+			},
+			w: (..._) => {
+				(__options.log || backupLog).w('[CACHE]', ..._);
+			},
+			e: (..._) => {
+				(__options.log || backupLog).e('[CACHE]', ..._);
+			},
+			i: (..._) => {
+				(__options.log || backupLog).i('[CACHE]', ..._);
+			}
+		};
+		
+		this.modCache = {};
+		
+		this.initDirectories();
+		// log.i('cache at ' + __options.path);
 
 	}
 
@@ -62,11 +67,11 @@ module.exports = class CacheInterface {
 	 * @param {string} path the directory to be recursively removed
 	 */
 	remDir(path) {
-
+		let log = this.log;
 		let files = [];
 		if (fs.existsSync(path)) {
 			files = fs.readdirSync(path);
-			files.forEach(function (file, _index) {
+			files.forEach((file, _index) => {
 				let curPath = path + '/' + file;
 				if (fs.lstatSync(curPath).isDirectory()) {
 					// recurse
@@ -80,18 +85,60 @@ module.exports = class CacheInterface {
 		}
 	}
 
-	
+	/**
+	 * generate a 32 digit hex number
+	 */
+	genPid() {
+		let str = Uuid();
+		let pid = str.replace(/-/g, '').toUpperCase();
+		return pid;
+	}
+
+	initDirectories() {
+		let __options = this.__options;
+		let log = this.log;
+		let packageString = JSON.stringify({dependencies:{}}, null, 2);
+		//write the compiled package.json to disk
+		try { fs.mkdirSync(__options.path); } catch (e) {
+			if(e.code !== 'EEXIST') log.w(e);
+		}
+		try { fs.mkdirSync(Path.join(Path.resolve(__options.path), 'System')); } catch (e) {
+			if(e.code !== 'EEXIST') log.w(e);
+		}
+		try { fs.mkdirSync(Path.join(Path.resolve(__options.path), 'Lib')); } catch (e) {
+			if(e.code !== 'EEXIST') log.w(e);
+		}
+
+		let packagePath = Path.join(Path.resolve(__options.path), 'package.json');
+		if(!fs.existsSync(packagePath)) fs.writeFileSync(packagePath, packageString);
+		let cacheManifestPath = Path.join(Path.resolve(__options.path), 'cache.json');
+		if(!fs.existsSync(cacheManifestPath)) {
+			fs.writeFileSync(cacheManifestPath, JSON.stringify({
+				version: '1.3.0'
+			}, '\t', 1));
+		}
+	}
 
 	clean() {
+		this.delete();
+		this.initDirectories();
+	}
+
+	delete() {
+		let log = this.log;
 		let __options = this.__options;
 		if (fs.existsSync(__options.path)) {
+			// log.i(__options.path);
 			this.remDir(__options.path);
+			// log.i(this);
+			// log.i('woo');
 		}
 	}
 
 	//retrieve a module from the cache
 	getModule(moduleType, fun = _ => _) {
 		let __options = this.__options;
+		let log = this.log;
 		let cachedMod;
 
 		if (this._version < ver130) {
@@ -100,9 +147,13 @@ module.exports = class CacheInterface {
 			cachedMod = Path.join(__options.path, 'System', moduleType, 'Module.zip');
 		}
 
+		log.v(cachedMod);
+		log.v(fs.existsSync(cachedMod));
+
 		fs.lstat(cachedMod, function (err, stat) {
 			if (err) {
 				log.e(`Error retreiving ${cachedMod} from cache`);
+				log.e(err);
 				fun(err);
 			}
 			if (stat) {
@@ -129,34 +180,132 @@ module.exports = class CacheInterface {
 	}
 
 	//adds a module to the cache
-	addModule(moduleType, moduleZip, fun = _ => _) {
+	async addModule(moduleType, moduleZip, fun = _ => _) {
+		let log = this.log;
+
 		let __options = this.__options;
-		let cachedMod;
+		let cachedMod, libdir;
 
 		if (this._version < ver130) {
 			cachedMod = Path.join(__options.path, moduleType);
+			libdir = Path.join(__options.path, moduleType);
 		} else {
 			cachedMod = Path.join(__options.path, 'System', moduleType);
+			libdir = Path.join(__options.path, 'Lib', moduleType);
 		}
 
 		try { fs.mkdirSync(cachedMod); } catch (e) { log.v(`${cachedMod} path already exists`); }
+		try { fs.mkdirSync(libdir); } catch (e) { log.v(`${cachedMod} path already exists`); }
 
 		cachedMod = Path.join(cachedMod, 'Module.zip');
 
-		fs.writeFile(cachedMod, moduleZip, (err) => {
-			fun(err, cachedMod);
+		this.modCache[moduleType] = moduleZip;
+
+		await new Promise(res => {
+			fs.writeFile(cachedMod, moduleZip, (err) => {
+				res(err);
+			});
 		});
+
+		//install npm dependencies
+		let zipObj = new jszip();
+		await zipObj.loadAsync(moduleZip);
+
+		if ('package.json' in zipObj.files) {
+			let packageString;
+			packageString = await zipObj.file('package.json').async('string');
+			let packagePath = Path.join(libdir, 'package.json');
+			log.i(`Installing dependencies for ${moduleType}`);
+			// log.w(packageString);
+
+			await new Promise((resolve, reject) => {
+				fs.writeFile(packagePath, packageString, err => {
+					if(err) return reject(err);
+					resolve();
+				});
+			});
+
+			await new Promise((resolve, reject) => {
+				fs.writeFile(packagePath, packageString, err => {
+					if(err) return reject(err);
+					resolve();
+				});
+			});
+
+			// log.w('H M M M');
+
+			try {
+				await new Promise((resolve, reject) => {
+					//call npm install on a childprocess of node
+					let npmCommand = (process.platform === 'win32' ? 'npm.cmd' : 'npm');
+
+					let npmInstallProcess = spawn(npmCommand, [
+						'install'
+					], {
+						cwd: Path.resolve(libdir)
+					});
+
+
+
+					npmInstallProcess.stdout.on('data', process.stdout.write);
+					npmInstallProcess.stderr.on('data', process.stderr.write);
+
+					npmInstallProcess.stdout.on('error', e => log.v('stdout/err: ' + e));
+					npmInstallProcess.stderr.on('error', e => log.v('stderr/err: ' + e));
+
+					npmInstallProcess.on('err', function (err) {
+						log.e('Failed to start child process.');
+						log.e('err:' + err);
+						reject(err);
+					});
+
+					npmInstallProcess.on('exit', function (code) {
+						process.stderr.write('\r\n');
+						if (code == 0)
+							log.i(`${moduleType}: dependencies installed correctly`);
+						else {
+							log.e(`${moduleType}: npm process exited with code: ${code}`);
+							process.exit(1);
+							reject();
+						}
+						fs.unlinkSync(packagePath);
+						resolve();
+					});
+				});
+			} catch (e) {
+				log.e(e);
+				log.e(e.stack);
+			}
+
+			//write the compiled package.json to disk
+			fs.writeFileSync(Path.join(libdir, 'package.json'), packageString);
+		} else {
+			log.v(`no dependencies to install for ${moduleType}`);
+			// resolve();
+		}
+
+		fun(null);
 	}
 
 	//return the json of pars related to a single entity based on it's pid 
 	getEntityPar(pid, fun = _ => _) {
-
+		// let log = this.log;
+		let log = this.log;
+		if(!(pid in this._entIndex)) {
+			log.w('returning unknown pid', pid);
+			log.w(this._entIndex)
+			return fun(new Error('E_UNKNOWN_PID'), {});
+		}
 		let apx = this._entIndex[pid];
-		let moduleType = this._apexIndex[apx];
 
+		if(!(apx in this._apexIndex)) {
+			log.w('returning unknown apex pid');
+			return fun(new Error('E_UNKNOWN_APEX_PID'), {});
+		}
+		let moduleType = this._apexIndex[apx];
 		let __options = this.__options;
 		let path;
-
+		log.i(__options.path, moduleType, apx, pid);
 		if (this._version < ver130) {
 			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
 		} else {
@@ -164,8 +313,10 @@ module.exports = class CacheInterface {
 		}
 
 		fs.readFile(path, (err, data) => {
-			if(err) return fun(err, {moduleType});
-			else return fun(err, data);
+			if(err) {
+				log.w(err)
+				return fun(err, {moduleType});
+			} else return fun(err, data);
 		});
 	}
 
@@ -254,7 +405,7 @@ module.exports = class CacheInterface {
 		}
 
 		try { fs.mkdirSync(path); } catch (e) {
-			log.v(e);
+			if(e.code !== 'EEXIST') log.w(e);
 		}
 
 		path = Path.join(path, `${parObject.Pid}.json`);
@@ -267,8 +418,9 @@ module.exports = class CacheInterface {
 
 	//load in a cache directory and return the Apex Index, Start, Setup and Stop dictionaries.
 	async loadCache() {
+		let log = this.log;
 		let __options = this.__options;
-		let manifestPath = Path.join(__options.path, '.cache');
+		let manifestPath = Path.join(__options.path, 'cache.json');
 		let setup = {}, start = {}, stop = {}, apexIndex = {}, entIndex = {};
 		let manifest = await new Promise(resolve => {
 			fs.lstat(manifestPath, (err, stat) => {
@@ -362,6 +514,129 @@ module.exports = class CacheInterface {
 				process.exit(1);
 			}
 		}
+	}
+
+
+
+	/**
+	 * Generate array of entities from module
+	 * Module must be in cache
+	 *
+	 * @param {string} pidapx 		The first parameter is the pid assigned to the Apex
+	 * @param {object} inst
+	 * @param {string} inst.Module	The module definition in dot notation
+	 * @param {object} inst.Par		The par object that defines the par of the instance
+	 * @param {boolean} saveRoot	Add the setup and start functions to the Root.Setup and start
+	 */
+	async createInstance(inst, pidapx = this.genPid()) {
+		let log = this.log;
+		let Local = {};
+		let modnam = inst.Module;
+		let mod;
+		let ents = [];
+		modnam = modnam.replace(/[/:]/g, '.');
+		let zipmod = new jszip();
+		log.v('createInstance', pidapx, JSON.stringify(inst, null, 2));
+
+		function parseMacros(obj) {
+			for (let key in obj) {
+				if (typeof obj[key] == 'string') {
+					if(obj[key].startsWith('#')) {
+						obj[key] = Local[obj[key].substr(1)];
+					}
+				}
+				else if (typeof obj[key] == 'object') obj[key] = parseMacros(obj[key]);
+			}
+			return obj;
+		}
+		// log.v('parseMacros', pidapx, JSON.stringify(inst, null, 2));
+
+		// log.w(this.modCache);
+
+		//check if we have the module, put it in mod (jszip object)
+		if (modnam in this.modCache) {
+			//TODO Dont use then, use es8 async/await
+			mod = await new Promise(async (res, _rej) => {
+				zipmod.loadAsync(this.modCache[modnam]).then((zip) => {
+					res(zip);
+				});
+			});
+		} else {
+			log.e('Module <' + modnam + '> not in ModCache');
+			process.exit(1);
+			return;
+		}
+
+		// log.w('THING', Object.keys(mod));
+
+		// get the schema json from the zip
+		let schema = await new Promise(async (res, rej) => {
+			// log.w(mod.files);
+			if ('schema.json' in mod.files) {
+				mod.file('schema.json').async('string').then(function (schemaString) {
+					res(JSON.parse(schemaString));
+				});
+			} else {
+				log.e('Module <' + modnam + '> schema not in ModCache');
+				process.exit(1);
+				rej();
+				// reject();
+				return;
+			}
+		});
+
+		let entkeys = Object.keys(schema);
+		if (!('Apex' in schema)) {
+			log.v('keys in schema.json');
+			log.v(Object.keys(schema).join('\r\n'));
+			throw new SyntaxError('Apex key not present in schema.json.');
+		}
+
+		//set Pids for each entity in the schema
+		for (let j = 0; j < entkeys.length; j++) {
+			let entkey = entkeys[j];
+			if (entkey === 'Apex')
+				Local[entkey] = pidapx;
+			else
+				Local[entkey] = this.genPid();
+		}
+
+		for(let entIndex in schema) {
+			// log.w(entIndex);
+			let ent = schema[entIndex];
+			if(entIndex === 'Apex') {
+				log.w('EY')
+				for(let key in inst.Par) {
+					ent[key] = inst.Par[key];
+				}
+				log.w("I N S T I N S T", inst);
+				log.w("E N T E N T E N", ent);
+			}
+			ent.Pid = Local[entIndex];
+			ent.Apex = pidapx;
+			ent.Module = modnam;
+			ent = parseMacros(ent);
+			ents.push(ent);
+		}
+
+		log.v('Entity Pars to save:', ents);
+
+		for(let entity of ents) {
+
+			let path = Path.join(this.__options.path, 'System', modnam, entity.Apex);
+			try { fs.mkdirSync(path); } catch (e) {'';}
+			path = Path.join(path, entity.Pid + '.json');
+
+			await new Promise(res => {
+				fs.writeFile(path, JSON.stringify(entity, null, 2), _ => {
+					res();
+				});
+			});
+
+		}
+
+		return ents;
+
 	}
 
 };
