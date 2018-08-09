@@ -43,42 +43,48 @@ let cli = function (argv) {
 		}
 	}
 
-	function serve() {
+	async function serve() {
 		let configPath = path.join(__dirname, '../res/BrokerServer');
 		// console.log(`config at ${configPath}`);
 
 		let cachePath = path.join(process.cwd(), '.broker');
 		// console.log(`Cache at ${cachePath}`);
 
-		let xgraphArgv = ['node', 'xgraph.js', 'x',
+		let xgraphArgv = [
 			'--cwd', configPath, '--cache', cachePath,
 			'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
 		// console.log(`args ${xgraphArgv}`);
-		xgraph.exec(xgraphArgv);
+		await xgraph.execute(xgraphArgv);
 	}
 
 	function add() {
 		let configPath = path.join(__dirname, '../res/BrokerAdd');
-		console.log(`config at ${configPath}`);
+		// console.log(`config at ${configPath}`);
 		let tmp = require('tmp');
 
-		tmp.dir(function _tempFileCreated(err, tempPath, cleanupCallback) {
+		tmp.dir(async function _tempFileCreated(err, tempPath, cleanupCallback) {
 			if (err) throw err;
 			let cachePath = path.join(tempPath, 'cache');
-			console.log(`Cache at ${cachePath}`);
+			// console.log(`Cache at ${cachePath}`);
 
-
-			let xgraphArgv = ['node', 'xgraph.js', 'x',
+			let xgraphArgv = [
 				'--cwd', configPath, '--cache', cachePath,
 				'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
 			// console.log(`args ${xgraphArgv}`);
-			xgraph.exec(xgraphArgv);
+			await xgraph.execute(xgraphArgv);
 
 			setTimeout(cleanUp, 20000);
+			// cleanUp();
 
 			async function cleanUp() {
-				await remDir(cachePath);
-				cleanupCallback();
+				try {
+					await remDir(cachePath);
+					log.d(`tmp directory cleaned`);
+					cleanupCallback();
+					log.d(`tmp directory removed`);
+				} catch (error) {
+					log.w(`Error cleaning or removing tmp directory:\n\t`,error);
+				}
 			}
 
 			function remDir(path) {
