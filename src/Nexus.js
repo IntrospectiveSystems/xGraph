@@ -63,20 +63,26 @@ module.exports = function xGraph(__options = {}) {
 			}
 
 			function indirectEvalImp(entString, ...injections) {
-				let _eval = (1,eval);
+
+				let _eval = _ => {
+					// log.w(_)
+					return (1,eval)(_);
+				};
 
 				//sanitize entString!
 				entString = stripComments(entString).trim();
 
-				let container = `(function(log, require) {
+				let container = `(function(log2, require2) {
+					
 					return ${entString}
 				})`;
 				let imp = _eval(container);
 				imp = imp(...injections);
+				log.w(typeof imp, 'dispatch' in imp);
 
-				if (typeof imp === 'undefined') {
-					let _class = _eval(`(function(log, require){ return ${entString} })`)(...injections);
-					imp = { dispatch: _class.prototype };
+				if(typeof imp === 'function') {
+					imp = { dispatch: imp.prototype };
+					// log.w(container);
 				}
 				
 				if (typeof imp != 'undefined') {
@@ -586,7 +592,7 @@ module.exports = function xGraph(__options = {}) {
 					return;
 				}
 
-				let impkey = Path.join(cacheInterface.ApexIndex[apx], par.Entity);
+				let impkey = (cacheInterface.ApexIndex[apx] + '/' + par.Entity);
 				let mod = ModCache[cacheInterface.ApexIndex[apx]];
 
 				if (!(par.Entity in mod.files)) {
@@ -594,6 +600,8 @@ module.exports = function xGraph(__options = {}) {
 					fun('Null entity');
 					return;
 				}
+				log.w('h e y o');
+				log.w(impkey in ImpCache, impkey, ImpCache);
 
 				if (!(impkey in ImpCache)) {
 					let entString = await new Promise(async (res, _rej) => {
@@ -601,12 +609,15 @@ module.exports = function xGraph(__options = {}) {
 					});
 					ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromContext(this));
 				}
+				log.w('h e y o');
 
 				par.Pid = par.Pid || genPid();
 				par.Module = cacheInterface.ApexIndex[apx];
 				par.Apex = apx;
+				log.w('h e y o');
 
 				EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
+				log.w('h e y o');
 				fun(null, par.Pid);
 			}
 

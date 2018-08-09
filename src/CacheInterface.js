@@ -293,7 +293,7 @@ module.exports = class CacheInterface {
 		let log = this.log;
 		if(!(pid in this._entIndex)) {
 			log.w('returning unknown pid', pid);
-			log.w(this._entIndex)
+			log.w(this._entIndex);
 			return fun(new Error('E_UNKNOWN_PID'), {});
 		}
 		let apx = this._entIndex[pid];
@@ -314,7 +314,7 @@ module.exports = class CacheInterface {
 
 		fs.readFile(path, (err, data) => {
 			if(err) {
-				log.w(err)
+				log.w(err);
 				return fun(err, {moduleType});
 			} else return fun(err, data);
 		});
@@ -494,20 +494,25 @@ module.exports = class CacheInterface {
 	}
 
 	loadDependency(moduleType, moduleName) {
+		let log = this.log;
+		log.w('cacheinterface require', moduleType, moduleName);
 		let __options = this.__options;
 		let version = this._version;
 		let nodeModulesPath;
-		if (version < new SemVer('1.3')) {
+		if (version < ver130) {
 			nodeModulesPath = Path.join(__options.path, moduleType, 'node_modules');
 		} else {
 			nodeModulesPath = Path.join(__options.path, 'Lib', moduleType, 'node_modules');
 		}
+		log.w(nodeModulesPath);
 
 		try {
 			return require(moduleName);
 		} catch (e) {
 			try {
-				return require(Path.join(nodeModulesPath, moduleName));
+				let thingy = Path.join(nodeModulesPath, moduleName);
+				log.w(thingy.split('\\').join('\n> '));
+				return require(thingy);
 			} catch (e) {
 				log.e(`error loading ${moduleName}`);
 				log.e(e);
@@ -605,12 +610,10 @@ module.exports = class CacheInterface {
 			// log.w(entIndex);
 			let ent = schema[entIndex];
 			if(entIndex === 'Apex') {
-				log.w('EY')
+				log.w('EY');
 				for(let key in inst.Par) {
 					ent[key] = inst.Par[key];
 				}
-				log.w("I N S T I N S T", inst);
-				log.w("E N T E N T E N", ent);
 			}
 			ent.Pid = Local[entIndex];
 			ent.Apex = pidapx;
