@@ -45,36 +45,28 @@ let cli = function (argv) {
 
 	async function serve() {
 		let configPath = path.join(__dirname, '../res/BrokerServer');
-		// console.log(`config at ${configPath}`);
-
 		let cachePath = path.join(process.cwd(), '.broker');
-		// console.log(`Cache at ${cachePath}`);
 
 		let xgraphArgv = [
 			'--cwd', configPath, '--cache', cachePath,
 			'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
-		// console.log(`args ${xgraphArgv}`);
 		await xgraph.execute(xgraphArgv);
 	}
 
 	function add() {
 		let configPath = path.join(__dirname, '../res/BrokerAdd');
-		// console.log(`config at ${configPath}`);
 		let tmp = require('tmp');
 
 		tmp.dir(async function _tempFileCreated(err, tempPath, cleanupCallback) {
 			if (err) throw err;
 			let cachePath = path.join(tempPath, 'cache');
-			// console.log(`Cache at ${cachePath}`);
 
 			let xgraphArgv = [
 				'--cwd', configPath, '--cache', cachePath,
 				'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
-			// console.log(`args ${xgraphArgv}`);
 			await xgraph.execute(xgraphArgv);
 
-			setTimeout(cleanUp, 20000);
-			// cleanUp();
+			cleanUp();
 
 			async function cleanUp() {
 				try {
@@ -83,7 +75,7 @@ let cli = function (argv) {
 					cleanupCallback();
 					log.d(`tmp directory removed`);
 				} catch (error) {
-					log.w(`Error cleaning or removing tmp directory:\n\t`,error);
+					log.w(`Error cleaning or removing tmp directory:\n\t`, error);
 				}
 			}
 
@@ -120,7 +112,6 @@ let cli = function (argv) {
 					}
 				}));
 			}
-
 		});
 	}
 
@@ -131,21 +122,16 @@ let cli = function (argv) {
 
 
 	function help() {
-
 		let helpFile = path.join(__dirname, '../res/brokerHelp.txt');
-
 		let helpFileText = fs.readFileSync(helpFile);
 
-		let helpText = `
-		(function(){
+		let helpText = `(function(){
 			let text = \`${helpFileText}\`; 
 			return text;
-		})();
-		`;
+		})();`;
 
 		let help = eval(helpText);
-
-		console.log(help);
+		process.stdout(help);
 	}
 }
 
