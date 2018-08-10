@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
 // -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
+
 const genesis = require('../lib/Genesis.js');
 const nexus = require('../lib/Nexus.js');
 const createLogger = require('../lib/Logger.js');
@@ -8,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const log = createLogger({verbose: true});
 let originalArgv;
+
 
 process.on('unhandledRejection', (reason, _promise) => {
 	process.stderr.write('\u001b[31m' + '------- [Unhandled Promise Rejection] -------' + '\u001b[39m\n');
@@ -112,6 +114,7 @@ let cli = function (argv) {
 
 		log.i(help);
 	}
+
 };
 
 	
