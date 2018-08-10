@@ -1,12 +1,11 @@
 {
 	"Sources": {
-		"Modules": "{Modules}",
-		"Core":"{Core}"
+		"Core":"{Source}"
 	},
 	"Modules": {
 		"ModuleBroker": {
-			"Module":"ModuleBroker",
-			"Source": "Modules",
+			"Module":"xGraph.ModuleBroker",
+			"Source": "Core",
 			"Par":{
 				"Modules": "System:modules",
 				"ModuleStorage": "data"
@@ -18,15 +17,15 @@
 			"Par": {
 				"Encrypt": false,
 				"Role": "Server",
-				"Port": 27000,
+				"Port": "{port}",
 				"Link": "$ModuleBroker"
 			}
 		},
 		"BrokerWebsocketProxy": {
-			"Module": "WebSocketServerProxy",
-			"Source": "Modules",
+			"Module": "xGraph.WebSocketServerProxy",
+			"Source": "Core",
 			"Par": {
-				"Port": 27002,
+				"Port": "{websocketport}",
 				"Link": "$ModuleBroker"
 			}
 		}
