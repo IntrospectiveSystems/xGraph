@@ -379,26 +379,9 @@ function genesis(__options = {}) {
 				for (let instname in Config.Modules) {
 					if (instname === 'Deferred')
 						continue;
-					let inst = Config.Modules[instname];
-					log.v(instname, JSON.stringify(inst, null, 2));
 					let pidinst = Apex[instname];
-					let ents = await compileInstance(pidinst, inst);
-					let folder = inst.Module;
-					// The following is for backword compatibility only
-					folder = folder.replace(/[/:]/g, '.');
-
-					let dirinst = Path.join(CacheDir, 'System', folder, pidinst);
-					try { fs.mkdirSync(dirinst); } catch (e) {
-						log.v(e);
-					}
-					ents.forEach(function (ent) {
-						let path = Path.join(dirinst, `${ent.Pid}.json`);
-						try {
-							// fs.writeFileSync(path, JSON.stringify(ent, null, 2));
-						} catch (e) {
-							log.v(e);
-						}
-					});
+					let inst = Config.Modules[instname];
+					await compileInstance(pidinst, inst);
 				}
 
 
@@ -831,7 +814,7 @@ function genesis(__options = {}) {
 
 							} catch (err) {
 								log.e('@system: (compileInstance) Error reading file ', path);
-								log.w(`Module ${modnam} may not operate as expected.`);
+								log.w(`Module ${inst.Module} may not operate as expected.`);
 							}
 							break;
 						}

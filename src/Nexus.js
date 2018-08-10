@@ -1030,7 +1030,8 @@ module.exports = function xGraph(__options = {}) {
 								mod.file(par.Entity).async('string')
 									.then((string) => res(string));
 							});
-							ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromModuleType(modnam));
+							ImpCache[impkey] = indirectEvalImp(entString, log,
+								createRequireFromModuleType(modnam));
 						}
 						EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
 						cacheInterface.EntIndex[par.Pid] = par.Apex;

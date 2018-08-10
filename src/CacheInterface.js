@@ -553,7 +553,7 @@ module.exports = class CacheInterface {
 						let sym = obj[key].substr(1);
 						if(sym in Local) obj[key] = Local[obj[key].substr(1)];
 						else {
-							log.e(`Local Symbol ${val} is not defined`);
+							log.e(`Local Symbol #${sym} is not defined`);
 							process.exit(1);
 						}
 					}
