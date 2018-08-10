@@ -64,9 +64,12 @@ let cli = function (argv) {
 			let xgraphArgv = [
 				'--cwd', configPath, '--cache', cachePath,
 				'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
-			await xgraph.execute(xgraphArgv);
+			let system = await xgraph.execute(xgraphArgv);
+			system.on("exit", (evt) => {
+				console.log("system finished code", evt.exitCode);
+				cleanUp();
+			});
 
-			cleanUp();
 
 			async function cleanUp() {
 				try {
@@ -80,7 +83,6 @@ let cli = function (argv) {
 			}
 
 			function remDir(path) {
-				console.log(`terminating ${path}`);
 				return (new Promise(async (resolve, reject) => {
 					if (fs.existsSync(path)) {
 						let files = fs.readdirSync(path);
@@ -95,7 +97,6 @@ let cli = function (argv) {
 									resolve2();
 								} else {
 									// delete file
-									log.v("Removing File ", files[fileIndex].split(".")[0]);
 									fs.unlinkSync(curPath);
 									resolve2();
 								}
@@ -103,11 +104,9 @@ let cli = function (argv) {
 						}
 						//make sure all the sub files and directories have been removed;
 						await Promise.all(promiseArray);
-						log.v("Removing Directory ", path);
 						fs.rmdirSync(path);
 						resolve()
 					} else {
-						log.v("trying to remove nonexistant path ", path);
 						resolve();
 					}
 				}));

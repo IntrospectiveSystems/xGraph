@@ -170,7 +170,7 @@ async function reset(Options) {
 	try {
 		state = 'production';
 		await genesis(Object.assign({ state }, Options));
-		await startNexusProcess(Options);
+		return await startNexusProcess(Options);
 	} catch (e) {
 		console.error(e);
 	}
@@ -179,7 +179,7 @@ async function reset(Options) {
 async function deploy(Options) {
 	if (Array.isArray(Options)) Options = processOptions(Options);
 	try {
-		await startNexusProcess(Options);
+		return	await startNexusProcess(Options);
 
 	} catch (e) {
 		console.error(e);
@@ -191,7 +191,7 @@ async function execute(Options) {
 	try {
 		state = 'development';
 		await genesis(Object.assign({ state }, Options));
-		await startNexusProcess(Options);
+		return await startNexusProcess(Options);
 	} catch (e) {
 		console.error(e);
 	}
@@ -228,6 +228,7 @@ async function startNexusProcess(Options) {
 
 	try {
 		await system.boot();
+		return system;
 	} catch (e) {
 		console.error(e);
 		process.exit(1);

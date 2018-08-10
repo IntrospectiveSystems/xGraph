@@ -23,8 +23,8 @@
 			}
 		},
 		"BrokerWebsocketProxy": {
-			"Module": "xGraph.WebSocketServerProxy",
-			"Source": "Core",
+			"Module": "WebSocketServerProxy",
+			"Source": "Modules",
 			"Par": {
 				"Port": 27002,
 				"Link": "$ModuleBroker"
