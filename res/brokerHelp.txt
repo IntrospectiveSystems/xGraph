@@ -1,0 +1,36 @@
+
+Broker ${version}
+Introspective Systems LLC
+
+Setup and manage xGraph Brokers with a few simple commands.
+Primary usage is for enabling module access across a network.
+
+Broker
+
+Usage: broker [command] [options]
+
+Command:
+  help         h                    : Displays this help screen.
+
+  serve        s                    : Starts an existing Broker TCP server or 
+                                      generates and starts a new one. 
+
+  add          a                    : Adds modules to the broker.
+
+
+Options:
+  --cwd                             : Sets the current working directory
+                                      for the command.
+  --loglevelsilent      --silent    : Block all logs from appearing in the
+                                      console window. Logs will still be
+                                      printed to the log file.
+  --loglevelverbose     --verbose   : Allows verbose logs to be printed to
+                                      the console window.
+  --logleveldebug                   : Allows the verbose logs and the debug
+                                      logs to be printed to the console window.
+
+
+Examples:
+  broker serve 
+
+  broker add --path "/PATH/TO/MODULE"

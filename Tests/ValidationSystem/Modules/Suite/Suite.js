@@ -30,14 +30,15 @@
 
 		StartCommand(com, fun) {
 			this.Vlt.StartCalled = true;
-			log.v('Verbose log');
 			log.d('Debug log');
+			log.v('Verbose log');
 			log.i('Information log');
 			log.w('Warning log');
 			log.e('Error log');
 
-			if (this.Par.Pid == this.Par.Apex)
+			if (this.Par.Pid == this.Par.Apex) {
 				this.send(com, this.Par.B, fun);
+			}
 			else 
 				fun(null, com);
 		}
@@ -114,7 +115,7 @@
 
 		Require(com, fun) {
 			try {
-				let async = this.require('async');
+				let async = require('async');
 				com.ModuleLoaded = true;
 				fun(null, com);
 			}catch(e) {
