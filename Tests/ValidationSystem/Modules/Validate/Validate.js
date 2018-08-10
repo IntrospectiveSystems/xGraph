@@ -1,14 +1,19 @@
 (
 	/**
-	 * The Validate entity is the Apex and only entity of the Validate Module. This entity requires its Start function to be invoked during the Start phase of Nexus startup.
+	 * The Validate entity is the Apex and only entity of
+	 * the Validate Module. This entity requires its Start
+	 * function to be invoked during the Start phase of
+	 * Nexus startup.
 	 * 
-	 * The main capability of this entity is to GenModule the module being tested and then perform the tests laid out it the test.json file. 
+	 * The main capability of this entity is to GenModule
+	 * the module being tested and then perform the tests
+	 * laid out it the test.json file.
 	 */
 	function Validate() {
 
-		var dispatch = {
+		let dispatch = {
 			Start: Start,
-			"*": DummyCatch
+			'*': DummyCatch
 		};
 
 		return {
@@ -16,7 +21,8 @@
 		};
 
 		/**
-		 * The only required function of the Validate module. This function genModules the Module being tested 
+		 * The only required function of the Validate module.
+		 * This function genModules the Module being tested 
 		 * then carries out the tests.
 		 * @param {Object} com the command object
 		 * @param {Function} fun callback
@@ -26,7 +32,8 @@
 			//save context for use in fs readfile subcontext
 			let that = this;
 
-			// function for seting the appropriate pid references in  cmds and genmodule
+			// function for seting the appropriate pid
+			// references in  cmds and genmodule
 			const setPid = (val) => {
 				if (val === null) return null;
 				if (typeof val === 'object') {
@@ -51,16 +58,16 @@
 			//To run the tests
 			const RunTests = async _ => {
 				let Results = [];
-				log.i("\n\n\nBeginning the tests.");
-				log.v(that.Vlt.Test.Cases.length + " Tests");
+				log.i('\n\n\nBeginning the tests.');
+				log.v(that.Vlt.Test.Cases.length + ' Tests');
 				for (let tidx = 0; tidx < that.Vlt.Test.Cases.length; tidx++) {
 					log.v(`Performing test ${tidx + 1}`);
 					let test = that.Vlt.Test.Cases[tidx];
-					await new Promise((resolve, reject) => {
-						if (test.Command.Cmd == "Setup" || test.Command.Cmd == "Start") {
+					await new Promise((resolve, _reject) => {
+						if (test.Command.Cmd == 'Setup' || test.Command.Cmd == 'Start') {
 							let bMatch = true;
-							let message, keys, key, hash, hashStash = [], msgIdx;
-							if ("SentMessages" in test) {
+							let _message, _keys, _key, hash, hashStash = [], msgIdx;
+							if ('SentMessages' in test) {
 								for (msgIdx = 0; msgIdx < test.SentMessages.length; msgIdx++) {
 									hash = MD5(JSON.stringify(test.SentMessages[msgIdx]));
 									hashStash.push(hash);
@@ -101,11 +108,13 @@
 
 							Results.push(result);
 
-							//we need a way to differentiate the SentMessages object between setup and start runs.
-							//Since we are not doing this currently a fail during setup will
-							//propagate and fail Start.
+							// we need a way to differentiate the
+							// SentMessages object between setup and start runs.
+							// Since we are not doing this currently a fail during
+							// setup will
+							// propagate and fail Start.
 
-							//that.Vlt.SentMessages = {};
+							// that.Vlt.SentMessages = {};
 
 							resolve();
 							return;
@@ -119,18 +128,18 @@
 							clearTimeout(timer);
 							let bMatch = true;
 							if(err === 'TIMEOUT') {
-								log.w(`Test command timed out. if this command just takes a while,`);
-								log.w(`provide a longer timeout in the test.json`);
+								log.w('Test command timed out. if this command just takes a while,');
+								log.w('provide a longer timeout in the test.json');
 								bMatch = false;
 								resolve();
 							}
 							if(err != null) {
-								log.w(`Test returned an error`);
+								log.w('Test returned an error');
 								log.w(err);
 								bMatch = false;
 								resolve();
 							}
-							let keys, key, hash, hashStash = [], msgIdx;
+							let keys, _key, hash, hashStash = [], msgIdx;
 
 							//check for a binary match with the test.json test callback
 							if ('Response' in test) {
@@ -139,35 +148,36 @@
 
 								parseObject(test.Response, returnedCommand);
 
-								function parseObject(ob, ret) {
-									keys = Object.keys(ob);
-									for (let i = 0; i < keys.length; i++) {
-										let key = keys[i];
+							}
+							function parseObject(ob, ret) {
+								keys = Object.keys(ob);
+								for (let i = 0; i < keys.length; i++) {
+									let key = keys[i];
 
-										if (typeof ob[key] === 'object' && ob[key] !== null) {
-											log.v(`Recursive check on key ${key}`);
-											if (!(key in ret)) {
-												bMatch = false;
-												return;
-											}
-											parseObject(ob[key], ret[key]);
-											return;
-										}
-										///fail if either the values are not equal, 
-										///or the value is "*" and key is in the returned command 
-										if ((ob[key] !== ret[key])
-											&& !((ob[key] == "*") && (key in ret))) {
+									if (typeof ob[key] === 'object' && ob[key] !== null) {
+										log.v(`Recursive check on key ${key}`);
+										if (!(key in ret)) {
 											bMatch = false;
 											return;
 										}
+										parseObject(ob[key], ret[key]);
+										return;
+									}
+									///fail if either the values are not equal, 
+									///or the value is "*" and key is in the returned command 
+									if ((ob[key] !== ret[key])
+										&& !((ob[key] == '*') && (key in ret))) {
+										bMatch = false;
+										return;
 									}
 								}
 							}
 
-							if ("SentMessages" in test) {
+							if ('SentMessages' in test) {
 								for (msgIdx = 0; msgIdx < test.SentMessages.length; msgIdx++) {
 									hash = MD5(JSON.stringify(test.SentMessages[msgIdx]));
-									hashStash.push(hash); Response
+									hashStash.push(hash);
+									Response;
 									if (hash in that.Vlt.SentMessages)
 										that.Vlt.SentMessages[hash]--;
 									else {
@@ -199,17 +209,21 @@
 				let fails = 0;
 
 				let maxKeyLength = 0;
-				for (let key in Results) maxKeyLength = Math.max(maxKeyLength, (Object.keys(Results[key])[0]).length);
+				for (let key in Results) {
+					maxKeyLength = Math.max(maxKeyLength, (Object.keys(Results[key])[0]).length);
+				}
 
 				for (let key in Results) {
 					let keys = Object.keys(Results[key]);
 					let formattedKey = (Array(maxKeyLength).join(' ') + keys[0]).substr(-maxKeyLength);
-					log.i(formattedKey + ': ' + (Results[key][keys[0]] ? "\u2713 Pass" : (typeof document != 'undefined') ? "\u2715 Fail" : "\u001b[31m\u2715 Fail"));
+					log.i(formattedKey + ': ' + (Results[key][keys[0]] ? 
+						'\u2713 Pass' : (typeof document != 'undefined') ?
+							'\u2715 Fail' : '\u001b[31m\u2715 Fail'));
 					if (!Results[key][keys[0]])
 						fails++;
 				}
 				if (fails == 0) {
-					log.v("\n\nAll tests Passed!");
+					log.v('\n\nAll tests Passed!');
 					process.exit(0);
 				}
 				else {
@@ -220,6 +234,7 @@
 
 
 			//load the test.json file
+			log.w(that.Par)
 			that.Vlt.Test = setPid(JSON.parse(that.Par.TestJson));
 
 			//build the module inst from test.json required state
@@ -251,16 +266,16 @@
 
 			inst.Par = Macro(inst.Par);
 
-			log.v("Callig genMod on ", JSON.stringify(inst, null, 2));
+			log.v('Callig genMod on ', JSON.stringify(inst, null, 2));
 			//instantiate the module
 			//this calls setup and start in the instance
 			that.genModule(inst, (err, instApex) => {
 				that.Vlt.InstModule = instApex;
 				that.Vlt.Test = setPid(that.Vlt.Test);
-				log.v("Test Json is :", JSON.stringify(that.Vlt.Test, null, 2));
-				if (typeof document != "undefined") {
+				log.v('Test Json is :', JSON.stringify(that.Vlt.Test, null, 2));
+				if (typeof document != 'undefined') {
 
-					inst.Module = "xGraph.RootView";
+					inst.Module = 'xGraph.RootView';
 					inst.Par = {
 						Layout: instApex
 					};
@@ -283,7 +298,7 @@
 		function DummyCatch(com, fun) {
 			if (!this.Vlt.SentMessages)
 				this.Vlt.SentMessages = {};
-			if ("Passport" in com)
+			if ('Passport' in com)
 				delete com.Passport;
 			log.v(`${this.Par.TestModule} sent ${JSON.stringify(com, null, 2)}`);
 
