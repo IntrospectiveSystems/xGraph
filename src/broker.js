@@ -48,8 +48,13 @@ let cli = function (argv) {
 		let cachePath = path.join(process.cwd(), '.broker');
 
 		let xgraphArgv = [
-			'--cwd', configPath, '--cache', cachePath,
-			'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
+			'--cwd', configPath, '--cache', cachePath].concat(argv.slice(3));
+
+		if (xgraphArgv.indexOf('--port') == -1) xgraphArgv.push('--port', '27000');
+		if (xgraphArgv.indexOf('--websocketport') == -1) xgraphArgv.push('--websocketport', '27002');
+		if (xgraphArgv.indexOf('--source') == -1)
+			xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
+
 		await xgraph.execute(xgraphArgv);
 	}
 
@@ -62,8 +67,14 @@ let cli = function (argv) {
 			let cachePath = path.join(tempPath, 'cache');
 
 			let xgraphArgv = [
-				'--cwd', configPath, '--cache', cachePath,
-				'--core', 'mb://modulebroker.xgraphdev.com'].concat(argv.slice(3));
+				'--cwd', configPath, '--cache', cachePath].concat(argv.slice(3));
+			if (xgraphArgv.indexOf('--path') == -1 && fs.existsSync(xgraphArgv[4]))
+				xgraphArgv.splice(4, 0, '--path');
+			if (xgraphArgv.indexOf('--host') == -1) xgraphArgv.push('--host', 'localhost');
+			if (xgraphArgv.indexOf('--port') == -1) xgraphArgv.push('--port', '27000');
+			if (xgraphArgv.indexOf('--source') == -1)
+				xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
+
 			let system = await xgraph.execute(xgraphArgv);
 			system.on('exit', (evt) => {
 				console.log('system finished code', evt.exitCode);
@@ -116,7 +127,7 @@ let cli = function (argv) {
 
 
 	function notImplemented() {
-		console.log(`Broker: "broker ${cmd}" is not yet implemented`);
+		console.log(`Broker: 'broker ${cmd}' is not yet implemented`);
 	}
 
 
