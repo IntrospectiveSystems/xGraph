@@ -107,11 +107,7 @@ switch(process.platform) {
 		console.log(`Linux:      ${linux}`);
 		console.log(`Unix:       ${unix}`);
 
-		// figure out the platform specific path of the standalone, for later use
-		if(mac) binfolder = 'mac';
-		if(windows) binfolder = 'windows';
-		if(windows) extension = '.exe';
-		let npmxgraph = path.resolve('./node_modules/.bin/xgraph' + (windows ? '.cmd' : ''));
+		let npmxgraph = path.resolve("./node_modules/.bin/xgraph" + (windows ? '.cmd' : ''));
 
 		// build npm version
 		await exec(`${npmxgraph} -v`, true);

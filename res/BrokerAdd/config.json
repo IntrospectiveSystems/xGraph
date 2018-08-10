@@ -1,0 +1,26 @@
+{
+	"Sources": {
+		"Modules": "{Modules}",
+		"Core":"{Core}"
+	},
+	"Modules": {
+		"ModuleBroker": {
+			"Module":"LocalModuleImporter",
+			"Source": "Modules",
+			"Par":{
+				"ModuleBroker": "$BrokerProxy",
+				"ModulePath": "{path}"
+			}
+		},
+		"BrokerProxy": {
+			"Module": "xGraph.Proxy",
+			"Source": "Core",
+			"Par": {
+				"Encrypt": false,
+				"Role": "client",
+				"Port": 27000,
+				"Link": "$ModuleBroker"
+			}
+		}
+	}
+}

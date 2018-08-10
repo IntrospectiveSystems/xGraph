@@ -18,7 +18,8 @@
     "url": "https://github.com/IntrospectiveSystems/xGraph/issues"
   },
   "bin": {
-    "xgraph": "./src/xgraph.js"
+    "xgraph": "./src/xgraph.js",
+    "broker": "./src/broker.js"
   },
   "homepage": "https://github.com/IntrospectiveSystems/xGraph#readme",
   "license": "AGPL-3.0",
@@ -28,7 +29,9 @@
     "strip-comments": "1.0.2",
     "uuid": "3.2.1",
     "tmp": "0.0.33",
-    "tree-directory": "0.1.0"
+    "minimist": "1.2.0",
+    "tree-directory": "0.1.0",
+    "volatile": "7.0.1"
   },
   "devDependencies": {
     "eslint": "5.1.0"
