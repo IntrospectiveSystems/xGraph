@@ -20,7 +20,7 @@ module.exports = class CacheInterface {
 		let backupLog = {
 			d:_=>_,v:_=>_,i:_=>_,w:_=>_,e:_=>_
 		};
-		let log = this.log = {
+		this.log = {
 			v: (..._) => {
 				(__options.log || backupLog).v('[CACHE]', ..._);
 			},
@@ -67,7 +67,6 @@ module.exports = class CacheInterface {
 	 * @param {string} path the directory to be recursively removed
 	 */
 	remDir(path) {
-		let log = this.log;
 		let files = [];
 		if (fs.existsSync(path)) {
 			files = fs.readdirSync(path);
@@ -125,7 +124,6 @@ module.exports = class CacheInterface {
 	}
 
 	delete() {
-		let log = this.log;
 		let __options = this.__options;
 		if (fs.existsSync(__options.path)) {
 			// log.i(__options.path);
@@ -239,6 +237,7 @@ module.exports = class CacheInterface {
 					//call npm install on a childprocess of node
 					let npmCommand = (process.platform === 'win32' ? 'npm.cmd' : 'npm');
 
+
 					let npmInstallProcess = spawn(npmCommand, [
 						'install'
 					], {
@@ -272,6 +271,8 @@ module.exports = class CacheInterface {
 						resolve();
 					});
 				});
+
+				
 			} catch (e) {
 				log.e(e);
 				log.e(e.stack);
@@ -495,7 +496,6 @@ module.exports = class CacheInterface {
 
 	loadDependency(moduleType, moduleName) {
 		let log = this.log;
-		log.w('cacheinterface require', moduleType, moduleName);
 		let __options = this.__options;
 		let version = this._version;
 		let nodeModulesPath;
@@ -504,16 +504,19 @@ module.exports = class CacheInterface {
 		} else {
 			nodeModulesPath = Path.join(__options.path, 'Lib', moduleType, 'node_modules');
 		}
-		log.w(nodeModulesPath);
 
 		try {
 			return require(moduleName);
 		} catch (e) {
+			let thingy = Path.join(nodeModulesPath, moduleName);
 			try {
-				let thingy = Path.join(nodeModulesPath, moduleName);
-				log.w(thingy.split('\\').join('\n> '));
 				return require(thingy);
 			} catch (e) {
+				log.v(fs.existsSync(nodeModulesPath));
+				log.v(fs.existsSync(thingy));
+				log.v(fs.readdirSync(nodeModulesPath));
+				log.v(moduleType, moduleName);
+				log.v(nodeModulesPath.split(Path.sep).join('\n> '));
 				log.e(`error loading ${moduleName}`);
 				log.e(e);
 				process.exit(1);
@@ -547,7 +550,12 @@ module.exports = class CacheInterface {
 			for (let key in obj) {
 				if (typeof obj[key] == 'string') {
 					if(obj[key].startsWith('#')) {
-						obj[key] = Local[obj[key].substr(1)];
+						let sym = obj[key].substr(1);
+						if(sym in Local) obj[key] = Local[obj[key].substr(1)];
+						else {
+							log.e(`Local Symbol ${val} is not defined`);
+							process.exit(1);
+						}
 					}
 				}
 				else if (typeof obj[key] == 'object') obj[key] = parseMacros(obj[key]);
@@ -610,7 +618,6 @@ module.exports = class CacheInterface {
 			// log.w(entIndex);
 			let ent = schema[entIndex];
 			if(entIndex === 'Apex') {
-				log.w('EY');
 				for(let key in inst.Par) {
 					ent[key] = inst.Par[key];
 				}

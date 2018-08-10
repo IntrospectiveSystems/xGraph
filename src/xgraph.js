@@ -45,7 +45,7 @@ let cli = function (argv) {
 	let flags = {};
 
 	processSwitches();
-	const log = {} //createLogger(Object.assign({verbose: true}));
+	const log = createLogger({verbose: true});
 
 	switch (args[0]) {
 		case 'x':

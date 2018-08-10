@@ -114,11 +114,8 @@
 		}
 
 		Require(com, fun) {
-			debugger;
-			log2;
-			require2;
 			try {
-				let async = require2('async');
+				let async = require('async');
 				com.ModuleLoaded = true;
 				fun(null, com);
 			}catch(e) {

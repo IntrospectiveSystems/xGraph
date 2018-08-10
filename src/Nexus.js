@@ -55,15 +55,15 @@ module.exports = function xGraph(__options = {}) {
 			}
 
 			function createRequireFromContext(context) {
-				cacheInterface.loadDependency.bind(process, cacheInterface.ApexIndex[context.Par.Apex]);
+				return cacheInterface.loadDependency.bind(cacheInterface,
+					cacheInterface.ApexIndex[context.Par.Apex]);
 			}
 
 			function createRequireFromModuleType(modtype) {
-				cacheInterface.loadDependency.bind(process, modtype);
+				return cacheInterface.loadDependency.bind(cacheInterface, modtype);
 			}
 
 			function indirectEvalImp(entString, ...injections) {
-
 				let _eval = _ => {
 					// log.w(_)
 					return (1,eval)(_);
@@ -72,13 +72,12 @@ module.exports = function xGraph(__options = {}) {
 				//sanitize entString!
 				entString = stripComments(entString).trim();
 
-				let container = `(function(log2, require2) {
-					
+				let container = `(function(log, require) {
 					return ${entString}
 				})`;
 				let imp = _eval(container);
+				// imp = imp(...injections);
 				imp = imp(...injections);
-				log.w(typeof imp, 'dispatch' in imp);
 
 				if(typeof imp === 'function') {
 					imp = { dispatch: imp.prototype };
@@ -600,8 +599,6 @@ module.exports = function xGraph(__options = {}) {
 					fun('Null entity');
 					return;
 				}
-				log.w('h e y o');
-				log.w(impkey in ImpCache, impkey, ImpCache);
 
 				if (!(impkey in ImpCache)) {
 					let entString = await new Promise(async (res, _rej) => {
@@ -609,15 +606,12 @@ module.exports = function xGraph(__options = {}) {
 					});
 					ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromContext(this));
 				}
-				log.w('h e y o');
 
 				par.Pid = par.Pid || genPid();
 				par.Module = cacheInterface.ApexIndex[apx];
 				par.Apex = apx;
-				log.w('h e y o');
 
 				EntCache[par.Pid] = new Entity(Nxs, ImpCache[impkey], par);
-				log.w('h e y o');
 				fun(null, par.Pid);
 			}
 
@@ -780,7 +774,7 @@ module.exports = function xGraph(__options = {}) {
 
 						log.v(`Spinning up entity ${par.Module}-${par.Entity.split('.')[0]}`);
 						ImpCache[impkey] = indirectEvalImp(entString, log, 
-							createRequireFromModuleType(data.moduleType));
+							createRequireFromModuleType(par.Module));
 						BuildEnt();
 					});
 
@@ -1033,7 +1027,8 @@ module.exports = function xGraph(__options = {}) {
 						let impkey = modnam + par.Entity;
 						if (!(impkey in ImpCache)) {
 							let entString = await new Promise(async (res, _rej) => {
-								mod.file(par.Entity).async('string').then((string) => res(string));
+								mod.file(par.Entity).async('string')
+									.then((string) => res(string));
 							});
 							ImpCache[impkey] = indirectEvalImp(entString, log, createRequireFromModuleType(modnam));
 						}

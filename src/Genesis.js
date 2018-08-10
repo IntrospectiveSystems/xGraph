@@ -332,14 +332,18 @@ function genesis(__options = {}) {
 
 						log.v(`Requesting ${modrequest.Module} from ${(typeof modrequest.Source == 'object') ?
 							`\n${JSON.stringify(modrequest.Source, null, 2)}` : modrequest.Source}`);
-						GetModule(modrequest, function (err, mod) {
+						GetModule(modrequest, async function (err, mod) {
 							if (err) {
 								log.w(`Failed to retreive ${folder}`);
 								log.e(err);
 								rej(err);
 								reject(err);
 							} else {
-								cacheInterface.addModule(folder, mod, _ => {});
+								await new Promise(res => {
+									cacheInterface.addModule(folder, mod, _ => {
+										res();
+									});
+								});
 								log.v(`Successfully retrieved ${folder}`);
 								res(ModCache[folder] = mod);
 							}
@@ -604,12 +608,12 @@ function genesis(__options = {}) {
 					});
 					
 					// show its tree
-					// log.v(tree.sync(cachePath, '**/*'));
+					log.v(tree.sync(cachePath, '**/*'));
 
 					// 
 					let system = new nexus({
 						cache: cachePath,
-						silent: true
+						// silent: true
 					});
 
 					log.v('Booting Module Retrieval Subsystem');
@@ -853,19 +857,14 @@ function genesis(__options = {}) {
 				if (typeof val !== 'string')
 					return val;
 				let sym = val.substr(1);
-				if (val.charAt(0) === '$')
+				if (val.charAt(0) === '$') {
 					if(sym in Apex) return Apex[sym];
 					else {
 						log.v(sym, Apex);
 						log.e(`Symbol ${val} is not defined`);
 						process.exit(1);
 					}
-				if (val.charAt(0) === '#')
-					if(sym in Local) return Local[sym];
-					else {
-						log.e(`Local Symbol ${val} is not defined`);
-						process.exit(1);
-					}
+				}
 				if (val.charAt(0) === '\\')
 					return sym;
 				if (val.charAt(0) === '@') {
@@ -893,7 +892,7 @@ function genesis(__options = {}) {
 								return fs.readFileSync(path).toString(encoding);
 							} catch (err) {
 								log.e('@file: (compileInstance) Error reading file ', path);
-								log.w(`Module ${modnam} may not operate as expected.`);
+								log.w(`Module ${inst.Module} may not operate as expected.`);
 							}
 							break;
 						}
@@ -913,12 +912,13 @@ function genesis(__options = {}) {
 								return _return;
 							} catch (err) {
 								log.e('Error reading directory ', dir);
-								log.w(`Module ${modnam} may not operate as expected.`);
+								log.w(`Module ${inst.Module} may not operate as expected.`);
 							}
 							break;
 						}
 						default: {
-							log.w(`Key ${key} not defined. Module ${modnam} may not operate as expected.`);
+							log.w(`Key ${key} not defined.`
+								+ `Module ${inst.Module} may not operate as expected.`);
 						}
 					}
 				}
