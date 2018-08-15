@@ -1,6 +1,6 @@
 {
 	"Sources": {
-		"Core":"{Source}"
+		"Core":"{source}"
 	},
 	"Modules": {
 		"ModuleBroker": {
