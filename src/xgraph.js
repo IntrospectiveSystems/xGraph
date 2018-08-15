@@ -112,7 +112,7 @@ let cli = function (argv) {
 
 		let help = eval(helpText);
 
-		log.i(help);
+		process.stdout.write(help);
 	}
 
 };
@@ -123,35 +123,6 @@ function processOptions(arguments) {
 
 	//clean the options and make sure that lowercase versions of all keys are available
 	for (let key in options) options[key.toLowerCase()] = options[key];
-
-	let windows, mac, linux, unix, system;
-	switch (process.platform) {
-		case 'win32': {
-			system = 'windows';
-			windows = true;
-			unix = linux = mac = false;
-			break;
-		}
-		case 'darwin': {
-			system = 'macOS';
-			windows = linux = false;
-			unix = mac = true;
-			break;
-		}
-		case 'linux': {
-			system = 'linux';
-			linux = unix = true;
-			mac = windows = false;
-			break;
-		}
-		default: {
-			// arbitrary unix system
-			system = 'unix';
-			unix = true;
-			linux = mac = windows = false;
-			break;
-		}
-	}
 
 	// format cwd
 	if ('cwd' in options && (typeof options.cwd === 'string')) {
@@ -474,12 +445,12 @@ function initModule(names, Options) {
 				fs.writeFileSync(path.join(modulePath, 'module.json'),
 					JSON.stringify(moduleJson, null, '\t'));
 				fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
-				console.log('Module generated at: ' + modulePath);
+				log.i('Module generated at: ' + modulePath);
 			} catch (e) {
 				'';
 			}
 		} else {
-			console.log('No module generated. Module already exists: ' + modulePath);
+			log.w('No module generated. Module already exists: ' + modulePath);
 		}
 	}
 }
