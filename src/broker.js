@@ -7,6 +7,8 @@ let cli = function (argv) {
 	const path = require('path');
 	const fs = require('fs');
 	const xgraph = require('../src/xgraph.js');
+	const createLogger = require('../lib/Logger.js');
+	const log = createLogger({verbose: true});
 
 	if (argv.length == 2) argv[2] = 'help';
 	let cmd = argv[2];
@@ -37,7 +39,7 @@ let cli = function (argv) {
 			break;
 		}
 		default: {
-			console.log(`Broker: Unknown command <${cmd}>`);
+			log.w(`Broker: Unknown command <${cmd}>`);
 			help();
 			break;
 		}
@@ -77,7 +79,7 @@ let cli = function (argv) {
 
 			let system = await xgraph.execute(xgraphArgv);
 			system.on('exit', (evt) => {
-				console.log('system finished code', evt.exitCode);
+				log.i('system finished code', evt.exitCode);
 				cleanUp();
 			});
 
@@ -94,13 +96,13 @@ let cli = function (argv) {
 			}
 
 			function remDir(path) {
-				return (new Promise(async (resolve, reject) => {
+				return (new Promise(async (resolve) => {
 					if (fs.existsSync(path)) {
 						let files = fs.readdirSync(path);
 						let promiseArray = [];
 
 						for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
-							promiseArray.push(new Promise(async (resolve2, reject2) => {
+							promiseArray.push(new Promise(async (resolve2) => {
 								let curPath = path + '/' + files[fileIndex];
 								if (fs.lstatSync(curPath).isDirectory()) {
 									// recurse
@@ -127,7 +129,7 @@ let cli = function (argv) {
 
 
 	function notImplemented() {
-		console.log(`Broker: 'broker ${cmd}' is not yet implemented`);
+		log.w(`Broker: 'broker ${cmd}' is not yet implemented`);
 	}
 
 
@@ -136,12 +138,13 @@ let cli = function (argv) {
 		let helpFileText = fs.readFileSync(helpFile);
 
 		let helpText = `(function(){
+			let version = '${version}';
 			let text = \`${helpFileText}\`; 
 			return text;
 		})();`;
 
 		let help = eval(helpText);
-		process.stdout(help);
+		process.stdout.write(help);
 	}
 };
 
