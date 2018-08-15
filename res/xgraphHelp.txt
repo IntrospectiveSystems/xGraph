@@ -62,3 +62,4 @@ Examples:
 
   Generate a new module called MyFirstModule.
       graph generate module MyFirstModule
+

@@ -34,3 +34,4 @@ Examples:
   broker serve 
 
   broker add --path "/PATH/TO/MODULE"
+
