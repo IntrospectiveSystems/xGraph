@@ -159,7 +159,8 @@ async function reset(Options) {
 		await genesis(Object.assign({ state: 'production' }, Options));
 		return await startNexusProcess(Options);
 	} catch (e) {
-		log.e(e);
+		log.e('xgraph failed with error: ', e);
+		process.exit(1);
 	}
 }
 
@@ -169,7 +170,8 @@ async function deploy(Options) {
 		return	await startNexusProcess(Options);
 
 	} catch (e) {
-		log.e(e);
+		log.e('xgraph failed with error: ', e);
+		process.exit(1);
 	}
 }
 
@@ -179,7 +181,8 @@ async function execute(Options) {
 		await genesis(Object.assign({ state: 'development' }, Options));
 		return await startNexusProcess(Options);
 	} catch (e) {
-		log.e(e);
+		log.e('xgraph failed with error: ', e);
+		process.exit(1);
 	}
 }
 
@@ -188,7 +191,8 @@ async function compile(Options) {
 	try {
 		await genesis(Object.assign({ state: 'production' }, Options));
 	} catch (e) {
-		log.e(e);
+		log.e('xgraph failed with error: ', e);
+		process.exit(1);
 	}
 }
 
@@ -215,7 +219,7 @@ async function startNexusProcess(Options) {
 		await system.boot();
 		return system;
 	} catch (e) {
-		log.e(e);
+		log.e('xgraph failed with error: ', e);
 		process.exit(1);
 	}
 }
