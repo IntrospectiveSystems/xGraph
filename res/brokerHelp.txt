@@ -28,10 +28,16 @@ Options:
                                       the console window.
   --logleveldebug                   : Allows the verbose logs and the debug
                                       logs to be printed to the console window.
+  --path                            : Sets the path of the module directory
+                                      to zip and add to the broker.
+  --host                            : Set the host of the broker we will add 
+                                      the module to.
 
 
 Examples:
   broker serve 
 
   broker add --path "/PATH/TO/MODULE"
+
+  broker add --path ./ --host modulebroker.xgraphdev.com
 
