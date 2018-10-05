@@ -104,7 +104,7 @@ Examples:
       xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
 
   Generate a new module called MyFirstModule.
-      graph generate module MyFirstModule
+      xgraph generate module MyFirstModule
 ```
 
 
