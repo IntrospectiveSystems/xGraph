@@ -94,7 +94,7 @@ Options:
                                       logs to be printed to the console window.
 
 Examples:
-  Compile the system in the current directory.
+  Compile the system (config.json) in the current directory.
       xgraph compile
 
   Deploy a module from a system structure file.
@@ -104,7 +104,7 @@ Examples:
       xgraph reset --cwd ./MultipleSystemsTemplate/Systems/Plexus/ --xGraph ../xGraph
 
   Generate a new module called MyFirstModule.
-      graph generate module MyFirstModule
+      xgraph generate module MyFirstModule
 ```
 
 
