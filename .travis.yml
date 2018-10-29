@@ -4,3 +4,7 @@ node_js:
   - "10.12.0"
 notifications:
   slack: introspectivesystems:mSWTeMLcLQqiHWc2jOITWK0P
+os:
+  - windows
+  - linux
+  - osx
