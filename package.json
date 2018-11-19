@@ -7,6 +7,7 @@
     "build": "cd build && npm run build",
     "test": "npm install && cd Tests && npm install && node test.js && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
     "qa": "npm install && cd Tests && node test.js --fast && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
+    "qad": "npm install && cd Tests && node test.js --fast --debug && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
     "lint": "eslint src/*.js --fix"
   },
   "repository": {
