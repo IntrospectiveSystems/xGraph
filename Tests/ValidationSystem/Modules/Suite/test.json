@@ -14,6 +14,14 @@
 		},
 		{
 			"Command": {
+				"Cmd": "Dispatch"
+			},
+			"Response": {
+				"Cmd": "Dispatch"
+			}
+		},
+		{
+			"Command": {
 				"Cmd": "SendModule"
 			},
 			"Response": {

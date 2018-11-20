@@ -8,6 +8,15 @@
 			} catch(e) {}
 		}
 
+		Dispatch(com, fun) {
+			try{
+				this.dispatch({Cmd: 'Ping'}, (err, cmd) => {
+					if(err) return;
+					fun(err, com);
+				});
+			} catch(e) {}
+		}
+
 		SendModule(com, fun) {
 			try{
 				this.send({Cmd: 'Ping'}, this.Par.PingLink, (err, cmd) => {
