@@ -106,6 +106,15 @@
 				"Cmd": "TestGennedEntity",
 				"Passed": true
 			}
+		},
+		{
+			"Command": {
+				"Cmd": "TestGetFile"
+			},
+			"Response": {
+				"Cmd": "TestGetFile",
+				"Passed": true
+			}
 		}
 	]
 }

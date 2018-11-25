@@ -160,6 +160,17 @@
 				}
 			} catch(e) {}
 		}
+
+		async TestGetFile(com, fun) {
+			await new Promise(resolve => {
+				this.getFile("TestFile.txt", (err, dat) => {
+					if (err) return fun(null, com);
+					if(dat == 'asdfghjkl') com.Passed = true;
+					resolve();
+				});
+			});
+			fun(null, com);
+		}
 	}
 
 	return {dispatch: Suite.prototype};
