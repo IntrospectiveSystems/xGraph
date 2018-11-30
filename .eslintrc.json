@@ -19,6 +19,9 @@
 		"ecmaVersion": 8
 	},
 	"rules": {
+		"no-empty": [
+			1
+		],
 		"no-var": [
 			"error"
 		],

@@ -16,6 +16,11 @@
 				}
 			}
 		},
+		"Ping": {
+			"Module": "Suite",
+			"Source": "local",
+			"Par": {}
+		},
 		"Pong": {
 			"Module": "Suite",
 			"Source": "local",

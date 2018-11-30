@@ -3,8 +3,9 @@ const xgraph = require('xgraph');
 const { spawn, execSync } = require('child_process');
 const which = require('which');
 const fs = require('fs');
-const rimraf = require('rmdir-recursive').sync
+const rimraf = require('rmdir-recursive').sync;
 const fast = process.argv.indexOf('--fast') > -1;
+const debug = process.argv.indexOf('--debug') > -1;
 const full = !fast;
 
 function exec(cmd, checkLength = false) {
@@ -20,7 +21,7 @@ function exec(cmd, checkLength = false) {
 		}
 
 		//elsewise, lets parse this command out
-		let command = cmd.split(' ')[0]
+		let command = cmd.split(' ')[0];
 		let args = cmd.split(' ').slice(1);
 		let hasOutput = false;
 
@@ -35,7 +36,7 @@ function exec(cmd, checkLength = false) {
 				which(command, (err, path) => {
 					if(err) resolve(command);
 					// and resolve to the path is returns.
-					else resolve(path)
+					else resolve(path);
 				});
 			}
 		});
@@ -49,7 +50,7 @@ function exec(cmd, checkLength = false) {
 				// if we get anything of substance back, remember that!
 				hasOutput = true;
 			}
-			process.stdout.write(data.toString())
+			process.stdout.write(data.toString());
 		});
 		proc.stderr.on('data', (data) => process.stderr.write(data.toString()));
 
@@ -107,10 +108,13 @@ switch(process.platform) {
 		console.log(`Linux:      ${linux}`);
 		console.log(`Unix:       ${unix}`);
 
-		let npmxgraph = path.resolve("./node_modules/.bin/xgraph" + (windows ? '.cmd' : ''));
+		let npmxgraph = path.resolve('./node_modules/.bin/xgraph' + (windows ? '.cmd' : ''));
+		if(debug) {
+			npmxgraph = 'node --inspect-brk=52310 ' + path.resolve('./node_modules/xgraph/src/xgraph.js');
+		}
 
 		// build npm version
-		await exec(`${npmxgraph} -v`, true);
+		if(full) await exec(`${npmxgraph} -v`, true);
 
 		// run tests on npm version
 		await exec(`${npmxgraph} r --CWD ValidationSystem --verbose --local ./ValidationSystem/Modules`, true);
@@ -130,4 +134,4 @@ switch(process.platform) {
 		process.exit(1);
 	}
 
-})()
+})();
