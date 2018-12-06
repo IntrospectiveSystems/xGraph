@@ -64,7 +64,6 @@ function exec(cmd, checkLength = false) {
 		// when it exits, validate its a zero, and we've had output...
 		// then resolve this exec call.
 		proc.on('close', (code) => {
-			console.log('asdf');
 			if(code != 0) process.exit(code);
 			// if(!hasOutput) process.exit(1);
 			exec.proc = null;

@@ -168,7 +168,7 @@ class Suite{
 		await new Promise(resolve => {
 			this.getFile("TestFile.txt", (err, dat) => {
 				if (err) return fun(null, com);
-				if(dat == 'asdfghjkl') com.Passed = true;
+				if(dat == 'TestData') com.Passed = true;
 				resolve();
 			});
 		});
