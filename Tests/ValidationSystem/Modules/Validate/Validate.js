@@ -248,7 +248,7 @@
 						fails++;
 				}
 				if (fails == 0) {
-					log.v('\n\nAll tests Passed!');
+					log.v('All tests Passed!');
 					process.exit(0);
 				}
 				else {
