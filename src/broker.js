@@ -87,9 +87,9 @@ let cli = function (argv) {
 			async function cleanUp() {
 				try {
 					await remDir(cachePath);
-					log.d('tmp directory cleaned');
+					// log.d('tmp directory cleaned');
 					cleanupCallback();
-					log.d('tmp directory removed');
+					// log.d('tmp directory removed');
 				} catch (error) {
 					log.w('Error cleaning or removing tmp directory:\n\t', error);
 				}
