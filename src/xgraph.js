@@ -19,7 +19,10 @@ process.on('unhandledRejection', (reason, promise) => {
 
 let cli = function (argv) {
 	originalArgv = argv.slice(0);
+
+	//remove reference to node and xgraph
 	argv = argv.slice(2);
+
 	if (argv.length == 0) argv[0] = 'help';
 	let subcommand = argv[0];
 	let _cwd = (process.cwd());
@@ -197,7 +200,7 @@ async function startNexusProcess(Options) {
 	if (Array.isArray(Options)) Options = processOptions(Options);
 
 	let cacheDir = Options['cache'];
-	log.i(`Starting Run Engine from ${cacheDir}`);
+	log.i(`Starting Nexus from ${cacheDir}`);
 
 	let system = new nexus(Options);
 	system.on('exit', _ => {
