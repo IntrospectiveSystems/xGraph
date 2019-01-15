@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.4.7]
 - Remove await on NPM install array (now installing in parallel)
+- Allow for config to be passed programmatically not only on disk
+- Reallow addModule, genModules, deleteEntity
+- Allow a logger to be passed to xgraph when used programmatically
 
 ## [1.4.6]
 - Instancing
