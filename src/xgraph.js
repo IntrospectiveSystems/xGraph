@@ -1,14 +1,13 @@
 #! /usr/bin/env node
 
-// -:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-:--:-
-
 const genesis = require('../lib/Genesis.js');
 const nexus = require('../lib/Nexus.js');
-const createLogger = require('../lib/Logger.js');
+const {createLogger} = require('../lib/Logger.js');
 const fs = require('fs');
 const path = require('path');
 const log = createLogger({verbose: true});
 let originalArgv;
+if('exit' in process) ''; else process.exit = _ => _;
 
 process.on('unhandledRejection', (reason, promise) => {
 	require('signale').fatal(reason);
