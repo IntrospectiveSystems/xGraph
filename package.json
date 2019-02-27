@@ -8,7 +8,8 @@
     "test": "npm install && cd Tests && npm install && node test.js && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
     "qa": "npm install && cd Tests && npm install && node test.js --fast && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
     "qad": "npm install && cd Tests && npm install && node test.js --fast --debug && cd .. && npm run lint && echo Test Suite Finished with exit code 0!",
-    "lint": "eslint src/*.js --fix"
+    "lint": "eslint src/*.js --fix",
+    "rollup": "rollup --config rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,6 @@
     "volatile": "7.0.1"
   },
   "devDependencies": {
-    "eslint": "5.1.0"
+    "eslint": "5.14.1"
   }
 }
