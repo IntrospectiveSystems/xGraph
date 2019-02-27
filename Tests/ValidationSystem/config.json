@@ -1,6 +1,6 @@
 {
 	"Sources": {
-		"local": "fs://./ValidationSystem/Modules",
+		"local": "fs://./Modules",
 		"Core": "tcp://modulebroker.xgraphdev.com"
 	},
 	"Modules": {
