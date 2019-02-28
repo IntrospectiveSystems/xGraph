@@ -11,8 +11,70 @@ const {createLogger} = require('../lib/Logger.js');
 const cacheManifestPath = '.cache.json';
 // const { spawn } = require('child_process');
 //This node module provides all the interface capabilities to an xgraph cache directory.
+class Database {
+	constructor(dbName) {
+		this._dbName = dbName;
+		this._tables = [];
+	}
 
+	addTable(table) {
+		this._tables.push(table);
+	}
 
+	async create() {
+		this._db = await openDb(this._dbName, 2, db => {
+			for(let table of this._tables) {
+				db.createObjectStore(table.name);
+			}
+		});
+
+		for(let table of this._tables) {
+			table.link(this._db);
+		}
+	}
+}
+
+class Table {
+	constructor (tableName) {
+		this._name = tableName;
+	}
+	get name () {
+		return this._name;
+	}
+	link (db) {
+		this._db = db;
+	}
+	async exists(key) {
+		const db = this._db;
+		return !!(await db.transaction(this._name).objectStore(this._name).get(key));
+	}
+	async get(key) {
+		const db = this._db;
+		return await db.transaction(this._name).objectStore(this._name).get(key);
+	}
+	async set(key, val) {
+		const db = this._db;
+		const tx = db.transaction(this._name, 'readwrite');
+		tx.objectStore(this._name).put(val, key);
+		return tx.complete;
+	}
+	async delete(key) {
+		const db = this._db;
+		const tx = db.transaction(this._name, 'readwrite');
+		tx.objectStore(this._name).delete(key);
+		return tx.complete;
+	}
+	async clear() {
+		const db = this._db;
+		const tx = db.transaction(this._name, 'readwrite');
+		tx.objectStore(this._name).clear();
+		return tx.complete;
+	}
+	async keys() {
+		const db = this._db;
+		return db.transaction(this._name).objectStore(this._name).getAllKeys();
+	}
+}
 
 
 module.exports = class IDBCache {
@@ -28,48 +90,15 @@ module.exports = class IDBCache {
 
 			if('log' in this.__options)
 				this.log = this.__options.log;
-			else this.log = createLogger();
+			else
+				this.log = createLogger(__options);
 
-			this._db = await openDb(__options.path, 2, db => {
-				db.createObjectStore('fs');
-			});
-
-			let that = this;
-			
-			this.idb = {
-				async exists(key) {
-					const db = that._db;
-					return (await db.transaction('fs').objectStore('fs').get(key)) ? true : false;
-				},
-				async get(key) {
-					const db = that._db;
-					return await db.transaction('fs').objectStore('fs').get(key);
-				},
-				async set(key, val) {
-					const db = that._db;
-					const tx = db.transaction('fs', 'readwrite');
-					tx.objectStore('fs').put(val, key);
-					return tx.complete;
-				},
-				async delete(key) {
-					const db = that._db;
-					const tx = db.transaction('fs', 'readwrite');
-					tx.objectStore('fs').delete(key);
-					return tx.complete;
-				},
-				async clear() {
-					const db = that._db;
-					const tx = db.transaction('fs', 'readwrite');
-					tx.objectStore('fs').clear();
-					return tx.complete;
-				},
-				async keys() {
-					const db = that._db;
-					return db.transaction('fs').objectStore('fs').getAllKeys();
-				},
-			};
-
-			this.modCache = {};
+			this.db = new Database(__options.path);
+			this.modules = new Table('modules');
+			this.instances = new Table('instances');
+			this.db.addTable(this.instances);
+			this.db.addTable(this.modules);
+			await this.db.create();
 
 			this.initDirectories();
 		}).call(this);
@@ -97,8 +126,8 @@ module.exports = class IDBCache {
 	}
 
 	async initDirectories() {
-		if (!await this.idb.exists(cacheManifestPath)) {
-			await this.idb.set(cacheManifestPath, JSON.stringify(dotCache));
+		if (!await this.modules.exists(cacheManifestPath)) {
+			await this.modules.set(cacheManifestPath, JSON.stringify(dotCache));
 			this._wroteManifest = true;
 		} else this._wroteManifest = false
 	}
@@ -168,7 +197,8 @@ module.exports = class IDBCache {
 
 	//adds a module to the cache
 	async addModule(moduleType, moduleZip) {
-		await this.idb.set(moduleType, moduleZip);
+		this.log.v('ADD MODULE', moduleType);
+		await this.modules.set(moduleType, moduleZip);
 	}
 
 	//return the json of pars related to a single entity based on it's pid 
@@ -398,10 +428,10 @@ module.exports = class IDBCache {
 		log.v('createInstance', pidapx, JSON.stringify(inst, null, 2));
 
 		//check if we have the module, put it in mod (jszip object)
-		if (modnam in this.modCache) {
+		if (await this.modules.exists(modnam)) {
 			//TODO Dont use then, use es8 async/await
 			mod = await new Promise(async (res, _rej) => {
-				zipmod.loadAsync(this.modCache[modnam]).then((zip) => {
+				zipmod.loadAsync(await this.modules.get(modnam)).then((zip) => {
 					res(zip);
 				});
 			});

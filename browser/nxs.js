@@ -1,5 +1,5 @@
 /* eslint no-console: 0 */  // --> OFF
-
+console.time('Requires');
 const Nexus = require('../lib/Nexus.js'); 
 const {createLogger} = require('../lib/Logger.js');
 const CacheInterface = require('../lib/Cache.js');
@@ -9,8 +9,9 @@ const idb = require('idb');
 const urlOptions = {};
 const jszip = require('jszip');
 const _ = require('lodash');
+console.timeEnd('Requires');
 
-console.dir(_);
+// console.dir(_);
 
 for(let key of url.searchParams.keys()) {
 	urlOptions[key] = url.searchParams.get(key);
@@ -58,9 +59,11 @@ async function compileFromWebScoket() {
 	const {Cache: modulesZip, Config: config} = await receiveConfig();
 
 	const cache = new CacheInterface({
-		path: __options.cache
+		path: __options.cache,
+		loglevel: 'verbose'
 	});
 	await cache.startup;
+	
 	await addModules(modulesZip);
 	await createInstances(config);
 
@@ -84,7 +87,7 @@ async function compileFromWebScoket() {
 				size /= 1024;
 				log.d(`b64 Module Zip: ${Math.floor(size)} KiB`);
 				log.d(`binary Module Zip: ${Math.floor((size/4)*3)} KiB`);
-				console.dir(obj)
+				// console.dir(obj)
 				resolve(obj);
 				socket.removeEventListener('message', message);
 			}
@@ -136,6 +139,8 @@ async function compileFromWebScoket() {
 		}
 
 		for(let symbol in modules) {
+			if(symbol === 'Deferred') continue;
+
 			modules[symbol].Par = replaceSymbols(modules[symbol].Par);
 			cache.createInstance(modules[symbol], modules[symbol].Pid);
 			// console.log(modules[symbol])
