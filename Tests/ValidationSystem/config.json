@@ -1,7 +1,7 @@
 {
 	"Sources": {
-		"local": "{local}",
-		"Core": "mb://modulebroker.xgraphdev.com"
+		"local": "fs://./Modules",
+		"Core": "tcp://modulebroker.xgraphdev.com"
 	},
 	"Modules": {
 		"Validator": {

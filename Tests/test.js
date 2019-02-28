@@ -125,15 +125,15 @@ switch(process.platform) {
 		if(full) await exec(`${npmxgraph} -v`, true);
 
 		// run tests on npm version
-		await exec(`${npmxgraph} r --CWD ValidationSystem --loglevel verbose --local ./ValidationSystem/Modules`, true);
+		await exec(`${npmxgraph} r --CWD ValidationSystem --loglevel verbose`, true);
 		
 
 		if(full) {
-			await exec(`${npmxgraph} c --CWD ValidationSystem --verbose --local ./ValidationSystem/Modules`, true);
-			await exec(`${npmxgraph} d --CWD ValidationSystem --verbose --local ./ValidationSystem/Modules`, true);
-			await exec(`${npmxgraph} x --CWD ValidationSystem --verbose --local ./ValidationSystem/Modules`, true);
+			await exec(`${npmxgraph} c --CWD ValidationSystem --verbose --local /Modules`, true);
+			await exec(`${npmxgraph} d --CWD ValidationSystem --verbose --local ./Modules`, true);
+			await exec(`${npmxgraph} x --CWD ValidationSystem --verbose --local ./Modules`, true);
 			rimraf('ValidationSystem/cache');
-			await exec(`${npmxgraph} x --CWD ValidationSystem --verbose --local ./ValidationSystem/Modules`, true);
+			await exec(`${npmxgraph} x --CWD ValidationSystem --verbose --local ./Modules`, true);
 		}
 
 		console.log('\u001b[42;30mAll Tests passed Successfully!\nCongratulations, you\'re ready to merge!\u001b[0m');

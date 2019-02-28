@@ -83,6 +83,11 @@ let cli = function (argv) {
 			break;
 		}
 
+		case 'cache': {
+			xgraphcache(argv);
+			break;
+		}
+
 		case '--version':
 		case '-v': {
 			log.i(version);
@@ -113,10 +118,39 @@ let cli = function (argv) {
 
 		process.stdout.write(help);
 	}
-
 };
 
-	
+function xgraphcache(argv){
+	if ('clean' == argv[1].toLowerCase()){
+		try {
+			const appdata = path.join((process.env.APPDATA || path.join(process.env.HOME,
+				(process.platform == 'darwin' ? 'Library/Preferences' : ''))), '.xgraph');
+			let files = fs.readdirSync(appdata);
+			if (files.length>0) {
+				log.v('Removed:');
+			}else{
+				log.v('No files to remove in ', appdata);
+			}
+			for (let file of files){
+				try {
+					fs.unlinkSync(path.join(appdata, file));
+					log.v(`\t${file}`);
+				}catch(err){
+					log.e('xgraph cache clean failed to remove', file);
+				}
+			}
+		}
+		catch (error){
+			log.e('xgraph cache clean failed with error', error);
+			process.exit(1);
+		}
+	}else{
+		log.e('unknown xgraph cache command ', argv.join(' '));
+		process.exit(1);
+	}
+	log.i('xgraph cache clean success!');
+}
+
 function processOptions(arguments) {
 	let options = require('minimist')(arguments);
 
