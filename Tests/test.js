@@ -125,7 +125,7 @@ switch(process.platform) {
 		if(full) await exec(`${npmxgraph} -v`, true);
 
 		// run tests on npm version
-		await exec(`${npmxgraph} r --CWD ValidationSystem --loglevel verbose --local ./Modules`, true);
+		await exec(`${npmxgraph} r --CWD ValidationSystem --loglevel verbose`, true);
 		
 
 		if(full) {
