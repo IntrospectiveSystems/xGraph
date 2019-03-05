@@ -48,5 +48,5 @@ function packTar(basePath) {
 	});
 }
 (async _=> {
-	await extractTar((await packTar('./../../xGraph')), './../hgfdsa');
+	await extractTar((await packTar('./../hgfdsa')), './../asdfgh');
 })();
