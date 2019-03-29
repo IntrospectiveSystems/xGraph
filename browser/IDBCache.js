@@ -6,9 +6,8 @@ const version = '0.0.1';
 const ver130 = new SemVer(version);
 const dotCache = {version};
 const Uuid = require('uuid/v4');
-const {openDb} = require('idb');
+const {openDb, deleteDb} = require('idb');
 const {createLogger} = require('../lib/Logger.js');
-const cacheManifestPath = '.cache.json';
 // const { spawn } = require('child_process');
 //This node module provides all the interface capabilities to an xgraph cache directory.
 class Database {
@@ -19,6 +18,10 @@ class Database {
 
 	addTable(table) {
 		this._tables.push(table);
+	}
+
+	async delete() {
+		await deleteDb(this._dbName);
 	}
 
 	async create() {
@@ -96,11 +99,13 @@ module.exports = class IDBCache {
 			this.db = new Database(__options.path);
 			this.modules = new Table('modules');
 			this.instances = new Table('instances');
+			this.metadata = new Table('metadata');
 			this.db.addTable(this.instances);
 			this.db.addTable(this.modules);
+			this.db.addTable(this.metadata);
 			await this.db.create();
 
-			this.initDirectories();
+			await this.initDirectories();
 		}).call(this);
 	}
 
@@ -126,10 +131,11 @@ module.exports = class IDBCache {
 	}
 
 	async initDirectories() {
-		if (!await this.modules.exists(cacheManifestPath)) {
-			await this.modules.set(cacheManifestPath, JSON.stringify(dotCache));
+		if (!await this.metadata.exists('version')) {
+			await this.metadata.set('version', version);
+			await this.metadata.set('created', new Date().toString());
 			this._wroteManifest = true;
-		} else this._wroteManifest = false
+		} else this._wroteManifest = false;
 	}
 
 	get wroteManifest() {
@@ -141,58 +147,24 @@ module.exports = class IDBCache {
 		this.initDirectories();
 	}
 
-	delete() {
-		let __options = this.__options;
-		if (fs.existsSync(__options.path)) {
-			// log.i(__options.path);
-			this.remDir(__options.path);
-			// log.i(this);
-			// log.i('woo');
-		}
+	async delete() {
+		await this.db.delete();
+		await this.db.create();
 	}
 
 	//retrieve a module from the cache
-	getModule(moduleType, fun = _ => _) {
+	async getModule(moduleType, fun = _ => _) {
 		let __options = this.__options;
 		let log = this.log;
-		let cachedMod;
 
-		if (this._version < ver130) {
-			cachedMod = Path.join(__options.path, moduleType, 'Module.zip');
-		} else {
-			cachedMod = Path.join(__options.path, 'System', moduleType, 'Module.zip');
-		}
-
-		log.v(cachedMod);
-		log.v(fs.existsSync(cachedMod));
-
-		fs.lstat(cachedMod, function (err, stat) {
-			if (err) {
-				log.e(`Error retreiving ${cachedMod} from cache`);
-				log.e(err);
-				fun(err);
-			}
-			if (stat) {
-				if (!stat.isDirectory()) {
-					fs.readFile(cachedMod, async function (err, data) {
-						if (err) {
-							fun(err);
-							return;
-						}
-						fun(null, await new Promise(async (res, _rej) => {
-							let zip = new jszip();
-							zip.loadAsync(data).then((mod) => res(mod));
-						}));
-						return;
-					});
-				}
-			} else {
-				err = `Module ${cachedMod} does not exist in the cache`;
-				log.e(err);
-				fun(err);
-				return;
-			}
+		let data = await this.modules.get(moduleType);
+		
+		let zip = new jszip();
+		await zip.loadAsync(data, {
+			base64: true
 		});
+		fun(null, zip);
+		return zip;
 	}
 
 	//adds a module to the cache
@@ -202,35 +174,30 @@ module.exports = class IDBCache {
 	}
 
 	//return the json of pars related to a single entity based on it's pid 
-	getEntityPar(pid, fun = _ => _) {
+	async getEntityPar(pid, fun = _ => _) {
 		// let log = this.log;
-		let log = this.log;
+		const log = this.log;
+		// debugger;
 		if (!(pid in this._entIndex)) {
 			log.w('returning unknown pid', pid);
 			log.w(this._entIndex);
 			return fun(new Error('E_UNKNOWN_PID'), { moduleType: 'Unknown' });
 		}
-		let apx = this._entIndex[pid];
+		const apx = this._entIndex[pid];
 
 		if (!(apx in this._apexIndex)) {
 			log.w('returning unknown apex pid');
 			return fun(new Error('E_UNKNOWN_APEX_PID'), { moduleType: 'Unknown' });
 		}
-		let moduleType = this._apexIndex[apx];
-		let __options = this.__options;
-		let path;
-		if (this._version < ver130) {
-			path = Path.join(__options.path, moduleType, apx, `${pid}.json`);
-		} else {
-			path = Path.join(__options.path, 'System', moduleType, apx, `${pid}.json`);
-		}
+		const moduleType = this._apexIndex[apx];
+		const key = `${moduleType}:${apx}:${pid}`;
 
-		fs.readFile(path, (err, data) => {
-			if (err) {
-				log.w(err);
-				return fun(err, { moduleType });
-			} else return fun(err, data);
-		});
+		let par = (await this.instances.get(key));
+
+		log.d(par);
+		fun(null, par);
+		return par;
+
 	}
 
 	//delete an entity from the cache
@@ -331,73 +298,29 @@ module.exports = class IDBCache {
 
 	//load in a cache directory and return the Apex Index, Start, Setup and Stop dictionaries.
 	async loadCache() {
-		let log = this.log;
-		let __options = this.__options;
-		let manifestPath = path.join(__options.path, 'cache.json');
-		let setup = {}, start = {}, stop = {}, apexIndex = {}, entIndex = {};
-		let manifest = await new Promise(resolve => {
-			fs.lstat(manifestPath, (err, stat) => {
-				if (!err && stat.isFile()) {
-					resolve(JSON.parse(fs.readFileSync(manifestPath)));
-				} else {
-					resolve({ version: '1.2.1' });
-				}
-			});
-		});
-		let version = this._version = new SemVer(manifest.version);
+		const setup = {}, start = {}, stop = {}, apexIndex = {}, entIndex = {};
+		const instances = await this.instances.keys();
 
-		let modulesDirectory;
-		if (version < new SemVer('1.3')) {
-			modulesDirectory = Path.join(__options.path, '');
-		} else {
-			modulesDirectory = Path.join(__options.path, 'System');
+		for(const info of instances) {
+			const [module, apex, pid] = info.split(':');
+			const par = JSON.parse(await this.instances.get(info));
+			entIndex[pid] = apex;
+			apexIndex[apex] = module;
+
+			if ('$Setup' in par)
+				setup[pid] = par.$Setup;
+			if ('$Start' in par)
+				start[pid] = par.$Start;
+			if ('$Stop' in par)
+				stop[pid] = par.$Stop;
 		}
 
-		let folders = fs.readdirSync(modulesDirectory);
+		// debugger;
 
-
-		for (let ifold = 0; ifold < folders.length; ifold++) {
-			let folder = folders[ifold];
-			let path = Path.join(modulesDirectory, folder, 'Module.zip');
-			if (!fs.existsSync(path))
-				continue;
-
-			parseMod(folder);
-
-		}
-		function parseMod(folder) {
-			let dir = Path.join(modulesDirectory, folder);
-			let instancefiles = fs.readdirSync(dir);
-			for (let ifile = 0; ifile < instancefiles.length; ifile++) {
-				let file = instancefiles[ifile];
-				//check that it's an instance of the module
-				if (file.length !== 32)
-					continue;
-
-				let path = Path.join(dir, file);
-				if (fs.lstatSync(path).isDirectory()) {
-					apexIndex[file] = folder;
-					let instJson = JSON.parse(fs.readFileSync(Path.join(path, `${file}.json`)));
-
-					for (let filename of fs.readdirSync(path)) {
-						entIndex[Path.parse(filename).name] = file;
-					}
-
-					if ('$Setup' in instJson)
-						setup[file] = instJson.$Setup;
-					if ('$Start' in instJson)
-						start[file] = instJson.$Start;
-					if ('$Stop' in instJson)
-						stop[file] = instJson.$Stop;
-
-				}
-			}
-		}
-
-		log.v('EntIndex', JSON.stringify(entIndex, null, 2));
-		log.v('Setup', JSON.stringify(setup, null, 2));
-		log.v('Start', JSON.stringify(start, null, 2));
-		log.v('Stop', JSON.stringify(stop, null, 2));
+		// log.v('EntIndex', JSON.stringify(entIndex, null, 2));
+		// log.v('Setup', JSON.stringify(setup, null, 2));
+		// log.v('Start', JSON.stringify(start, null, 2));
+		// log.v('Stop', JSON.stringify(stop, null, 2));
 
 		this._entIndex = entIndex;
 		this._apexIndex = apexIndex;
@@ -406,6 +329,9 @@ module.exports = class IDBCache {
 	}
 
 
+	loadDependency(moduleType, _) {
+		log.w(`<${moduleType}> require is not supported on the browser`)
+	}
 
 	/**
 	 * Generate array of entities from module
@@ -418,44 +344,25 @@ module.exports = class IDBCache {
 	 * @param {boolean} saveRoot	Add the setup and start functions to the Root.Setup and start
 	 */
 	async createInstance(inst, pidapx = this.genPid()) {
-		let log = this.log;
-		let Local = {};
-		let modnam = inst.Module;
-		let mod;
-		let ents = [];
-		modnam = modnam.replace(/[/:]/g, '.');
-		let zipmod = new jszip();
+		const log = this.log;
+		const symbols = {};
+		const ents = [];
+		const name =  inst.Module.replace(/[/:]/g, '.');
+
+		if (!await this.modules.exists(name))
+			throw new Error('Module <' + name + '> not in ModCache');
+
+		const mod = await jszip().loadAsync(await this.modules.get(name), {
+			base64: true
+		});
+
 		log.v('createInstance', pidapx, JSON.stringify(inst, null, 2));
 
-		//check if we have the module, put it in mod (jszip object)
-		if (await this.modules.exists(modnam)) {
-			//TODO Dont use then, use es8 async/await
-			mod = await new Promise(async (res, _rej) => {
-				zipmod.loadAsync(await this.modules.get(modnam)).then((zip) => {
-					res(zip);
-				});
-			});
-		} else {
-			log.e('Module <' + modnam + '> not in ModCache');
-			// TODO create real errors in error custom errors class
-			throw new Error('Module <' + modnam + '> not in ModCache');
-		}
+		if(!('schema.json' in mod.files))
+			throw new Error(`no schema in <${name}>`);
 
-		// get the schema json from the zip
-		let schema = await new Promise(async (res, rej) => {
-			// log.w(mod.files);
-			if ('schema.json' in mod.files) {
-				mod.file('schema.json').async('string').then(function (schemaString) {
-					res(JSON.parse(schemaString));
-				});
-			} else {
-				log.e('Module <' + modnam + '> schema not in ModCache');
-				process.exit(1);
-				rej();
-				// reject();
-				return;
-			}
-		});
+		const schemaText = await mod.file('schema.json').async('string');
+		const schema = JSON.parse(schemaText);
 
 		let entkeys = Object.keys(schema);
 		if (!('Apex' in schema)) {
@@ -468,40 +375,51 @@ module.exports = class IDBCache {
 		for (let j = 0; j < entkeys.length; j++) {
 			let entkey = entkeys[j];
 			if (entkey === 'Apex')
-				Local[entkey] = pidapx;
+				symbols[entkey] = pidapx;
 			else
-				Local[entkey] = this.genPid();
+				symbols[entkey] = this.genPid();
 		}
 
 		for (let entIndex in schema) {
 			// log.w(entIndex);
 			let ent = schema[entIndex];
-			if (typeof ent !== 'object') throw new Error('E_INVALID_SCHEMA', { Module: modnam });
+			if (typeof ent !== 'object') throw new Error('E_INVALID_SCHEMA', { Module: name });
 			if (entIndex === 'Apex') {
 				for (let key in inst.Par) {
 					ent[key] = inst.Par[key];
 				}
 			}
-			ent.Pid = Local[entIndex];
+			ent.Pid = symbols[entIndex];
 			ent.Apex = pidapx;
-			ent.Module = modnam;
-			ent = parseMacros(ent);
+			ent.Module = name;
+			ent = replaceSymbols(ent, symbols);
 			ents.push(ent);
+		}
+
+		function replaceSymbols(obj, dict, regex = /^[$#]/) {
+			return _.transform(obj, recurse);
+
+			function recurse(res, val, key) {
+				if(typeof val === 'object') {
+					res[key] = _.transform(val, recurse);
+					return;
+				} else if(typeof val === 'string') {
+					if(val.match(regex)) {
+						res[key] = dict[val.substr(1)];
+					} else res[key] = val;
+				} else res[key] = val;
+			}
 		}
 
 		log.v('Entity Pars to save:', ents);
 
 		for (let entity of ents) {
 
-			let path = Path.join(this.__options.path, 'System', modnam, entity.Apex);
-			try { fs.mkdirSync(path); } catch (e) { ''; }
-			path = Path.join(path, entity.Pid + '.json');
+			const key = `${name}:${entity.Apex}:${entity.Pid}`;
+			// try { fs.mkdirSync(path); } catch (e) { ''; }
+			// path = Path.join(path, entity.Pid + '.json');
 
-			await new Promise(res => {
-				fs.writeFile(path, JSON.stringify(entity, null, 2), _ => {
-					res();
-				});
-			});
+			await this.instances.set(key, JSON.stringify(entity));
 		}
 		return ents;
 	}

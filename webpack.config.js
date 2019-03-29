@@ -44,7 +44,7 @@ module.exports = {
 	// this turns off minifying. easier to debug.
 	// TODO turn this off, eventually.
 	optimization: {
-		// minimize: false
+		minimize: false
 	},
 
 	// idk, i think the visualizer requires it.

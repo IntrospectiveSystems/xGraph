@@ -1,5 +1,5 @@
 /* eslint no-console: 0 */  // --> OFF
-console.time('Requires');
+performance.mark('script-start');
 const Nexus = require('../lib/Nexus.js'); 
 const {createLogger} = require('../lib/Logger.js');
 const CacheInterface = require('../lib/Cache.js');
@@ -9,7 +9,13 @@ const idb = require('idb');
 const urlOptions = {};
 const jszip = require('jszip');
 const _ = require('lodash');
-console.timeEnd('Requires');
+window.Viewify = require('xgraph-viewify').Viewify;
+performance.mark('requires-done');
+performance.measure('require', 'script-start', 'requires-done');
+
+document.body.style.height = '100vh';
+document.body.style.margin = '0px';
+document.body.style.fontSize = '13px';
 
 // console.dir(_);
 
@@ -59,8 +65,8 @@ async function compileFromWebScoket() {
 	const {Cache: modulesZip, Config: config} = await receiveConfig();
 
 	const cache = new CacheInterface({
-		path: __options.cache,
-		loglevel: 'verbose'
+		...__options,
+		path: __options.cache
 	});
 	await cache.startup;
 	
@@ -70,9 +76,13 @@ async function compileFromWebScoket() {
 	// debugger;
 
 	function receiveConfig() {
+		performance.mark('open-backbone');
 		return new Promise(resolve => {
-			// const socket = new WebSocket(`ws://${location.host}`);
-			const socket = new WebSocket('ws://localhost:8080');
+			// const url = 'ws://192.168.2.196:8080';
+			const url = 'ws://localhost:8080';
+			// const url = `ws://${location.host}`;
+			console.log(`connecting to ${url}`);
+			const socket = new WebSocket(url);
 			socket.addEventListener('open', function () {
 				'wssopen' in window ? location.reload() : window.wssopen = true;
 				socket.send(`\x02${JSON.stringify({
@@ -88,6 +98,8 @@ async function compileFromWebScoket() {
 				log.d(`b64 Module Zip: ${Math.floor(size)} KiB`);
 				log.d(`binary Module Zip: ${Math.floor((size/4)*3)} KiB`);
 				// console.dir(obj)
+				performance.mark('close-backbone');
+				performance.measure('backbone', 'open-backbone', 'close-backbone');
 				resolve(obj);
 				socket.removeEventListener('message', message);
 			}
@@ -99,22 +111,22 @@ async function compileFromWebScoket() {
 		const modules = new jszip();
 		// debugger;
 
-		console.time('cache zip');
+		// console.time('cache zip');
 		await modules.loadAsync(modulesZip, {
 			base64: true
 		});
-		console.timeEnd('cache zip');
+		// console.timeEnd('cache zip');
 
 		for(let module in modules.files) {
 			// !!! WHOS IDEA WAS THIS !!!
 			if(module === 'manifest.json') continue;
 
-			console.time(module.padEnd(30));
+			// console.time(module.padEnd(30));
 			
 			const moduleb64 = await modules.file(module).async('base64');
 			cache.addModule(module, moduleb64);
 				
-			console.timeEnd(module.padEnd(30));
+			// console.timeEnd(module.padEnd(30));
 		}
 	}
 
@@ -141,13 +153,13 @@ async function compileFromWebScoket() {
 		for(let symbol in modules) {
 			if(symbol === 'Deferred') continue;
 
-			modules[symbol].Par = replaceSymbols(modules[symbol].Par);
-			cache.createInstance(modules[symbol], modules[symbol].Pid);
+			modules[symbol].Par = replaceSymbols(modules[symbol].Par, symbols);
+			await cache.createInstance(modules[symbol], modules[symbol].Pid);
 			// console.log(modules[symbol])
 		}
 
 
-		function replaceSymbols(obj) {
+		function replaceSymbols(obj, dict, regex = /^[$#]/) {
 			return _.transform(obj, recurse);
 
 			function recurse(res, val, key) {
@@ -155,8 +167,8 @@ async function compileFromWebScoket() {
 					res[key] = _.transform(val, recurse);
 					return;
 				} else if(typeof val === 'string') {
-					if(val.startsWith('$')) {
-						res[key] = symbols[val.substr(1)];
+					if(val.match(regex)) {
+						res[key] = dict[val.substr(1)];
 					} else res[key] = val;
 				} else res[key] = val;
 			}

@@ -62,12 +62,75 @@ module.exports.createLogger = function createLogger(__options = {}) {
 		printVerbose = true;
 		printDebug = true;
 	}
-
-	return {
-		v: printVerbose ? browserLog.verbose : _=>_,
-		d: printDebug ? browserLog.debug : _=>_,
-		i: printInfo ? browserLog.info : _=>_,
-		w: printWarn ? browserLog.warning : _=>_,
-		e: printError ? browserLog.error : _=>_
-	};
+	
+	if(__options.domConsole) {
+		document.body.style.background = 'black';
+		window.addEventListener('unhandledrejection', function (e) {
+			// debugger;
+			document.body.innerHTML +=
+				(`<pre console style="margin: 0px; color:red">ERRR: ${e.reason}</pre>`);
+			window.scrollTo(0,document.body.scrollHeight);
+		});
+		window.addEventListener('error', function (e) {
+			// debugger;
+			document.body.innerHTML +=
+				(`<pre console style="margin: 0px; color:red">ERRR: ${e.toString()}</pre>`);
+			window.scrollTo(0,document.body.scrollHeight);
+		});
+		return {
+			v: (...args) => {
+				for(let str of args) {
+					if(typeof str === 'object') str = JSON.stringify(str, null, 2);
+					document.body.innerHTML +=
+						(`<pre console style="margin: 0px; color:gray">VRBS: ${str}</pre>`);
+				}
+				window.scrollTo(0,document.body.scrollHeight);
+				browserLog.verbose(...args);
+			},
+			d: (...args) => {
+				for(let str of args) {
+					if(typeof str === 'object') str = JSON.stringify(str, null, 2);
+					document.body.innerHTML +=
+						(`<pre console style="margin: 0px; color:magenta">DBUG: ${str}</pre>`);
+				}
+				window.scrollTo(0,document.body.scrollHeight);
+				browserLog.debug(...args);
+			},
+			i: (...args) => {
+				for(let str of args) {
+					if(typeof str === 'object') str = JSON.stringify(str, null, 2);
+					document.body.innerHTML +=
+						(`<pre console style="margin: 0px; color:cyan">INFO: ${str}</pre>`);
+				}
+				window.scrollTo(0,document.body.scrollHeight);
+				browserLog.info(...args);
+			},
+			w: (...args) => {
+				for(let str of args) {
+					if(typeof str === 'object') str = JSON.stringify(str, null, 2);
+					document.body.innerHTML +=
+						(`<pre console style="margin: 0px; color:yellow">WARN: ${str}</pre>`);
+				}
+				window.scrollTo(0,document.body.scrollHeight);
+				browserLog.warning(...args);
+			},
+			e: (...args) => {
+				for(let str of args) {
+					if(typeof str === 'object') str = JSON.stringify(str, null, 2);
+					document.body.innerHTML +=
+						(`<pre console style="margin: 0px; color:red">ERRR: ${str}</pre>`);
+				}
+				window.scrollTo(0,document.body.scrollHeight);
+				browserLog.error(...args);
+			}
+		};
+	}
+	else 
+		return {
+			v: printVerbose ? browserLog.verbose : _=>_,
+			d: printDebug ? browserLog.debug : _=>_,
+			i: printInfo ? browserLog.info : _=>_,
+			w: printWarn ? browserLog.warning : _=>_,
+			e: printError ? browserLog.error : _=>_
+		};
 }

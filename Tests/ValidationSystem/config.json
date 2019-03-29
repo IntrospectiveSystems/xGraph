@@ -1,6 +1,6 @@
 {
 	"Sources": {
-		"local": "{local}",
+		"local": "fs://./Modules",
 		"Core": "mb://modulebroker.xgraphdev.com"
 	},
 	"Modules": {
@@ -32,7 +32,7 @@
 			"Par": {}
 		},
 		"Hello World": {
-			"Module": "xGraph.HelloWorld",
+			"Module": "xGraph.Ping",
 			"Source": "Core",
 			"Par": {
 				"SomePar": "Hello!"
