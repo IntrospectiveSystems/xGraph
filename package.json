@@ -5,11 +5,11 @@
   "main": "./src/xgraph.js",
   "scripts": {
     "build": "cd build && npm run build",
-    "test": "xgraph -v && npm run qa && npm run cde",
+    "test": "node ./src/xgraph.js -v && npm run qa && npm run cde",
     "lint": "eslint src/*.js --fix",
     "pack": "webpack --watch",
-    "qa": "xgraph r --cwd ./Tests/ValidationSystem/ --verbose",
-    "cde": "xgraph c --cwd ./Tests/ValidationSystem/ --verbose && xgraph d --cwd ./Tests/ValidationSystem/ --verbose && xgraph e --cwd ./Tests/ValidationSystem/ --verbose",
+    "qa": "node ./src/xgraph.js r --cwd ./Tests/ValidationSystem/ --verbose",
+    "cde": "node ./src/xgraph.js c --cwd ./Tests/ValidationSystem/ --verbose && node ./src/xgraph.js d --cwd ./Tests/ValidationSystem/ --verbose && node ./src/xgraph.js e --cwd ./Tests/ValidationSystem/ --verbose",
     "qad": "node --inspect-brk=9229 ./src/xgraph.js r --cwd ./Tests/ValidationSystem/ --verbose"
   },
   "repository": {
