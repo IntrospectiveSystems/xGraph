@@ -36,6 +36,6 @@
     "volatile": "7.0.1"
   },
   "devDependencies": {
-    "eslint": "5.15.0"
+    "eslint": "5.15.2"
   }
 }
