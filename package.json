@@ -34,7 +34,7 @@
     "tree-directory": "0.1.0",
     "uuid": "3.2.1",
     "volatile": "7.0.1",
-    "tmp-promise": "1.1.0"
+    "tmp-promise": "2.0.2"
   },
   "devDependencies": {
     "eslint": "5.15.2"
