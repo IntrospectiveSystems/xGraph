@@ -37,6 +37,6 @@
     "tmp-promise": "1.1.0"
   },
   "devDependencies": {
-    "eslint": "5.15.2"
+    "eslint": "6.8.0"
   }
 }
