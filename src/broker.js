@@ -61,7 +61,7 @@ let cli = function (argv) {
 
 		try{
 			let system = await xgraph.execute(xgraphArgv);
-			system.on('exit', (evt) => {
+			system.on(‘exit’, (evt) => {
 				log.i('system finished code', evt.exitCode);
 			});
 		} catch (e) {log.e(e)}
