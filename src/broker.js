@@ -59,7 +59,12 @@ let cli = function (argv) {
 
 		log.d(`Broker serve:\n${JSON.stringify(xgraphArgv, null, 2)}`);
 
-		await xgraph.execute(xgraphArgv);
+		try{
+			let system = await xgraph.execute(xgraphArgv);
+			system.on('exit', (evt) => {
+				log.i('system finished code', evt.exitCode);
+			});
+		} catch (e) {log.e(e)}
 	}
 
 	function add() {
@@ -81,12 +86,14 @@ let cli = function (argv) {
 
 			log.d(`Broker add:\n${JSON.stringify(xgraphArgv, null, 2)}`);
 			
-			let system = await xgraph.execute(xgraphArgv);
-			system.on('exit', (evt) => {
-				log.i('system finished code', evt.exitCode);
-				cleanUp();
-			});
-
+			
+			try{
+				let system = await xgraph.execute(xgraphArgv);
+				system.on('exit', (evt) => {
+					log.i('system finished code', evt.exitCode);
+					cleanUp();
+				});
+			} catch (e) {log.e(e)}
 
 			async function cleanUp() {
 				try {
