@@ -77,6 +77,8 @@ let cli = function (argv) {
 			if (xgraphArgv.indexOf('--source') == -1)
 				xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
 
+			log.d(`Broker add ${JSON.stringify(xgraphArr, null, 2)}`);
+			
 			let system = await xgraph.execute(xgraphArgv);
 			system.on('exit', (evt) => {
 				log.i('system finished code', evt.exitCode);
