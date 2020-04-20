@@ -12,7 +12,8 @@ let originalArgv;
 
 process.on('unhandledRejection', (reason, promise) => {
 	require('signale').fatal(reason);
-	require('signale').fatal(promise);
+	require('signale').fatal(promise);	
+	process.stderr.write(reason.toString());
 	process.exit(1);
 });
 

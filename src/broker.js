@@ -57,7 +57,11 @@ let cli = function (argv) {
 		if (xgraphArgv.indexOf('--source') == -1)
 			xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
 
-		await xgraph.execute(xgraphArgv);
+		log.v(`Broker serve:\n${JSON.stringify(xgraphArgv, null, 2)}`);
+
+		try{
+			let system = await xgraph.execute(xgraphArgv);
+		} catch (e) {log.e(e)}
 	}
 
 	function add() {
@@ -77,12 +81,16 @@ let cli = function (argv) {
 			if (xgraphArgv.indexOf('--source') == -1)
 				xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
 
-			let system = await xgraph.execute(xgraphArgv);
-			system.on('exit', (evt) => {
-				log.i('system finished code', evt.exitCode);
-				cleanUp();
-			});
-
+			log.v(`Broker add:\n${JSON.stringify(xgraphArgv, null, 2)}`);
+			
+			
+			try{
+				let system = await xgraph.execute(xgraphArgv);
+				system.on('exit', (evt) => {
+					log.i('system finished code', evt.exitCode);
+					cleanUp();
+				});
+			} catch (e) {log.e(e)}
 
 			async function cleanUp() {
 				try {
