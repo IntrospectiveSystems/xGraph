@@ -1,6 +1,6 @@
 {
     "Sources": {
-        "xGraph": "{xGraph}"
+        "xGraph": "mb://xgraph.modulebroker.net"
     },
     "Modules": {
         "Plexus": {
