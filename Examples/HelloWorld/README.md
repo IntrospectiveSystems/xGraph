@@ -23,6 +23,8 @@ folder in the Examples directory, `./Examples/HelloWorld/`.  Now you can
 run this system using the following command
 
     xgraph run
+    
+Hint: including the --verbose attribute to the run command will show more.
 
 Next you will see several messages as different parts of xGraph system
 are setup and started.  
