@@ -19,13 +19,15 @@ the xgraph command line tool, found in the [bin](../bin) folder,
 `.\bin\`.
 
 To run this example using the xgraph CLI, first navigate to the HelloWorld
-folder in the Examples directory, `./Examples/HelloWorld/`.  Now you can
-this system using the following command
+folder in the Examples directory, `./Examples/HelloWorld/`.  Now you can 
+run this system using the following command
 
-    xgraph x --config ./config.json --xGraph mb://modulebroker.xgraphdev.com
+    xgraph run
 
-Next you will see several messages as different parts of xGraph are setup
-and started.  Eventually you will be greeted with a prompt:
+Next you will see several messages as different parts of xGraph system
+are setup and started.  
+
+Eventually you will be greeted with a prompt:
 
     Welcome to xGraph!
 

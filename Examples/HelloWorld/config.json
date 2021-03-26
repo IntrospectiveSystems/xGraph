@@ -1,6 +1,6 @@
 {
 	"Sources": {
-		"xGraph": "mb:xgraph.modulebroker.net"
+		"xGraph": "mb://xgraph.modulebroker.net"
 	},
 	"Modules": {
 		"HelloWorld":{

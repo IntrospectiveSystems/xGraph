@@ -13,5 +13,13 @@ directly in the system structure object.
 Multiple copies of the BankPatron system can be started they will all
 interact with the one bank system that has been started.
 
+
+To run each xGraph system, navigate to the system's directory (the
+directory containg a config.json file) and type 
+
+    xgraph run
+
+in your terminal.
+
 ---
 
