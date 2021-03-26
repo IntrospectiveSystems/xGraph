@@ -60,7 +60,7 @@ let cli = function (argv) {
 		log.v(`Broker serve:\n${JSON.stringify(xgraphArgv, null, 2)}`);
 
 		try{
-			let system = await xgraph.execute(xgraphArgv);
+			await xgraph.execute(xgraphArgv);
 		} catch (e) {log.e(e)}
 	}
 
