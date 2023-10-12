@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Logger extended to include xgraph and test log levels
 - @config symbol added to config.json which loads pars into parent module
 - Symbol @init added to available symbols for schema.json
-
+- Init function added to startup procedure for modules
+- Allow for xgraph.g to generate service modules
 
 ## [1.4.11]
 - removed a bug where some verbose logs did not obey the system's loglevel

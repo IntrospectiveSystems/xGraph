@@ -1,0 +1,24 @@
+class ${name} {
+
+	// Init runs before Setup and Start to allow initializing before
+	//  being used by modules in these steps.
+	Init(com, fun) {
+
+		fun(null, com);
+	}
+
+	// GetServices is called before Init, Setup, or Start to return all defined Service functions defined in the calling Modules Par.Services Array.
+	// Modules utilizing Services must add the services as symbolic links in their Services array using the $<ServiceModuleName> symbol string.
+	GetServices(com, fun) {
+		// Service functions may have their scope bound to themselves to perserve data locally from all modules utilzing this Service:
+		// Bind locally by using this.<function>.bind(this) and add to the Services object
+
+		com.Services = {};
+		// Add functions to be utilized to the com.Services object.
+		//  Example : com.Services.Test = this.Test or this.Test.bind(this)
+
+		fun (null, com);
+	}
+
+	
+};

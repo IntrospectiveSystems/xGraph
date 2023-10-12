@@ -324,6 +324,19 @@ async function generate(args, Options) {
 			}
 			break;
 		}
+		case 'service':
+		case 'svc':
+			let names = args.slice(1);
+			if (names.length > 0) {
+				log.x(`Generate new xGraph ${names.length > 1 ?
+					'services' : 'service'} with ${names.length > 1 ?
+					'names' : 'name'}: ${args.slice(1)}`);
+				initService(names, Options);
+			} else {
+				log.x('No system name provided. Cannot generate'
+					+'system without a system name: "xgraph generate system name".');
+			}
+			break;
 		default: {
 			log.x('Invalid option for the generate command. Try'
 				+'"xgraph generate module" or "xgraph generate system".');
@@ -398,7 +411,7 @@ function initModule(names, Options) {
 		let modulePath;
 		let name = names[index];
 		let module = createDirectories(name);
-		createModule(module);
+		createModule(module); 
 	}
 
 	function createDirectories(name) {
@@ -448,62 +461,7 @@ function initModule(names, Options) {
 			return text;
 		})();`;
 
-		let jsTemplate = eval(entityText);
-
-		let moduleJson = {
-			'name': `${name}`,
-			'version': '0.0.1',
-			'info': {
-				'author': ''
-			},
-			'doc': 'README.md',
-			'input': {
-				'required': [
-					{
-						'Cmd': '',
-						'required': {
-						},
-						'optional': {
-						}
-					}
-				],
-				'optional': [
-					{
-						'Cmd': '',
-						'required': {
-						},
-						'optional': {
-						}
-					}
-				]
-			},
-			'output': {
-				'required': [
-					{
-						'par': '',
-						'Cmd': '',
-						'required': {
-						},
-						'optional': {
-						}
-					}
-				],
-				'optional': [
-					{
-						'par': '',
-						'Cmd': '',
-						'required': {
-						},
-						'optional': {
-						}
-					}
-				]
-			},
-			'par': {
-				'required': {},
-				'optional': {}
-			}
-		};
+		let jsTemplate = eval(entityText);		
 
 		let testJson = {
 			'State': {},
@@ -513,9 +471,7 @@ function initModule(names, Options) {
 		if (!fs.existsSync(path.join(modulePath, `${name}.js`))) {
 			try {
 				fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
-				fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
-				fs.writeFileSync(path.join(modulePath, 'module.json'),
-					JSON.stringify(moduleJson, null, '\t'));
+				fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);				
 				fs.writeFileSync(path.join(modulePath, 'test.json'), JSON.stringify(testJson, null, '\t'));
 				log.i('Module generated at: ' + modulePath);
 			} catch (e) {
@@ -525,6 +481,81 @@ function initModule(names, Options) {
 			log.w('No module generated. Module already exists: ' + modulePath);
 		}
 	}
+}
+
+function initService(names, Options) {
+
+
+	let modulePath;
+
+	for (let index = 0; index < names.length; index++) {
+		let modulePath;
+		let name = names[index];
+		let module = createDirectories(name);
+		createModule(module);
+	}
+
+	function createDirectories(name) {
+		let regEx = new RegExp('(?:\\.\\/?\\/)|(?:\\.\\\\?\\\\)|\\\\?\\\\|\\/?\\/');
+		let makeDirectories = name.split(regEx);
+		let makePath = '';
+		let thisDirectory = '';
+
+		if (path.isAbsolute(name)) {
+			if (name.charAt(0) != path.sep) {
+				makePath = makeDirectories.shift();
+			}
+			modulePath = name;
+		} else {
+			let moduleDir = Options['cwd'] || path.resolve(`.${path.sep}`);
+			makePath = moduleDir;
+			modulePath = path.join(moduleDir, name);
+		}
+
+		for (let i = 0; i < makeDirectories.length; i++) {
+
+			if (makeDirectories[i] && makeDirectories[i] != '') {
+				thisDirectory = makeDirectories[i];
+				makePath += path.sep + thisDirectory;
+				makeDirectory(makePath);
+			}
+		}
+
+		return thisDirectory;
+	}
+
+	function createModule(name) {
+		let Schema = {
+			'Apex': {
+				'$Init': 'Init',				
+				'Entity': `${name}.js`
+			}
+		};
+
+		let entityFile = path.join(__dirname, '../res/entity.service.js.template');
+
+		let entityFileText = fs.readFileSync(entityFile);
+
+		let entityText = `(function(){
+			let text = \`${entityFileText}\`;
+			return text;
+		})();`;
+
+		let jsTemplate = eval(entityText);
+
+		if (!fs.existsSync(path.join(modulePath, `${name}.js`))) {
+			try {
+				fs.writeFileSync(path.join(modulePath, 'schema.json'), JSON.stringify(Schema, null, '\t'));
+				fs.writeFileSync(path.join(modulePath, `${name}.js`), jsTemplate);
+				log.i('Service Module generated at: ' + modulePath);
+			} catch (e) {
+				'';
+			}
+		} else {
+			log.w('No module generated. Module already exists: ' + modulePath);
+		}
+	}
+
 }
 
 function makeDirectory(dir) {
