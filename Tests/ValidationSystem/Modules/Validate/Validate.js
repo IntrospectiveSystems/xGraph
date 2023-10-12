@@ -53,7 +53,7 @@
 		 * @param {Function} fun callback
 		 */
 		function Start(com, fun) {
-			log.v('--Validate/Start');
+			log.x('--Validate/Start');
 			//save context for use in fs readfile subcontext
 			let that = this;
 
@@ -84,9 +84,9 @@
 			const RunTests = async _ => {
 				let Results = [];
 				log.i('Beginning the tests.');
-				log.v(that.Vlt.Test.Cases.length + ' Tests');
+				log.x(that.Vlt.Test.Cases.length + ' Tests');
 				for (let tidx = 0; tidx < that.Vlt.Test.Cases.length; tidx++) {
-					log.v(`Performing test ${tidx + 1}`);
+					log.x(`Performing test ${tidx + 1}`);
 					let test = that.Vlt.Test.Cases[tidx];
 					await new Promise((resolve, _reject) => {
 						if (test.Command.Cmd == 'Setup' || test.Command.Cmd == 'Start') {
@@ -121,7 +121,7 @@
 									if (!document.getElementById(`XGRAPH-${id}`)) {
 										bMatch = false;
 									} else{
-										log.v(`XGRAPH-${id} appended to document appropriately`);
+										log.x(`XGRAPH-${id} appended to document appropriately`);
 									}
 								}
 							}
@@ -146,7 +146,7 @@
 						}
 
 						that.Vlt.SentMessages = {};
-						log.v(`Test Sent ${JSON.stringify(test.Command, null, 2)}`);
+						log.x(`Test Sent ${JSON.stringify(test.Command, null, 2)}`);
 						let timeout = test.Timeout || 2000;
 						let timer;
 						let testReply = (err, returnedCommand) => {
@@ -169,7 +169,7 @@
 							//check for a binary match with the test.json test callback
 							if ('Response' in test) {
 								delete returnedCommand.Passport;
-								log.v(`Test Returned ${JSON.stringify(returnedCommand, null, 2)}`);
+								log.x(`Test Returned ${JSON.stringify(returnedCommand, null, 2)}`);
 
 								parseObject(test.Response, returnedCommand);
 
@@ -180,7 +180,7 @@
 									let key = keys[i];
 
 									if (typeof ob[key] === 'object' && ob[key] !== null) {
-										log.v(`Recursive check on key ${key}`);
+										log.x(`Recursive check on key ${key}`);
 										if (!(key in ret)) {
 											bMatch = false;
 											return;
@@ -230,7 +230,7 @@
 					});
 				}
 
-				log.v('All tests concluded.');
+				log.x('All tests concluded.');
 				let fails = 0;
 
 				let maxKeyLength = 0;
@@ -248,11 +248,11 @@
 						fails++;
 				}
 				if (fails == 0) {
-					log.v('All tests Passed!');
+					log.x('All tests Passed!');
 					process.exit(0);
 				}
 				else {
-					log.v(`\n\n${fails} of ${Results.length} tests Failed.`)
+					log.x(`\n\n${fails} of ${Results.length} tests Failed.`)
 					process.exit(1);
 				}
 			}
@@ -291,13 +291,13 @@
 
 			inst.Par = Macro(inst.Par);
 
-			log.v('Callig genMod on ', JSON.stringify(inst, null, 2));
+			log.x('Callig genMod on ', JSON.stringify(inst, null, 2));
 			//instantiate the module
 			//this calls setup and start in the instance
 			that.genModule(inst, (err, instApex) => {
 				that.Vlt.InstModule = instApex;
 				that.Vlt.Test = setPid(that.Vlt.Test);
-				log.v('Test Json is :', JSON.stringify(that.Vlt.Test, null, 2));
+				log.x('Test Json is :', JSON.stringify(that.Vlt.Test, null, 2));
 				if (typeof document != 'undefined') {
 
 					inst.Module = 'xGraph.RootView';
@@ -325,7 +325,7 @@
 				this.Vlt.SentMessages = {};
 			if ('Passport' in com)
 				delete com.Passport;
-			log.v(`${this.Par.TestModule} sent ${JSON.stringify(com, null, 2)}`);
+			log.x(`${this.Par.TestModule} sent ${JSON.stringify(com, null, 2)}`);
 
 			let hash = MD5(JSON.stringify(com));
 			this.Vlt.SentMessages[hash] = (this.Vlt.SentMessages[hash] || 0) + 1;

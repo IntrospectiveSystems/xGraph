@@ -53,6 +53,7 @@ class Suite{
 			this.Vlt.StartCalled = true;
 			log.d('Debug log');
 			log.v('Verbose log');
+			log.x('xGraph log');
 			log.i('Information log');
 			log.w('Warning log');
 			log.e('Error log');

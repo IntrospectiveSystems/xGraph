@@ -7,7 +7,41 @@ const nexus = require('../lib/Nexus.js');
 const createLogger = require('../lib/Logger.js');
 const fs = require('fs');
 const path = require('path');
-const log = createLogger({verbose: true});
+
+
+let options = {
+    cwd: '.'
+}
+
+let arguments = process.argv.slice(2)
+for(var arg = 0; arg < arguments.length; ++ arg)
+{
+    var option = arguments[arg];
+    console.log(option)
+    switch (option) {
+        case '--cwd': 
+            options.cwd = arguments[++arg]
+            break
+        case '--verbose':
+            options.verbose = true
+            break;
+        case '--debug':
+            options.debug = true
+            break
+        case '--test':
+            options.test = arguments[++arg]
+    }
+}
+console.log("Logger Options:")
+console.log(options)
+
+const log = createLogger(options);
+
+if (options.test && options.test === 'validate') {
+    log.validateTest()  // will terminate program and return 0: FAILED or 1: SUCCESS
+}
+
+//const log = createLogger({verbose: true});
 let originalArgv;
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -128,14 +162,14 @@ function xgraphcache(argv){
 				(process.platform == 'darwin' ? 'Library/Preferences' : ''))), '.xgraph');
 			let files = fs.readdirSync(appdata);
 			if (files.length>0) {
-				log.v('Removed:');
+				log.x('Removed:');
 			}else{
-				log.v('No files to remove in ', appdata);
+				log.x('No files to remove in ', appdata);
 			}
 			for (let file of files){
 				try {
 					fs.unlinkSync(path.join(appdata, file));
-					log.v(`\t${file}`);
+					log.x(`\t${file}`);
 				}catch(err){
 					log.e('xgraph cache clean failed to remove', file);
 				}
@@ -266,12 +300,12 @@ async function generate(args, Options) {
 		case 's': {
 			let names = args.slice(1);
 			if (names.length > 0) {
-				log.v(`Generate new xGraph ${names.length > 1 ?
+				log.x(`Generate new xGraph ${names.length > 1 ?
 					'systems' : 'system'} with ${names.length > 1 ?
 					'names' : 'name'}: ${args.slice(1)}`);
 				initSystem(names, Options);
 			} else {
-				log.v('No system name provided. Cannot generate'
+				log.x('No system name provided. Cannot generate'
 					+'system without a system name: "xgraph generate system name".');
 			}
 			break;
@@ -280,18 +314,18 @@ async function generate(args, Options) {
 		case 'm': {
 			let names = args.slice(1);
 			if (names.length > 0) {
-				log.v(`Generate new xGraph ${names.length > 1 ?
+				log.x(`Generate new xGraph ${names.length > 1 ?
 					'modules' : 'module'} with ${names.length > 1 ?
 					'names' : 'name'}: ${args.slice(1)}`);
 				initModule(names, Options);
 			} else {
-				log.v('No system name provided. Cannot generate'
+				log.x('No system name provided. Cannot generate'
 					+'system without a system name: "xgraph generate system name".');
 			}
 			break;
 		}
 		default: {
-			log.v('Invalid option for the generate command. Try'
+			log.x('Invalid option for the generate command. Try'
 				+'"xgraph generate module" or "xgraph generate system".');
 		}
 	}
@@ -521,4 +555,3 @@ if (require.main === module || !('id' in module)) {
 	Nexus: require('../lib/Nexus.js'),
 	Genesis: require('../lib/Genesis.js')
 };
-

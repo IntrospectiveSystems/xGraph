@@ -57,7 +57,7 @@ let cli = function (argv) {
 		if (xgraphArgv.indexOf('--source') == -1)
 			xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
 
-		log.v(`Broker serve:\n${JSON.stringify(xgraphArgv, null, 2)}`);
+		log.x(`Broker serve:\n${JSON.stringify(xgraphArgv, null, 2)}`);
 
 		try{
 			let system = await xgraph.execute(xgraphArgv);
@@ -81,7 +81,7 @@ let cli = function (argv) {
 			if (xgraphArgv.indexOf('--source') == -1)
 				xgraphArgv.push('--source', 'mb://modulebroker.xgraphdev.com');
 
-			log.v(`Broker add:\n${JSON.stringify(xgraphArgv, null, 2)}`);
+			log.x(`Broker add:\n${JSON.stringify(xgraphArgv, null, 2)}`);
 			
 			
 			try{
