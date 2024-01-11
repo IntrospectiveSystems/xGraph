@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+## [1.5.6]
+- Fixed fatal crash caused by attempting to write a null value to xgraph.log file
 
 ## [1.5.5]
 - Fixed publishing error
