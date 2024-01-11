@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.5.3]
+- Services: GetServices com.Module added to GetServices
+- Services have access to the base reference of the module calling them via com.Module
+- Module Index logging added at end of xGraph Genesis Compile phase. Modules are listed via their name and pid
+- Logger changed to class definition and internal functions moved to private functions.
+- Modules can now instantiate their own Logger by defining a Log object in their base module definition
+
 ## [1.5.2]
 - Extended @config to parse and process all xGraph symbols in loaded sub-configs
 

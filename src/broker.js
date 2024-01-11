@@ -7,8 +7,8 @@ let cli = function (argv) {
 	const path = require('path');
 	const fs = require('fs');
 	const xgraph = require('../src/xgraph.js');
-	const createLogger = require('../lib/Logger.js');
-	const log = createLogger({verbose: true});
+	const Logger = require('../lib/Logger.js');
+	const log = new Logger({verbose: true});
 
 	if (argv.length == 2) argv[2] = 'help';
 	let cmd = argv[2];

@@ -4,7 +4,7 @@
 
 const genesis = require('../lib/Genesis.js');
 const nexus = require('../lib/Nexus.js');
-const createLogger = require('../lib/Logger.js');
+const Logger = require('../lib/Logger.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -35,7 +35,7 @@ for(var arg = 0; arg < arguments.length; ++ arg)
 console.log("Logger Options:")
 console.log(options)
 
-const log = createLogger(options);
+const log = new Logger(options);
 
 if (options.test && options.test === 'validate') {
     log.validateTest()  // will terminate program and return 0: FAILED or 1: SUCCESS
