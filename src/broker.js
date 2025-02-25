@@ -8,7 +8,9 @@ let cli = function (argv) {
 	const fs = require('fs');
 	const xgraph = require('../src/xgraph.js');
 	const Logger = require('../lib/Logger.js');
-	const log = new Logger({verbose: true});
+	const Log = require('../lib/Log.js');
+	const logger = new Logger();
+	const log = new Log(logger, 'Broker');
 
 	if (argv.length == 2) argv[2] = 'help';
 	let cmd = argv[2];

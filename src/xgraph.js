@@ -5,6 +5,7 @@
 const genesis = require('../lib/Genesis.js');
 const nexus = require('../lib/Nexus.js');
 const Logger = require('../lib/Logger.js');
+const Log = require('../lib/Log.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,8 +17,7 @@ let options = {
 let arguments = process.argv.slice(2)
 for(var arg = 0; arg < arguments.length; ++ arg)
 {
-    var option = arguments[arg];
-    console.log(option)
+    var option = arguments[arg];    
     switch (option) {
         case '--cwd': 
             options.cwd = arguments[++arg]
@@ -32,16 +32,16 @@ for(var arg = 0; arg < arguments.length; ++ arg)
             options.test = arguments[++arg]
     }
 }
-console.log("Logger Options:")
-console.log(options)
 
-const log = new Logger(options);
+const logger = new Logger(options);
+const log = new Log(logger, 'xgraph', options);
+
+log.i('xgraph options:', options);
 
 if (options.test && options.test === 'validate') {
     log.validateTest()  // will terminate program and return 0: FAILED or 1: SUCCESS
 }
 
-//const log = createLogger({verbose: true});
 let originalArgv;
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -128,6 +128,15 @@ let cli = function (argv) {
 			log.i(version);
 			break;
 		}
+		
+		case 's':
+		case '-s':
+		case '--s':
+		case '--settings':
+		case 'settings': {
+			settings(argv);
+			break;
+		}
 
 		default: {
 			log.i(`Unknown command <${subcommand}>`);
@@ -184,6 +193,19 @@ function xgraphcache(argv){
 		process.exit(1);
 	}
 	log.i('xgraph cache clean success!');
+}
+
+function settings(argv){
+	log.i('xgraph config command: ', argv);
+
+	// parse the arguments
+	let settings = {};
+	for (let i = 1; i < argv.length; i++){
+		let key = argv[i];
+		let value = argv[++i];
+		settings[key] = value;
+	}
+	// xgraph settings --set key value
 }
 
 function processOptions(arguments) {
