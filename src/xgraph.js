@@ -30,6 +30,10 @@ for(var arg = 0; arg < arguments.length; ++ arg)
             break
         case '--test':
             options.test = arguments[++arg]
+			break
+		case '--rotatelogs':
+			options.rotatelogs = true
+			break
     }
 }
 
