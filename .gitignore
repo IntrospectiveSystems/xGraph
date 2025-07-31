@@ -14,6 +14,7 @@ Work/WobbleTest/Simulations/*
 -renders/
 -bin/**/*.*
 -src/gen/**/*.*
+CLAUDE.md
 
 # Runtime data
 pids

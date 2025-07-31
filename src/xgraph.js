@@ -127,16 +127,7 @@ let cli = function (argv) {
 		case '-v': {
 			log.i(version);
 			break;
-		}
-		
-		case 's':
-		case '-s':
-		case '--s':
-		case '--settings':
-		case 'settings': {
-			settings(argv);
-			break;
-		}
+		}		
 
 		default: {
 			log.i(`Unknown command <${subcommand}>`);
@@ -154,6 +145,7 @@ let cli = function (argv) {
 		let helpText = `
 		(function(){
 			let text = \`${helpFileText}\`; 
+			
 			return text;
 		})();
 		`;
@@ -193,19 +185,6 @@ function xgraphcache(argv){
 		process.exit(1);
 	}
 	log.i('xgraph cache clean success!');
-}
-
-function settings(argv){
-	log.i('xgraph config command: ', argv);
-
-	// parse the arguments
-	let settings = {};
-	for (let i = 1; i < argv.length; i++){
-		let key = argv[i];
-		let value = argv[++i];
-		settings[key] = value;
-	}
-	// xgraph settings --set key value
 }
 
 function processOptions(arguments) {
@@ -602,6 +581,8 @@ if (require.main === module || !('id' in module)) {
 	d: deploy,
 	generate,
 	g: generate,
+	spawn,
+	s: spawn,
 
 	processOptions,
 
