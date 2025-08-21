@@ -1,6 +1,6 @@
 {
   "name": "xgraph",
-  "version": "1.5.15",
+  "version": "1.5.16",
   "description": "An Executable Graph Database",
   "main": "./src/xgraph.js",
   "scripts": {
