@@ -63,7 +63,7 @@ let cli = function (argv) {
 
 		try{
 			let system = await xgraph.execute(xgraphArgv);
-		} catch (e) {log.e(e)}
+		} catch (e) {log.e(e);}
 	}
 
 	function add() {
@@ -92,7 +92,7 @@ let cli = function (argv) {
 					log.i('system finished code', evt.exitCode);
 					cleanUp();
 				});
-			} catch (e) {log.e(e)}
+			} catch (e) {log.e(e);}
 
 			async function cleanUp() {
 				try {

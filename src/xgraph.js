@@ -6,44 +6,43 @@ const genesis = require('../lib/Genesis.js');
 const nexus = require('../lib/Nexus.js');
 const Logger = require('../lib/Logger.js');
 const Log = require('../lib/Log.js');
+const GlobalSources = require('../lib/GlobalSources.js');
 const fs = require('fs');
 const path = require('path');
 
 
 let options = {
-    cwd: '.'
-}
+	cwd: '.'
+};
 
-let arguments = process.argv.slice(2)
-for(var arg = 0; arg < arguments.length; ++ arg)
+let arguments = process.argv.slice(2);
+for(let arg = 0; arg < arguments.length; ++ arg)
 {
-    var option = arguments[arg];    
-    switch (option) {
-        case '--cwd': 
-            options.cwd = arguments[++arg]
-            break
-        case '--verbose':
-            options.verbose = true
-            break;
-        case '--debug':
-            options.debug = true
-            break
-        case '--test':
-            options.test = arguments[++arg]
-			break
+	let option = arguments[arg];    
+	switch (option) {
+		case '--cwd': 
+			options.cwd = arguments[++arg];
+			break;
+		case '--verbose':
+			options.verbose = true;
+			break;
+		case '--debug':
+			options.debug = true;
+			break;
+		case '--test':
+			options.test = arguments[++arg];
+			break;
 		case '--rotatelogs':
-			options.rotatelogs = true
-			break
-    }
+			options.rotatelogs = true;
+			break;
+	}
 }
 
 const logger = new Logger(options);
 const log = new Log(logger, 'xgraph', options);
 
-log.i('xgraph options:', options);
-
 if (options.test && options.test === 'validate') {
-    log.validateTest()  // will terminate program and return 0: FAILED or 1: SUCCESS
+	log.validateTest();  // will terminate program and return 0: FAILED or 1: SUCCESS
 }
 
 let originalArgv;
@@ -57,6 +56,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 
 let cli = function (argv) {
+
 	originalArgv = argv.slice(0);
 
 	//remove reference to node and xgraph
@@ -127,6 +127,11 @@ let cli = function (argv) {
 			break;
 		}
 
+		case 'source': {
+			sourceCommand(argv.slice(1), options);
+			break;
+		}
+
 		case '--version':
 		case '-v': {
 			log.i(version);
@@ -137,6 +142,71 @@ let cli = function (argv) {
 			log.i(`Unknown command <${subcommand}>`);
 			help();
 			break;
+		}
+	}
+
+	function sourceCommand(args) {
+		const globalSources = new GlobalSources();
+		
+		if (args.length === 0) {
+			log.i('Usage: xgraph source <add|remove|list> [name] [path]');
+			log.i('');
+			log.i('Commands:');
+			log.i('  add <name> <path>    Add a global source directory');
+			log.i('  remove <name>        Remove a global source directory');
+			log.i('  list                 List all global source directories');
+			return;
+		}
+
+		const subcommand = args[0];
+
+		try {
+			switch (subcommand) {
+				case 'add': {
+					if (args.length < 3) {
+						log.e('Usage: xgraph source add <name> <path>');
+						process.exit(1);
+					}
+					const name = args[1];
+					const sourcePath = args[2];
+					const resolvedPath = globalSources.addSource(name, sourcePath);
+					log.i(`Added global source '${name}' -> ${resolvedPath}`);
+					break;
+				}
+
+				case 'remove': {
+					if (args.length < 2) {
+						log.e('Usage: xgraph source remove <name>');
+						process.exit(1);
+					}
+					const name = args[1];
+					globalSources.removeSource(name);
+					log.i(`Removed global source '${name}'`);
+					break;
+				}
+
+				case 'list': {
+					const sources = globalSources.listSources();
+					if (Object.keys(sources).length === 0) {
+						log.i('No global sources configured');
+					} else {
+						log.i('Global sources:');
+						for (const [name, sourcePath] of Object.entries(sources)) {
+							log.i(`  ${name} -> ${sourcePath}`);
+						}
+					}
+					break;
+				}
+
+				default: {
+					log.e(`Unknown source command: ${subcommand}`);
+					log.i('Valid commands: add, remove, list');
+					process.exit(1);
+				}
+			}
+		} catch (error) {
+			log.e('Source command failed:', error.message);
+			process.exit(1);
 		}
 	}
 
@@ -223,6 +293,24 @@ function processOptions(arguments) {
 	else {
 		options.cache = path.resolve(options.cwd, 'cache');
 	}
+
+	// Load global sources and merge them with runtime options
+	try {
+		const globalSources = new GlobalSources();
+		const globalSourcesMap = globalSources.getGlobalSources();
+		
+		// Add global sources to options if they haven't been overridden at runtime
+		for (const [sourceName, sourcePath] of Object.entries(globalSourcesMap)) {
+			// Only add global source if it's not already defined in runtime options
+			if (!(sourceName in options)) {
+				options[sourceName] = sourcePath;
+			}			
+		}	
+	} catch (error) {
+		// Silently continue if global sources can't be loaded
+		// This ensures xgraph still works even if .xgraph file is corrupted
+	}
+
 	return options;
 }
 
@@ -330,7 +418,7 @@ async function generate(args, Options) {
 			break;
 		}
 		case 'service':
-		case 'svc':
+		case 'svc': {
 			let names = args.slice(1);
 			if (names.length > 0) {
 				log.x(`Generate new xGraph ${names.length > 1 ?
@@ -342,6 +430,7 @@ async function generate(args, Options) {
 					+'system without a system name: "xgraph generate system name".');
 			}
 			break;
+		}
 		default: {
 			log.x('Invalid option for the generate command. Try'
 				+'"xgraph generate module" or "xgraph generate system".');
@@ -585,8 +674,6 @@ if (require.main === module || !('id' in module)) {
 	d: deploy,
 	generate,
 	g: generate,
-	spawn,
-	s: spawn,
 
 	processOptions,
 

@@ -34,6 +34,11 @@ Command:
                                       from a template with the given
                                       name.
 
+  source <add|remove|list>           : Manage global source directories.
+                                      add: Add a global source
+                                      remove: Remove a global source
+                                      list: List all global sources
+
 Options:
   --cwd                             : Sets the current working directory
                                       for the command.
@@ -62,4 +67,10 @@ Examples:
 
   Generate a new module called MyFirstModule.
       graph generate module MyFirstModule
+
+  Add a global source directory for convenient access.
+      xgraph source add xGraph /path/to/xGraph
+
+  List all configured global sources.
+      xgraph source list
 
