@@ -39,6 +39,9 @@ Command:
                                       remove: Remove a global source
                                       list: List all global sources
 
+  spawn         s                    : Spawn an xGraph system as a subprocess
+                                      with WebSocket communication enabled.
+
 Options:
   --cwd                             : Sets the current working directory
                                       for the command.
@@ -53,6 +56,8 @@ Options:
                                       the console window.
   --logleveldebug                   : Allows the verbose logs and the debug
                                       logs to be printed to the console window.
+  --port                            : Specify WebSocket port for spawn command
+                                      (auto-assigned if not specified).
 
 
 Examples:
@@ -73,4 +78,10 @@ Examples:
 
   List all configured global sources.
       xgraph source list
+
+  Spawn an xGraph system as subprocess with auto-assigned WebSocket port.
+      xgraph spawn --config ./config.json
+
+  Spawn an xGraph system with specific WebSocket port.
+      xgraph spawn --config ./config.json --port 9090
 

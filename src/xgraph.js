@@ -128,7 +128,13 @@ let cli = function (argv) {
 		}
 
 		case 'source': {
-			sourceCommand(argv.slice(1), options);
+			sourceCommand(argv.slice(1), Object.assign({}, options, { logger: log }));
+			break;
+		}
+
+		case 'spawn':
+		case 's': {
+			spawn(argv.slice(1), options);
 			break;
 		}
 
@@ -145,70 +151,6 @@ let cli = function (argv) {
 		}
 	}
 
-	function sourceCommand(args) {
-		const globalSources = new GlobalSources();
-		
-		if (args.length === 0) {
-			log.i('Usage: xgraph source <add|remove|list> [name] [path]');
-			log.i('');
-			log.i('Commands:');
-			log.i('  add <name> <path>    Add a global source directory');
-			log.i('  remove <name>        Remove a global source directory');
-			log.i('  list                 List all global source directories');
-			return;
-		}
-
-		const subcommand = args[0];
-
-		try {
-			switch (subcommand) {
-				case 'add': {
-					if (args.length < 3) {
-						log.e('Usage: xgraph source add <name> <path>');
-						process.exit(1);
-					}
-					const name = args[1];
-					const sourcePath = args[2];
-					const resolvedPath = globalSources.addSource(name, sourcePath);
-					log.i(`Added global source '${name}' -> ${resolvedPath}`);
-					break;
-				}
-
-				case 'remove': {
-					if (args.length < 2) {
-						log.e('Usage: xgraph source remove <name>');
-						process.exit(1);
-					}
-					const name = args[1];
-					globalSources.removeSource(name);
-					log.i(`Removed global source '${name}'`);
-					break;
-				}
-
-				case 'list': {
-					const sources = globalSources.listSources();
-					if (Object.keys(sources).length === 0) {
-						log.i('No global sources configured');
-					} else {
-						log.i('Global sources:');
-						for (const [name, sourcePath] of Object.entries(sources)) {
-							log.i(`  ${name} -> ${sourcePath}`);
-						}
-					}
-					break;
-				}
-
-				default: {
-					log.e(`Unknown source command: ${subcommand}`);
-					log.i('Valid commands: add, remove, list');
-					process.exit(1);
-				}
-			}
-		} catch (error) {
-			log.e('Source command failed:', error.message);
-			process.exit(1);
-		}
-	}
 
 	function help() {
 
@@ -385,6 +327,83 @@ async function startNexusProcess(Options) {
 	}
 }
 
+
+async function source(args, Options) {
+	if (Array.isArray(Options)) Options = processOptions(Options);
+	return sourceCommand(args, Options);
+}
+
+async function spawn(args, Options) {
+	if (Array.isArray(Options)) Options = processOptions(Options);
+	
+	const xGraphSpawner = require('../lib/xGraphSpawner.js');
+	const spawner = new xGraphSpawner();
+	
+	// Parse spawn-specific arguments
+	let spawnOptions = {
+		configPath: Options.config,
+		cwd: Options.cwd,
+		websocketPort: Options.port,
+		silent: Options.silent,
+		verbose: Options.verbose,
+		debug: Options.debug
+	};
+	
+	// Handle additional arguments
+	for (let i = 0; i < args.length; i++) {
+		switch (args[i]) {
+			case '--port':
+				spawnOptions.websocketPort = parseInt(args[++i]);
+				break;
+			case '--name':
+				spawnOptions.name = args[++i];
+				break;
+		}
+	}
+	
+	try {
+		log.i('Spawning xGraph system as subprocess...');
+		
+		// Set up event handlers
+		spawner.on('processSpawned', ({ processId, wsPort, pid }) => {
+			log.i(`Process spawned: ID=${processId}, PID=${pid}, WebSocket Port=${wsPort}`);
+		});
+		
+		spawner.on('processExit', ({ processId, code, signal }) => {
+			log.i(`Process ${processId} exited with code ${code}, signal: ${signal}`);
+		});
+		
+		spawner.on('processError', ({ processId, error }) => {
+			log.e(`Process ${processId} error:`, error);
+		});
+		
+		spawner.on('processOutput', ({ processId, type, data }) => {
+			if (Options.verbose || Options.debug) {
+				log.i(`Process ${processId} ${type}:`, data.trim());
+			}
+		});
+		
+		const spawnResult = await spawner.spawn(spawnOptions);
+		
+		log.i('xGraph system spawned successfully');
+		log.i(`Process ID: ${spawnResult.processId}`);
+		log.i(`System PID: ${spawnResult.pid}`);
+		log.i(`WebSocket Port: ${spawnResult.wsPort}`);
+		
+		// Keep the main process alive to monitor the spawned process
+		process.on('SIGINT', () => {
+			log.i('Terminating spawned processes...');
+			spawner.killAll();
+			process.exit(0);
+		});
+		
+		return spawnResult;
+		
+	} catch (error) {
+		log.e('Failed to spawn xGraph system:', error.message);
+		process.exit(1);
+	}
+}
 
 async function generate(args, Options) {
 	if (Array.isArray(Options)) Options = processOptions(Options);
@@ -660,6 +679,75 @@ function makeDirectory(dir) {
 	}
 }
 
+function sourceCommand(args, options = {}) {
+	const GlobalSources = require('../lib/GlobalSources.js');
+	const globalSources = new GlobalSources();
+	
+	// Create a basic logger if not available
+	const logger = options.logger || { i: console.log, e: console.error, w: console.warn };
+	
+	if (args.length === 0) {
+		logger.i('Usage: xgraph source <add|remove|list> [name] [path]');
+		logger.i('');
+		logger.i('Commands:');
+		logger.i('  add <name> <path>    Add a global source directory');
+		logger.i('  remove <name>        Remove a global source directory');
+		logger.i('  list                 List all global source directories');
+		return;
+	}
+
+	const subcommand = args[0];
+
+	try {
+		switch (subcommand) {
+			case 'add': {
+				if (args.length < 3) {
+					logger.e('Usage: xgraph source add <name> <path>');
+					process.exit(1);
+				}
+				const name = args[1];
+				const sourcePath = args[2];
+				const resolvedPath = globalSources.addSource(name, sourcePath);
+				logger.i(`Added global source '${name}' -> ${resolvedPath}`);
+				break;
+			}
+
+			case 'remove': {
+				if (args.length < 2) {
+					logger.e('Usage: xgraph source remove <name>');
+					process.exit(1);
+				}
+				const name = args[1];
+				globalSources.removeSource(name);
+				logger.i(`Removed global source '${name}'`);
+				break;
+			}
+
+			case 'list': {
+				const sources = globalSources.listSources();
+				if (Object.keys(sources).length === 0) {
+					logger.i('No global sources configured');
+				} else {
+					logger.i('Global sources:');
+					for (const [name, sourcePath] of Object.entries(sources)) {
+						logger.i(`  ${name} -> ${sourcePath}`);
+					}
+				}
+				break;
+			}
+
+			default: {
+				logger.e(`Unknown source command: ${subcommand}`);
+				logger.i('Valid commands: add, remove, list');
+				process.exit(1);
+			}
+		}
+	} catch (error) {
+		logger.e('Source command failed:', error.message);
+		process.exit(1);
+	}
+}
+
 if (require.main === module || !('id' in module)) {
 	cli(process.argv);
 } else module.exports = {
@@ -674,9 +762,13 @@ if (require.main === module || !('id' in module)) {
 	d: deploy,
 	generate,
 	g: generate,
-
+	source,
+	spawn,
+	s: spawn,
+	
 	processOptions,
 
 	Nexus: require('../lib/Nexus.js'),
-	Genesis: require('../lib/Genesis.js')
+	Genesis: require('../lib/Genesis.js'),
+	xGraphSpawner: require('../lib/xGraphSpawner.js')
 };
