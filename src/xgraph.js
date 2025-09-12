@@ -307,7 +307,8 @@ async function startNexusProcess(Options) {
 	log.i(`Starting Nexus from ${cacheDir}`);
 
 	let system = new nexus(Options);
-	system.on('exit', _ => {
+	
+	system.on('exit', _ => {		
 		// HACK: to restart systems
 		if (_.exitCode == 72) {
 			setTimeout(_ => {
@@ -315,6 +316,12 @@ async function startNexusProcess(Options) {
 				cacheDir = null;
 				cli(originalArgv);
 			}, 0);
+		}
+		// TODO: Handle other exit codes in a more structured way in the future		
+		if (_.exitCode == 0) {		
+			log.i('Nexus exited normally with exit code 0');
+
+			process.exit(0);
 		}
 	});
 
@@ -392,9 +399,10 @@ async function spawn(args, Options) {
 		
 		// Keep the main process alive to monitor the spawned process
 		process.on('SIGINT', () => {
+			console.log('SIGINT received, terminating spawned processes...');
 			log.i('Terminating spawned processes...');
 			spawner.killAll();
-			process.exit(0);
+			//process.exit(0);
 		});
 		
 		return spawnResult;
@@ -748,9 +756,8 @@ function sourceCommand(args, options = {}) {
 	}
 }
 
-if (require.main === module || !('id' in module)) {
-	cli(process.argv);
-} else module.exports = {
+// Always export functions for module use
+module.exports = {
 	execute,
 	x: execute,
 	e: execute,
@@ -770,5 +777,11 @@ if (require.main === module || !('id' in module)) {
 
 	Nexus: require('../lib/Nexus.js'),
 	Genesis: require('../lib/Genesis.js'),
-	xGraphSpawner: require('../lib/xGraphSpawner.js')
+	xGraphSpawner: require('../lib/xGraphSpawner.js'),
+	SourceManager: require('../lib/GlobalSources.js')
 };
+
+// Run CLI only when executed directly
+if (require.main === module || !('id' in module)) {
+	cli(process.argv);
+}
